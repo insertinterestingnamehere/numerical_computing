@@ -1,0 +1,92 @@
+\lab{Applications}{Regression on a Circle}{Statistics 2}
+\label{LeastSquaresCircle}
+
+\objective{This section will introduce a more advanced application of Least Squares: fitting data to an circle.}
+
+\section*{Fitting data to a circle}
+
+Recall that the equation of a circle, with radius $r$ centered at $(c_1,c_2)$, is given by
+\begin{equation}
+\label{circle}
+(x-c_1)^2 + (y-c_2)^2 = r^2.
+\end{equation}
+Suppose we are given a set of data points closely forming a circle $\{(x_i,y_i)\}^n_{i=1}$.  The ``best'' fit is found via least squares by expanding \eqref{circle} to get
+\[
+2 c_1 x + 2 c_2 y + c_3 = x^2 + y^2,
+\]
+where $c_3 = r^2 - c_1^2 - c_2^2$.  Then we can write the linear system $A x = b$ as
+\[
+\begin{pmatrix}
+2 x_1 & 2 y_1 & 1\\
+2 x_2 & 2 y_2 & 1\\
+\vdots & \vdots & \vdots \\
+2 x_n & 2 y_n & 1
+\end{pmatrix}
+\begin{pmatrix}
+c_1\\
+c_2\\
+c_3
+\end{pmatrix}=
+\begin{pmatrix}
+x_1^2 + y_1^2\\
+x_2^2 + y_2^2\\
+\vdots\\
+x_n^2 + y_n^2
+\end{pmatrix},
+\]
+where the matrix $A$ and the vector $b$ are obtained by the given data and the unknown $x$ contains the information about the center and radius of the circle and is obtained by finding the least squares solution.
+
+\section*{Example}
+
+In this section, we fit the following points to a circle:
+\begin{align*}
+&(134,76),(104,146),(34,176),(-36,146),\\
+&(-66,76),(-36,5),(34,-24),(104,5),(134,76)
+\end{align*}
+We enter them into Python as a $9\times 2$ array:
+\begin{lstlisting}
+: P = sp.array([[134,76],[ 104,146],[ 34,176],[ -36,146],[ -66,76],[ -36,5],[ 34,-24],[ 104,5],[ 134,76]])
+\end{lstlisting}
+Then we can separate the $x$ and $y$ coordinates by the commands {\tt P[:,0]} and {\tt P[:,1]}, respectively.  Hence, we compute $A$ and $b$ by entering the following:
+\begin{lstlisting}
+: A = sp.column_stack((2*P,sp.ones((9,1),dtype=sp.int_)))
+: b = P[:,0]**2 + P[:,1]**2
+\end{lstlisting}
+Hence, we get the least squares solution
+\begin{lstlisting}
+: x = sp.dot(sp.dot(la.inv(sp.dot(A.T,A)),A.T),b)
+\end{lstlisting}
+Then we find $c_1$, $c_2$, and $r$ by:
+\begin{lstlisting}
+: c1 = x[0]
+: c2 = x[1]
+: c3 = x[2]
+: r = sp.sqrt(c1**2 + c2**2 + c3)
+\end{lstlisting}
+We plot this by executing
+\begin{lstlisting}
+: theta = sp.linspace(0,2*sp.pi,200)
+: plt.plot(r*sp.cos(theta)+c1,r*sp.sin(theta)+c2,'-',P[:,0],P[:,1],'*')
+: plt.show()
+\end{lstlisting}
+
+\begin{problem}
+Download the file lab10.txt from the following link:
+\begin{verbatim}
+http://www.math.byu.edu/~jeffh/teaching/m343h/lab10.txt
+\end{verbatim}
+You can load this datafile into Matlab by typing
+\begin{lstlisting}
+: lab10 = sp.genfromtxt("lab10.txt")
+\end{lstlisting}
+Now the data is available in the array {\tt lab10}.  This consists of two columns corresponding to the $x$ and $y$ values of a given data set.  Use least squares to find the center and radius of the circle that best fits the data.  Then plot the data points and the circle on the same graph.  Finish off the problem with a discussion of what you've learned.
+\end{problem}
+
+\begin{problem}
+The general equation for an ellipse is:
+\[
+A(x-x_0)^2 + B(x-x_0)(y-y_0) + C(y-y_0)^2 = 1
+\]
+
+Write a program that uses least squares to fit data to an ellipse. One option to finding the center point $(x_0,y_0)$ is to use the mean function. Test the program on the the {\tt lab10} array. Also test it against sp.dot(lab10,sp.array([[2,0],[0,1]]) ) . Plot the result. How well does your function work?
+\end{problem}

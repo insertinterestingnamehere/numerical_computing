@@ -1,0 +1,84 @@
+\lab{Algorithms}{Broyden's Method}{Broyden's Method}
+
+\objective{Implement Broyden's Method and understand the tradeoff with Newton's Method}
+
+We have already discussed using Newton's method to find the roots of an equation. Newton's method is generally very useful because of its fast convergence properties. However, Newton's method requires computation requires the explicit calculation of the derivative (or respectively jacobian matrix) at each step, which is computationally costly. There is a class of methods known as quasi-Newton methods that modify newton's method so that the derivative (jacobian) does not have to be computed at each step, thus making computations faster. This generally comes at a slower convergence speed, but the increased computation speed can make these methods more effective in many cases.
+
+One quasi-Newton method is known as Broyden's method. We will first discuss the one-dimensional case of Broyden's method: the secant method.
+
+The secant method begins with two initial points that are presumably close to the desired root. We can calculate the equation of the secant line between the two points $x_i$ and $x_{i-1}$ by the following:
+\[
+y = \frac{f(x_i)-f(x_{i-1})}{x_i-x_{i-1}}(x-x_i) + f(x_i)
+\]
+
+Now suppose that we set the next guess of our iterative method to the zero of the secant line, namely:
+
+\[
+x_{i+1} = x_i - f(x_i)\frac{x_i-x_{i-1}}{f(x_i)-f(x_{i-1})}
+\]
+
+\begin{figure}\label{Fig:Secant}
+\begin{center}
+\includegraphics[scale = .5]{./Figures/Broyden_Secant_Method}
+\caption{A demonstration of using the secant method to find a point closer to the desired root.}
+\end{center}
+\end{figure}
+
+This process is demonstrated in graphically in figure \ref{Fig:Secant}.
+
+By continuing this process we (in many cases) will converge to the zero of the function. This method does not require knowledge of the derivative and hence is computationally less costly than Newton's method.
+
+\begin{problem}
+Write a function that takes as input two initial points and a function. Have it return the zero of the function. Make sure to code defensively (have it return an error if the points do not converge). Also, estimate the exponent of convergence using a log-scaled plot when you use your function to estimate the zero of $e^x-2$. The actual value of the exponent of convergence is a value known as the golden ratio, which can be written:
+\[
+\phi = \frac{1 + \sqrt{5}}{2} \approx 1.62
+\]
+The golden ratio shows up in a variety of settings, but we won't discuss them more here.
+\end{problem}
+
+It is interesting to look at the secant method as a specific case of Newton's method, where we have chosen to approximate the derivative using the secant line between our current set of points.
+
+By combining the secant and the bisection method we obtain a more robust method that is guaranteed to converge. This method is known as the {\emph regula falsi} method.
+
+The regula falsi method assumes that we have initial points $x_0$ and $x_1$ such that $f(x_0) < 0 < f(x_1)$. We then use the root of the secant line to find our new point $x_2$. However, we then choose to keep $x_1$ only if $\mbox{sgn}(f(x_2)) \neq \mbox{sgn}(f(x_1))$, otherwise we keep $x_0$. In this manner we can combine the robustness of the bisection method with some of the faster convergence properties of the secant method.
+
+\begin{problem}
+Write a function implementing the regula falsi method. Compare convergence speed with the secant method on the functions:
+\begin{align*}
+f(x) &= e^x-1\\
+f(x) &= cos(x)\\
+f(x) &= x^4/3\\
+\end{align*}
+\end{problem}
+
+As an interesting note, the regula falsi method is thousands of years old, dating to at least the third century BC.
+
+The generalization of the secant method to multiple dimensions is called Broyden's Method. This method is based upon the following starting point. If we have two points $x_k$ and $x_{k-1}$ then the Jacobian $J_k$ at the point $x_k$ will approximately satisfy the following equation:
+\[
+J_k (x_k-x_{k-1}) \approx F(x_k) - F(x_{k-1})
+\]
+In the one dimensional problem we can use this equation to exactly specify the value $J_k$, and this is simply a finite difference approximation of the derivative. However, in multiple dimensions, the equation will be underdetermined (i.e. many $J_k$'s will satisfy the equation). However, suppose that we have a previous estimate of the Jacobian $J_{k-1}$ at the point $J_{k-1}$. We can then find the solution to the multi-dimensional secant equation above that minimizes $\|J_{k-1}-J_k\|$. This requirement is uniquely fulfilled by the following:
+\[
+J_k = J_{k-1} + \frac{\Delta F-J_{k-1} \Delta x}{\|\Delta x\|^2}\Delta x^T
+\]
+
+In this equation the $\Delta F = F(x_k)-F(x_{k-1})$ and $\Delta x = x_k-x_{k-1}$. Intuitively, we are using the secant equation to make a rank-one update on the Jacobian at each step of the algorithm.
+
+\begin{problem}
+Write code implementing Broyden's method. Test it on the function:
+\[
+f(x,y,z) = cos(xy) + xz^3 + y^2 - y + x^2 + z + x
+\]
+\end{problem}
+
+We can often make Broyden's method faster using the Sherman-Morrison Woodbury Formula. This formula allows us to efficiently calculate the inverse of a matrix when we add a low rank update to that matrix. After manipulation of the Sherman-Morrison Woodbury Formula we obtain the following:
+
+\[
+J_k^{-1} = J_{k-1}^{-1} + \frac{\Delta x - J_{k-1}^{-1}\Delta F}{\Delta x^T J_{k-1}^{-1}}
+\]
+
+Thus, we can calculate the inverse of the jacobian in the first step of our algorithm and then calculate an update to the inverse at each step using the above formula.
+
+\begin{problem}
+Implement this modification in a new file. Now compare the two versions of Broyden's method on the function above. Which is faster? Are there cases where one implementation is better than the other?
+\end{problem}
