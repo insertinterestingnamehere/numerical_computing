@@ -1,0 +1,202 @@
+\lab{Algorithms}{Scientific Visualization}{Scientific Visualization}
+
+\objective{Go over techniques for making publication ready figures and making other pretty things.}
+
+In this lab we will be focusing on producing publication ready figures in MATLAB.  Thus far we have produced many different plots for several applications.  Here we will focus on different ways of presenting those plots so that they are more informative and aesthetically pleasing.
+
+\section{The \li{plot} Command}  Several of the past labs have required the use of the \li{plot} command.  While what we have done so far as been fairly straightforward as far as plotting is concerned, a quick glance at the MATLAB documentation for \li{plot} reveals a plethora of options for changing the output of the plot command.
+
+How we use the \li{plot} command will vary with our application.  Plotting data requires a very different presentation approach than graphing straight lines.  In the sequel we examine several different options.
+
+\begin{table}[h!]
+\begin{center}
+	\begin{tabular}{|c|c|}
+	
+	\hline
+	
+	Usage & Property Options\\
+	
+	\hline
+	
+	\li{Color} & \li{yellow, green, blue} etc., or user defined colors \\& given by $[r g b]$, a three element red, green, \\& blue vector.  See documentation for full list. \\
+	
+	\hline
+	
+	\li{LineStyle} & \li{-, --, :, -., 'none'} \\
+	
+	\hline
+	
+	\li{LineWidth} & Width in points.  $1$ point is $\frac{1}{72}$ inch.  Default is $0.5$ points. \\
+	
+	\hline
+	
+	\li{Marker} & \li{+, *, x, .} etc. See documentation for full list. \\
+	
+	\hline
+	\end{tabular}
+\end{center}
+\caption{Common Plot commands in MATLAB}
+\end{table}
+
+For example, if we wanted to plot $f(x) = x^2$, we don't need to extend our typical plotting knowledge much, except maybe we like green better than blue:
+
+\begin{matlab}
+\begin{lstlisting}[style=matlab]
+>> x = linspace(-1,5,50);
+>> plot(x,f(x),'color','green')
+\end{lstlisting}
+\end{matlab}
+
+See figure 37.1.
+
+\begin{figure}
+\begin{center}
+\begin{matlab}
+\includegraphics[scale=0.5]{./FiguresMAT/plot1}
+\end{matlab}
+\caption{Graph of $f(x) = x^2$}
+\end{center}
+\end{figure}
+
+
+However, if we wanted to plot the data drawn from a certain distribution, we would want to use the plot command in a very different way.  For example:
+
+\begin{matlab}
+\begin{lstlisting}[style=matlab]
+>> X = random('Normal',0,1,[100,1]);
+>> plot(X,'marker','*','LineStyle','none');
+\end{lstlisting}
+\end{matlab}
+
+See figure 37.2.
+
+\begin{figure}
+\begin{center}
+\begin{matlab}
+\includegraphics[scale=0.5]{./FiguresMAT/plot3}
+\end{matlab}
+\caption{100 data points pulled from a normal distribution}
+\end{center}
+\end{figure}
+
+The \li{hold} command will also be useful for when plotting more than one graph on a single plot.  For example, if we wanted to graph $f(x) = \sin{x}$ and it's derivative $f'(x) = \cos{x}$, we would do the following:
+
+\begin{matlab}
+\begin{lstlisting}[style=matlab]
+>> f = @(x) sin(x);
+>> df = @(x) cos(x);
+>> x = linspace(0,2*pi,50);
+>> hold on;
+>> plot(x,f(x),'color','blue');
+>> plot(x,df(x), 'color','green');
+>> hold off;
+\end{lstlisting}
+\end{matlab}
+
+See figure 37.3.
+
+\begin{figure}
+\begin{center}
+\begin{matlab}
+\includegraphics[scale=0.5]{./FiguresMAT/plot2}
+\end{matlab}
+\caption{$f(x) = \sin{x}$ and $f'(x) = \cos{x}$. Note the color choice makes for better presentation.}
+\end{center}
+\end{figure}
+
+\begin{problem}  Using the MATLAB documentation and the aforementioned commands, do the following:
+\begin{itemize}
+\item Generate 25 data points from a distribution of your choosing.  Plot the data points and the least squares regression line on the same plot.  Use different colors and symbols for the data and the regression line.
+\item 
+\end{itemize}
+\end{problem}
+
+\subsection{Changing the \li{plot} window}
+
+Within in MATLAB we have several options for changing the \li{plot} window.  This includes adding captions and other labels, legends, and altering the axes (among other things).  For example, we plot 3 trajectories of a projectile shot from a cannon at 30 meters per second.
+
+\begin{matlab}
+\begin{lstlisting}[style=matlab]
+g = 9.8;
+v = 30;
+t = linspace(0,6,100);
+
+h1 = @(t) v*sin(pi/6).*t - 0.5*g.*t.^2;
+h2 = @(t) v*sin(pi/4).*t - 0.5*g.*t.^2;
+h3 = @(t) v*sin(pi/3).*t - 0.5*g.*t.^2;
+
+hold on;
+plot(v*cos(pi/6)*t,h1(t),'color','green')
+plot(v*cos(pi/4)*t,h2(t),'color','blue')
+plot(v*cos(pi/3)*t,h3(t),'color', 'red')
+axis([0 100 0 40]);
+xlabel('Distance');
+ylabel('Height');
+hold off;
+\end{lstlisting}
+\end{matlab}
+
+See figure 37.4
+
+\begin{figure}
+\begin{center}
+\begin{matlab}
+\includegraphics[scale=0.5]{./FiguresMAT/plot4}
+\end{matlab}
+\caption{Trajectory of a projectile fired at three different angles.}
+\end{center}
+\end{figure}
+
+\begin{problem} 
+\end{problem}
+
+\section{The \li{subplot} command}  Often times we want to include two or more plots in a single figure.  This is done using the \li{subplot} command.  This command will break the plot window into an $m\times n$ matrix of plots.  The subplot windows are numbered starting at $1$ in the top left cell and then ascending from left to right, top to bottom.  For example, instead of using different colors on the previous example, we could do 3 separate plots in a single window.  We could also include a graph of, for example, vertical velocity vs. time, which is informative but unable to be included in the same plot since it requires different units.  Let's see how this is done.
+
+\begin{matlab}
+\begin{lstlisting}[style=matlab]
+g = 9.8;
+v = 30;
+t = linspace(0,6,100);
+
+h1 = @(t) v*sin(pi/6).*t - 0.5*g.*t.^2;
+h2 = @(t) v*sin(pi/4).*t - 0.5*g.*t.^2;
+h3 = @(t) v*sin(pi/3).*t - 0.5*g.*t.^2;
+
+subplot(221); plot(v*cos(pi/6)*t,h1(t),'color','green'); 
+axis([0 100 0 40]);
+xlabel('Distance');
+ylabel('Height');
+title('30 degrees')
+
+subplot(222); plot(t, v*sin(pi/6) - g*t,'color','green');
+xlabel('Time');
+ylabel('Vertical Velocity');
+
+subplot(223); plot(v*cos(pi/4)*t,h2(t),'color','blue');
+axis([0 100 0 40]);
+xlabel('Distance');
+ylabel('Height');
+title('45 degrees')
+
+subplot(224); plot(t, v*sin(pi/4) - g*t, 'color','blue');
+xlabel('Time');
+ylabel('Vertical Velocity');
+
+\end{lstlisting}
+\end{matlab}
+
+See figure 37.5.
+
+\begin{figure}
+\begin{center}
+\begin{matlab}
+\includegraphics[scale=0.5]{./FiguresMAT/plot5}
+\end{matlab}
+\caption{Trajectory of a projectile fired at two different angles and the projectiles corresponding vertical velocity at time $t$.}
+\end{center}
+\end{figure}
+
+\section{Time graphics?}
+
+
+

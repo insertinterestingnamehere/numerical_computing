@@ -1,0 +1,108 @@
+\lab{Algorithms}{Functions and Logic}{Functions and Logic}
+
+\objective{This section will teach how to build functions. It will also introduce logical statements used in programming.}
+
+Up to this point we have only run scripts. We now introduce a much more powerful and versatile method of problem solving: writing functions.
+
+A function, in the programming sense, is an algorithm that takes in inputs (arguments) and produces outputs. Because of this, the first line of every function that we write will list inputs and outputs in the following manner:
+
+\begin{lstlisting}[style=matlab]
+function [out1, out2]=  myfunction(in1,in2)
+\end{lstlisting}
+
+The name of the function, in this case, is myfunction. When we write functions we can name them anything we want, and can have as many or as few input arguments as we want. Then, by saving the file in the current MATLAB folder we can call this function at the command line (NOTE: make sure that you name the file the name of the function, otherwise MATLAB may have a hard time finding it).
+
+One important benefit of functions is that any operation done inside a function does not affect variables in the general workspace of MATLAB. This means that we can build complicated functions without worrying about affecting other variables outside of the function. This concept is known as variable scope. When we use variables inside a function they are called ``local variables'', since they do not effect any variables outside of the function.
+
+Let's try an example. Open a new m-file and write the following:
+
+\begin{lstlisting}[style=matlab]
+function [x1,x2] = quadrForm(a,b,c)
+descr = sqrt(b^2-4*a*c);
+x1 = (-b+descr)/2*a;
+x2 = (-b-descr)/2*a;
+end
+\end{lstlisting}
+
+This function takes as inputs the coefficients of a quadratic function and returns the output of the quadratic formula. Save this function as ``quadrForm.m'', and make sure that the current MATLAB directory is where you saved the function. Now at the command line you can use this function.
+
+\begin{lstlisting}[style=matlab]
+>> [x1,x2] = quadrForm(1,-2,1)
+x1 =
+     1
+x2 =
+     1
+\end{lstlisting}
+
+We note that this function is susceptible to floating point error. For example, try to find the roots of the polynomial $x^2 - (10^7 + 10^-7)x + 1$ using our function:
+
+\begin{lstlisting}[style=matlab]
+>> [x1 x2] = quadrForm(1,-(1e7 + 1e-7),1)
+x1 =
+    10000000
+x2 =
+   9.9652e-08
+\end{lstlisting}
+
+Clearly the first root is correct, but the second root is clearly in error (admittedly the error is small, but in this case it is easily fixed). The second root shows the error because it is calculated by subtracting two numbers that are very close together.
+
+We can solve this problem by using slightly different approach. We first calculate the root that is farther from zero using the formula:
+\[
+x_1 = \frac{-b - \text{sign}(b)*d}{2a}
+\]
+We can then use a formula known as Viete's formula to calculate the other root:
+\[
+x_1 x_2 = c/a
+\]
+
+\begin{problem}
+Write a function that implements this approach. Call it \li{quadrForm2}. Observe the improved performance.
+\end{problem}
+
+Most of MATLAB's built-in functions were written in m-files just like the functions you just wrote. Therefore, if you are ever interested in how a built-in function works, you can probably look the actual function up.
+
+%\begin{comment}
+
+\section*{Logic, Conditionals and Loops}
+
+
+Three basic operators in logic are AND (\li{&&}) OR (\li{||}) and NOT (\li{\~}). We can use relational operators from the Table \ref{tbl:relops} to build logical statements:
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c|c|}
+	\hline
+	\li{==} & equal to\\
+	\li{<} & less than\\
+	\li{<=} & less than or equal to\\
+	\li{\~} & not equal to\\
+	\li{>} & greater than\\
+	\li{>=} & greater than or equal to\\
+	\hline
+\end{tabular}
+\caption{Some relational operators}
+\label{tbl:relops}
+\end{center}
+\end{table}
+
+Using these building blocks we can build complicated statements. For example the statement \li{(x>1)&&(x<10)} will return true (1) if $x$ is between one and ten, and false (0) otherwise.
+
+\begin{problem}
+Create logical statements for the following:
+\begin{enumerate}
+\item True if x is prime and less than one-thousand, false otherwise (use the function \li{isprime}).
+\item True if $x^2$ is greater than 10 or x is positive and smaller than 2.
+\item True if the bessel function of the second kind evaluated at x, with nu = 1, has magnitude greater than 1 (use the function \li{bessely}).
+\end{enumerate}
+\end{problem}
+
+
+When we create logical statements based on a vector $x$ we are creating what is known as a bit mask. This bit mask will evaluate to one if the logical statement holds true for that element of $x$, and will be zero if the statement does not hold. Using logical statements as ``masks'' in performing operations is a very powerful tool. For example, suppose we have a vector and we want to add .5 to any number that is less than .5 in that vector. We can do this simply with the following statement:
+\[
+x = x + .5*(x < .5);
+\]
+
+\begin{problem}
+Create a function that takes an input vector x and shuffles it like a deck of cards. You may assume that x has even length. The key is to create a mask using some random vector and then assign specific cards to even or odd slots of an output vector using that mask. Remember that you can acess the even entries of a vector using notation like y(2:2:length(x)). Then see how many shuffles it takes to make the output $y$ ``random.'' (you can do this by looking at the offdiagonal entry of corrcoef(x,y), which should be close to zero if the output is random).
+\end{problem}
+

@@ -1,0 +1,146 @@
+\lab{Applications}{Recursion and Persistent Variables}{Recursion and Persistent Variables}
+
+\objective{We will briefly discuss an important technique in programming known as recursion. Then we will discuss the use of persistent variables in MATLAB.}
+
+A recursive function is one that calls itself. For example we could write a factorial function as follows:
+
+\lstinputlisting[style=fromfile]{./Source/factorial.py}
+
+This function calculates factorial recursively. It calls \li{factorial(n-1)} until \li{n = 1}, at which point each function finally terminates and returns its respective value back up the call chain.
+
+One critical aspect of this code is the fact that if \li{n == 1}, the function returns $1$. This is known as the base case. The base case is the case where the recursion breaks down, or in other words where the function stops calling itself. Every recursive algorithm must have some sort of base case, or else it will call itself indefinitely (similar to an infinite loop).  Because of this possibility, it is important to only allow recursion to continue only under certain conditions.  This
+
+In fact this function only works on positive integers. On any other input the function never terminates. Thus we should modify the function as follows to avoid problems:
+
+\lstinputlisting[style=fromfile]{./Source/factorial2.py}
+
+This practice (of writing code to handle bad user input) is known as defensive programming. It is good to get into this habit.
+
+Here's a simple combinatoric example. Suppose our goal is to enumerate every possible way to select six numbers out of a list of ten (note that we are talking combinations not permutations). We could use some sort of complicated \li{for} loop structure like this:
+
+\begin{lstlisting}
+for i in ...:
+    for j in ...:
+        for k in ...:
+            for l in ...:
+            .
+            .
+            .
+\end{lstlisting}
+
+However, we wish to stress emphatically, that this is rarely the right way to do any problem. Once you write more than three for loops you are probably skirting on the edges of intractability (in fact, any time you attack a problem that suggests this approach you are likely attacking a problem that is inherently intractable). However, oftentimes such a problem can at least be programmed using recursion.
+
+For example in our combinatorics problem above we could write something like the following:
+
+%NEED HELP
+\begin{lstlisting}
+function out = Combinations(v,r)
+if (r <=0 || rem(1,r) ~= 1)
+	error('r must be a positive integer');
+end
+out = [];
+n = length(v);
+if r == 1
+  out = v';
+else
+  for i = 1:n-(r-1)
+     k = factorial(n-i)/((factorial(r-1))*(factorial(n-i-(r-1))));
+     %% The previous line calculates the number of combinations
+     out = [out;[v(i)*ones(k,1), Combinations(v(i+1:end),r-1)]];
+  end
+end
+\end{lstlisting}
+
+This solution utilizes recursion to make the coding much more simple. Write this code up and understand why it does what it does, and how the recursion works.
+
+One note of importance: just because a recursive algorithm exists does not mean that it is the correct way to solve the problem. The factorial example makes this readily evident. Generally speaking recursion slows things down, so it should be avoided when possible. However, it can provide elegant solutions to difficult problems, and is a good arrow to have in your quiver.
+
+\begin{problem}
+Use recursion to calculate the determinant of an array using cofactor expansions (this is known as Laplace's formula). The correct solution should only be several lines of code. You can see how simple recursive programs can be. Now time your function and compare its performance to finding the determinant using the LU decomposition that you wrote earlier. How does it fare? You will probably notice that the recursive method is much slower for even moderate values of n. Why is this? Laplace's formula is $O(n!)$, so even though it's very easy to code it's terribly inefficient in general.
+\end{problem}
+
+% \section*{Persistent Variables}
+% %Function attributes
+% One of the crucial concepts in computer programming is known as scoping. A variable's scope is the function that it lives in. When we write functions the only variables that we have to worry about are the ones that are passed into it. This is because each function has its own scope. A variable that only lives in a specific function (as most variables should) is known as a local variable.
+% 
+% Every object in Python can contain attributes.  Functions are objects in Python, and therefore can have attributes declared.  This provides us with a great place to store persistent data. We will illustrate using a function that calculates the fibonacci numbers. In this example we will also practice using recursive functions.
+% 
+% Write the following function:
+% 
+% \begin{lstlisting}
+% def fib1(a,b,n):
+%     """Calculate nth fibonacci number using ``a`` and ``b`` as seeds"""
+%     if n==1:
+%         return a
+%     elif n==2:
+%         return b
+%     else:
+%         return fib1(a,b,n-1)+fib1(a,b,n-2)
+% \end{lstlisting}
+% 
+% This function is very easy to read and directly applies the recursive definition of the fibonacci sequence. However, there is a problem. Consider the function calls made for \li{fib1(1,1,5)}.
+% 
+% \begin{align*}
+% fib1(5) &= fib1(4) + fib1(3) = (fib1(3) + fib1(2)) + (fib1(2) + fib1(1)) \\
+%        &= ((fib1(2) + fib1(1)) + fib1(2)) + (fib1(2) + fib1(1))
+% \end{align*}
+% 
+% It is clear that many calculations are being repeated unnecessarily. One possible way to solve this problem is to use a \li{for} loop instead. Try writing the following function:
+% 
+% \begin{lstlisting}
+% def fib2(a,b,n):
+%     """Calculate the nth fibonacci number using a and b as seeds"""
+%     
+%     if n==1:
+%         return a
+%     elif n==2:
+%         return b
+%     else:
+%         x = [a,b]
+%         for i in range(1,n-1):
+%             x = [b, sum(x)]
+% \end{lstlisting}
+% % 
+% % function out = fib2(a,b,n)
+% % %% calculate the nth fibonacci number using the seeds a,b
+% % if n == 1
+% % 	out = a;
+% % else
+% %     if n == 2
+% %         out = b;
+% %     else
+% %         x = [a b];
+% %         for i = 1:n-2
+% %             x = [b sum(x)];
+% %         end
+% %         out = x(2);
+% %     end
+% % end
+% % \end{lstlisting}
+% 
+% This version has the advantage that there are no repeated calculations. However, suppose that we are expecting a and b to usually remain the same. Each time \li{fib} was called all of the calculations would have to be redone. This is where persistent variable can be useful. If a variable is declared persistent its value will be stored for the next time the function is called. In this example we can store the entire fibonacci sequence as a persistent variable and only recalculate as necessary. The following code implements this approach:
+% 
+% \begin{lstlisting}
+% function out = fib3(a,b,n)
+% %% calculate the nth fibonacci number using the seeds a,b
+% persistent f
+% if length(f) < 2 || f(1) ~= a || f(2) ~= b
+%     f = [a b];
+% end
+% for k = (length(f) + 1):n
+%     f(k) = f(k-2) + f(k-1);
+% end
+% out = f(n);
+% \end{lstlisting}
+% 
+% Test this code out. Try testing its performance against the other versions (you could try calculating the same fibonacci number several thousand times). You should see a significant difference.
+% 
+% We finish this section with a word of caution. Persistent variables require significant overhead, and accessing them is much slower than accessing normal variables. They should accordingly be used sparingly.
+% 
+% \begin{problem}
+% Use persistent variables to speed up the calculations of the \li{expss} function that you wrote in chapter one (hint: certain operations, such as factorial, are costly). Test your new function's performance against the old one. How does it perform?
+% \end{problem}
+% 
+% \begin{problem}
+% Compare the performance of the \li{fib3} versus \li{fib2}, when the seeds are random every time. You should run it several thousand times in your test. What do you notice? \li{fib3} is much slower because accessing a persistent variable is very costly. This reminds us that using persistent variables should be avoided in most situations.
+% \end{problem}
