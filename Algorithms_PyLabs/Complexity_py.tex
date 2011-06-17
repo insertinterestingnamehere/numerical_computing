@@ -1,0 +1,126 @@
+\lab{Algorithms}{Temporal Complexity Revisited}{Temporal Complexity Revisited}
+
+\objective{Learn about the temporal complexity of various matrix operations.}
+
+Now that we have the more sophisticated tools of loops at our disposal, let's take another look at \emph{temporal complexity}. We can estimate empirically the temporal complexity of matrix multiplication. We do this by writing a script to multiply two random square matrices and then we time the operation.
+\lstinputlisting[frame=single, name=temporal_complex.py]{./Source/temporal_complex.py}
+
+Note that this script plots the log of the operation and the size of the input (this is what the command \li{plt.loglog()} does). We do this because:
+\[
+log(x^m) = m log(x)
+\]
+In this case $x$ is related to the size of our input and $x^m$ is related to the time to solve the problem (essentially we are assuming our operation is in $O(x^m)$). This equation then says that by plotting the log of the input size and computation time will yield a line of slope $m$.
+In this case we are calculating the least squares value (using backlash) for the slope, giving a ``best'' estimate of the exponent of the temporal complexity. The value that we get while running this script is about three. This suggests that matrix multiplication is in $O(n^3)$.
+
+Why is this? Let's write our own array multiplication function to figure it out. The following function will multiply two arrays according to the rule of matrix multiplication.
+\lstinputlisting[frame=single, name=arrayMult.py, firstline=1, lastline=11]{./Source/arrayMult.py}
+ 
+% \begin{lstlisting}
+% function C = MatrMult(A,B)
+% [a,b] = size(A);
+% [c,d] = size(B);
+% C = zeros(a,d);
+% for i = 1:a
+%     for j = 1:b
+%         for k = 1:d
+%             C(i,k) = C(i,k) + A(i,j)*B(j,k);
+%         end
+%     end
+% end
+% \end{lstlisting}
+
+This is a very simple, naive implementation of array multiplication. Note that there are three nested \li{for} loops. Each loop iterates along one of the array's dimensions. Since they're nested and there's a single ``operation'' at the center you simply multiply the number of iterations in each loop to get the total number of iterations. Unsurprisingly, this is $n^3$.
+
+We note that even though the built-in version of array multiplication has the same temporal complexity as the function you just wrote, they do \emph{not} take the same time to run. You can verify this by running the following:
+\begin{lstlisting}
+: import scipy as sp
+: from timer import timer
+: from arrayMult import arrayMult
+: A = sp.rand(100,100)
+: B = sp.rand(100,100)
+: with timer(loop=10) as t:
+....: t.time(sp.dot, A, B)
+....: t.time(arrayMult, A, B)
+....: t.printTimes()
+\end{lstlisting}
+
+Why did the two function have significantly different runtimes?  Functions with the same temporal complexity do not take necessarily have the same runtime. It is often possible to improve a function without changing the temporal complexity. One of the primary reasons that we study temporal complexity is to better understand how problems scale.
+
+\begin{problem}
+\label{prob:tempcomp1}
+Calculate the temporal complexity of the following operations. Use random matrices.
+\begin{itemize}
+\item Matrix Addition
+\item Matrix Inverse
+\item Determinant
+\item LU decomposition
+\item SVD (note that the temporal complexity for this operation is roughly the same as many of these other operations, but that this takes much longer. This again demonstrates that although temporal complexity is incredibly important, it is not the only important factor)
+\item Solving a system of equations (remember to use \li{la.solve()}, not \li{la,inv()}).
+\end{itemize}
+\end{problem}
+
+In Problem \ref{prob:tempcomp1} we calculated the temporal complexity of solving a linear system. \li{la.solve()} is a very efficient way to solve linear systems, however, there are still situations where we can do a better job. For example, suppose that $A$ is generated using the following code:
+\begin{lstlisting}
+: n = 100
+: b = sp.rand(n,1)
+: u = sp.rand(n,1)
+: v = sp.rand(1,n)
+: A = sp.eye(n) + sp.dot(u,v)
+\end{lstlisting}
+
+In this case we can use the Sherman-Morrison-Woodbury formula to directly find the inverse quickly:
+\[
+(A + UCV)^{-1} = A^{-1} - A^{-1}U(C^{-1} + VA^{-1}U)^{-1}VA^{-1}
+\]
+
+This formula assumes that $C$ and $A$ are square arrays. In the simple example that we started above $C = 1$. We can solve the system $Ax = b$ using different methods (\li{la.solve()}, \li{la.inv()} and the inversion formula above) and time them using the following code:
+\lstinputlisting[name=solvesys.py, frame=single]{./Source/solvesys.py}
+
+\begin{lstlisting}
+: import solvesys as ss
+: with timer(loops=10) as t:
+....: t.time(ss.solveSys, A, b)
+....: t.time(ss.invSys, A, b)
+....: t.time(ss.smwSys, A, b, n, u, v)
+....: t.printTimes()
+\end{lstlisting}
+
+We observe that for large $n$, the last method is about four times faster than \li{la.solve()}, and about ten times faster than using \li{la.inv()}. This suggests that at times, special knowledge of a system can be leveraged to greatly improve solution time.
+
+\begin{problem}
+Use the Sherman-Morrison-Woodbury formula to solve a system of equation where $A$ is the identity matrix with random entries added to the last column and the last row. Compare performance with \li{la.solve()} and \li{la.inv()}.
+\end{problem}
+
+As we have stated several times in this section, algorithms can have the same temporal complexity, but can have quite different runtimes. One method for speeding up looping algorithms is called vectorization. Vectorization is when we replace a loop with a vector operation. This often is slightly harder to code and is more difficult to understand, but it can yield great benefits in terms of computation time. We've already worked with this a little bit, but the array multiplication example is particularly powerful.
+
+When you're taught matrix multiplication typically you're taught to multiply the rows of the first matrix by the columns of the second. In the function we wrote we multiplied each entry individually. Let's replace one of the loops (the \li{j} loop) with an inner product (which is more consistent with how we're taught to multiply matrices anyway). Write a second function for array multiplication that works in this way:
+% \begin{lstlisting}
+% def MatrMult2(A, B):
+%     a,b=A.shape
+%     c,d=B.shape
+%     C=sp.zeros((a,d))
+%     for i in range(a):
+%         for j in range(d):
+%             C[i,j]=sp.dot(A[i,:], B[:,j])
+%     return C
+% \end{lstlisting}
+\lstinputlisting[frame=single, name=arrayMult.py, firstline=13, lastline=20]{./Source/arrayMult.py}
+
+Now write a script that will compare the run time of the two matrix multiplication functions that you just wrote:
+\begin{lstlisting}
+from timer import timer
+import scipy as sp
+from complexity import MatrMult, MatrMult2
+n=500
+A = sp.rand(n,n)
+B = sp.rand(n,n)
+C = sp.rand(n,n/2)
+with timer() as t:
+    t.time(MatrMult, A, B)
+    t.time(MatrMult, A, C)
+    t.time(MatrMult2, A, B)
+    t.time(MatrMult2, A, C)
+    t.printTimes()
+\end{lstlisting}
+
+We note that the second implementation takes much less time. Recall that this is because MATLAB is optimized to perform vector manipulations. This does not change the asymptotic growth rate of the algorithm (temporal complexity), it simply changes the leading coefficient of that growth rate (which temporal complexity ignores). Clearly by eliminating loops we can often save huge amounts of time.

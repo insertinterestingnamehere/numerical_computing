@@ -1,0 +1,94 @@
+\lab{Applications}{Applications of the Pseudo-Inverse}{Pseudo-Inverse Applications}
+
+\objective{This section explains a few applications of the Moore-Penrose inverse, including least squares problems, norm-minimization problems and the condition number.}
+
+The pseudo-inverse is a useful generalization for a variety of applications. The first we will consider is least squares and norm-minimization problems.
+
+Consider the system
+\[
+Ax = b
+\]
+
+$A$ need not be full rank. It may be either over or under-determined. How do we come up with a ``good'' solution to this system? In the case where the system is over-determined, we can use least squares to find the solution that minimizes $\norm{Ax^* - b}_2$. In the case where $A$ is under-determined there may be an infinite number of solutions. Assuming that there is a solution, we will search for the solution that minimizes the norm of the solution, or in other words we will minimize $\norm{x^*}_2$ subject to $Ax-b = 0$.
+
+Amazingly, the pseudo-inverse solves both of these problems. We will offer a brief proof. First, for ease of notation, let $P = A A^\dagger$. Note that $PA = A$ and $P = P^*$. We also denote $z = A^\dagger b$. Using these facts we can show that:
+\begin{align*}
+A^*(Az-b) &= A^*(A A^\dagger b - b) \\
+&= A^*P b - A^* b \\
+&= (PA)^* b - A^* b \\
+&= 0
+\end{align*}
+
+Then we can use the parallelogram law to show that:
+
+\begin{align*}
+\norm{Ax-b}_2^2 &= \norm{Ax + Az-Az-b}_2^2 \\
+&= \norm{Az-b}_2^2 + (A(x-z))^*(Az-b) + \left((A(x-z))^*(Az-b)\right)^* + \norm{A(x-z)}_2^2 \\
+&= \norm{Az-b}_2^2 + ((x-z)^*A^*(Az-b) + \left(((x-z)^*A^*(Az-b)\right)^* + \norm{A(x-z)}_2^2 \\
+&= \norm{Az-b}_2^2 + \norm{A(x-z)}_2^2 \\
+&\geq \norm{Az-b}_2^2
+\end{align*}
+
+Thus, $z$ is the least squares solution.
+
+\begin{problem}
+Suppose that $A$ is under-determined and that $Ax = b$ has a solution (i.e. is staisfiable). Use the same steps as we used for the least squares solution to prove that $z = A^\dagger b$ is the minimum norm solution. For the first step, show that expression $z^*(x-z) = 0$. For the second step use the parallelogram rule on $\norm{x -z +z}_2^2$.
+\end{problem}
+
+{\bf Here a good problem involving finding the minimum-norm solution of something would be perfect. Do you have any suggestions?}
+
+\subsection*{Condition Number}
+
+Suppose that we have the equation:
+\[
+Ax= b
+\]
+Now suppose that we have an approximate solution, namely we have $\tilde{x}$ such that $\norm{A\tilde{x} -b}$ is small. Does this imply that $\norm{x-\tilde{x}}$ is small? This is not always the case. Consider, for example, the system:
+\[
+\begin{pmatrix}
+2 & 1\\
+4 & 2.1 \\
+\end{pmatrix} x = 
+\begin{pmatrix}
+3 \\
+6.01\\
+\end{pmatrix}
+\]
+
+This system has the unique solution $x = [1, 1]^T$. However, the vector $\tilde{x} = [1.5, 0]^T$ has a very small solution error since $\norm{Ax-A\tilde{x}} = .01$, but the difference betwen $[1, 1]$ and $[1.5, 0]$ is pretty significant. This is an example of what is called an ill-conditioned matrix. The issue in this case, is that the matrix $A$ maps two vectors that are relatively far apart (namely $x$ and $\tilde{x}$) to vectors that are close together.
+
+This issue becomes very important when we're dealing with floating point arithmetic. It isn't hard to imagine that in finite precision arithmetic it might be reasonable to say that $\tilde{x}$ is a solution to the linear equation above, while it is actually very different from the real solution. We note that in this case rounding errors are not to blame! The matrix itself is to blame.
+
+We quantify this behavior with what is called the condition number of a matrix. The condition number, informally, represents the amount that the solution $x$ of the equation $Ax = b$ changes with respect to $b$. Therefore a large condition number implies that a small error in $b$ (from either measurement error, or floating point arithmetic) can yield a large error in the solution $x$. We can calculate the condition number of a matrix using the following equality:
+\[
+k(A) = \norm{A} \norm{A^\dagger}
+\]
+Where $k(A)$ represents the condition number of the of matrix $A$. In this case, the choice of norm isn't important. What we are  doing when we change norms is really change the interpretation of the condition number (i.e. what we are using to measure changes in $b$ and $x$)\footnote{The fact that $A^\dagger$ is not continuous can be problematic for the calculation above, but we are not going to treat that problem here}.
+
+We can calculate the condition number of the matrix at the beginning of this section.
+
+\begin{lstlisting}
+: import scipy as sp
+: from scipy import linalg as la
+: A = sp.array([[2,1],[4,2.01]])
+: la.norm(A)*la.norm(la.pinv(A))
+1252.004999999938
+\end{lstlisting}
+
+The error that we had in our example was
+
+\[
+\frac{\norm{[.5, -1]}}{\norm{[0, .01]}} = 111.8
+\]
+
+Which is a whole order of magnitude smaller than the condition number. This implies that the matrix $A$ could give solutions ten times ``worse'' than it did in our example.
+
+\begin{problem}
+An $n \times n$ Hilbert Matrix is a matrix with the following entries:
+\[
+H_{ij} = \frac{1}{i + j -1}
+\]
+
+This matrix arises in least-squares polynomial approximation. This matrix is also a canonical example of an ill-conditioned matrix. Write a function that accepts $n$ as an argument and calculates the condition number of the n-th Hilbert Matrix. Plot the growth of the condition number with respect to $n$. What conclusion can you draw about using this type of matrix?
+Python Note: Implementing this formula directly in Python will result in a divide by zero error.  We need to understand that our index variable need to be offset by positive one.  So, $(i+1)+(j+1)-1 = i+j+1$
+\end{problem}

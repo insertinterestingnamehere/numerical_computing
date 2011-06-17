@@ -1,0 +1,142 @@
+\lab{Algorithms}{Temporal Complexity Revisited}{Temporal Complexity Revisited}
+
+\objective{Learn about the temporal complexity of various matrix operations.}
+
+Now that we have the more sophisticated tools of loops at our disposal, let's take another look at Temporal Complexity. We can estimate empirically the temporal complexity of matrix multiplication. We do this by writing a script to multiply two random square matrices and then timing the operation.
+
+\begin{lstlisting}[style=matlab]
+clear all;
+close all;
+i = 1500:200:2500;
+k = 1;
+for n = 1:length(i)
+    A = rand(i(n));
+    B = rand(i(n));
+    tic;
+    A*B;
+    y(n) = toc;
+end
+loglog(i,y);
+X = [log(i); ones(1,length(i))];
+sol = X'\log(y)';
+sol(1)
+\end{lstlisting}
+
+Note that this script plots the log of the operation and the size of the input (this is what the command \li{loglog} does). We do this because:
+\[
+log(x^m) = m log(x)
+\]
+In this case $x$ is related to the size of our input and $x^m$ is related to the time to solve the problem (essentially we are assuming our operation is in $O(x^m)$). This equation then says that by plotting the log of the input size and computation time will yield a line of slope $m$.
+In this case we are calculating the least squares value (using backlash) for the slope, giving a ``best'' estimate of the exponent of the temporal complexity. The value that we get while running this script is about three. This suggests that matrix multiplication is in $O(n^3)$.
+
+Why is this? Let's write our own matrix multiplication function to figure it out. Write the following function to multiply matrices:
+
+\begin{lstlisting}[style=matlab]
+function C = MatrMult(A,B)
+[a,b] = size(A);
+[c,d] = size(B);
+C = zeros(a,d);
+for i = 1:a
+    for j = 1:b
+        for k = 1:d
+            C(i,k) = C(i,k) + A(i,j)*B(j,k);
+        end
+    end
+end
+\end{lstlisting}
+
+This is a very simple, naive implementation of matrix multiplication. Note that there are three \li{for} loops. Each loop iterates along one of the matrix dimensions. Since they're nested and there's a single ``operation'' at the center you simply multiply the number of iterations in each loop to get the total number of iterations. Unsurprisingly, this is $n^3$.
+
+We note that even though the built-in version of matrix multiplication has the same temporal complexity as the function you just wrote, they do \emph{not} take the same time to run. You can verify this by running the following:
+
+\begin{lstlisting}[style=matlab]
+    A = rand(1000);
+    B = rand(1000);
+    tic;
+    A*B;
+    toc;
+    tic;
+    MatrMult(A,B);
+    toc;
+\end{lstlisting}
+
+This demonstrates an important principle: functions with the same temporal complexity do not take the same time to run. It is often possible to improve a function without changing the temporal complexity. One of the primary reasons that we study temporal complexity is to better understand how problems scale.
+
+
+\begin{problem}
+Calculate the temporal complexity of the following operations. Use random matrices.
+\begin{enumerate}
+\item Matrix Addition
+\item Matrix Inverse
+\item Determinant
+\item LU decomposition
+\item SVD (note that the temporal complexity for this operation is roughly the same as many of these other operations, but that this takes much longer. This again demonstrates that although temporal complexity is incredibly important, it is not the only important factor)
+\item Solving a system of equations (remember to use \li{A\\b}, not \li{inv}).
+\end{enumerate}
+\end{problem}
+
+In problem 1 we calculated the temporal complexity of solving a linear system. MATLAB's backslash command is very efficient in solving linear systems. However, there are still situations where we can do a better job. For example, suppose that $A$ is generated using the following code:
+\begin{lstlisting}[style=matlab]
+b = rand(n,1);
+u = rand(n,1);
+v = rand(1,n);
+A = eye(n) + u*v;
+\end{lstlisting}
+
+In this case we can use the Sherman-Morrison-Woodbury formula to directly find the inverse quickly:
+\[
+(A + UCV)^{-1} = A^{-1} - A^{-1}U(C^{-1} + VA^{-1}U)^{-1}VA^{-1}
+\]
+
+This formula assumes that $C$ and $A$ are square matrices. In the simple example that we started above $C = 1$. We can solve the system $Ax = b$ using different methods (backslash, \li{inv} and the inversion formula above) and time them using the following code:
+\begin{lstlisting}[style=matlab]
+tic;
+A\b;
+toc;
+
+tic;
+inv(A)*b;
+toc;
+
+tic;
+Ainv = eye(n) - eye(n)*u*v/(1+v*u);
+Binv*C;
+toc;
+\end{lstlisting}
+
+We observe that for large $n$, the last method is about four times faster than backslash, and about ten times faster than using \li{inv}. This suggests that at times, special knowledge of a system can be leveraged to greatly improve solution time.
+
+\begin{problem}
+Use the Sherman-Morrison-Woodbury formula to solve a system of equation where $A$ is the identity matrix with random entries added to the last column and the last row. Compare performance with backslash and \li{inv}.
+\end{problem}
+
+
+As we have stated several times in this section, algorithms can have the same temporal complexity, but can have quite different run times. One method for speeding up algorithms with loops is called vectorization. Vectorization is when we replace a loop with a vector operation. This often is slightly harder to code and is more difficult to understand, but it can yield great benefits in terms of computation time. This is because MATLAB is optimized to perform vector operations, and so it is usually highly advantageous to give MATLAB commands in that form. We've already worked with this a little bit, but the matrix multiplication example is particularly powerful.
+
+When you're taught matrix multiplication typically you're taught to multiply the rows of the first matrix by the columns of the second. In the function we wrote we multiplied each entry individually. Let's replace one of the loops (the \li{j} loop) with an inner product (which is more consistent with how we're taught to multiply matrices anyway). Write a second function for matrix multiplication that works in this way:
+\begin{lstlisting}[style=matlab]
+function C = MatrMult2(A,B)
+[a,b] = size(A);
+[c,d] = size(B);
+C = zeros(a,d);
+for i = 1:a
+    for k = 1:d
+        C(i,k) = A(i,:)*B(:,k);
+    end
+end
+\end{lstlisting}
+
+Now write a script that will compare the run time of the two matrix multiplication functions that you just wrote:
+\begin{lstlisting}[style=matlab]
+n = 500;
+A = rand(n);
+B = rand(n);
+tic;
+MatrMult(A,B);
+toc;
+tic;
+MatrMult2(A,B);
+toc;
+\end{lstlisting}
+
+We note that the second implementation takes much less time. Recall that this is because MATLAB is optimized to perform vector manipulations. This does not change the asymptotic growth rate of the algorithm (temporal complexity), it simply changes the leading coefficient of that growth rate (which temporal complexity ignores). Clearly by eliminating loops we can often save huge amounts of time.

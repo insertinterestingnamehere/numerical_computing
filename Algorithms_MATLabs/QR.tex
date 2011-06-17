@@ -1,0 +1,130 @@
+\lab{Algorithms}{QR decomposition}{QR decomposition}
+
+\objective{Understand how the QR algorithm works and write your own implementation.}
+
+The QR decomposition is used to represent any matrix as the multiple of an orthogonal matrix and an upper triangular matrix. This decomposition is useful in computing least squares and is part of a common method for finding eigenvalues.
+
+\section*{Review of Gram Schmidt}
+
+\vspace{5mm}
+\begin{theorem}[Gram-Schmidt Orthogonalization Process] Let
+$\{\x_i\}_{i=1}^n$ be a basis for the inner product space $V$. Let
+\[
+\q_1 = \frac{\x_1}{\norm{\x_1}},
+\]
+and define $\q_2,\q_3,\ldots,\q_n$ recursively by
+\[
+\q_{k+1} = \frac{\x_{k+1} - \p_k}{\norm{\x_{k+1} - \p_k}},
+\]
+where
+\[
+\p_k = \sum^k_{j=1} \langle \x_{k+1}, \q_j\rangle \q_j
+\]
+is a projection of $\x_{k+1}$ onto the subspace $\mbox{Span}(\q_1,\q_2,\ldots,\q_k)$.  Then the set $\{\q_i\}_{i=1}^n$ is an orthonormal basis for $V$.
+\end{theorem}
+\vspace{5mm}
+
+For the above algorithm, let $r_{k k} = \|\x_k - \p_{k-1}\|$ and
+$r_{j k} = \langle \x_k, \q_j\rangle$.  Then
+\begin{align*}
+r_{1 1} \q_1 &= \x_1\\
+r_{k k} \q_k &= \x_k - r_{1 k} \q_1 - r_{2 k} \q_2 - r_{3 k} \q_3 -
+\ldots - r_{k-1, k} \q_{k-1},\quad k=2,\ldots,n.
+\end{align*}
+This can be written as
+\begin{align*}
+\x_1 &= r_{1 1} \q_1\\
+\x_2 &= r_{1 2} \q_1 + r_{2 2} \q_2\\
+\vdots \:\: &= \quad \vdots\\
+\x_n &= r_{1 n} \q_1 + r_{2 n} \q_2 + \ldots + r_{n n} \q_{n},
+\end{align*}
+or in matrix form as
+\[
+\begin{pmatrix}
+\vdots & \vdots & & \vdots\\
+\x_1 & \x_2 & \cdots & \x_n\\
+\vdots & \vdots & & \vdots
+\end{pmatrix}
+=
+\begin{pmatrix}
+\vdots & \vdots & & \vdots\\
+\q_1 & \q_2 & \cdots & \q_n\\
+\vdots & \vdots & & \vdots
+\end{pmatrix}
+\begin{pmatrix}
+r_{1 1} & r_{1 2} & \cdots & r_{1 n}\\
+0 & r_{2 2} & \cdots & r_{2 n}\\
+\vdots & \vdots & \ddots & \vdots\\
+0 & 0 & \cdots & r_{n n}
+\end{pmatrix}.
+\]
+Hence if our original basis $\{\x_i\}_{i=1}^n$ correspond to column
+vectors of a matrix $A$, we can likewise write the resulting
+orthonormal basis $\{\q_i\}_{i=1}^n$ as a matrix $Q$ of column
+vectors.  Then we have that $A = Q R$, where $R$ is the above
+nonsingular upper-triangular $n\times n$ matrix.  This is the QR
+Decomposition and is summarized by the following theorem:
+\vspace{5mm}
+\begin{theorem}
+Let $A$ be an $m\times n$ matrix of rank $n$.  Then $A$ can be
+factored into a product $Q R$, where $Q$ is an $m\times n$ matrix
+with orthonormal columns and $R$ is a nonsingular $n \times n$ upper
+triangular matrix.
+\end{theorem}
+
+There are several options to MATLAB's QR routine.  We will be using
+the ``economy option''.  Type the following into MATLAB
+\begin{verbatim}
+>> A = randn(4,3)
+
+>> [Q,R] = qr(A,0)
+
+>> Q*R
+
+>> Q'*Q
+\end{verbatim}
+This shows that indeed the product of $Q$ and $R$ is $A$.  Note also
+that $Q^T Q = I$.  This implies that the column vectors of $Q$ are
+orthonormal (why?).
+
+\section*{Solving Least Squares Problems}
+
+For large or ill-conditioned problems, the QR decomposition provides
+a nice method for computing least squares solutions of
+over-determined matrices.  Consider the problem $A x = b$.  Recall
+that the least squares solution is $\widehat x = (A^T A)^{-1}A^T b$.
+Alternatively, we write the linear system as
+\[
+Q R x = b.
+\]
+We then multiply both sides by $Q^T$, yielding
+\[
+R x = Q^T b.
+\]
+Then $\widehat x = R^{-1} Q^T b$.
+
+\section*{Computational Remark}
+
+Numerically, the Gram Schmidt process can have problems due to
+finite precision arithmetic. Specifically, due to rounding errors,
+the resulting basis may not be orthonormal. To combat this, we
+actually carry out a slightly revised algorithm called Modified Gram
+Schmidt.  To do this, we compute $\q_1$ as before.  We then project
+it out of each of the remaining original vectors
+$\x_2,\x_3,\ldots,\x_n$ via
+\[
+\x_k := \x_k - \langle \x_{k}, \q_1\rangle \q_1,\quad k=2,\ldots,n.
+\]
+Then we compute $\q_2$ to be the unit vector of $\x_2$, that is,
+\[
+\q_2 = \frac{\x_2}{\|\x_2\|}.
+\]
+We repeat by projecting out $\q_2$ from the remaining vectors
+$\x_3,\x_4,\ldots,\x_n$.
+
+\begin{problem}
+Write your own MATLAB function called {\tt myQR} which takes as
+input the matrix $A$ and computes the QR decomposition, thus
+returning the matrices $Q$ and $R$.  Use the Modified Gram Schmidt
+algorithm.
+\end{problem}
