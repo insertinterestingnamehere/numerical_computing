@@ -1,0 +1,80 @@
+\lab{Algorithms}{Nested and Anonymous Functions}{Nested and Anonymous Functions}
+
+\objective{Learn about nested and anonymous functions}
+
+\section*{Nested functions}
+
+While writing complicated functions it is often easiest to break up tasks. For this purpose we can write functions inside functions that will perform specific tasks without having to create an entirely new m-file. Here's an example of psudocode for newton's method:
+
+\begin{lstlisting}[style=matlab]
+function out = Newtons(f,x0)
+.
+.
+.
+%%Here we perform Newton's method. It will need f' so we write a nested function
+  function out2 = deriv(x)
+    %%here we numerically calculate the derivative of f.
+  end
+end
+\end{lstlisting}
+
+One of the benefits of this method is that we do not have to pass the function to calculate the derivative. Since deriv is nested inside the Newtons function it can access variables inside the scope of Newton, including f. While in this simple example that probably isn't terribly important, it can be much faster in some applications.
+
+\section*{Anonymous Functions and Function Handles}
+
+An anonymous function allows us to create simple, one line functions. The syntax is illustrated by this example:
+
+\begin{lstlisting}[style=matlab]
+sincos = @(x) sin(x) + cos(x);
+\end{lstlisting}
+
+Now we can find the value of $sin(x) + cos(x)$ by simply typing $sincos(x)$.
+
+Additionally, we can use anonymous functions to capture ``snapshots'' of data. This example might help:
+
+\begin{lstlisting}[style=matlab]
+c = [1 2 3];
+f = @(x) c*[1;x;x^2];
+c = rand(1,3);
+g = @(x) c*[1;x;x^2];
+\end{lstlisting}
+
+Here, even though c has been changed f will still output $1 + 2x + 3x^2$.
+
+Oftentimes in real applications we are attempting to do operations on a function. Examples would include root finding, minimization, integration or solving differential equations. Because of this MATLAB has structure that allows us to create functions that accept other functions as input. These types of functions are known as function functions (type in \li{help funfun} to see some examples).
+
+This is often the motivation for using anonymous functions. When we pass any function into a function function we have to pass a function handle (which specifies which argument is variable), and we often do this using the anonymous function structure. For example:
+
+\begin{lstlisting}[style=matlab]
+quad(@(x) exp(-x^2/2),0,2)
+\end{lstlisting}
+
+This line of code will calculate the integral of $e^{-\frac{x^2}{2}}$ between zero and two. Here we used an anonymous function to get the job done. Note that in creating an anonymous function we are technically creating a function handle, so (using our anonymous function) it's ok to write \li{quad(sincos,0,2)} but it's not ok to write \li{quad(sin,0,2)}.
+
+\begin{problem}
+Create a function that accepts a number n, creates a random polynomial of degree n and then finds a zero of the polynomial. If there is no zero then have the function instead return a local minimum. You will need to create function handles and use the built-in function \li{fzero}.
+\end{problem}
+
+\begin{problem}
+The Lambert W-function is defined as the inverse of the function $f(x) = xe^x$. The W-function has important applications in atomic physics and differential equations. It has no closed-form solution. Create a function that estimates the Lambert W-function (you'll need to use \li{fzero} again).
+\end{problem}
+
+\begin{problem}
+	Read the help file on the function \li{ode45}. Use \li{ode45} to find the solution of the differential equation:
+	\[
+		x'' = -3x \hspace{5 mm} x(0) = 1 \hspace{5mm} x'(0) = 0
+	\]
+	
+	To do this, you will want to convert the higher order system into a lower order system of more variables. Try letting $x_1 = x$ and $x_2 = x'$.
+	Now plot the output. What do you find? Is this what you expect?
+\end{problem}
+
+\begin{problem}
+Newton's method is an iterative root-finding method. It generally converges very quickly, and is very important in non-linear optimization. Newton's method starts with an initial guess $x_0$ for a root and then calculates the next guess using the following method:
+\[
+x_{i+1} = x_i - \frac{f(x_i)}{f'(x_i)}
+\]
+This procedure repeats until a tolerance is reached (either $x_i - x_{i+1}$ or $f(x_{i+1})$ is small enough)
+One of the important advantages to Newton's method as opposed to functions like fzero is that they are more robust when functions have asymptotes (try to use fzero on \li{tan} to see this). Also, Newton's method is generally much faster, and is generalizable to higher dimensions.
+Write your own Newton's method. Have it accept as arguments f, f', $x_0$ and tol. Remember that f and f' (which you'll probably have to name something like df or fPrime) will be function handles that are passed in. Hint: Use a while loop that tests for reaching the tolerances.
+\end{problem}

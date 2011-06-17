@@ -1,0 +1,114 @@
+\lab{Algorithms}{Conditionals and Loops}{Conditionals and Loops}
+
+\objective{Introduce Loops and Conditionals}
+
+\subsection*{Conditional Statements}
+Direct use of relational operators through masking is often the optimal way to do operations. However, there is a more user-friendly way to utilize logical operations.  Introducing the {\tt if} statement.  The {\tt if} statement is often referred to as a branching statement.  Depending on the truth value for the condition, program execution can divirge along many different paths.  The {\tt if} statement in Python is very flexible and powerful.  Consider the following equivalent statements
+\begin{lstlisting}
+: x if A        #this form is used in python's list comprehensions
+: if A: x       #Canonical form (note the colon)
+\end{lstlisting}
+
+The {\tt if} statement executes a block of code if a certain condition evaluates {\tt True}.  Below we illustrate the use of an {\tt if} statement to add $1.5$ to an odd number.
+\begin{lstlisting}
+: a,b = 7,8     #this is called multiple assignment and is valid in python
+: if a%2==1:    #% is the modulo operator
+....: a += 1.5
+: if b%2==1:
+....: b += 1.5
+: print a,b
+\end{lstlisting}
+
+By printing the values we can easily see which if statement executed.  Notice that if the {\tt if} statement evaluated {\tt False}, nothing happened.  There are two things we can do if the initial test condition evaluates {\tt False}.  We can test another condition using an {\tt elif} statement, or we can execute a block a in any case that the first condition is false using an {\tt else} statement.  Let's consider the example above, but with our added syntax.
+\begin{lstlisting}
+: a,b = 7,8
+: if a%2==1:
+....: a += 1.5
+: elif b%2==1:
+: b += 1.5
+: else:
+....: print "all previous conditions are False"
+:
+: c,d = 10,11
+: if c%2==1:
+....: c += 1.5
+ else:
+....: print "all previous conditions are False"
+\end{lstlisting}
+
+Let's look at one more complete example of an {\tt if} statement.  
+\begin{lstlisting}
+: c = 54
+: if c < 30:
+....: print "c<30 is True"
+: elif c < 40:
+....: print "c<40 is True"
+: elif c <= 50:
+....: print "c<=50 is True"
+: else:
+....: print "c must be greater than 50"
+\end{lstlisting}
+
+\subsection*{Loops}
+Loops are another important programming concept. There most general loop is a {\tt while} loop.  A {\tt for} loop is a special case of the {\tt while} loop.
+
+The {\tt while} loop tests a condition, executes a block of code, then tests the condition again.  If the condition is still true, the block of code in the {\tt while} loop is executed again.  This repeats indefinitely or until the condition becomes false.  It is important to \emph{always} ensure that your condition will eventually become false.  If the condition is never false, an \emph{infinite loop} will occur.  A common way to avoid infinite loops is to initialize a counting variable.  If an infinite loop ever does occur, the only way out is to kill the program.  Sometimes the only way to do this is to cut the power to the computer!  Below is an illustration of an infinte while loop (WARNING: don't run this code!)
+\begin{lstlisting}
+: i = 0 #our counting variable
+: while i < 10:
+....: print i
+....: i -= 1    #decrement our counter
+\end{lstlisting}
+
+Notice that the condition never becomes false.  We are waiting until {\tt i} becomes greater than $10$, but {\tt i} is actually decreasing!  It will never reach $10$.
+
+The {\tt for} loop is a while loop with a counter built-in.  The {\tt for} loop is useful for walking through a iteratable objects (lists, tuples, arrays, vectors, etc).  
+\begin{lstlisting}
+: for i in range(10):
+....: print i
+0 1 2 3 4 5 6 7 8 9
+\end{lstlisting}
+
+The loop will iterate as many times as there are entries in the iterable object. In the for loop example, {\tt i} is called a temporary variable.  Each iteration of the loop, {\tt i} will become be set to the next element in the iterable object.  Python offers a more compact way to write for loops.  It is call \emph{list comprehension}.
+\begin{lstlisting}
+: [i for i in range(10)]
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+: [i+1 for i in range(10) if i%2==1] 
+[2, 4, 6, 8, 10]
+\end{lstlisting}
+
+List comprehensions always return a list.  It is a more compact and concise  way to write a {\tt for} loop.
+
+Additionally you can document your functions. Python allows you to add a special string at the beginning of each function to describe what the function does.  These are called \emph{docstrings}.
+\begin{lstlisting}
+: def aFunction(b):
+....: """This function takes in an argument b
+....: and adds b**2 to it and returns the resutlt"""
+....: return b+b**2
+: aFunction? # or help(aFunction)
+\end{lstlisting}
+
+One last note about loops.  Python has some advanced looping features borrowed from C.  These are {\tt else} clauses, {\tt continue} and {\tt break}.  {\tt while} and {\tt for} loops can have an optional {\tt else} clause.  In {\tt while} loops, the {\tt else} clause is executed when the initial condition is false.  In {\tt for} loops, the {\tt else} clause is executed when the there is no next item in the iterable object.  {\tt continue} skips the rest of the current iteration and continues with the next iteration.  {\tt break} is the opposite of {\tt continue} in that it will break completely out of the current loop.
+
+\begin{problem}
+Write a function that will add odd numbers that are less than $n$. While you can use either loop, you will proably find it more convenient to use a {\tt for} loop. Write the solution using list comprehension and the {\tt sum()} function. Compare the runtimes of each solution for $n=10**6$.
+\end{problem}
+
+% \begin{problem}
+% Now write a second function that does the same thing without using loops (use the {\tt sum} and {\tt find} function). How long does this function take if $n = 10^6$? The first is probably a lot easier to code and understand, but the second runs significantly faster.
+% Also, add a help file to your function. Test this out by typing {\tt help myfunctionName}.
+% \end{problem}
+
+
+\begin{problem}
+One way to calculate the value of $e^x$ is to use the taylor expansion:
+\[
+e^x = \sum_{i=0}^\infty{\frac{x^i}{i!}}
+\]
+This method, however, is problematic when x becomes large (it requires a large number of terms to be accurate). We can utilize what is known as a scaling and squaring method to overcome this problem. This method exploits the property that $e^{2x} = (e^x)^2$. We can thus divide by exponent by two until we get a small enough x to be accurate, and then square the appropriate number of times.
+Using while loops and a scaling and squaring method write a function expSS(x) that calculates e(x) using the Taylor Series Expansion. Test your function against {\tt exp()} using $3$ and $30$ as reference values.
+\end{problem}
+
+\begin{problem}
+Modify the solution of the previous problem to accept an list of inputs and calculate $e^x$ for each input. Make this function as fast as possible by elimating loops when possible (this is called \emph{vectorizing} the function).
+\end{problem}
