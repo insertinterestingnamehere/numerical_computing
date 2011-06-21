@@ -34,10 +34,11 @@ is responsible for printing the current value of \texttt{a}.  How do we make a
 column vector?  We simply pass the array() method a list of lists containing a
 single value each.
 \begin{lstlisting}
-: b = sp.array([[3],[4],[6]]); b
+: b = sp.array([[3],[4],[6],[1]]); b
 array([[3],
        [4],
-       [6]])
+       [6],
+       [1]])
 \end{lstlisting}
 
 We can also use the hstack() and vstack() methods (meaning horizontal stack and
@@ -51,7 +52,7 @@ We combine vectors together by placing two or more of equal dimension inside
 square brackets. The technical term for this is concatenation.  Remember that
 the dimensions of each array must match.  Try the following.
 \begin{lstlisting}
-: c = sp.concatenate(b,b1); c
+: c = sp.concatenate((b,b1), axis=1); c
 \end{lstlisting}
 
 There are several methods to automate vector creation. For example, we can build
@@ -117,7 +118,7 @@ $x \in [-5,5]$.
 Creating is done by concatenating vectors in the correct manner. For example:
 
 \begin{lstlisting}
-: sp.array([[1, 2, 3];[4, 5, 6];[7, 8, 9]])
+: sp.array([[1, 2, 3],[4, 5, 6],[7, 8, 9]])
 \end{lstlisting}
 
 \begin{problem}
@@ -386,7 +387,7 @@ function to perform this approximation using the following code:
 \begin{lstlisting}
 : h = .001
 : x = sp.arange(0,sp.pi,h)
-: approx = sp.diff(sin(x**2))/h
+: approx = sp.diff(sp.sin(x**2))/h
 \end{lstlisting}
 
 We have just approximated the derivative of $\sin{x^2}$ at several thousand points between $0$ and $\pi$.  The approximated derivatives are stored in the array \li{approx}.  Now let's compute the actual derivative at each point using the formula:
@@ -482,13 +483,12 @@ from timer import timer
 def invMethod(A, b):
     return sp.dot(la.inv(A),b)
 
-@tictoc(repeats=3, loops=10)
 def solveMethod(A, b):
     return la.solve(A,b)
     
 n = 300
-A = rand(n)
-b = rand(n,1)
+A = sp.rand(n)
+b = sp.rand(n,1)
 
 with timer(repeats=3, loops=10) as t:
 	t.time(invMethod,A,b)
@@ -514,11 +514,12 @@ investigating the time it takes to solve two systems. Open a new script file and
 write the following:
 
 \begin{lstlisting}
+import scipy as sp
 from timer import timer
 n = 3000
-A = rand(n)
-b = rand(n,1)
-c = rand(n,1)
+A = sp.rand(n,n)
+b = sp.rand(n,1)
+c = sp.rand(n,1)
 
 def multSys(A, *col_vecs):
     return la.solve(A, sp.hstack(col_vecs))
