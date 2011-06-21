@@ -472,12 +472,12 @@ array([[ 1.66666667],
 \end{lstlisting}
 
 We mentioned that the backslash operator is more efficient than using the
-function \li{ inv}, meaning it returns a result faster. Create the following script to compare the efficiency of each method:
+function \li{inv}, meaning it returns a result faster. Create the following script to compare the efficiency of each method:
 
 \begin{lstlisting}
 import scipy as sp
 from scipy import linalg as la
-from tictoc import tictoc
+from timer import timer
 
 def invMethod(A, b):
     return sp.dot(la.inv(A),b)
@@ -486,12 +486,14 @@ def invMethod(A, b):
 def solveMethod(A, b):
     return la.solve(A,b)
     
-n = 300;
-A = rand(n);
-b = rand(n,1);
+n = 300
+A = rand(n)
+b = rand(n,1)
 
-invMethod(A,b)
-solveMethod(A,b)
+with timer(repeats=3, loops=10) as t:
+	t.time(invMethod,A,b)
+	t.time(solveMethod,A,b)
+	t.printTimes()
 \end{lstlisting}
 
 Now run the script. You should notice a significant difference in execution time
@@ -513,10 +515,10 @@ write the following:
 
 \begin{lstlisting}
 from timer import timer
-n = 3000;
-A = rand(n);
-b = rand(n,1);
-c = rand(n,1);
+n = 3000
+A = rand(n)
+b = rand(n,1)
+c = rand(n,1)
 
 def multSys(A, *col_vecs):
     return la.solve(A, sp.hstack(col_vecs))
@@ -525,8 +527,9 @@ def singSys(A, *col_vecs):
     return [la.solve(A, x) for x in col_vecs]
 
 with timer(repeats=3, loops=100) as t:
-    t.time(multSys(A,b,c)
-    t.time(singSys(A,b,c)
+    t.time(multSys,A,b,c)
+    t.time(singSys,A,b,c)
+    t.printTimes()
 \end{lstlisting}
 
 This script creates a random $3000 \times 3000$ matrix, and two random $3000
