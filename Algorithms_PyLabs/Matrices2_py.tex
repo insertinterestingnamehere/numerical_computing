@@ -231,7 +231,7 @@ We remark that if you want to make a sparse diagonal matrix, the
 best way to do it isn't to use \li{diagflat()} followed by \li{sparse},
 it's actually better to use the \li{sparse.spdiags()} method:
 \begin{lstlisting}[style=python]
-: spar.spdiags([2;3;4],0,3,3)
+: spar.spdiags([2,3,4],0,3,3)
 \end{lstlisting}
 
 This is because oftentimes when we are using sparse matrices we are dealing with matrices that are too large to be handled efficiently by python when represented in full form.
@@ -255,7 +255,7 @@ entering
 Often a better way to create a tri-diagonal is it use the \li{spar.spdiags()} method. This is because many diagonal matrices are sparse. For example, we create the same matrix in Python (while designating that it is sparse) using the command:
 \begin{lstlisting}[style=python]
 : Z = sp.array([[3, 1, 0],[6, 4, 2],[9, 7, 5],[0,10,8]]).T
-: spdiags(Z,[-1,0,1],4,4)
+: spar.spdiags(Z,[-1,0,1],4,4)
 \end{lstlisting}
 
 For more information, check the documentation by typing \li{spar.spdiags?}. For example we create a tri-diagonal array with uniformily distributed random entries.  This example also demonstartes the efficiency of using sparse arrays.
@@ -263,14 +263,14 @@ For more information, check the documentation by typing \li{spar.spdiags?}. For 
 : B = sp.rand(3,10000)
 : A = spar.spdiags(B,-1:1,10000,10000)
 : denseA = A.todense()  #only do this step if you have _lots_ of memory!
-: A.data.nbytes()
+: A.data.nbytes
 240000          #about 0.24MB of memory
-: denseA.nbytes()
+: denseA.nbytes
 800000000       #about 762.9MB of memory!
 \end{lstlisting}
 
 
-We can't use the \li{full} command in this case because the computer will almost certainly run out of memory (the matrix is $10,\!000 \times 10,\!000$). However, we can still visualize this matrix using the \li{plt.spy()} command, which essentially shows the location of non-zero entries in a matrix. The output of \li{plt.spy()} in this case is shown in Figure 1.2:
+We can't use the \li{full} command in this case because the computer will almost certainly run out of memory (the matrix is $10,\!000 \times 10,\!000$). However, we can still visualize this matrix using the \li{plt.spy()} command, which essentially shows the location of non-zero entries in a matrix. The output of \li{plt.spy(A)} in this case is shown in Figure 1.2:
 
 %change to plt figure
 \begin{figure}[h!]
@@ -315,13 +315,14 @@ solve the system for random data:
 \begin{lstlisting}[style=python]
 : from scipy.sparse import linalg as sparla
 : from timer import timer
-: D = rand(3, 100000)
-: b = rand(1, 100000)
-: A = spdiags(D,[-1,0,1],100000,100000)
+: D = sp.rand(3, 100000)
+: b = sp.rand(1, 100000)
+: A = spar.spdiags(D,[-1,0,1],100000,100000)
 : def solSys():
 ....: return sparla.spsolve(A,b)
 : with timer() as t:
 ....: t.time(solSys)
+....: t.printTimes()
 \end{lstlisting}
 
 \begin{problem}
