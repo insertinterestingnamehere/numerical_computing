@@ -18,7 +18,6 @@ class timer(object):
 
     def results(self):
         return self.results
-        #return self.func()
 
     def time(self, func, *args, **kargs):
         if self.gc is True:
@@ -26,14 +25,11 @@ class timer(object):
         else:
             self.gbcol="gc.disable()"
 
-        #self.funcname = func.__name__
         pfunc = lambda: func(*args, **kargs)
         print "Timing %s ..." % func.__name__
         elapsed = timeit.repeat(pfunc, self.gbcol, repeat=self.repeats, number=self.loops)
         runtime = min(elapsed)
         self.results.append((runtime, func.__name__))
-        #return [self.runtime, self.funcname]
 
     def printTimes(self):
         print '\n'.join(["%s finished in %.5fs (%s loops, repeated %s times): %.5fs per loop (with %s)" % (f[1], f[0], self.loops, self.repeats, f[0]/self.loops, self.gbcol) for f in self.results])
-        #print result
