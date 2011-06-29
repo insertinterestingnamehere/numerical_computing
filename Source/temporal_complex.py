@@ -5,7 +5,7 @@ from scipy.linalg import lstsq
 from scipy import dot, arange
 
 i = arange(1500, 2500+200, 200)
-k = 1
+
 
 def multArray(A, B):
     return dot(A,B)    
