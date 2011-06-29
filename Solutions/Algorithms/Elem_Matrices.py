@@ -42,7 +42,7 @@ def ref(A):
 
 def LU(A):
     rows, cols = A.shape
-    U = A
+    U = A.copy()
     L = eye(rows, rows)
     for i in range(rows):
         for j in range(i+1,rows):
