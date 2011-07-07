@@ -1,8 +1,33 @@
 import scipy as sp
-import math
 from timer import timer
 
-@profile
+def entropy(values):
+    """A slow way to calculate the entropy of the input values"""
+    
+    values = sp.asarray(values).flatten()
+    #calculate the probablility of a value in a vector
+    vUni = sp.unique(values)
+    vlen = vUni.size
+    lenval = float(values.size)
+    
+    FreqData = sp.zeros_like(vUni)
+    for i in range(vlen):
+        FreqData[i] = sum(values==vUni[i])/lenval
+    print FreqData
+    
+    return -sum([FreqData[i]*sp.math.log(FreqData[i],2) for i in FreqData])
+    
+def entropy2(values):
+    """Calculate the entropy of vector values.
+    
+    values will be flattened to a 1d ndarray."""
+    
+    values = sp.asarray(values).flatten()
+    M = sp.unique(values).size
+    p = sp.diff(sp.c_[sp.diff(sp.sort(values)).nonzero(), values.size])/float(values.size)
+    H = (p*sp.log2(p)).sum()
+    return -H
+
 def chebyshev2(values, degree=1):
     """Calculate the Chebyshev Polynomials using previous results"""
     
@@ -21,7 +46,6 @@ def chebyshev2(values, degree=1):
 
     return A
     
-@profile
 def chebyshev2_lc(values, degree=1):
     """Calculate the Chebyshev Polynomials using previous results"""
     
@@ -35,12 +59,10 @@ def chebyshev2_lc(values, degree=1):
         return A
         
     for i in range(2,degree):
-        #tmp = [2*x for x in values]
         A[i,:] = [2*x for x in values]*A[i-1,:]-A[i-2,:]
 
     return A
     
-@profile
 def chebyshev_sp(values, degree=1):
     """Calculate the Chebyshev Polynomials using the scipy functions"""
     
@@ -59,7 +81,6 @@ def chebyshev_sp(values, degree=1):
         
     return A
     
-@profile
 def chebyshev_vec(values, degree=1):
     """Calculate the Chebyshev Polynobials
     
@@ -74,16 +95,14 @@ def chebyshev_vec(values, degree=1):
     except IndexError:
         return A
     
-    cos = sp.vectorize(math.cos)
-    acos = sp.vectorize(math.acos)
+    cos = sp.vectorize(sp.math.cos)
+    acos = sp.vectorize(sp.math.acos)
     
     for i in range(2,degree): 
         A[i,:] = cos(i*acos(values))
 
     return A
-    
 
-@profile
 def chebyshev_lc(values, degree=1):
     """Calculate the Chebyshev Polynomials using list comprehensions"""
     
@@ -98,12 +117,10 @@ def chebyshev_lc(values, degree=1):
     
     
     for i in range(2,degree): 
-        A[i,:] = [math.cos(y) for y in [i*math.acos(x) for x in values]]
+        A[i,:] = [sp.math.cos(y) for y in [i*sp.math.acos(x) for x in values]]
 
-    #[A[i,:] = [math.cos(y) for y in [i*math.acos(x) for x in values]] for i in range(3,degree)]
     return A
     
-@profile
 def chebyshev(values, degree=1):
     """Calculate the Chebyshev Polynomial using
     
@@ -120,20 +137,15 @@ def chebyshev(values, degree=1):
     
     for i in range(2,degree): 
         for x in values:
-            A[i,:] = math.cos(i*math.acos(x))
-              
-        #A[i,:] = [math.cos(y) for y in [i*math.acos(x) for x in values]]
-
-    #[A[i,:] = [math.cos(y) for y in [i*math.acos(x) for x in values]] for i in range(3,degree)]
+            A[i,:] = sp.math.cos(i*sp.math.acos(x))
     return A
     
     
 if __name__ == '__main__':
     from timer import timer
-    testvals = sp.linspace(-1,1,100)
+    testvals = sp.linspace(-1,1,500)
     funcs = [chebyshev, chebyshev_lc, chebyshev_vec, chebyshev_sp, chebyshev2, chebyshev2_lc]
-    with timer(loops=5, gc=False) as t:
+    with timer(loops=5) as t:
         for f in funcs:
             t.time(f, testvals, 100)
         t.printTimes()
-        #print t.results
