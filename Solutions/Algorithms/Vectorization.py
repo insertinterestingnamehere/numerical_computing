@@ -7,23 +7,21 @@ def entropy(values):
     values = sp.asarray(values).flatten()
     #calculate the probablility of a value in a vector
     vUni = sp.unique(values)
-    vlen = vUni.size
     lenval = float(values.size)
-    
-    FreqData = sp.zeros_like(vUni)
-    for i in range(vlen):
+
+    FreqData = sp.zeros_like(vUni, dtype=float)
+    for i in xrange(FreqData.size):
         FreqData[i] = sum(values==vUni[i])/lenval
-    print FreqData
-    
-    return -sum([FreqData[i]*sp.math.log(FreqData[i],2) for i in FreqData])
-    
+
+    return -sum([FreqData[i]*sp.math.log(FreqData[i],2) for i in xrange(FreqData.size)])
+        
 def entropy2(values):
     """Calculate the entropy of vector values.
     
     values will be flattened to a 1d ndarray."""
     
     values = sp.asarray(values).flatten()
-    p = sp.diff(sp.c_[sp.diff(sp.sort(values)).nonzero(), values.size])/float(values.size)
+    p = sp.diff(sp.c_[0,sp.diff(sp.sort(values)).nonzero(), values.size])/float(values.size)
     H = (p*sp.log2(p)).sum()
     return -H
 
