@@ -9,7 +9,7 @@ def entropy(values):
     vUni = sp.unique(values)
     lenval = float(values.size)
 
-    FreqData = sp.zeros_like(vUni, dtype=float)
+    FreqData = sp.zeros(vUni.shape, dtype=float)
     for i in xrange(FreqData.size):
         FreqData[i] = sum(values==vUni[i])/lenval
 
