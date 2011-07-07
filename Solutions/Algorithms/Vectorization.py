@@ -23,7 +23,6 @@ def entropy2(values):
     values will be flattened to a 1d ndarray."""
     
     values = sp.asarray(values).flatten()
-    M = sp.unique(values).size
     p = sp.diff(sp.c_[sp.diff(sp.sort(values)).nonzero(), values.size])/float(values.size)
     H = (p*sp.log2(p)).sum()
     return -H
