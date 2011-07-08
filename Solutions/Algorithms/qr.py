@@ -23,6 +23,7 @@ def QR(X):
     return Q.T, R
 
 def detQR(X):
+"""Computes the determinant of X using the QR decomposition"""
     Q, R = QR(X)
     return la.det(Q)*la.det(R)
     
