@@ -7,24 +7,12 @@ The Newton's lab in applications needed an overloaded newtons method function
 When I found that python didn't have function overloading, this is what I came
 up with. I don't really like it though
 '''
-def newtonsMethod( *args):
-	f = None
-	df = None
-	x0 = None
-	tol = None
-	if ( len(args) == 3 ):
-		f = args[0]
-		df = lambda x: sp.derivative(f,x)
-		x0 = args[1]
-		tol = args[2]
-	else :
-		f = args[0]
-		df = args[1]
-		x0 = args[2]
-		tol = args[3]{
-		
-	x = x0
-	while( sp.absolute(float(f(x))/df(x)) >= tol):
+def newtonsMethod(f, x0, tol=1e-7, df=None):
+	if df is None:
+        df = lambda x: sp.derivative(f,x)
+    
+    x = x0
+	while(sp.absolute(float(f(x))/df(x)) >= tol):
 		x -= float(f(x))/df(x)
 	return x
 
