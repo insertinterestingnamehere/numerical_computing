@@ -8,7 +8,6 @@ def Problem2(Q,b,x0,tol=1e-10):
     x = x0.copy()
     g = Q.dot(x)-b
     d = -g
-    maxiter=niter
     
     ndim = x.size
     
