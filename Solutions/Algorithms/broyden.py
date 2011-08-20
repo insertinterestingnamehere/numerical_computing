@@ -1,4 +1,12 @@
-def broyden1d(func, xpts, tol=0.00005, iter=30):
+#import FiniteDiff2 as fd2
+import scipy.linalg as la
+from numdifftools import Jacobian
+import scipy as sp
+import matplotlib.pyplot as plt
+
+
+
+def broyden1d(func, xpts, tol=1e-7, iter=30):
     """Find the zero of a function between two points (accepted as a list)
 
     When f(pt2) < tol, we are close enough to a zero and stop"""
@@ -13,18 +21,22 @@ def broyden1d(func, xpts, tol=0.00005, iter=30):
     elif abs(func(x[1])) < tol:
         return x[1]
 
+    ans = sp.math.log(2)
     #calculate our second guess
     x_1, x_2 = float(x[0]), float(x[1])
-    fx1 = func(x_1)
+    l = sp.math.log(2)
+    errors = []
     for i in xrange(iter):
-        x_new = x_1-fx1*((x_1-x_2)/(fx1-func(x_2)))
-
+        x_new = x_1-func(x_1)*((x_1-x_2)/(func(x_1)-func(x_2)))
+        
         if abs(func(x_new)) < tol:
-            return x_new
+            return x_new, [sp.math.log(errors[i+1])/sp.math.log(errors[i]) for i in range(len(errors)-1)]
         else:
+            x_1 = x_2
             x_2 = x_new
+            errors.append(abs(l-x_new))
     return ValueError("No Zeros found in %d iterations" % iter)
-
+        
 
 def regula_falsi(func, xpts, tol=0.00005, iter=30):
     """Find the zero of a function between two points (accepted as a list)
@@ -55,7 +67,7 @@ def regula_falsi(func, xpts, tol=0.00005, iter=30):
         x_new = x_1-fx1*((x_1-x_2)/(fx1-func(x_2)))
 
         if abs(x_new-x_old) < tol:
-            return x_new
+            return x_new, i
         else:
             x_old = x_new
             tmp = func(x_new)
@@ -65,24 +77,121 @@ def regula_falsi(func, xpts, tol=0.00005, iter=30):
                 x_2 = x_new
     return ValueError("No Zeros found in %d iterations" % iter)
 
-#Read FiniteDiff labs.
-def broyden(func, xpts, tol=0.00005, iter=30):
+
+def broyden(func, x1, x2, tol=1e-5, maxiter=50):
     """Calculate the zero of a multi-dimensional function using Broyden's method"""
+    
+    def isscalar(x):
+        if isinstance(x, sp.ndarray):
+            if x.size == 1:
+                return x.flatten()[0]
+            else:
+                return x
+        else:
+            return x
 
+    def update_Jacobian(preJac, ch_x, ch_F):
+        """Update Jacobian from preX to newX
+        preX and newX are assumed to be array objects of the same shape"""
+                
+        frac = (ch_F-(preJac.dot(ch_x)))/(la.norm(ch_x)**2)
+
+        Jac = preJac+sp.dot(isscalar(frac),ch_x.T)
+        return Jac
+        
     #truncate list to two tiems and sort
-    x=xpts[:2]
-    x.sort()
-
+    x1 = sp.vstack(x1.flatten())
+    x2 = sp.vstack(x2.flatten())
+    
+    fx1 = func(x1)
+    fx2 = func(x2)
+    
     #check our original points for zeros
-    if abs(func(x[0])) < tol:
-        return x[0]
-    elif abs(func(x[1])) < tol:
-        return x[1]
+    if abs(fx1) < tol:
+        return x1
+    elif abs(fx2) < tol:
+        return x2
 
-    x_1, x_2 = float(x[0]), float(x[1])
+    #Calculate initial Jacobian matrix
+    jac = Jacobian(func)(x1)
+    mi = maxiter
+    while abs(fx2) > tol and mi > 0:        
+        fx1 = func(x1)
+        fx2 = func(x2)
+        ch_x=x2-x1
+        ch_F=fx2-fx1
+        
+        jac = update_Jacobian(jac, ch_x, ch_F)
+        y = la.lstsq(jac, sp.array([-fx2]))[0]
+        xnew = y+x2
+        x1 = x2
+        x2 = xnew
+        mi -= 1
+    
+    if mi==0:
+        raise ValueError("Did not converge in %d iterations" % maxiter)
+    else:
+        return x2, maxiter-mi
+        
+def broydeninv(func, x1, x2, tol=1e-5, maxiter=50):
+    """Calculate the zero of a multi-dimensional function using Broyden's method"""
+    
+    def isscalar(x):
+        if isinstance(x, sp.ndarray):
+            if x.size == 1:
+                return x.flatten()[0]
+            else:
+                return x
+        else:
+            return x
 
-    def jacobian(funcs, vars):
-        return [[sp.diff(f, v) for v in vars] for f in funcs]
+    def update_Jacobian(preJac, ch_x, ch_F):
+        """Update Jacobian from preX to newX
+        preX and newX are assumed to be array objects of the same shape"""
+        
+        numer = ch_x-preJac*ch_F
 
-    Fgrad = func(x
-    J_new = J_old+(
+        denom = ch_x.T.dot(preJac).dot(ch_F)
+
+        outside = ch_x.T.dot(preJac)
+
+        Jac = preJac+sp.dot(numer/denom,outside)
+        return Jac
+        
+    #truncate list to two tiems and sort
+    x1 = sp.vstack(x1)
+    x2 = sp.vstack(x2)
+    
+    fx1 = func(x1)
+    fx2 = func(x2)
+    
+    #check our original points for zeros
+    if abs(fx1) < tol:
+        return x1
+    elif abs(fx2) < tol:
+        return x2
+
+    #Calculate initial Jacobian matrix
+    jac = Jacobian(func)(x1)
+    
+    jac = la.pinv(jac)
+    mi = maxiter
+    while abs(fx2) > tol and mi > 0:        
+        fx1 = func(x1)
+        fx2 = func(x2)
+        ch_x=x2-x1
+        ch_F=fx2-fx1
+        
+        jac = update_Jacobian(jac, ch_x, ch_F)
+        
+        y = sp.dot(jac, [-1.0*fx2])
+        xnew = y+x2
+        
+        x1 = x2
+        x2 = xnew
+        mi -= 1
+    
+    if mi==0:
+        raise ValueError("Did not converge in %d iterations" % maxiter)
+    else:
+        return x2, maxiter-mi
