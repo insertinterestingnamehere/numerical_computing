@@ -52,8 +52,14 @@ $\sigma_r$ to zero, that is,
 \[
 \sigma_{r+1} = \sigma_{r+2} = \cdots = \sigma_n = 0,
 \]
-and then multiplying the matrix back together again.  To see an
-example, enter the following into MATLAB:
+and then multiplying the matrix back together again.  How to know how much rank
+to keep?  Try plotting the the singular values.  We have plotted the singular values to the image below.  Matrix rank is on the x-axis and the eigenvalues are the y-axis.  Note that SVD decomposition orders the eigenvalues from greatest to least.  The greatest eigenvalues contribute most to the image while the smallest eigenvalues hardly contribute anything.  By looking at the graph we can see how many eigenvalues we need to use to maintain good quality.  The matrix rank of image is $670$.  However, as the plot shows, we could easily reduce the rank in half without have any noticable effect on image quality.
+
+\begin{center}
+\includegraphics[scale=.2]{./Figures/hubble_red.png}
+
+\includegraphics[scale=.4]{./Figures/hubble_svals.pdf}
+\end{center}
 
 \begin{matlab}
  \begin{lstlisting}[style=matlab]
@@ -74,7 +80,15 @@ example, enter the following into MATLAB:
 : S = sp.zeros(A.shape)
 : S[0:s.size,0:s.size)] = sp.diag(s)
 : Ahat = sp.dot(sp.dot(U[:,0:2], S[0:2,0:2]), Vt[0:2,:])
-: sp.np.linalg.matrix_rank(Ahat)
+\end{lstlisting}
+
+We can compute the rank of a matrix by looking at the number of nonzero singular values in the SVD decompositon.  The following function will compute the rank of a matrix.  The \li{sp.finfo(float).eps} tells us the smallest representable postitive number such that $1.0+\mbox{eps} != 1.0$  Anything smaller than the eps value is numerically zero to the computer.
+\begin{lstlisting}[style=python]
+: def matrix_rank(X):
+:.... S = la.svd(X, compute_uv=False)
+:.... tol = S.max()*sp.finfo(S.dtype).eps
+:.... return sum(S>tol)
+: matrix_rank(Ahat)
 \end{lstlisting}
 \end{python}
 Note that $\widehat A$ is ``close'' to the original matrix $A$, but
@@ -115,48 +129,35 @@ needs for various lower-rank SVD approximations. What conclusions
 can you draw? Experiment with other images included in MATLAB to see how it works in other cases.
 \end{problem}
 \end{matlab}
-%The Following is an attempt at a python version, but it doesn't work.
+
 \begin{python}
 Enter the following into Python (note that any image you might have will work):
-%There's probably a  better way to load the data than scaping together the data from a .mat file
-%Also, I couldn't figure out a way to convert the matlab color map to a scipy style colormap
-%Perhaps we should just use another image?
-%Agreed (Ryan G.) 
 \begin{lstlisting}
 : import matplotlib.pyplot as plt
-: def sdiag(vals, shape):
-....: S = sp.zeros(shape)
-....: S[0:vals.size, 0:vals.size] = sp.diag(vals)
-....: return S
-: X = sp.flipup(plt.imread('testimg.png'))[:,:,1]
-: plt.imshow(X)
-: plt.show()
+: X = sp.misc.imread('fingerprint.png')
+: sp.misc.imshow(X)
 \end{lstlisting}
-The image \li{X} is a $200\times 320$ matrix (type \li{X.shape}
-into Python).  The numbers range from $1$ to $81$ and
-correspond to different shades of gray.  We compute the SVD of our
-image \li{X} by executing
+Computing the SVD of your image is simple.  Remember to make the singluar values a diagonal matrix before multiplying.
 \begin{lstlisting}
 : U,s,Vt = la.svd(X)
-: S = sdiag(s, X.shape)
+: S = sp.diag(s)
 \end{lstlisting}
-Note that the rank of \li{X} is 200.  We can reduce our clown image
-to a rank of 50 by executing the following:
+In the next code block, $n$ repsents the desired rank of the output.
 \begin{lstlisting}
 : n=50;
 : Xhat = sp.dot(sp.dot(U[:,0:n], S[0:n,0:n]), Vt[0:n,:])
-: plt.imshow(Xhat)
-: plt.show()
+: sp.misc.imshow(Xhat)
 \end{lstlisting}
-Note that the clown's left cheek is a little blurry, but it
-otherwise looks ok.  How low can you take the rank and still have a
-decent looking image?  What happens when you take the rank too low?
 
+%write code that will caluculate final image column by column in rank 1 approximations.  It is actually smaller to transmit the matrix col by col than chunks of cols.  We only send 70% of the data if we send col by col than entire matices.  1017856bytes vs 1445888 bytes.
 \begin{problem}
-Explore the clown picture for several different values of rank.
-Conduct the experiments described above.  Note that the original
-image takes 64,000 integers to store.  Compare this with the storage
-needs for various lower-rank SVD approximations. What conclusions
-can you draw? Expirement with other images we've used in this book.
+A law enforcement agency has been needing to efficiently store over 50,000 fingerprints.  They have decided to use the SVD compression algorithm.  Your job is to try several parameters for SVD algorithm and recommend the those parameters that retain the highest quality but compress the most.  There should be no smearing or blocking in the final image and fingerprint detail must be retained (otherwise the fingerprint is worthless).  As part of your recommendation, calculate how much hard disk space would be needed to store each compressed fingerprint.
 \end{problem}
+% \begin{problem}
+% Explore the clown picture for several different values of rank.
+% Conduct the experiments described above.  Note that the original
+% image takes 64,000 integers to store.  Compare this with the storage
+% needs for various lower-rank SVD approximations. What conclusions
+% can you draw? Expirement with other images we've used in this book.
+% \end{problem}
 \end{python}
