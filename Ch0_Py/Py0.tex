@@ -306,18 +306,19 @@ Before we continue, there is one more thing we need to discuss.  Throughout this
 \end{lstlisting}
 The \li{\%timeit} command wraps a Python module called \li{timeit}.  This module will execute a statement many times, timing it each time, and report the best execution time.  The reason for multiple timed executions is to account for random system variances which may affect the performance of function.  Also note that \li{timeit} will disable Python's garbage collector during the tests (the garbage collector is how Python automatically manages memory).  We see above that out of 3 million executions (100000 loops repeated 3 times), the fastest time per loop was 11.5 microseconds.  We can even time the execution of functions.
 
-The problem with \li{\%timeit} is that it is only defined inside The problem arises when trying to use \li{timeit} directly.  It is tricky to use.  The authors of this book have written a Python module that wraps \li{timeit} into an easy to use Python context.  Please save the following code into an easily accessible file.
+The problem with \li{\%timeit} is that it is only defined inside ipython.  The authors of this book have written a Python module that wraps \li{timeit} into an easy to use Python context.  Please save the following code into an easily accessible file.
 
-\lstinputlisting[style=python, style=fromfile, name=timer.py]{./Source/timer.py}
+\lstinputlisting[style=python, style=fromfile, name=timer.py]{./Source/mytimer.py}
 
 The reader is not expected to understand the above function (though it would be worthwhile study it).  It uses a feature of Python called contexts.  Consider the following code.
 \begin{lstlisting}
-from timer import timer
+from mytimer import timer
 with timer() as t:
-    t.time(myFunction)
+    t.time(myFunction, arguments)
+    t.printTimes()
 \end{lstlisting}
 
-Python contexts are used via the \li{with} keyword.  In the above code, we initialize the \li{timer()} context which returns to us a \li{timer()} object bound to the variable \li{t}.  Inside the block, we can execute anything.  If we wish to time a specific function we call the \li{time()} method of \li{t}.  The \li{time()} method accepts a function and its parameters and retuns the best execution time (in the form of a string) in the following form:
+Python contexts are used via the \li{with} keyword.  In the above code, we initialize the \li{timer()} context which returns to us a \li{timer()} object bound to the variable \li{t}.  Inside the block, we can execute anything.  If we wish to time a specific function we call the \li{time()} method of \li{t}.  The \li{time()} method accepts a function and its parameters and returns the best execution time (in the form of a string) in the following form:
 \begin{lstlisting}
 myFunction finished in 0.00283s (1 loops, repeated 3 times): 0.00283s per loop (with gc.disable())
 \end{lstlisting}
