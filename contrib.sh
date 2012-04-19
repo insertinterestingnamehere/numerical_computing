@@ -1,0 +1,1 @@
+git log --pretty=format:"%an" --since="1/3/2010" | sort | uniq > contributors
