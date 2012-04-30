@@ -2,29 +2,33 @@
 
 \objective{Understand and implement the Cholesky Decomposition}
 
-The Cholesky Decomposition expresses a positive definite matrix as the product of an upper-triangular matrix and its adjoint. This factorization is twice as fast as the LU decomposition and is also more numerically stable. This factorization is useful in a variety of applications, including least squares, optimization, and state estimation. The usefulness is often derived from its numerical stability.
+For certain circumstances, we have a more efficient alternative to the LU decomposition.  The Cholesky decomposition requires half the number of calculations and half the memory that the standard LU decomposition needs.  Furthermore, it is a numerically stable decomposition, which makes it all the more useful.  Because of the efficiency and numerical stability, Cholesky decomposition is used in solving least squares, optimization, and state estimation problems.  The Cholesky decomposition, however, is only applicable for positive definite matrices (symmetric matrices with strictly positive eigenvalues).  In fact, the Cholesky decomposition is an efficient way to test if a matrix is positive definite.  The Cholesky decomposition of a positive definite matrix is unique.  Think of the Cholesky decomposition as the matrix equivalent taking the square root of a positive real number.
 
-As stated above the Cholesky Decomposition expresses a positive definite matrix $A$ as:
-\[
-A = LL^H
-\]
-Where L is lower triangular. A particular algorithm for finding L is defined as follows:
+The Cholesky decomposition of a $A$ is an lower-triangular matrix, $L$, such that
+\begin{equation*}
+ A = LL^H
+\end{equation*}
 
-\[
-L_{i,j} = \frac{1}{L_{j,j}}\left(A_{i,j} -\sum_{k=1}^{j-1}{L_{i,k}L_{j,k}^*}\right) \mbox{ for i \textgreater  j}
-\]
-\[
-L_{i,i} = \sqrt{A_{i,i} - \sum_{k=1}^{i-1}{L_{i,k}L_{i,k}^*}}
-\]
+where the entries of $L$ are calculated as follows.
+\begin{align*}
+&L_{i,j} = \frac{1}{L_{j,j}}\left(A_{i,j} -\sum_{k=1}^{j-1}{L_{i,k}L_{j,k}^*}\right) \mbox{ for $i>j$} \\ \\
+&L_{i,i} = \sqrt{A_{i,i} - \sum_{k=1}^{i-1}{L_{i,k}L_{i,k}^*}}
+\end{align*}
 
-Note that this definition is self-referencing: later solutions requre earlier ones. Thus to implement this formula you have to start in the upper left-hand corner and work your way down.
-
-It is important to note that the Cholesky decomposition is only applicable to positive definite matrices. These matrices are always symmetric, and only have positive eigenvalues. While this characterization is clearly less general than the LU factorization, positive definite matrices are common in a variety of applications, so this method is important to understand.
+This is an iterative process where the current calculation may depend on previous calculations.  To calculate $L$ properly, you must start in the upper left corner and iterate down.
 
 \begin{problem}
-Write the Cholesky decomposition in psuedocode, so that a programmer could code it up for you.
+Write the Cholesky decomposition algorithm in psuedocode.
 \end{problem}
 
 \begin{problem}
-Write your own Cholesky decomposition function. Test it using a random symmetric matrix (build a random square matrix A and then use A'A). Check the output of your function to ensure that it is functioning properly. Compare how long your function takes in comparison to the LU function that you wrote eariler.
+Write your own implementation of the Cholesky decomposition. Test it using a random symmetric matrix (build a random square matrix $A$, then $A^TA$ will be positive definite). Check the output of your function to ensure that it is functioning properly.
+\end{problem}
+
+\begin{problem}
+Compare how your Cholesky decomposition performs against your LU decomposition from Lab \ref{lab:LUdecomp}.  Perform the following comparisons by decomposing increasingly large positive definite matrices.  Plot the comparison results.
+\begin{itemize}
+ \item Runtime: Time how long each decomposition needs to decompose the input matrix.
+ \item Operations: Count the number of operations needed to compute each decomposition.  This can be done by adding a line in the loop to count each time an operation occurs.
+\end{itemize}
 \end{problem}
