@@ -3,86 +3,84 @@
 
 \objective{Understand how eigenvalue solvers work. Implement a simple eigenvalue solver.}
 
-Consider the standard eigenvalue equation:
+Consider the following equation, where $A$ is a square matrix and $x$ is a non-zero vector and $\lambda$ is a scalar.
 
-\[
-A x_0 = \lambda x_0
-\]
+\begin{equation}
+\label{eqn:eigval}
+A x = \lambda x
+\end{equation}
 
-How can we find the eigenvalues? The standard approach in Linear Algebra textbooks is to note that:
+How do we find the eigenvalues (values for $\lambda$)?
 
-\[
-(A-\lambda I)x_0 = 0
-\]
+\begin{equation*}
+\begin{split}
+ A x &= \lambda I x \\
+A x - \lambda I x &= 0 \\
+(A - \lambda I)x &= 0
+\end{split}
+\end{equation*}
 
-Or in other words that
+Since $x$ is assumed to be a non-zero vector, that means $A-\lambda I$ must not have an inverse.  If $A-\lambda I$ is invertible then, $x=0$ and $\lambda$ cannot be an eigenvalue of $A$.  Since we know that $(A - \lambda I)^{-1}$ does not exist, then $det(A-\lambda I) = 0$.  This determinant yields what is known as the characteristic polynomial of $A$.
 
-\[
-det(A-\lambda I) = 0
-\]
+\begin{equation*}
+ p(\lambda) = 0
+\end{equation*}
 
-This yields what is known as the characteristic polynomial:
-
-\[
-p(\lambda) = 0
-\]
-
-Finding the roots of the characteristic polynomials gives the eigenvalues of the matrix.
-
-Unfortunately, exact root-finding is generally a difficult problem. In the case of matrices with complex entries we are looking for complex roots, which further complicates matters. The following theorem clearly articulates the difficulty of the problem:
+If $A$ is $n \times n$, the degree of $p(\lambda) \leq n$.  Finding the roots of the characteristic polynomials gives the eigenvalues of $A$.  For small sizes of $A$, finding the eigenvalues is not difficult.  However, as the size of $A$ increases, the associated characteristic polynomial becomes more complex and find the roots of this polynomial becomes difficult.  Abel's Theorem  outlines the problem.
 
 \begin{theorem}
-{\bf Abel's Theorem:} There are no general formulae solving polynomials of degree greater than four.
+{\bf Abel's Impossibility Theorem:} There is no general algebraic solution for solving a polynomial equation of degree $n>4$.
 \end{theorem}
 
-Accordingly, this means that there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result (one of the few in algebra), and it means that we have to rely upon iterative methods: methods that converge to the eigenvalues. There are many such methods, but we will explore one of the simplest: the QR algorithm.
+Accordingly, this means that there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result, and it means that we have to rely upon approximate methods: methods that converge to the eigenvalues. There are many such methods, but we will explore one of the simplest, the QR algorithm.
 
-To explain we will start with a toy algorithm. Suppose we pick a random vector $x_0$. We can write $x_0$ as a linear combination of eigenvectors of $A$, namely:
-\[
+We illustrate the algorithm with an example. We choose a random vector $x_0$, which we can write as a linear combination of eigenvectors, $v_i$, of $A$.
+\begin{equation}
+\label{eqn:xnot}
 x_0 = \sum v_i
-\]
-Accordingly this means that we can write:
-\[
+\end{equation}
+
+Using equation \ref{eqn:eigval}, we can rewrite \ref{eqn:xnot}.
+
+\begin{equation*}
 Ax_0 = \sum \lambda_i v_i
-\]
+\end{equation*}
 
 Now suppose that we examine $A^n x_0$. We can write the following:
-\[
+\begin{equation*}
 A^n x_0 = \sum \lambda_i^n v_i
-\]
+\end{equation*}
 
-What happens as $n \rightarrow \infty$? It turns out that we end up converging to the eigenvector that corresponds to the largest eigenvalue of A (make sure that you understand why).
+What happens as $n \rightarrow \infty$? It turns out that we end up converging to the eigenvector that corresponds to the largest eigenvalue of A. Why does this happen?
 
-The only assumption that this algorithm makes is that the random vector is a linear combination of all of the eigenvectors (with non-zero coefficients). A random vector will satisfy this condition with probability one, so we generally do not have to worry about this condition. 
+The only assumption that the QR algorithm makes is that $x_0$ must be a linear combination of all of the eigenvectors (with non-zero coefficients). A random vector will always satisfy this condition, so we generally do not have to worry about choosing $x_0$.
 
-This toy algorithm only finds one eigenvector and value. However, by combining this algorithm with the Gram Schmidt process we can find all of the eigenvectors and values of a given matrix. This is what the QR algorithm does.
+This example algorithm only finds one eigenvector and eigenvalue. However, by combining this algorithm with the Gram-Schmidt algorithm we can find all of the eigenvectors and eigenvalues of any matrix. This is what the QR algorithm does.
 
 \section*{QR Algorithm}
 
 The following recurrence describes the QR Algorithm:
 
-\[
-A_{k+1} = R_k Q_k, A_0 = A, A_k = Q_k R_k
-\]
+\begin{equation*}
+A_0 = A, \quad A_k = Q_k R_k, \quad A_{k+1} = R_k Q_k
+\end{equation*}
 
-Where $Q_kR_k$ is the QR decomposition of $A_k$. Under certain conditions, this process will converge to an upper triangular matrix where the eigenvalues are on the diagonal.
+Where $Q_k R_k$ is the QR decomposition of $A_k$. Under certain conditions, this process will converge to an upper triangular matrix where the eigenvalues are on the diagonal.
 
 \begin{problem}
-Prove that $A_{k+1}$ is similar to $A_k$. This is central to the validity of this algorithm.
-\end{problem}
-
-\begin{matlab}
-\begin{problem}
-Code the QR algorithm as written above. Have your function accept a matrix and a number of iterations and return all the eigenvalues of the input matrix. You can use the QR function that you wrote earlier, or you can use MATLAB's. Use a random symmetric matrix to test your algorithm (compare your output to the output of {\tt eig}). How many iterations are necessary? How big a matrix does this function practically handle?
+Prove that $A_{k+1}$ is similar to $A_k$. This is central to the validity of the QR algorithm.
 \end{problem}
 
 \begin{problem}
-Investigate your algorithm's performance on arbitrary matrices. What do you notice? How does your output differ from MATLAB's output? How is it the same?
+Code the QR algorithm as written above. Have your function accept a matrix, $A$, and a number of iterations. Your function should return all the eigenvalues of $A$. You may use your QR decomposition function from Lab \ref{lab:QRdecomp}, or you can use the builtin version. Test your implementation with random symmetric matrices and compare your output to the output of \li{eig}. How many iterations are necessary? How large can $A$ be?
 \end{problem}
-\end{matlab}
 
 \begin{problem}
-Have your function additionally output the eigenvectors corresponding to the eigenvalues. Hint: you have already made all the necessary calculations, you just need to store the information correctly.
+Investigate your algorithm's performance on arbitrary matrices. What do you notice? How does your output differ from the built-in eigenvalue solver? How is it the same?
+\end{problem}
+
+\begin{problem}
+Have your function additionally output the eigenvector corresponding to each eigenvalue. Hint: you have already made all the necessary calculations, you just need to store the information correctly.
 \end{problem}
 
 The QR algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which utilizes similar ideas as the QR algorithm while exploiting properties of the sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
