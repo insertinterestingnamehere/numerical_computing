@@ -1,39 +1,40 @@
 \lab{Algorithms}{Numerical Derivatives}{Numerical Derivatives}
 
-\objective{Understand and implement finite difference approximations of the derivative. This lab focuses on functions from $\R \to \R$, while a later lab focuses on multidimensional analogs.}
+\objective{Understand and implement finite difference approximations of the derivative. This lab focuses on functions from $\mathbb{R} \to \mathbb{R}$, while a later lab focuses on the multidimensional case.}
 
-The derivative of a function at a point is formally defined as:
+The derivative of a function at a point is formally defined as
 
-\[
+\begin{equation}
+\label{eqn:deriv}
 f'(x) = \lim_{h\rightarrow 0} \frac{f(x + h)-f(x)}{h}
-\]
+\end{equation}
 
 In most real world applications we will be solving problems using computers. How does a computer calculate a limit? In short it can't. Computers can only approximate functions at specific points, and the notion of a limit graces infinity in a way that a computer never can.
 
-So how can we use a computer to find the derivative of a function, particularly when we can't differentiate the function by hand? We use methods known as finite difference methods. For example suppose that in the previously formula instead of taking a limit we just pick a particularly small value for h. Then we can say:
+So how can we use a computer to find the derivative of a function, particularly when we can't differentiate the function by hand? We use methods known as finite difference methods. For example suppose that in equation \ref{eqn:deriv}, instead of taking a limit we just pick a particularly small value for h. Then we have
 
-\[
+\begin{equation*}
 f'(x) \approx \frac{f(x + h)-f(x)}{h}
-\]
+\end{equation*}
 
 This is known as the first order forward difference approximation of the derivative.
 
-How do we know the quality of this approximation? We can use taylor's formula to find the following:
+How do we know the quality of this approximation? We can use Taylor's formula to find
 
-\[
+\begin{equation*}
 f(x_0 + h) = f(x_0) + hf'(x_0) + h^2/2 f''(\xi),\hspace{5mm} \xi \in (x_0,x_0 + h)
-\]
+\end{equation*}
 
-This can be manipulated to the following:
+Which can be also expressed as
 
-\[
+\begin{equation*}
 f'(x_0) = \frac{f(x_0 + h) - f(x)}{h} + \frac{h}{2}
 f''(\xi) = \frac{f(x_0 + h) - f(x)}{h} + O(h)
-\]
+\end{equation*}
 
-Here we use the big O notation to denote that the errors are bounded by some constant times $h$.
+Here we use the big-O notation to denote that the errors are bounded by some constant multiplied by $h$.
 
-We can use Taylor expansions to find approximations that have different big-O error bounds, up to any polynomial of arbitrary degree. The following tables offer the coefficients for forward, and centered difference schemes:
+We can use Taylor expansions to find approximations that have different big-O error bounds, up to any polynomial of arbitrary degree. The following tables offer the coefficients for forward, and centered difference schemes.
 
 \begin{table}
 \begin{center}
@@ -69,28 +70,28 @@ Derivative & Accuracy & 0 & 1 & 2 & 3 & 4 \\ \hline
 \end{center}
 \end{table}
 
-These tables can be used by simply summing the function evaluations (the number at the top represents how many times $h$ is added to x), and then dividing by $h^n$, where $n$ is the degree of the derivative.
+These tables can be used by simply summing the function evaluations (the number at the top represents how many times $h$ is added to $x$), and then dividing by $h^n$, where $n$ is the degree of the derivative.
 
-So, for example, the centered difference estimate of the second derivative that is $O(h^4)$ is:
-\[
+So, for example, the centered difference estimate of the second derivative that is $O(h^4)$ is
+\begin{equation*}
 f''(x) \approx \frac{-1/12(f(x-2h) + f(x+2h)) + 4/3(f(x-h) + f(x+h)) -5/2f(x)}{h^2}
-\]
+\end{equation*}
 
-Or, the forward difference estimate for the first derivative that is $O(h^2)$ is:
+Or, the forward difference estimate for the first derivative that is $O(h^2)$ is
 
-\[
+\begin{equation*}
 f'(x) \approx \frac{-3/2f(x) + 2f(x+h) - 1/2 f(x+2h)}{h}
-\]
+\end{equation*}
 
-It should be noted that we can convert a forward difference estimate to a backwards difference estimate by using $-h$. So the backwards difference estimate for the first derivative that is $O(h^2)$ is:
+It should be noted that we can convert a forward difference estimate to a backwards difference estimate by using $-h$. So the backwards difference estimate for the first derivative that is $O(h^2)$ is
 
-\[
+\begin{equation*}
 f'(x) \approx \frac{3/2f(x) - 2f(x-h) + 1/2 f(x-2h)}{h}
-\]
+\end{equation*}
 
 There are two important observations that you should make about these tables. First, in order to get higher order approximations we need to evaluate the function at more points. This should not be surprising. Second, you should notice that centered difference formulas require less function evaluations to get higher order approximations. However, in certain applications it is not possible to use centered difference formulas, so the backwards and forwards formulas are still very applicable.
 
-One important aspect of this method is selecting an appropriate $h$. The natural temptation is to pick a very very small value. However, this is not always advisable. Note the following table, which approximates the derivative of $e(x)$ at $x = 1$:
+One important aspect of this method is selecting an appropriate $h$. The natural temptation is to pick a very very small value. However, this is not always advisable. Note the values in table \ref{Table:FloatingError}, which approximates the derivative of $e(x)$ at $x = 1$:
 
 \begin{table}[h!]
 \begin{center}
@@ -102,19 +103,20 @@ h & Error  = $|f'(1)-f'_{app}(1)|$ \\ \hline
 1e-7 & 5.8587e-11 \\
 1e-10 & 6.7274e-7 \\ \hline
 \end{tabular}
-\caption{Error in numerical derivative, using double floating point arithmetic}
+\caption{Error in numerical derivative, using double precision floating point arithmetic}
+\label{Table:FloatingError}
 \end{center}
 \end{table}
 
-As you can see, the error actually increases as $h$ becomes very small. Why is this? Division by small numbers causes errors in floating point arithmetic. So, be aware that usually the optimal $h$ is of moderately small size. However, in the framework of double floating point arithmetic this is usually less of a concern.
+As you can see, the error actually increases as $h$ becomes very small. Why is this? Division by small numbers causes errors in floating point arithmetic. So, be aware that usually the optimal $h$ is of moderately small size. However, in the framework of double floating point arithmetic, this is usually less of a concern.
 
 As a matter of reference, calculating numerical derivatives is an unstable operation. An unstable operation, informally, is one where errors are magnified by the operation. This usually is not an issue, but it's important to know that taking derivatives can amplify errors.
 
 \begin{problem}
-Write a function that accepts as inputs a derivative (first or second), a degree of accuracy $n$ and a type of difference (forward, backward or centered), a function and a vector of points. Also, allow an optional input of error tolerance. Have the function estimate the derivative with the inputed specifications. Have the function return a vector of the approximate derivative and the number of total function evaluations. Try to minimize the total number of necessary function evaluations. You can have the function output an error if the specified order of derivative or degree were not provided in Table \ref{Table:CDiff} or \ref{Table:FDiff}.
+Write a function that accepts as inputs: a derivative (first or second), a degree of accuracy ($n$), a type of difference (forward, backward or centered), a function to be differentiated, and a vector of points to differeniate at. Also, allow an optional input of error tolerance. Have the function estimate the derivative with the inputed specifications. Have the function return a vector of the approximate derivative and the number of total function evaluations. Try to minimize the total number of necessary function evaluations. You can have the function output an error if the specified order of derivative or degree were not provided in Table \ref{Table:CDiff} or \ref{Table:FDiff}.
 \end{problem}
 
-We note that higher order approximations of the derivative can be derived using the taylor series and lagrange polynomials, but generally higher-order approximations are not practically useful (they can often be ill-conditioned).
+We note that higher order approximations of the derivative can be derived using the Taylor series and Lagrange polynomials, but generally higher-order approximations are not practically useful as they can often be ill-conditioned.
 
 \begin{problem}
 Test the convergence properties claimed in Tables \ref{Table:CDiff} and \ref{Table:FDiff}. Specifically, empirically calculate the order of convergence of a $O(h^2)$ centered difference and a $O(h^3)$ forward difference by calculating the derivative of the sine function at $x=1$. How does it compare to the order of convergence expected?
