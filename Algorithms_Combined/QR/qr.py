@@ -10,18 +10,19 @@ def QR(X):
     #transpose so we are dealing with rows instead of columns
     #check types on X
     Q = X.T.copy()
-    nrows, ncols = Q.shape
+    nrows, ncols = X.shape
     R = sp.zeros((nrows, ncols))
 
-    for i in range(nrows):
+    for i in xrange(nrows):
         R[i,i] = norm(Q[i])
         Q[i] = Q[i]/R[i,i]
-        for j in range(i+1,nrows):
+        for j in xrange(i+1,nrows):
             R[i,j] = Q[j].dot(Q[i])
             Q[j] = Q[j]-(R[i,j]*Q[i])
 
     return Q.T, R
-
+    
+    
 def detQR(X):
     """Computes the determinant of X using the QR decomposition"""
     Q, R = QR(X)
