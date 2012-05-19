@@ -2,13 +2,13 @@ import scipy as sp
 from scipy import linalg as la
 
 def dct_mat(n):
-    """Construct DCT matrix"""
-    tmp = sp.array(sp.cos([(j+1.0/2)*k*sp.pi/n for j in range(n) for k in range(n)]).reshape((n,n))).T
+    """Construct an nxn DCT matrix"""
+    tmp = sp.array(sp.cos([(j*.5)*k*sp.pi/n for j in range(n) for k in range(n)]).reshape((n,n))).T
     return sp.array([i/la.norm(i) for i in tmp])
 
 def dct1d_expr(data, blksize, npoints=200, terms=-1):
     """Interpolate single dimensional data using the previously calculated DCT coefficients"""
-    data = data.astype('float32')#s.flatten()
+    data = data.astype(float)#s.flatten()
 
     n = float(len(data))
     x_points = sp.linspace(0,n,float(npoints))
@@ -83,6 +83,13 @@ def dct_basis(X, blksize):
     return [sp.dot(X, B) for B in bmatr]
 
 def dct(X, blksize):
+    """Perform the DCT transform on X using blksize.
+    If X.shape > blksize then X will tiled"""
+    
+    #Xshape, Yshape = X.shape
+    #if Xshape % blksize == 0 and Yshape % blksize == 0:
+        #output = sp.zeros(X.shape)
+        #for 
     return sp.dot(dct_mat(blksize), X)
 
 def idct(Y, blksize):
@@ -95,26 +102,52 @@ def dct2(X, blksize):
     dctm = dct_mat(blksize)
 
     #try:
-    blks = [sp.vsplit(x, X.shape[1]/blksize) for x in sp.hsplit(X, X.shape[0]/blksize)]
+    #blks = [sp.vsplit(x, X.shape[1]/blksize) for x in sp.hsplit(X, X.shape[0]/blksize)]
     #except:
     #    print "Some error occurred"
 
-    blks = [sp.dot(sp.dot(dctm, b), dctm.T) for b in blks]
-    return sp.concatenate([blk for blk in blks]).reshape(X.shape)
-
+    output = sp.zeros(X.shape)
+    if output.ndim==3:
+        for i in range(blksize,X.shape[0],blksize):
+            for j in range(blksize, X.shape[1], blksize):
+                for c in range(X.shape[2]):
+                    b = X[i-blksize:i, j-blksize:j, c]
+                    output[i-blksize:i, j-blksize:j, c] = sp.dot(sp.dot(dctm,b),dctm.T)
+    elif output.ndim==2:
+        for i in range(blksize,X.shape[0],blksize):
+            for j in range(blksize, X.shape[1], blksize):
+                b = X[i-blksize:i, j-blksize:j]
+                output[i-blksize:i, j-blksize:j] = sp.dot(sp.dot(dctm,b),dctm.T)
+                
+    #blks = [sp.dot(sp.dot(dctm, b), dctm.T) for b in blks]
+    #return sp.concatenate([blk for blk in blks]).reshape(X.shape)
+    return output
 
 def idct2(X, blksize):
     """Calculate the inverse DCT transform of a 2D array, X"""
     dctm = dct_mat(blksize)
 
     #try:
-    blks = [sp.vsplit(x, X.shape[1]/blksize) for x in sp.hsplit(X, X.shape[0]/blksize)]
+    #blks = [sp.vsplit(x, X.shape[1]/blksize) for x in sp.hsplit(X, X.shape[0]/blksize)]
     #except:
     #    print "Some error occurred"
 
-    blks = [sp.dot(sp.dot(dctm.T, b), dctm) for b in blks]
-    return sp.concatenate([blk for blk in blks]).reshape(X.shape)
-
+    output = sp.zeros(X.shape)
+    if output.ndim==3:
+        for i in range(blksize,X.shape[0],blksize):
+            for j in range(blksize, X.shape[1], blksize):
+                for c in range(X.shape[2]):
+                    b = X[i-blksize:i, j-blksize:j, c]
+                    output[i-blksize:i, j-blksize:j, c] = sp.dot(sp.dot(dctm,b),dctm.T)
+    elif output.ndim==2:
+        for i in range(blksize,X.shape[0],blksize):
+            for j in range(blksize, X.shape[1], blksize):
+                b = X[i-blksize:i, j-blksize:j]
+                output[i-blksize:i, j-blksize:j] = sp.dot(sp.dot(dctm.T,b),dctm)
+    #blks = [sp.dot(sp.dot(dctm.T, b), dctm) for b in blks]
+    #return sp.concatenate([blk for blk in blks]).reshape(X.shape)
+    return output
+    
 def basis_mats(blksize=8, plot=False):
     """Compute the basis matrices of the DCT matrix"""
 
