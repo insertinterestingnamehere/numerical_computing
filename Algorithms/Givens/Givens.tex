@@ -1,0 +1,99 @@
+\lab{Algorithms}{Givens Rotations}{Givens Rotations}
+\label{Ch:Givens Rotations}
+
+\objective{Learn how to use Givens rotations in numerical computing.}
+\section*{Givens rotations}
+
+The matrix $\begin{pmatrix} cos(\theta) & -sin(\theta) \\ sin(\theta) & cos(\theta) \end{pmatrix}$ rotates a vector counterclockwise by $\theta$. Given a vector $x = \begin{pmatrix} a \\ b \end{pmatrix}$, we can rotate $x$ into the range of $e_1$ by choosing the correct $\theta$. The problem is equivalent to solving for $c = cos(\theta)$ and $s = sin(\theta)$ in the system
+\begin{equation}
+\label{eq:Givens rotation system}
+\begin{pmatrix} c & -s \\ s & c \end{pmatrix} \begin{pmatrix}a\\b\end{pmatrix} 
+= \begin{pmatrix}r\\0\end{pmatrix}
+\end{equation}
+ In fact, it's not necessary to compute $\theta$; we solve for $c$ and $s$ directly. An obvious solution is $c = \frac{a}{\sqrt{a^2 + b^2}}$ and $s = \frac{b}{\sqrt{a^2+b^2}}$. However, a more numerically stable method is 
+ 
+ \begin{pseudo}{Givens rotation solver}{a,b}
+ \label{Alg:Givens rotation solver}
+\IF b=0 \THEN c \GETS copysign(1,a); s \GETS 0 
+\ELSEIF a=0 \THEN c \GETS 0;s \GETS -copysign(1,b)
+\ELSEIF abs(b)>abs(a) \THEN
+\BEGIN
+	t \GETS a/b\\
+	u \GETS copysign(sqrt(1+t*t),b)\\
+	s \GETS -1/u\\
+	c \GETS -s*t
+\END
+\ELSE
+\BEGIN
+	t \GETS b/a \\
+	u \GETS copysign(sqrt(1+t*t),a)\\
+	c \GETS 1/u\\
+	s \GETS -c*t 
+\END
+\end{pseudo}\\
+where \li{copysign(a,b)} returns \li{a} with the sign of \li{b} (if this function is not available, use \li{a*sign(b)}).
+
+\subsection*{Givens triangularization}
+
+Like Householder, the Givens $QR$ algorithm, \emph{triangularizes} a matrix $A$ using \emph{orthogonal transformations}. The Householder $QR$ algorithm worked one column at a time; Givens works one element at a time. Each nonzero below the main diagonal can be zeroed out with a Givens rotation. If we solve for $c$ and $s$ as above, the matrix
+\begin{equation*}
+G(i,j,c,s) = 
+\begin{pmatrix}
+1   & \cdots & 0 & \cdots & 0 & \cdots & 0 \\
+ \vdots & \ddots & \vdots &  & \vdots & & \vdots \\
+0   & \cdots &    c   & \cdots &    -s   & \cdots &    0   \\
+ \vdots &        & \vdots & \ddots & \vdots &        & \vdots \\
+ 0   & \cdots &   s   & \cdots &    c   & \cdots &    0   \\
+\vdots &        & \vdots &        & \vdots & \ddots & \vdots \\
+0   & \cdots &    0   & \cdots &    0   & \cdots &    1 
+\end{pmatrix}
+\end{equation*}
+where
+\[ \begin{array}{ll}
+g_{i\, i} = c  & g_{j\, i}= -s   \\
+g_{j\, j} = c &  g_{i\, j}= s  \\
+\end{array}\]
+rotates by $\theta$ in the $i,j$ plane. Also, it's easy to check that $G(i,j,c,s)$ is orthogonal. Left-multiplying $A$ by $G(i,j,c,s)$ zeroes out $A_{i\, j}$. For example, 
+
+\[
+\begin{array}{ccccccc}
+\begin{pmatrix}
+*&*&*\\
+*&*&*\\
+*&*&*
+\end{pmatrix}
+&
+\underrightarrow{G(3,1)}
+&\begin{pmatrix}
+*&*&*\\
+*&*&*\\
+0&*&*
+\end{pmatrix}
+&
+\underrightarrow{G(2,1)}
+&\begin{pmatrix}
+*&*&*\\
+0&*&*\\
+0&*&*
+\end{pmatrix}
+&
+\underrightarrow{G(3,2)}
+&\begin{pmatrix}
+*&*&*\\
+0&*&*\\
+0&0&*
+\end{pmatrix}
+\end{array}
+\]
+
+The Givens QR method is often slower than Householder, because it works one element at a time. But it is faster than Householder when $A$ is sparse, and it is very parallelizable.
+
+\begin{problem}
+Write a script that uses Givens rotations to do QR decomposition. By performing successive Givens rotations, triangularize $A$ to find $R$. You can find $Q$ using the chain of rotations.
+
+To find each rotation, you will have to solve \eqref{eq:Givens rotation system} for $c$ and $s$. Let $b$ be the element you want to zero out, say $A_{i\,j}$. Then $a$ is in the same \emph{column} as $b$, and in the \emph{row} you want to rotate into (it's like we're squishing the whole vector into $a$'s spot.) You can choose $a$ to be the diagonal element above $b$.
+\end{problem}
+
+\begin{problem} 
+Compare the MGS, Householder, and Givens algorithms for $QR$ decomposition on various matrices. Try different sizes and different levels of sparsity. Which is the fastest? Which is the most stable?
+\end{problem}
