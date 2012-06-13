@@ -4,14 +4,14 @@
 \objective{Understand how eigenvalue solvers work. Implement a simple eigenvalue solver.}
 
 Finding the eigenvalues of $n \times n$ matrix $A$ means solving the following equation, where $x$ is a \emph{nonzero} vector and $\lambda$ is a scalar.
-\begin{eqnarray}
- A x                       &=& \lambda x \\
-A x - \lambda I x &=& 0 \\
-(A - \lambda I)x &=& 0
-\end{eqnarray}
-Since $x$ is a non-zero vector, that means $A-\lambda I$ must be singular. Then $det(A-\lambda I) = 0$.  This determinant yields what is known as the characteristic polynomial of $A$. This determinant is often notated $det(A-\lambda I) = p(\lambda)$ and is called the characteristic polynomial of $A$.
+\begin{align} 
+ A x                       &=  \lambda x  \notag \\
+A x - \lambda x &= 0 \notag \\
+(A - \lambda I)x  &= 0 \label{eq:singularity}
+\end{align}
+Since $x$ is a non-zero vector, \eqref{eq:singularity} means $A-\lambda I$ must be singular. Thus $det(A-\lambda I) = 0$.  This determinant is often notated $det(A-\lambda I) = p(\lambda)$ and is called the \emph{characteristic polynomial} of $A$. Finding the roots of the characteristic polynomial gives the eigenvalues of $A$. 
 
-If $A$ is $n \times n$, the degree of $p(\lambda) \leq n$.  Finding the roots of the characteristic polynomials gives the eigenvalues of $A$.  For small sizes of $A$, finding the eigenvalues is not difficult.  However, as the size of $A$ increases, the associated characteristic polynomial becomes more complex and finding the roots of this polynomial becomes difficult.  Abel's Theorem  outlines the problem.
+If $A$ is $n \times n$, the degree of $p(\lambda) = n$.   For small $n$, finding the eigenvalues is not difficult.  However, as the size of $A$ increases, finding the roots of $p(\lambda)$ becomes difficult.  Abel's Theorem  outlines the problem.
 
 \begin{theorem}
 \label{Theorem:Abel}
@@ -47,11 +47,9 @@ Therefore, there is no method that will exactly find the eigenvalues of an arbit
 %--------------------------------------
 
 The following recurrence describes the $QR$ Algorithm in its most basic form. 
-
 \begin{equation*}
 A_0 = A, \quad A_k = Q_k R_k, \quad A_{k+1} = R_k Q_k
 \end{equation*}
-
 where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it looks. All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q$ and $R$ together again but in the opposite order. How does this simple process find the eigenvalues of $A$? 
 
 \begin{problem}
@@ -59,8 +57,7 @@ where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it loo
 Prove that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity). Then prove that $A_n \sim A$ for all $n$.  
 \end{problem}
 
-This shows that $A_n$ has the same spectrum as $A$. Each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle, while preserving the eigenvalues. Under very general conditions, $A_n$ will converge to a matrix of the form
-
+Problem \ref{problem:similarity proof} shows that $A_n$ has the same spectrum as $A$. Preservation of eigenvalues is the first important feature that makes the algorithm work. The other important feature is that each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle. Under very general conditions, $A_n$ will converge to a matrix of the form
 \begin{equation}
 \label{eq:Schur form}
      \begin{pmatrix}
@@ -70,16 +67,17 @@ This shows that $A_n$ has the same spectrum as $A$. Each iteration of the algori
            0 & \cdots & 0 & B_m
     \end{pmatrix}
 \end{equation}
+where $B_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. The matrix described in \eqref{eq:Schur form} is called the \emph{Schur form} of $A$. If $A$ is complex, or if $A$ is real and symmetric, then the Schur form will be diagonal; that is, all the $B_i$ will be $1 \times 1$. If $A$ is real but not symmetric, some of its eigenvalues may be complex. These complex eigenvalues occur as conjugate pairs, as the eigenvalues of the $2 \times 2$ $B_i$. If this is the case, \eqref{eq:Schur form} is called the \emph{real Schur form} of $A$ and is not quite diagonal. It's easy to find the eigenvalues of the Schur form or the real Schur form of $A$. (They're the eigenvalues of the $B_i$.) And by Problem \ref{problem:similarity proof}, these are also the eigenvalues of $A$.
+(For more on the Schur form, see Lab \ref{Ch:Jordan}.)
 
-where $B_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. The matrix described in \eqref{eq:Schur form} is called the \emph{Schur form} of $A$ (or the \emph{Real Schur form} if any of the $B_i$ are $2 \times 2$.) In the case that $A$ is symmetric, $A_k$ will be symmetric for all $k$, and $A_n$ will converge to a diagonal matrix. If $A$ is real but not symmetric, some of its eigenvalues may be complex. These complex eigenvalues occur as conjugate pairs, as the eigenvalues of the $2 \times 2$ $B_i$.
-
-The following algorithm is based on the above process but is closer to what is actually done in the real world of numerical computing.
+The following algorithm is based on the above process but is closer to what is actually done in the real world of numerical computing. The results from Problem \ref{problem:similarity proof} still hold in this new version.
 
 \begin{pseudo}{QR algorithm}{A}
 \label{Alg:QR algorithm}
 n,n \GETS size(A)\\
-I \GETS eye(n,n)
+I \GETS eye(n,n)\\
 Q_0, A_0 \GETS Hessenberg(A)\\
+\COMMENT{gives $Q_0$ unitary and $A_0$ upper Hessenberg s.t. $Q_0^* A_0 Q_0 = A$}\\
 \FOR k \GETS 1, 2, ... \DO
 \BEGIN
 	s_k \GETS A_{k-1}(n,n)\\
@@ -88,24 +86,21 @@ Q_0, A_0 \GETS Hessenberg(A)\\
 \END
 \end{pseudo}
 
-Notice that we've added a step at the beginning: reduction to upper Hessenberg form. This zeros out all the entries below the subdiagonal of $A$ and speeds up the diagonalization process.
-
-stuff
-Note that the results from Problem \ref{problem:similarity proof} still hold.
+Notice that we've added a step at the beginning: reduction to upper Hessenberg form. This zeros out all the entries below the subdiagonal of $A$ and speeds up the diagonalization process. We've also added a shift at each step, $s_k$, which further speeds convergence. Setting $s_k = A_{k-1}(n,n)$ is one of many possible shift choices.
 
 \begin{problem}
-Code the $QR$ algorithm. Have your function accept an $nxn$ matrix $A$ and a number of iterations, and return all the eigenvalues of $A$. Use your Hessenberg function from Lab \ref{Ch:Householder Reflections} for the first step. For QR decomposition, use your own implementation from Labs \ref{lab:QRdecomp}, \ref{Ch:Householder Reflections}, or \ref{Ch:Givens Rotations} (Householder is usually fastest), or use the builtin version. Note that you will need to find the eigenvalues of the $2 \times 2$ $B_i$ directly, if there are any.
+Code the $QR$ algorithm. Have your function accept an $n \times n$ matrix $A$ and a number of iterations, and return all the eigenvalues of $A$. Use your Hessenberg function from Lab \ref{Ch:Householder Reflections} for the first step. For QR decomposition, use your own implementation from Labs \ref{lab:QRdecomp}, \ref{Ch:Householder Reflections}, or \ref{Ch:Givens Rotations} (Householder is usually fastest), or use the built-in version. Note that you will need to find the eigenvalues of the $2 \times 2$ $B_i$ directly, if there are any.
 \end{problem}
 
 \begin{problem}
-Have your function additionally output the eigenvector corresponding to each eigenvalue. (Hint: Your work in Problem \ref{problem:similarity proof} may be helpful. You have already made all the necessary calculations, you just need to store the information correctly.)
+If $A$ is normal, its Schur form is diagonal. For normal $A$, have your function additionally output the eigenvector corresponding to each eigenvalue. Hint 1: Real symmetric matrices and Hermitian matrices are both normal. Hint 2: Your work in Problem \ref{problem:similarity proof} may be helpful. You have already made all the necessary calculations, you just need to store the information correctly.
 \end{problem}
 
 \begin{problem}
 Test your implementation with random matrices and random symmetric matrices. Compare your output to the output of \li{linalg.eig}. How many iterations are necessary? How large can $A$ be?
 \end{problem}
 
-The $QR$ algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which is similary to the $QR$ algorithm but exploits sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
+The $QR$ algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which is similar to the $QR$ algorithm but exploits sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
 
 It is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned. 
 \begin{matlab}
@@ -120,5 +115,5 @@ ans =
    0.0320 - 0.0228i
 \end{lstlisting}
 
-However, all of the eigenvalues of {\tt gallery(5)} are actually zero. This highlights the need to be conscious of the fact that eigenvalue solvers are really just doing an approximation.
+However, all of the eigenvalues of {\tt gallery(5)} are actually zero. This highlights the need to realize that eigenvalue solvers are really just doing an approximation.
 \end{matlab}
