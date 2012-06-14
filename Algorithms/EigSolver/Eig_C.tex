@@ -1,15 +1,15 @@
 \lab{Algorithms}{Eigenvalue Solvers}{Eigenvalue Solvers}
 \label{Ch:EigSolve}
 
-\objective{Understand how eigenvalue solvers work. Implement a simple eigenvalue solver.}
+\objective{Implement the $QR$ algorithm for finding eigenvalues.}
 
-Finding the eigenvalues of $n \times n$ matrix $A$ means solving the following equation, where $x$ is a \emph{nonzero} vector and $\lambda$ is a scalar.
+Finding the eigenvalues of $n \times n$ matrix $A$ means solving the following equation, where $x$ is a nonzero vector and $\lambda$ is a scalar.
 \begin{align} 
  A x                       &=  \lambda x  \notag \\
 A x - \lambda x &= 0 \notag \\
 (A - \lambda I)x  &= 0 \label{eq:singularity}
 \end{align}
-Since $x$ is a non-zero vector, \eqref{eq:singularity} means $A-\lambda I$ must be singular. Thus $det(A-\lambda I) = 0$.  This determinant is often notated $det(A-\lambda I) = p(\lambda)$ and is called the \emph{characteristic polynomial} of $A$. Finding the roots of the characteristic polynomial gives the eigenvalues of $A$. 
+Since $x$ is nonzero, \eqref{eq:singularity} means $A-\lambda I$ must be singular. Thus $det(A-\lambda I) = 0$.  This determinant is often notated $det(A-\lambda I) = p(\lambda)$ and is called the \emph{characteristic polynomial} of $A$. Finding the roots of the characteristic polynomial gives the eigenvalues of $A$.
 
 If $A$ is $n \times n$, the degree of $p(\lambda) = n$.   For small $n$, finding the eigenvalues is not difficult.  However, as the size of $A$ increases, finding the roots of $p(\lambda)$ becomes difficult.  Abel's Theorem  outlines the problem.
 
@@ -18,39 +18,13 @@ If $A$ is $n \times n$, the degree of $p(\lambda) = n$.   For small $n$, finding
 {\bf Abel's Impossibility Theorem:} There is no general algebraic solution for solving a polynomial equation of degree $n>4$.
 \end{theorem}
 
-Therefore, there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result. In practice it means that we often rely on iterative methods, which converge to the eigenvalues. There are many such methods, but we will explore one of the simplest: the $QR$ algorithm.
+Therefore, there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result. In practice it means that we often rely on iterative methods, which converge to the eigenvalues. There are many such methods, but we will explore one of the simplest: the $QR$ algorithm. The following recurrence describes the $QR$ Algorithm in its most basic form. 
 
-%I think this section is confusing and unnecessary. It describes power iteration but doesn't illustrate the connection between power iteration and the QR algorithm. And anyway I don't think it's that useful.
-%----------------------------------------
-%We illustrate the algorithm with an example. We choose a random vector $x_0$, which we can write as a linear combination of eigenvectors, $v_i$, of $A$.
-%\begin{equation}
-%\label{eqn:xnot}
-%x_0 = \sum v_i
-%\end{equation}
-%
-%Using equation \ref{eqn:eigval}, we can rewrite \ref{eqn:xnot}.
-%
-%\begin{equation*}
-%Ax_0 = \sum \lambda_i v_i
-%\end{equation*}
-%
-%Now suppose that we examine $A^n x_0$. We can write the following:
-%\begin{equation*}
-%A^n x_0 = \sum \lambda_i^n v_i
-%\end{equation*}
-%
-%What happens as $n \rightarrow \infty$? It turns out that we end up converging to the eigenvector that corresponds to the largest eigenvalue of A. Why does this happen?
-%
-%The only assumption that the $QR$ algorithm makes is that $x_0$ must be a linear combination of all of the eigenvectors (with non-zero coefficients). A random vector will always satisfy this condition, so we generally do not have to worry about choosing $x_0$.
-%
-%This example algorithm only finds one eigenvector and eigenvalue. However, by combining this algorithm with the Gram-Schmidt algorithm we can find all of the eigenvectors and eigenvalues of any matrix. This is what the $QR$ algorithm does.
-%--------------------------------------
-
-The following recurrence describes the $QR$ Algorithm in its most basic form. 
 \begin{equation*}
 A_0 = A, \quad A_k = Q_k R_k, \quad A_{k+1} = R_k Q_k
 \end{equation*}
-where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it looks. All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q$ and $R$ together again but in the opposite order. How does this simple process find the eigenvalues of $A$? 
+
+where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it looks. All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q_k$ and $R_k$ together again but in the opposite order. How does this simple process find the eigenvalues of $A$? 
 
 \begin{problem}
 \label{problem:similarity proof}
@@ -58,6 +32,7 @@ Prove that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity). Then pro
 \end{problem}
 
 Problem \ref{problem:similarity proof} shows that $A_n$ has the same spectrum as $A$. Preservation of eigenvalues is the first important feature that makes the algorithm work. The other important feature is that each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle. Under very general conditions, $A_n$ will converge to a matrix of the form
+
 \begin{equation}
 \label{eq:Schur form}
      \begin{pmatrix}
@@ -67,8 +42,8 @@ Problem \ref{problem:similarity proof} shows that $A_n$ has the same spectrum as
            0 & \cdots & 0 & B_m
     \end{pmatrix}
 \end{equation}
-where $B_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. The matrix described in \eqref{eq:Schur form} is called the \emph{Schur form} of $A$. If $A$ is complex, or if $A$ is real and symmetric, then the Schur form will be diagonal; that is, all the $B_i$ will be $1 \times 1$. If $A$ is real but not symmetric, some of its eigenvalues may be complex. These complex eigenvalues occur as conjugate pairs, as the eigenvalues of the $2 \times 2$ $B_i$. If this is the case, \eqref{eq:Schur form} is called the \emph{real Schur form} of $A$ and is not quite diagonal. It's easy to find the eigenvalues of the Schur form or the real Schur form of $A$. (They're the eigenvalues of the $B_i$.) And by Problem \ref{problem:similarity proof}, these are also the eigenvalues of $A$.
-(For more on the Schur form, see Lab \ref{Ch:Jordan}.)
+where $B_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. The matrix described in \eqref{eq:Schur form} is called the \emph{Schur form} of $A$. If $A$ is complex, or if $A$ is real and symmetric, then its Schur form will be upper triangular; that is, all the $B_i$ will be $1 \times 1$. If $A$ is real but not symmetric, some of its eigenvalues may be complex. These complex eigenvalues occur as conjugate pairs, as the eigenvalues of the $2 \times 2$ $B_i$. If this is the case, \eqref{eq:Schur form} is called the \emph{real Schur form} of $A$ and is not quite upper triangular. It's easy to find the eigenvalues of the Schur form or the real Schur form of $A$. (They're the eigenvalues of the $B_i$.) And by Problem \ref{problem:similarity proof}, these are also the eigenvalues of $A$.
+(For more on Schur form, see Lab \ref{Ch:Jordan}.)
 
 The following algorithm is based on the above process but is closer to what is actually done in the real world of numerical computing. The results from Problem \ref{problem:similarity proof} still hold in this new version.
 
@@ -76,8 +51,8 @@ The following algorithm is based on the above process but is closer to what is a
 \label{Alg:QR algorithm}
 n,n \GETS size(A)\\
 I \GETS eye(n,n)\\
-Q_0, A_0 \GETS Hessenberg(A)\\
-\COMMENT{gives $Q_0$ unitary and $A_0$ upper Hessenberg s.t. $Q_0^* A_0 Q_0 = A$}\\
+ Q_0, A_0 \GETS Hessenberg(A)\\
+\COMMENT{gives $Q_0$ unitary and $A_0$ upper Hessenberg s.t. $Q_0 A_0 Q_0^* = A$}\\
 \FOR k \GETS 1, 2, ... \DO
 \BEGIN
 	s_k \GETS A_{k-1}(n,n)\\
@@ -100,7 +75,7 @@ If $A$ is normal, its Schur form is diagonal. For normal $A$, have your function
 Test your implementation with random matrices and random symmetric matrices. Compare your output to the output of \li{linalg.eig}. How many iterations are necessary? How large can $A$ be?
 \end{problem}
 
-The $QR$ algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which is similar to the $QR$ algorithm but exploits sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
+The $QR$ algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which is similary to the $QR$ algorithm but exploits sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
 
 It is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned. 
 \begin{matlab}
