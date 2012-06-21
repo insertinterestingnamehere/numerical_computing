@@ -20,21 +20,24 @@ If $A$ is $n \times n$, the degree of $p(\lambda) = n$.   Finding the roots is e
 {\bf Abel's Impossibility Theorem:} There is no general algebraic solution for solving a polynomial equation of degree $n>4$.
 \end{theorem}
 
-Therefore, there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result. In practice it means that we often rely on iterative methods, which converge to the eigenvalues. There are many such methods, but we will explore one of the simplest: the $QR$ algorithm. The following recurrence describes the $QR$ Algorithm in its most basic form. 
+Therefore, there is no method that will exactly find the eigenvalues of an arbitrary matrix. This is a significant result. In practice it means that we often rely on iterative methods, which converge to the eigenvalues. 
+
+\section*{The $QR$ algorithm}
+
+There are many such iterative methods for finding eigenvalues. We will explore one of the simplest: the $QR$ algorithm. The following recurrence describes the $QR$ Algorithm in its most basic form. 
 
 \begin{equation*}
 A_0 = A, \quad A_k = Q_k R_k, \quad A_{k+1} = R_k Q_k
 \end{equation*}
 
-where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it looks. All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q_k$ and $R_k$ together again but in the opposite order. How does this simple process find the eigenvalues of $A$? 
+where $Q_k, R_k$ is the $QR$ decomposition of $A_k$. Yes, it's as easy as it looks. All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q_k$ and $R_k$ together again but in the opposite order. How does this simple algorithm find the eigenvalues of $A$? 
 
 \begin{problem}
 \label{problem:similarity proof}
 Prove that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity). Then prove that $A_n \sim A$ for all $n$.  
 \end{problem}
 
-Problem \ref{problem:similarity proof} shows that $A_n$ has the same spectrum as $A$. Preservation of eigenvalues is the first important feature that makes the algorithm work. The other important feature is that each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle. Under very general conditions, $A_n$ will converge to a matrix of the form
-
+Problem \ref{problem:similarity proof} shows that $A_n$ has the same eigenvalues as $A$. Preservation of eigenvalues is the first important feature that makes the algorithm work. The other important feature is that each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle. Under very general conditions, $A_n$ will converge to a matrix of the form
 \begin{equation}
 \label{eq:Schur form}
 S = 
@@ -45,36 +48,34 @@ S =
            0 & \cdots & 0 & S_m
     \end{pmatrix}
 \end{equation}
-where $S_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. If $A$ is real symmetric or complex, $S$ will be upper triangular (that is, all the $S_i$ will be $1 \times 1$.) In this case, $S$ is called the \emph{Schur form} of $A$. If $A$ is real but not symmetric, some of the $S_i$ may be $2 \times 2$, so that $S$ is not quite upper triangular. In this case, $S$ is called the \emph{real Schur form}. Either way, the eigenvalues of $S$ are easy to find - they are simply the eigenvalues of the $S_i$.
+where $S_i$ is either a $1 \times 1$ or a $2 \times 2$ matrix. For most matrices $A$, all the $S_i$ will be $1 \times 1$, so $S$ will be an upper triangular matrix. In this case, $S$ is called the \emph{Schur form} of $A$. The eigenvalues of $A$ are on the main diagonal of $S$.
 
-The following algorithm is based on the above process but is closer to what is actually done in the real world of numerical computing. The results from Problem \ref{problem:similarity proof} still hold in this new version.
+The only case where $S$ is not upper triangular is when $A$ is a real but not symmetric matrix. In this case, though $A$ is real, it may have complex eigenvalues. These eigenvalues occur in complex conjugate pairs. Each of these pairs corresponds to a $2 \times 2$ block in $S$, where the eigenvalues of the $2 \times 2$ block are the complex conjugate pair of eigenvalues of $A$. In this case, $S$ is called the \emph{real Schur form} of $A$.
 
-\begin{pseudo}{QR algorithm}{A}
-\label{Alg:QR algorithm}
-n,n \GETS size(A)\\
-I \GETS eye(n,n)\\
- Q_0, A_0 \GETS Hessenberg(A)\\
-\COMMENT{gives $Q_0$ unitary and $A_0$ upper Hessenberg s.t. $Q_0 A_0 Q_0^* = A$}\\
-\FOR k \GETS 1, 2, ... \DO
-\BEGIN
-	s_k \GETS A_{k-1}(n,n)\\
-	Q_k, R_k \GETS QR(A_{k-1}-s_k I)\\
-	A_k = R_k Q_k + s_k I
-\END
-\end{pseudo}
+\subsection*{Hessenberg preconditioning}
 
-Notice that we've added a step at the beginning: reduction to upper Hessenberg form. This zeros out all the entries below the subdiagonal of $A$ and speeds up the diagonalization process. We've also added a shift at each step, $s_k$, which further speeds convergence. Setting $s_k = A_{k-1}(n,n)$ is one of many possible shift choices.
+Recall from Lab \ref{Ch:Householder reflections} that an upper Hessenberg matrix looks like
+\[
+\begin{pmatrix}
+*           & * & \ast & \cdots   & *\\
+*           & * & * & \cdots   & * \\
+0          & * & * &  \cdots&* \\
+\vdots &  & \ddots    & \ddots & \vdots \\
+0 & \cdots & 0 & * & *\\
+\end{pmatrix} 
+\]
+and that every matrix is similar to an upper Hessenberg matrix. Hessenberg reduction also preserves eigenvalues. It is a good idea to reduce to Hessenberg form before continuing with the $QR$ algorithm. You'll converge to the Schur form faster this way, since Hessenberg matrices are already close to upper triangular.
 
 \begin{problem}
-Code the $QR$ algorithm. Have your function accept an $n \times n$ matrix $A$ and a number of iterations, and return all the eigenvalues of $A$. Use your Hessenberg function from Lab \ref{Ch:Householder Reflections} for the first step. For QR decomposition, use your own implementation from Labs \ref{lab:QRdecomp}, \ref{Ch:Householder Reflections}, or \ref{Ch:Givens Rotations} (Householder is usually fastest), or use the built-in version. Note that you will need to find the eigenvalues of the $2 \times 2$ $S_i$ directly, if there are any.
+Code the $QR$ algorithm. Have your function accept an $n \times n$ matrix $A$ and a number of iterations, and return all the eigenvalues of $A$. Note that you will need to find the eigenvalues of the $2 \times 2$ $S_i$ directly, if there are any.
 \end{problem}
 
 \begin{problem}
-If $A$ is normal, its Schur form is diagonal. For normal $A$, have your function additionally output the eigenvector corresponding to each eigenvalue. Hint 1: Hermitian (or real symmetric) matrices are normal. Hint 2: Your work in Problem \ref{problem:similarity proof} may be helpful. You have already made all the necessary calculations, you just need to store the information correctly.
+If $A$ is normal, its Schur form is diagonal. For normal $A$, have your function additionally output the eigenvector corresponding to each eigenvalue. Hint 1: Test your function on Hermitian and real symmetric matrices; they are both normal. Hint 2: Your work in Problem \ref{problem:similarity proof} will help. You have already made all the necessary calculations, you just need to store the information correctly.
 \end{problem}
 
 \begin{problem}
-Test your implementation with random matrices. Try real, complex, symmetric, and Hermitian. Compare your output to the output of \li{linalg.eig}. How many iterations are necessary? How large can $A$ be?
+Test your implementation with random matrices. Try real, complex, symmetric, and Hermitian matrices. Compare your output to the output from the eigenvalue solver. How many iterations are necessary? How large can $A$ be?
 \end{problem}
 
 The $QR$ algorithm is not the only iterative method used to find eigenvalues. For large sparse matrices MATLAB uses the Arnoldi iteration, which is similar to the $QR$ algorithm but exploits sparsity. Other methods include the Jacobi method and the Rayleigh quotient method.
