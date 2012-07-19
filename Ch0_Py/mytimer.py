@@ -19,7 +19,7 @@ class timer(object):
         self.repeats = repeats
         self.loops = loops
         self.gc = gc
-        self.results = []
+        self.results = {}
 
     def __enter__(self):
         return self
@@ -50,11 +50,18 @@ class timer(object):
         else:
             self.gbcol="gc.disable()"
 
+        funcname = func.__name__
+        if funcname == "<lambda>":
+            funcname = func.__repr__()
         pfunc = lambda: func(*args, **kargs)
-        print "Timing %s ..." % func.__name__
+        print "Timing %s ..." % funcname
         elapsed = timeit.repeat(pfunc, self.gbcol, repeat=self.repeats, number=self.loops)
         runtime = min(elapsed)
-        self.results.append((runtime, func.__name__, args, kargs))
+        
+        if funcname in self.results:
+            self.results[funcname].append(runtime)
+        else:
+            self.results[funcname] = [runtime]
 
     def printTimes(self):
         """
