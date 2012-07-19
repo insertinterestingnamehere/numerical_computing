@@ -32,7 +32,7 @@ class timer(object):
 
     def results(self):
         """
-        Return a list of timing results
+        Return a dictionary of timing results
         """
         return self.results
 
