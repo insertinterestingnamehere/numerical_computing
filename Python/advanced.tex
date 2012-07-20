@@ -88,21 +88,35 @@ def allocateAll(n):
     #allocate an nxn array
     A = sp.zeros((n,n))
     for a in xrange(n):
-      for b in xrange(n):
-	A[a, b] = sp.math.cos(a*b)
+        for b in xrange(n):
+            A[a, b] = sp.math.cos(a*b)
     return A
 
-def allocateOne(n):
+def appendOne(n):
     A = sp.array([])
-    for a in xrange(1,n):
-      for b in xrange(1,n):
-	A = sp.r_[A, sp.math.cos(a*b)]
+    for a in xrange(n):
+        for b in xrange(n):
+	    A = sp.append(A, sp.math.cos(a*b))
     return A.reshape(n, n)
 \end{lstlisting}
 
 \begin{lstlisting}[style=python]
-: timeit allocateAll(
+: import mytimer
+: with mytimer.timer() as timer:
+:     for x in xrange(1, 50):
+:         timer.time(appendOne, x)
+:         timer.time(allocateAll, x)
+: #let's plot the results
+: import matplotlib.pyplot as plt
+: sizes = range(1,50)
+: plt.plot(sizes, timer.results['appendOne'], 'r')
+: plt.plot(sizes, timer.results['allocateAll'], 'b')
+: plt.show()
 \end{lstlisting}
+
+\begin{center}
+\includegraphics[width=\textwidth]{alloc_vs_resize.pdf}
+\end{center}
 
 
 
