@@ -56,7 +56,7 @@ class timer(object):
         pfunc = lambda: func(*args, **kargs)
         print "Timing %s ..." % funcname
         elapsed = timeit.repeat(pfunc, self.gbcol, repeat=self.repeats, number=self.loops)
-        runtime = min(elapsed)
+        runtime = min(elapsed)/self.loops
         
         if funcname in self.results:
             self.results[funcname].append(runtime)
