@@ -1,7 +1,9 @@
+%% Revised 2012/04/26 to automatically load citeref package; class option [nociteref]
 %% Revised 2001/10/10 to correct algorithms: xreferencing,numbering
 %% Revised 2002/02/19 to correct optional title in algorithms
 %% Revised 2002/05/01 to force footnotes to number consecutively throughout book
 %% Revised 2003/10/21 added example environment, like theorem
+%% Revised 2008/10/21 to correct algorithm counter stepping
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{newsiambook}
               [2003/10/22 v1.9
@@ -20,6 +22,7 @@
 \@mytheoremsfalse
 
 
+
 %%%%add formatted authors to chapter opener...
 \newenvironment{authorline}{\let\thanks\footnote\renewcommand{\thefootnote}{\fnsymbol{footnote}}%
 \Large\bfseries\itshape}{\vskip36pt\setcounter{footnote}{0}}
@@ -34,13 +37,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \Huge \bfseries #1\par}}}%%end of parbox and put
-\end{picture}
+\end{picture}}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -48,7 +51,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -73,14 +76,14 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \Huge \bfseries #1\par}}}%%end of parbox and put
-\end{picture}
+\end{picture}}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -88,7 +91,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -97,14 +100,14 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\parindent0pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vskip3pt\par\nobreak
     \Huge \bfseries #2\par}}}%%end of parbox and put
-\end{picture}
+\end{picture}}
      \fi
     \@endpart}}
 \DeclareOption{opener-c}{%
@@ -117,13 +120,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \vfill\@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \huge \bfseries #1\par\vfill}}%%end of parbox and put
-\end{picture}
+\end{picture}}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -131,7 +134,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -140,13 +143,13 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\parindent0pt\sffamily\Large\bfseries%
 \vfill\partname\space \thepart
         \vskip3pt\par\nobreak
     \huge \bfseries #2\par\vfill}}%%end of parbox and put
-\end{picture}
+\end{picture}}
      \fi
     \@endpart}}
 \DeclareOption{opener-b}{%
@@ -158,13 +161,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\vfill\nobreak
     \huge \bfseries #1\par}}%%end of parbox and put
-\end{picture}
+\end{picture}}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -172,7 +175,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -181,13 +184,13 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vskip3pt\par\vfill\nobreak
     \huge \bfseries #2\par}}%%end of parbox and put
-\end{picture}
+\end{picture}}
      \fi
     \@endpart}}
 
@@ -200,13 +203,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
 \put(118,0){\vbox to 100pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vfill\par\nobreak
     \huge \bfseries #1\par}}%%end of parbox and put
-\end{picture}
+\end{picture}}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -214,7 +217,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\thepart\hspace{10em} #1}%
+      \addcontentsline{toc}{part}{\thepart\hspace{10em}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -223,13 +226,13 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent\begin{picture}(360,144)
+\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
 \put(118,0){\vbox to 100pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vfill\par\nobreak
     \huge \bfseries #2\par}}%%end of parbox and put
-\end{picture}
+\end{picture}}
      \fi
     \@endpart}}
 \DeclareOption{a4paper}
@@ -298,6 +301,13 @@
 }
 \DeclareOption{onethmnum}{\@onethmnumtrue} % added 7.29.96
 \DeclareOption{mytheorems}{\@mytheoremstrue} %_%_%_%_% remove theorem defs from class????
+%
+\newif\if@citeref
+\@citereftrue
+
+
+\DeclareOption{nociteref}{\@citereffalse}
+%
 \ExecuteOptions{plain-opener,letterpaper,10pt,twoside,onecolumn,final,openright}
 \ProcessOptions
 \input{newsiambk1\@ptsize.clo}
@@ -831,7 +841,7 @@
 
 \newcounter{algorithm}[chapter]
 \renewcommand{\thealgorithm}{\arabic{chapter}.\arabic{algorithm}}
-\newenvironment{algorithm}[1][\relax]{\addtocounter{algorithm}{1}%
+\newenvironment{algorithm}[1][\relax]{\refstepcounter{algorithm}%
 \addcontentsline{loa}{algorithm}%
     {\protect\numberline{Algorithm~\thealgorithm}{\ignorespaces#1}}%
 \par\vspace{1\baselineskip}%
@@ -1181,6 +1191,11 @@
 
 \parskip1\parskip
 \hfuzz362pt
+
+\if@citeref
+\usepackage{citeref}
+\else
+\fi
 \endinput
 %%
 %% End of file `book.cls'.
