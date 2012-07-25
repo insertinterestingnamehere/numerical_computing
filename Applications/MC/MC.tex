@@ -7,30 +7,7 @@ Integration is important in a variety of applications. However, high-dimensional
 
 Consider the following example: Suppose our goal is to estimate the area of a circle (we select this problem because it has a closed form solution, which we can use to test the method). One method that we could use for empirically finding that area is to throw darts randomly at a square board. We then can find the area of the circle by multiplying the square's area by the percentage of darts that fell in the inscribed circle. We can do this using the following code (the resulting figure is shown in Figure \ref{Fig:MCCircle}).
 
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
-numPoints = 500;
-points = rand(numPoints,2);
-points = 2*(points-.5);
-pointsNorm = hypot(points(:,1),points(:,2));
-InCircle = find(pointsNorm < 1);
-OutCircle = find(pointsNorm > 1);
-plot(points(InCircle,1),points(InCircle,2),'r.');
-hold on;
-plot(points(OutCircle,1),points(OutCircle,2),'b.');
 
-%Plots a Circle
-theta = linspace(0,2*pi,50);
-plot(cos(theta),sin(theta),'k');
-
-axis off;
-axis equal;
-
-area = 4*length(InCircle)/numPoints;
-\end{lstlisting}
-\end{matlab}
-
-\begin{python}
 \begin{lstlisting}[style=python]
 numPoints = 500
 points = sp.rand(numPoints,2)
@@ -53,16 +30,10 @@ plt.show()
 area = 4.0*sp.size(InCircle)/numPoints
 
 \end{lstlisting}
-\end{python}
 
 \begin{figure}[h!]
 \begin{center}
-\begin{matlab}
 \includegraphics[scale = .4]{MCCircle}
-\end{matlab}
-\begin{python}
-\includegraphics[scale = .4]{MCCircle}
-\end{python}
 \caption{Finding the area of a circle using random points}
 \label{Fig:MCCircle}
 \end{center}
@@ -71,33 +42,6 @@ area = 4.0*sp.size(InCircle)/numPoints
 In this case the area should be $\pi$, and the approximation is pretty good.
 
 One important question is the rate at which our estimate converges. We can test this using a log plot using the following code:
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
-numTestPoints = 29;
-testPoints = round(linspace(1000,100000,numTestPoints));
-error = zeros(size(testPoints));
-testRuns = 100;
-for i = 1:numTestPoints
-    for k = 1:testRuns
-        numPoints = testPoints(i);
-        points = rand(numPoints,2);
-        points = 2*(points-.5);
-        pointsNorm = hypot(points(:,1),points(:,2));
-        InCircle = find(pointsNorm < 1);
-        area(k) = 4*length(InCircle)/numPoints;
-    end
-    error(i) = mean(abs(area-pi));
-end
-size(error)
-size(testPoints)
-
-plot(log(testPoints),log(error))
-estimate = [log(testPoints); ones(size(testPoints))]'\log(error');
-convergenceRate = estimate(1);
-\end{lstlisting}
-\end{matlab}
-
-\begin{python}
 \begin{lstlisting}[style=python]
 numTestPoints = 29;
 testPoints=sp.around(sp.linspace(1000,100000,numTestPoints))
@@ -121,7 +65,6 @@ plt.plot(sp.log(testPoints),sp.log(error));
 estimate = la.lstsq(sp.vstack((sp.log(testPoints),sp.ones(sp.size(testPoints)))).T,sp.log(error))
 convergenceRate = estimate[0][0]
 \end{lstlisting}
-\end{python}
 
 Note that we estimate the convergence rate using Least Squares, as in Lab \ref{Stats1}. The rate should be something like $-.5$. This means that the estimate of the error improves as $1/\sqrt{N}$, meaning that to improve our error estimate by 10 times (one digit) we must sample 100 times more points. This is not a very desirable convergence rate. However, this rate is independent of the number of dimensions (a property not shared by one-dimensional integration techniques), and is therefore desirable for high-dimensional problems.
 
@@ -166,18 +109,10 @@ We note that we must use caution in using monte carlo integration when we don't 
 \]
 
 We can attempt Monte Carlo Integration on such an integrand using the following code:
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
-k = 5000;
-mean(1./rand(k,1))
-\end{lstlisting}
-\end{matlab}
-\begin{python}
 \begin{lstlisting}[style=python]
 k = 5000
 sp.mean(1/sp.rand(k,1))
 \end{lstlisting}
-\end{python}
 
 We will get a finite value in return, so we could assume (incorrectly) that this integral has a finite value. However, by experimenting with larger values of $k$ you will notice that the integral does not converge to a specific value, which is because the actual integral does not converge. Therefore it is often important to understand some of the properties of the integrand analytically prior to using this type of integration.
 
