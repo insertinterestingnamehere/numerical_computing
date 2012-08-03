@@ -23,7 +23,7 @@ def secant(func, x1, x2, tol=1e-7, iters=30):
         if iters > 0:
             iters -= 1
         else:
-            raise ValueError("Failed to find root in {} iterations.  Stopped at {}".format(maxiters, xnew))
+            raise StopIteration("Failed to find root in {} iterations.  Stopped at {}".format(maxiters, xnew))
     return xnew
 
 def broyden1d(func, xpts, tol=1e-7, iters=30):
@@ -55,7 +55,7 @@ def broyden1d(func, xpts, tol=1e-7, iters=30):
             x_1 = x_2
             x_2 = x_new
             errors.append(abs(l-x_new))
-    return ValueError("No Zeros found in %d iterations" % iter)
+    return StopIteration("No Zeros found in {} iterations".format(iter))
         
 
 def regula_falsi(func, xpts, tol=0.00005, iter=30):
@@ -95,7 +95,7 @@ def regula_falsi(func, xpts, tol=0.00005, iter=30):
                 x_1 = x_new
             else:
                 x_2 = x_new
-    return ValueError("No Zeros found in %d iterations" % iter)
+    return StopIteration("No Zeros found in {} iterations".format(iter))
 
 
 def broyden(func, x1, x2, tol=1e-5, maxiter=50):
@@ -149,7 +149,7 @@ def broyden(func, x1, x2, tol=1e-5, maxiter=50):
         mi -= 1
     
     if mi==0:
-        raise ValueError("Did not converge in %d iterations" % maxiter)
+        raise StopIteration("Did not converge in {} iterations".format(maxiter))
     else:
         return x2, maxiter-mi
         
@@ -212,6 +212,6 @@ def broydeninv(func, x1, x2, tol=1e-5, maxiter=50):
         mi -= 1
     
     if mi==0:
-        raise ValueError("Did not converge in %d iterations" % maxiter)
+        raise StopIteration("Did not converge in {} iterations".format(maxiter))
     else:
         return x2, maxiter-mi
