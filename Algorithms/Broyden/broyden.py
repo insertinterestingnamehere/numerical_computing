@@ -14,11 +14,16 @@ def secant(func, x1, x2, tol=1e-7, iters=30):
     
     x1, x2 = float(x1), float(x2)
     xnew = x1 - _x1 * (x1-x2)/(_x1-_x2)
+    maxiters = iters
     while abs(func(xnew)) > tol and iters >= 0:
         xnew = x1 - func(x1) * (x1 - x2)/(func(x1)-func(x2))
         x1 = x2
         x2 = xnew
-        iters -= 1
+        
+        if iters > 0:
+            iters -= 1
+        else:
+            raise ValueError("Failed to find root in {} iterations.  Stopped at {}".format(maxiters, xnew))
     return xnew
 
 def broyden1d(func, xpts, tol=1e-7, iters=30):
