@@ -4,9 +4,24 @@ from numdifftools import Jacobian
 import scipy as sp
 import matplotlib.pyplot as plt
 
+def secant(func, x1, x2, tol=1e-7, iters=30):
+    _x1 = func(x1)
+    _x2 = func(x2)
+    if abs(_x1) < tol:
+        return x1
+    elif abs(_x2) < tol:
+        return x2
+    
+    x1, x2 = float(x1), float(x2)
+    xnew = x1 - _x1 * (x1-x2)/(_x1-_x2)
+    while abs(func(xnew)) > tol and iters >= 0:
+        xnew = x1 - func(x1) * (x1 - x2)/(func(x1)-func(x2))
+        x1 = x2
+        x2 = xnew
+        iters -= 1
+    return xnew
 
-
-def broyden1d(func, xpts, tol=1e-7, iter=30):
+def broyden1d(func, xpts, tol=1e-7, iters=30):
     """Find the zero of a function between two points (accepted as a list)
 
     When f(pt2) < tol, we are close enough to a zero and stop"""
