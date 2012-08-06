@@ -56,10 +56,45 @@ NumPy has several methods for creating and initializing arrays.  When creating a
 \end{itemize}
 
 \subsection*{Indexing Arrays}
+\subsubsection*{Array Views and Copies}
+Before we begin accessing arrays, it is important to understand that NumPy has two ways of returning an array.  Slice operations always return a \emph{view} and fancy indexing always returns a \emph{copy}.  Understand that even though they may look the same, views and copies completely different.
+
+Views are special arrays that reference other arrays.  Changing elements in a view changes the array it references.  Below we demonstrate the behavior of a view.  Notice that \li{c} looks like a copy of \li{b}, but it is, in fact, not at all.
+\begin{lstlisting}
+: b = np.arange(25).reshape(5,5); b
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14],
+       [15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24]])
+: c = b[:]; c #
+array([[ 0,  1,  2,  3,  4],
+       [ 5,  6,  7,  8,  9],
+       [10, 11, 12, 13, 14],
+       [15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24]])
+: id(c) == id(b) #We have unique objects
+False
+: c[2] = 500
+array([[  0,   1,   2,   3,   4],
+       [  5,   6,   7,   8,   9],
+       [500, 500, 500, 500, 500],
+       [ 15,  16,  17,  18,  19],
+       [ 20,  21,  22,  23,  24]])
+: b #changing c also changed b!
+array([[  0,   1,   2,   3,   4],
+       [  5,   6,   7,   8,   9],
+       [500, 500, 500, 500, 500],
+       [ 15,  16,  17,  18,  19],
+       [ 20,  21,  22,  23,  24]])
+\end{lstlisting}
+
+
+\subsubsection*{Slices}
 Each element of an array has a unique address that we can use to retrieve that element.  Indexing NumPy arrays is syntatically the same as indexing Python lists.  We will demonstrate on a random 2D array.
 
 \begin{lstlisting}
-: arr = np.array(range(25)).reshape(5,5); arr
+: arr = np.arange(25).reshape(5,5); arr
 array([[ 0,  1,  2,  3,  4],
        [ 5,  6,  7,  8,  9],
        [10, 11, 12, 13, 14],
@@ -71,5 +106,31 @@ array([[ 0,  1,  2,  3,  4],
 24
 : arr[0] #access the first row
 array([0, 1, 2, 3, 4])
-: arr[0, ::2]
 \end{lstlisting}
+
+We can access ranges of elements using Python lists.  NumPy, though, has a much faster, more concise way to select ranges using the \li{arr[start:stop:step]} notation.  Using lists to access various parts of an array is very slow (by at least an order of magnitude)!
+
+\begin{lstlisting}
+: arr[::2] #get every other row.  equivalent to arr[range(0, len(arr), 2)]
+array([[ 0,  1,  2,  3,  4],
+       [10, 11, 12, 13, 14],
+       [20, 21, 22, 23, 24]])
+: arr[::2, ::2] #get every other row and every other column
+array([[ 0,  2,  4],
+       [10, 12, 14],
+       [20, 22, 24]])
+: arr[3:, 3:] #extract lower right 2x2 subarray
+array([[18, 19],
+       [23, 24]])
+: arr[:, 1] #extract second column
+array([ 1,  6, 11, 16, 21])
+: arr[:, [1]] #extract second column, but keep 2 dimensions. Slow!
+array([[ 1],
+       [ 6],
+       [11],
+       [16],
+       [21]])
+\end{lstlisting}
+
+Slices
+
