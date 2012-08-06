@@ -4,7 +4,18 @@ from numdifftools import Jacobian
 import scipy as sp
 import matplotlib.pyplot as plt
 
-def secant(func, x1, x2, tol=1e-7, iters=30):
+
+def Problem1():
+    def f(x):
+        return sp.exp(x)-2
+    
+    ans, errors = secant(f, 0, 1, real=sp.log(2))
+    
+    #calculate the exponent of convergence
+    
+    
+    
+def secant(func, x1, x2, tol=1e-7, real=None, iters=30):
     _x1 = func(x1)
     _x2 = func(x2)
     if abs(_x1) < tol:
@@ -15,16 +26,20 @@ def secant(func, x1, x2, tol=1e-7, iters=30):
     x1, x2 = float(x1), float(x2)
     xnew = x1 - _x1 * (x1-x2)/(_x1-_x2)
     maxiters = iters
+    real = sp.nan if real is None else real
+    errors = []
     while abs(func(xnew)) > tol and iters >= 0:
         xnew = x1 - func(x1) * (x1 - x2)/(func(x1)-func(x2))
         x1 = x2
         x2 = xnew
         
+        errors.append(real-xnew)
         if iters > 0:
             iters -= 1
         else:
             raise StopIteration("Failed to find root in {} iterations.  Stopped at {}".format(maxiters, xnew))
-    return xnew
+    
+    return (xnew, errors) if real is not sp.nan else xnew
 
 def broyden1d(func, xpts, tol=1e-7, iters=30):
     """Find the zero of a function between two points (accepted as a list)
