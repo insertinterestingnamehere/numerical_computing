@@ -8,5 +8,5 @@ def invSys(A, b):
     return sp.dot(la.inv(A), b)
 
 def smwSys(A, b, n, u, v):
-    Ainv = sp.eye(n) - sp.dot(sp.dot(sp.eye(n),u),v)/(1+sp.dot(v,u))
+    Ainv = sp.eye(n) - sp.dot(u,v)/(1+sp.dot(v,u))
     return sp.dot(Ainv, b)
