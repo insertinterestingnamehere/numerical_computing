@@ -10,4 +10,4 @@ while b != 0:
     else:
         b = b - a
 
-print a
+print "The gcd is", a
