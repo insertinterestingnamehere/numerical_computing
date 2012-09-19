@@ -4,5 +4,177 @@
 \objective{Learn various ways to do things efficiently in Python}
 
 \begin{definition}[Idiom]
-asdfasdfasfdasfd
+the style of expression in writing, speech, or music that is typical of a particular period, person, or group.
 \end{definition}
+
+Python has many powerful idioms that are very common.  The experienced Python programmer will at some point in time encounter these idioms.  The idioms discussed in this chapter take special advantage of the Python language to do things in a cleaner, more elegant, and often more efficient manner.
+
+Lets begin:
+\begin{lstlisting}
+: import this
+The Zen of Python, by Tim Peters
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you're Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!
+\end{lstlisting}
+
+\section*{Constructions}
+
+\subsection*{Strings}
+Strings are immutable object in Python.  As such, it is quite costly to concatenate strings using the \li{+} operator.
+\begin{lstlisting}
+: import string
+: def concatStr(strs):
+:     m = ''
+:     for s in strs:
+:         m += s
+:     return m
+: def accumStr(strs):
+:     return ''.join(strs)
+: timeit concatStr(list(string.letters))
+100000 loops, best of 3: 3.03 us per loop
+: timeit accumStr(list(string.letters))
+1000000 loops, best of 3: 810 ns per loop
+\end{lstlisting}
+Notice that \li{accumStr} runs considerably faster.  What is actually happening in \li{concatStr} is that each time add an element from \li{list(string.letters)}, Python has to reallocate the entire string in memory.  Not only is \li{accumStr} more efficient, but it is also significantly shorter.
+
+Python has some really powerful string formatting options available.  More information is located at \url{http://www.python.org/dev/peps/pep-3101/}
+
+\subsection*{Tuples}
+Python creates tuples whenever the interpreter encounters a list of comma separated values.  This is called tuple packing.
+\begin{lstlisting}
+: a = 1, 2, 3, 4, 5
+: print a, type(a)
+(1, 2, 3, 4, 5) <type 'tuple'>
+\end{lstlisting}
+We can also unpack a tuple into several variables
+\begin{lstlisting}
+: a, b, c = 1, 2, 3
+: print a; print b; print c
+1
+2
+3
+\end{lstlisting}
+We can take advantage of this to quickly swap the values of two variables.
+\begin{lstlisting}
+: a, b = 3, 5
+: print a; print b
+3
+5
+: b, a = a, b
+: print a; print b
+5
+3
+\end{lstlisting}
+Note the following
+\begin{lstlisting}
+: (0,)
+(0,)
+: 0,
+(0,)
+: (0) #this is not a tuple!
+0
+: () #this is a special empty tuple
+()
+: tuple() #tuple constructor
+()
+\end{lstlisting}
+
+\section*{Lists}
+Lists are Python's workhorse datatype.  It is therefore highly useful to be able to quickly and efficiently construct and iterate through lists in Python.
+\begin{lstlisting}
+: [] #an empty list
+[]
+: list() #list constructor
+[]
+: [1] #list with one element
+[1]
+: [1, 2] #list more than one element
+[1, 2]
+\end{lstlisting}
+
+\subsection*{List Constructions}
+List comprehensions are a very powerful in Python.  They permit us to write short, possible nested, loops that result in the creation of a list of objects.  Detailed information about list comprehensions can be found at \url{http://www.python.org/dev/peps/pep-0202/}
+\begin{lstlisting}
+: [i for i in range(10)]
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+: [i**2 for i in range(10)]
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+: [i**2 for i in range(10) if i%2==0]
+[0, 4, 16, 36, 64]
+: [i**2 if i%2==0 else i for i in range(10)]
+[0, 1, 4, 3, 16, 5, 36, 7, 64, 9]
+: [(i,j) for i in range(3) for j in range(5, 7)]
+[(0, 5), (0, 6), (1, 5), (1, 6), (2, 5), (2, 6)]
+\end{lstlisting}
+List comprehensions should not be used when clarity will be sacrificed.  It would be counterproductive to maintain a complex list comprehension that could have been written as a regular \li{for} loop.
+
+One might be tempted to do the following to create a list of ten $1$s.
+\begin{lstlisting}
+: l = []
+: for x in range(10):
+:     l.append(1)
+: for x in range(5):
+:     l.append(8)
+\end{lstlisting}
+Wh
+
+
+\subsection*{List Iteration}
+Python contains a handful of really nice ways to iterate though lists.
+
+When iterating though lists, it is recommended to iterate by object rather than by index.
+\begin{lstlisting}
+: a = list('abcdefghijklmnopqrstuvwxy')
+
+#iterate by index
+: for i in range(len(a)):
+:     print a[i],
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+#iterate by object
+: for l in a:
+:     print l,
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+\end{lstlisting}
+
+When iterating a list in reverse it is advisable to use the \li{reversed()} function.
+\begin{lstlisting}
+: a = range(100)
+: timeit for x in reversed(a): pass
+#Do not do this.  It creates a copy of the list to iterate through.
+: timeit for x in a[::-1]: pass
+\end{lstlisting}
+
+To quickly eliminate duplicates from a list, the best way is to convert to a \li{set}
+and then back to list.
+\begin{lstlisting}
+: a = 
+\end{lstlisting}
+
+
+
+
+\begin{itemize}
+\item Comprehensions (lists, sets, dicts, tuples)
+\item Strings+formatting
+\item Generators
+\item == vs is
+\end{itemize}
