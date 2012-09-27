@@ -20,17 +20,17 @@ This process is demonstrated in graphically in Figure \ref{Fig:Secant}.  By cont
 
 This method is shown in pseduocode in Algorithm \ref{Alg:Secant}.
 
-\begin{pseudo}{Secant}{func, x1, x2, tol}
+\begin{pseudo}{Secant}{func, x0, x1, tol}
 \label{Alg:Secant}
+\IF \abs{func(x0)} < tol \THEN
+    \RETURN{x0}\\
 \IF \abs{func(x1)} < tol \THEN
     \RETURN{x1}\\
-\IF \abs{func(x2)} < tol \THEN
-    \RETURN{x2}\\
 
 \REPEAT 
-xnew \GETS x1-func(x1)*\frac{x1-x2}{func(x1)-func(x2)}\\
-x1 \GETS x2 \\
-x2 \GETS xnew \\
+xnew \GETS x0-func(x0)*\frac{x0-x1}{func(x0)-func(x1)}\\
+x0 \GETS x1 \\
+x1 \GETS xnew \\
 \UNTIL \abs{func(xnew)} < tol \THEN \RETURN{xnew}
 \end{pseudo}
 
@@ -41,7 +41,7 @@ x2 \GETS xnew \\
 \caption{A demonstration of using the secant method to find a point closer to the desired root.}
 \label{Fig:Secant}
 \end{center}
-\end{figure}
+\end{figure}	
 
 \begin{problem}
 Write a function that takes as input two initial points and a callable function (a function handle or lambda function) and return the zero of the function between the two given points.  If unable to calculate the zero of the function, raise an error.  Also, estimate the exponent of convergence using a log-scaled plot when you use your function to estimate the zero of $e^x-2$. The actual value of the exponent of convergence is a value known as the golden ratio, which can be written:
@@ -101,7 +101,7 @@ F1 \GETS func(x1) \\
 F2 \GETS func(x2) \\
 \Delta x \GETS x2 - x1 \\
 J \GETS J + \frac{F2-F1-J \Delta x}{\|\Delta x \|^2}\Delta x^T \\
-xnew \GETS J \backslash (-F2) + x2 \\
+xnew \GETS J^{-1} (-F2) + x2 \\
 x1 \GETS x2 \\
 x2 \GETS xnew \\
 \UNTIL \abs{func(xnew)} < tol \THEN \RETURN{xnew}
@@ -110,14 +110,19 @@ x2 \GETS xnew \\
 \begin{problem}
 Write code implementing Broyden's method. Test it on the function:
 \[
-f(x,y,z) = cos(xy) + xz^3 + y^2 - y + x^2 + z + x
+f(x,y,z) = 
+ \left( \begin{array}{ccc}
+cos(xy)+ xz^3 \\
+y^2 - y + x^2 \\
+z + x-\frac{1}{2}-\sqrt[3]{2cos(\frac{1}{4})} \end{array} \right)
 \]
+using starting points $(1,2,3)$ and $(3,2,1)$
 \end{problem}
 
 We can often make Broyden's method faster using the Sherman-Morrison Woodbury Formula. This formula allows us to efficiently calculate the inverse of a matrix when we add a low rank update to that matrix. After manipulation of the Sherman-Morrison Woodbury Formula we obtain the following:
 
 \[
-J_k^{-1} = J_{k-1}^{-1} + \frac{\Delta x - J_{k-1}^{-1}\Delta F}{\Delta x^T J_{k-1}^{-1}}
+J_k^{-1} = J_{k-1}^{-1} + \frac{\Delta x_k - J_{k-1}^{-1}\Delta F_k}{\Delta x_k^T J_{k-1}^{-1}\Delta F_k} (\Delta x_k^T J_{k-1}^{-1})
 \]
 
 Thus, we can calculate the inverse of the jacobian in the first step of our algorithm and then calculate an update to the inverse at each step using the above formula.
