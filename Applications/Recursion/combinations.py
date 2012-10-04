@@ -20,7 +20,7 @@ def Combinations(values, k):
         #out = sp.zeros((nck, k))
         for i in range(n-(k-1)):
             #Calculate the number of possible combinations (to allow proper concatenation in the recursive call
-            nCombs = int(sp.factorial(n-i)/(sp.factorial(k-1)*sp.factorial(n-i-(k-1))))
+            nCombs = int(sp.misc.factorial(n-i)/(sp.misc.factorial(k-1)*sp.misc.factorial(n-i-(k-1))))
             #This is the recursive call
             
             print Combinations(values[i+1:], k-1).reshape((-1,1))
