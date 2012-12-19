@@ -66,18 +66,24 @@ In this case you will want to add points into the queue with priority equal to t
 If their $x$-values are equal, they will be returned in the order they are entered. 
 You could give a tuple for the order of the point, then the queue would order them by $x$ value and then, when $x$ values are equal, by $y$ value, but that is more expensive computationally and it makes no difference in the actual implementation of the algorithm. 
 
-We track the points in the area between the two sweep lines with a list.  This works for small For small data sets, we can simply make a list of "active" points which have $x$ values greater than that of the point we are currently processing, but less than the smallest distance we have encountered thus far. 
-In many line sweep algorithms a binary tree would be the standard way to hold the active list, but in this case a list is sufficient.
-As we iterate through the points, we can remove the points that are no longer relevant to calculation and only iterate over the ones we are concerned about.
+We track the points in the area between the two sweep lines with a list.  Many line sweep algorithms like to use a binary tree
+to do this because of the fast insert and search times.  We, instead, use a list combined with a binary search.  Each time we advance
+the sweep lines, we update this list so it always contains the points between the sweep lines (adding or removing points where necessary).
+A point stays in the list if its distance from the front sweep line is less than the current minimum distance.
 
-We start by processing the first two points, adding them to our \li{active} queue and set the minimum distance to be the distance between them. 
-We then get the next point in our priority queue. 
-Using the point we just got, we remove any points we can from the active list, then we compare the distance between the active points and the point we are processing. 
-If the distance from any of our active points is less than the smallest distance we have already recorded, we set the minimum to be the new smallest distance. 
-When we have done this for all of the points in the set, we will have passed the points where the minimum distance occurs and our function can return the actual minimum distance for any two points within the set.
+Assuming we have already ordered all our points by $x$ coordinate, we can perform the line sweep as follows.
+\begin{enumerate}
+\item Process the first two points and add them to the active list.
+Set current minimum distance to the distance between these two points.
+\item Get the next point in the priority queue.
+\item Update the active list containing the points between the two sweep lines.
+\item Compute the distance between the current point and all the points in the active list.
+Compare the smallest distance with the current minimum distance.
+\item Repeat steps 2 to 5 for all remaining points in the priority queue
+\end{enumerate}
+When the algorithm terminates, the current minimum distance will the be distance between the closest pair of points.
 
 This algorithm can be illustrated as follows:
-
 \includegraphics[width = \textwidth]{simple1.png}
 After processing the first two points, we process the third point and see that our minimum distance thus far has dropped.
 
@@ -90,22 +96,22 @@ We then process anything that is left.
 After iterating over all the points in the set, we have the final minimum distance desired.
 
 \begin{problem}
-Implement the above line sweep algorithm using python.
+Implement the above line sweep algorithm for finding the closest pair of points in a set of points.
 \end{problem}
 
 \begin{problem}
-You may have noticed that, in this case, the priority queue is only used to sort the points passed to the function. 
-This can be done more quickly using array operations. 
-This is not always the case with general line sweep algorithms. 
+You may have noticed that, in this closest pair problem, the priority queue is only used to sort the points passed to the function. 
+Sorting the points can be done more quickly using array operations. 
+%This is not always the case with general line sweep algorithms. 
 Write a version of the function which copies the array and sorts the copy in place. 
 Something like \li{X=Y[Y[:,0].argsort()]} will do this for you. 
-Note that the sorted version will be sorted from smallest to largest and not largest to smallest, so you will have to make appropiate changes in your implementation.
+Note that the sorted version will be sorted from smallest to largest and not largest to smallest, so you will have to make appropriate changes in your implementation.
 Make sure your new function works in arbitrary dimensions. 
-Modify the code so that it will accept a metric function as a parameter. 
-This metric function should take a point and an array of points as an argument and return an array of distances from the point to each of the points in the array. 
+Modify the code so that it will accept a metric function as a parameter.
+This metric function should take a point and an array of points as arguments and return an array of distances from the point to each of the points in the array. 
 Test your function's speed. 
-How does it scale with increased numbers of points? 
-How does it scale in higher dimensions?
+How does it scale as you increase the number of points? 
+How does it scale as you increase the number of dimensions?
 \end{problem}
 
 \section*{A Line Sweep Algorithm}
@@ -114,7 +120,7 @@ You may have noticed that we are not exploiting all of the symmetry of the probl
 It would likely speed things up if we could also slice away the points that have $y$ values that could not possibly yield the minimum distance. 
 The list operations involved in doing this are somewhat more involved. 
 As it turns out, it is easier to implement this line sweep by sorting the points by $y$ value, then slicing our actives list by $x$ value.
-In order to slice the list effectively, we will need to order our active points with respect to their $y$ values, but continue to remove them according to their $x$ value. 
+In order to slice the list efficiently, we will need to order our active points with respect to their $y$ values, but continue to remove them according to their $x$ value. 
 There are a variety of ways this can be done. 
 Many line sweep algorithms would use a binary tree to store these points and get good insertion and deletion times. 
 This is doable, but in this case, except for very poorly conditioned problems, our actives list tends to remain small, so we can do this with a list. 
@@ -125,9 +131,9 @@ A binary search over a list works under the assumption that the list is already 
 At each iteration, we will first remove the points that no longer are important to the points we are processing. 
 We will then iterate only over the pertinent part of the actives list, according to the range of $x$ values that are close to the point we are processing.
 
-For speed, when updating the active list, you should modify the list in place. 
-What this means is that instead of removing each point individually as you iterate over the list, you should do something like \li{actives[:] = [p for p in actives if (p[1] - y) <= r]} 
-Using a list comprehension in this way allows you to filter out the points you need to remove without so many repeated list operations. 
+% For speed, when updating the active list, you should modify the list in place. 
+% What this means is that instead of removing each point individually as you iterate over the list, you should do something like \li{actives[:] = [p for p in actives if (p[1] - y) <= r]} 
+% Using a list comprehension in this way allows you to filter out the points you need to remove without so many repeated list operations. 
 
 You should use a binary search to figure out where you need to cut your list. 
 
@@ -166,6 +172,6 @@ Note: you may want to sort the points by $x$ value for this version.
 \end{problem}
 
 There are a variety of ways this algorithm can be implemented, and the actual performance for a real world problem will depend on your ability to exploit the symmetry of the situation at hand. 
-Theoretically, the best way to do this is to use a binary search tree to store the list of active points, but initial cost of using these objects is expensive and outweighs the benefits in python.
-Practically speaking, Python is designed for easy programming and high programmer output, so many of the details of how fast somehting will run depend on the details of how all the different objects used have been implemented.
-To fully speed up a python function, you would want to use an efficient algorithm, try several implementations, and use cython or some lower level language to perform optimizations wherever possible. The fastest implementations are likely to be written in lower level languages.
+Theoretically, the best way to do this is to use a binary search tree to store the list of active points, but initial cost of using these objects is expensive and outweighs the benefits in Python.
+Practically speaking, Python is designed for easy programming and high programmer output, so many of the details of how fast something will run depend on the details of how all the different objects used have been implemented.
+To fully speed up a Python function, you would want to use an efficient algorithm, try several implementations, and use Cython or some lower level language to perform optimizations wherever possible. The fastest implementations are likely to be written in lower level languages.
