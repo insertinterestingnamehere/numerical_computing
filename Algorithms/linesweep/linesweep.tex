@@ -7,7 +7,8 @@
 Line sweep algorithms are a significant group of algorithms with a variety of applications. 
 In the strictest sense, line sweep algorithms typically use a priority queue and binary tree to lower the temporal complexity associated with certain tasks. 
 Some notable examples include Fortune's Algorithm for calculating Voronoi diagrams and Andrew's Algorithm for computing the convex hull of a set of points. 
-In this lab, we will explore a basic line sweep algorithm that allows efficient computation of the Closest Pair problem.  Given a set of points, find the distance between the closest pair of points.
+In this lab, we will explore a basic line sweep algorithm that allows efficient computation of the Closest Pair problem.  
+Given a set of points, find the distance between the closest pair of points.
 
 \section*{Na\"ive Implementation}
 
@@ -19,7 +20,7 @@ A good implementation is as follows:
 \begin{lstlisting}
 def multidist(p0,p1):
     l=len(p0)
-    return sum([(p0[i]-p1[i])**2 for i in range(l)]**.5
+    return sum([(p0[i]-p1[i])**2 for i in range(l)])**.5
 def badmindist(X):
     l=len(X)
     r=multidist(X[0],X[1])
@@ -31,31 +32,30 @@ def badmindist(X):
     return r
 \end{lstlisting}
 
-Since, on average, we iterate through half the list per point added, this algorithm will have complexity $O(n^2)$ (we are only scaling by a constant factor).  It is faster than the truly na\"ive method, but essentially just as inefficient.
-For very small numbers of points, this algorithm works, but it quickly becomes inefficient for all but the smallest numbers of points.  What we would like to do is go from $n^2$ to something better.  To do this, we have to think about the problem differently.
-We introduce the line sweep algorithm which is one of the key techniques of computational geometry.
+Since, on average, we iterate through half the list per point added, this algorithm will have complexity $O(n^2)$ (we are only scaling by a constant factor).  
+It is faster than the truly na\"ive method, but essentially just as inefficient.
+For very small numbers of points, this algorithm works, but it quickly becomes inefficient as we increase the number of points processed.  
+What we would like to do is go from $O(n^2)$ to something better.  
+To do this, we have to think about the problem differently.
+This can be done by using one of the key techniques of computational geometry-a line sweep algorithm.
 
 \section*{A Simplified Line Sweep Algorithm}
 
-The concept behind a line sweep algorithm is breaking a global problem into a sequence of
-problems that can be solved locally.  We sweep the domain space with a line.
+The concept behind a line sweep algorithm is breaking a global problem into a sequence of smaller problems that can be solved locally.
+We sweep the domain space with a line.
 This line divides the domain space into an explored region and an unexplored region.
 As the line sweeps, events occur, be it whether the line encounters a point in the data set
-or some other type of event.  We compute the solution at the very beginning of the line sweep
-and as new events happen, we compute the change that these events have on our current solution.
-We only need to consider the events in the explored region or on the sweep line as they are the
-only events that affect the current solution.  Sweep line algorithms typically exhibit a temporal
-complexity of $O(n \log n)$, far better than $O(n^2)$.
+or some other type of event.  
+We compute the solution at the very beginning of the line sweep and as new events happen, we compute the change that these events have on our current solution.
+We only need to consider the events in the explored region or on the sweep line as they are the only events that affect the current solution.  
+Sweep line algorithms typically exhibit a temporal complexity of $O(n \log n)$, which is far better than $O(n^2)$.
 
-Line sweep algorithms are helpful for doing all sorts of proximity based computations.
+Line sweep algorithms are good for doing all sorts of proximity based computations.
 In the example above, we took advantage of the fact that distance was symmetric ($d(a,b)=d(b,a)$).
-In a line sweep version of this algorithm, we also take advantage of the fact that any points further
-than the current smallest minimum distance do not need to be considered.  The secret to
-the line sweep solution for the closest pair problem is to actually have two sweep lines that have
-some constant distance between them.  When computing distances between points, we only need to consider
-the points that lie between the two sweep lines.  Because of this, it is clear to see that we would want
-the distance between the sweep lines to be equal to the current minimum distance we have computed.
-This eliminates all points with distances from the current point greater than the minimum distance.
+In a line sweep version of this algorithm, we also take advantage of the fact that any points further than the current smallest minimum distance along a given axis do not need to be considered.
+The secret to the line sweep solution for the closest pair problem is to actually have two sweep lines with a small distance between them.
+As we process the points in our list, we can decrease the distance between the lines so that we only process points that could possibly give a smaller distance than the smallest distance we have already encountered.
+By only processing the points between our two sweep lines, we avoid processing many points needlessly.
 
 For a general line sweep algorithm, it is common to use a priority queue to order the items that need to be processed.
 We have implemented a very basic priority queue in the file \li{pqueue.py}. 
@@ -66,48 +66,60 @@ In this case you will want to add points into the queue with priority equal to t
 If their $x$-values are equal, they will be returned in the order they are entered. 
 You could give a tuple for the order of the point, then the queue would order them by $x$ value and then, when $x$ values are equal, by $y$ value, but that is more expensive computationally and it makes no difference in the actual implementation of the algorithm. 
 
-We track the points in the area between the two sweep lines with a list.  Each time we advance
-the sweep lines, we update this list so it always contains the points between the sweep lines (adding or removing points where necessary).
-A point stays in the list if its distance from the front sweep line is less than the current minimum distance.
+We track the points in the area between the two sweep lines with a list.
+Each time we advance the sweep lines, we update this list so it always contains the points between the sweep lines (adding or removing points where necessary).
+A point stays in the list if its distance from the leading sweep line is less than the current minimum distance.
+Conceptually, this is how we place the second sweep line.
 
-Assuming we have already ordered all our points by $x$ coordinate, we can perform the line sweep as follows.
-\begin{remunerate}
-\item Process the first two points and add them to the active list.
+Assuming we have already ordered all our points by $x$ coordinate, we can perform the line sweep algorithm as follows:
+
+\vspace{5mm}
+\begin{compactenum}[1.]
+\item 
+Process the first two points and add them to the active list.
 Set current minimum distance to the distance between these two points.
-\item Get the next point in the priority queue.
-\item Update the active list containing the points between the two sweep lines.
-\item Compute the distance between the current point and all the points in the active list.
-Compare the smallest distance with the current minimum distance.
-\item Repeat steps 2 to 5 for all remaining points in the priority queue
-\end{remunerate}
-When the algorithm terminates, the current minimum distance will the be distance between the closest pair of points.
+\item 
+Get the next point in the priority queue.
+\item 
+Update the active list so that it contains only the points between the two sweep lines.
+\item 
+Compute the distance between the current point and all the points in the active list.
+\item 
+Compare the smallest distance found with the current minimum distance. 
+Change the current minimum distance if needed.
+\item 
+Repeat steps 2 to 5 for all remaining points in the priority queue
+\end{compactenum}
+\vspace{5mm}
+
+When the algorithm ends, the current minimum distance will be the distance between the closest pair of points.
 
 This algorithm can be illustrated as follows:
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{simple1.png}
+\caption{After processing the first two points, we process the third point and see that our minimum distance thus far has dropped.}
 \end{figure}
-After processing the first two points, we process the third point and see that our minimum distance thus far has dropped.
 
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{simple2.png}
-\end{figure}
-This change in the minimum thus far is reflected in how we form the actives list for the next point we process. 
+\caption{This change in the minimum thus far is reflected in how we form the actives list for the next point we process. 
 We remove the points from the top of the queue that are too far away in the $x$ direction to have a distance less than the current minimum. 
-We then process anything that is left.
-
-\begin{figure}
-\includegraphics[width = \textwidth]{simple8.png}
+We then process anything that is left.}
 \end{figure}
-After iterating over all the points in the set, we have the final minimum distance desired.
+
+\begin{figure}[H]
+\includegraphics[width = \textwidth]{simple8.png}
+\caption{After iterating over all the points in the set, we have the final minimum distance desired.}
+\end{figure}
 
 \begin{problem}
-Implement the above line sweep algorithm for finding the closest pair of points in a set of points.
+Implement the above line sweep algorithm for finding the distance between the closest pair of points in a set of points.
 \end{problem}
 
 \begin{problem}
-You may have noticed that, in this closest pair problem, the priority queue is only used to sort the points passed to the function. 
-Sorting the points can be done more quickly using array operations. 
-Write a version of the function which copies the array and sorts the copy in place. 
+You may have noticed that, in this problem, the priority queue is only used to sort the points passed to the function. 
+This sorting can be done more quickly using array operations. 
+Write a version of the function which which makes a sorted copy of the array. 
 Something like \li{X=Y[Y[:,0].argsort()]} will do this for you. 
 Note that the sorted version will be sorted from smallest to largest and not largest to smallest, so you will have to make appropriate changes in your implementation.
 Make sure your new function works in arbitrary dimensions. 
@@ -120,7 +132,7 @@ How does it scale as you increase the number of dimensions?
 
 \section*{A Line Sweep Algorithm}
 
-You may have noticed that we are not exploiting all of the symmetry of the problem in the previous algorithm. 
+You may have noticed that we are not exploiting all the symmetry of the problem in the previous algorithm. 
 It would likely speed things up if we could also slice away the points that have $y$ values that could not possibly yield the minimum distance. 
 The list operations involved in doing this are somewhat more involved. 
 As it turns out, it is easier to implement this line sweep by sorting the points by $y$ value, then slicing our actives list by $x$ value.
@@ -144,25 +156,26 @@ This algorithm can be illustrated as follows:
 
 Note: in this case we sweep along the $x$ axis from right to left.
 
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{ptsweep1.png}
+\caption{In processing the first point, we find find that we must reduce the radius.
+Notice that we only need to consider the points that lie in the box formed by the red an blue lines.}
 \end{figure}
-In processing the first point, we find find that we must reduce the radius. Notice that we only need to consider the points that lie in the box formed by the red an blue lines.
 
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{ptsweep4.png}
+\caption{A few more points along, we find that we mus reduce our minimum radius significantly.}
 \end{figure}
-A few more points along, we find that we mus reduce our minimum radius significantly.
 
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{ptsweep20.png}
+\caption{This is where we actually hit the minimum distance.}
 \end{figure}
-This is where we actually hit the minimum distance.
 
-\begin{figure}
+\begin{figure}[H]
 \includegraphics[width = \textwidth]{ptsweep23.png}
+\caption{After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.}
 \end{figure}
-After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.
 
 \begin{problem}
 Implement the algorithm above in 2 dimensions. 
@@ -179,6 +192,7 @@ Note: you may want to sort the points by $x$ value for this version.
 \end{problem}
 
 There are a variety of ways this algorithm can be implemented, and the actual performance for a real world problem will depend on your ability to exploit the symmetry of the situation at hand. 
-Theoretically, the best way to do this is to use a binary search tree to store the list of active points, but initial cost of using these objects is expensive and outweighs the benefits in Python.
-Practically speaking, Python is designed for easy programming and high programmer output, so many of the details of how fast something will run depend on the details of how all the different objects used have been implemented.
-To fully speed up a Python function, you would want to use an efficient algorithm, try several implementations, and use Cython or some lower level language to perform optimizations wherever possible. The fastest implementations are likely to be written in lower level languages.
+Theoretically, the best way to do this is to use a binary search tree to store the list of active points, but the initial cost of using these objects is expensive and outweighs the benefits in Python.
+Practically speaking, Python is designed for easy programming and high programmer output, so how fast something will run depend on the details of how all the different objects involved are implemented.
+To fully speed up a Python function, you would want to use an efficient algorithm, try several implementations, and use Cython or some lower level language to perform optimizations wherever possible.
+The fastest implementations are likely to be written in lower level languages.
