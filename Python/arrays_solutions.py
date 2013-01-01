@@ -1,33 +1,48 @@
 import numpy as np
 import mytimer as mt
 
-def square(l):
-    rows = len(l)
-    cols = len(l[0])
-    squared = [[0]*cols for i in xrange(rows)]
+def dotijk(A, B):
+    rowsA = len(A)
+    colsB = len(B[0])
+    rowsB = len(B)
     
-    for i in xrange(rows):
-        for j in xrange(cols):
+    result = [[0]*colsB for i in range(rowsA)]
+    
+    for i in xrange(rowsA):
+        for j in xrange(colsB):
             res = 0
-            for k in xrange(cols):
-                res += l[i][k] * l[k][j]
-            squared[i][j] = res
+            for k in xrange(rowsB):
+                res += A[i][k] * B[k][j]
+            result[i][j] = res
+    return result
 
-    return squared
-
-def square_np(l):
-    return l.dot(l)
-
+def dotikj(A, B):
+    rowsA = len(A)
+    colsB = len(B[0])
+    rowsB = len(B)
+    
+    result = [[0]*colsB for i in xrange(rowsA)]
+    
+    for i in xrange(rowsA):
+        for j in xrange(rowsB):
+            res = 0
+            for k in xrange(colsB):
+                res += A[i][k] * B[k][j]
+            result[i][j] = res
+    return result
+    
+def dot_np(A, B):
+    return A.dot(B)
+    
 def square_arrays():
     sizes = [10, 20, 40, 80]
     with mt.timer() as timer:
         for k in sizes:
             a = [range(i, i+k) for i in range(0, k**2, k)]
-            timer.time(square, a)
-            timer.time(square_np, np.array(a))
+            aa = np.array(a)
+            timer.time(dotikj, a, a)
+            timer.time(dot_np, aa, aa)
     return timer.results
-
-
 
 def broadcast_1():
     """All input arrays have exactly the same shape"""
