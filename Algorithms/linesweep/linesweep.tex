@@ -13,10 +13,20 @@ Given a set of points, find the distance between the closest pair of points.
 \section*{Na\"ive Implementation}
 
 The obvious way of doing this is to simply compute the distance between each point and each of the other points.
-However, this requires $n^2$ computations where $n$ is the number of points (10 points requires calculating 100 distances).
+Roughly speaking, this requires some constant multiple of $n^2$ computations where $n$ is the number of points.
+This can be coded as follows:
+\begin{lstlisting}
+def reallybadmindist(X):
+    r = ((X[0]-X[1])**2).sum()**.5
+    for i in range(len(X)):
+        for j in range(len(X)):
+            if i != j:
+                r = min(r,((X[i]-X[j])**2).sum()**.5)
+    return r
+\end{lstlisting}
 Since distance is symmetrical, we can compare each point with the points that follow it in the list we are given (which will reduce
 the total number of distances to be computed).
-A good implementation is as follows:
+This is a sleightly better implementation:
 \begin{lstlisting}
 def multidist(p0,p1):
     l=len(p0)
@@ -32,7 +42,7 @@ def badmindist(X):
     return r
 \end{lstlisting}
 
-Since, on average, we iterate through half the list per point added, this algorithm will have complexity $O(n^2)$ (we are only scaling by a constant factor).  
+Since,on average, we iterate through about half of the list for each point added, this algorithm will have complexity $O(n^2)$ (we are only scaling by a constant factor).  
 It is faster than the truly na\"ive method, but essentially just as inefficient.
 For very small numbers of points, this algorithm works, but it quickly becomes inefficient as we increase the number of points processed.  
 What we would like to do is go from $O(n^2)$ to something better.  
@@ -53,18 +63,16 @@ Sweep line algorithms typically exhibit a temporal complexity of $O(n \log n)$, 
 Line sweep algorithms are good for doing all sorts of proximity based computations.
 In the example above, we took advantage of the fact that distance was symmetric ($d(a,b)=d(b,a)$).
 In a line sweep version of this algorithm, we also take advantage of the fact that any points further than the current smallest minimum distance along a given axis do not need to be considered.
+This is really just an aplication of the triangle inequality.
 The secret to the line sweep solution for the closest pair problem is to actually have two sweep lines with a small distance between them.
 As we process the points in our list, we can decrease the distance between the lines so that we only process points that could possibly give a smaller distance than the smallest distance we have already encountered.
 By only processing the points between our two sweep lines, we avoid processing many points needlessly.
 
 For a general line sweep algorithm, it is common to use a priority queue to order the items that need to be processed.
-We have implemented a very basic priority queue in the file \li{pqueue.py}. 
-A more complex priority queue can be found in the library \li{Queue} that is included in Python. 
-The points can be added into the queue by using the \li{add(data,priority)} method for the priority queue object. 
-You can get the next item in the priority queue using the \li{get()} method. 
-In this case you will want to add points into the queue with priority equal to their $x$-value. 
-If their $x$-values are equal, they will be returned in the order they are entered. 
-You could give a tuple for the order of the point, then the queue would order them by $x$ value and then, when $x$ values are equal, by $y$ value, but that is more expensive computationally and it makes no difference in the actual implementation of the algorithm. 
+A good priority queue can be found in the library \li{Queue} that is included in Python. 
+In this case all we need to do is sort the points by $X$ value.
+This means it will be easier to make a sorted copy of the array using numpy's built in functions.
+Something like \li{X=Y.take(Y[:,0].argsort(),axis=0)} or \li{Y[Y[:,0].argsort()]} will do this for you. 
 
 We track the points in the area between the two sweep lines with a list.
 Each time we advance the sweep lines, we update this list so it always contains the points between the sweep lines (adding or removing points where necessary).
@@ -108,8 +116,8 @@ We then process anything that is left.}
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[width = \textwidth]{simple2.pdf}
-\caption{The minimum distance thus far has already droppend significantly, so the actives list will remain relatively small.}
+\includegraphics[width = \textwidth]{simple5.pdf}
+\caption{A few points further in we actually hit the minimum distance.}
 \end{figure}
 
 \begin{figure}[H]
@@ -118,17 +126,8 @@ We then process anything that is left.}
 \end{figure}
 
 \begin{problem}
-Implement the above line sweep algorithm for finding the distance between the closest pair of points in a set of points.
-\end{problem}
-
-\begin{problem}
-You may have noticed that, in this problem, the priority queue is only used to sort the points passed to the function. 
-This sorting can be done more quickly using array operations. 
-Write a version of the function which which makes a sorted copy of the array. 
-Something like \li{X=Y[Y[:,0].argsort()]} will do this for you. 
-Note that the sorted version will be sorted from smallest to largest and not largest to smallest, so you will have to make appropriate changes in your implementation.
-Make sure your new function works in arbitrary dimensions. 
-Modify the code so that it will accept a metric function as a parameter.
+Write a Cython function that implements the above algorithm.
+Have your code accept a metric function as a parameter.
 This metric function should take a point and an array of points as arguments and return an array of distances from the point to each of the points in the array. 
 Test your function's speed. 
 How does it scale as you increase the number of points? 
@@ -139,23 +138,11 @@ How does it scale as you increase the number of dimensions?
 
 You may have noticed that we are not exploiting all the symmetry of the problem in the previous algorithm. 
 It would likely speed things up if we could also slice away the points that have $y$ values that could not possibly yield the minimum distance. 
-The list operations involved in doing this are somewhat more involved. 
-As it turns out, it is easier to implement this line sweep by sorting the points by $y$ value, then slicing our actives list by $x$ value.
-In order to slice the list efficiently, we will need to order our active points with respect to their $y$ values, but continue to remove them according to their $x$ value. 
-There are a variety of ways this can be done. 
-Many line sweep algorithms would use a binary tree to store these points and get good insertion and deletion times. 
-This is doable, but in this case, except for very poorly conditioned problems, our actives list tends to remain small, so we can do this with a list. 
-
-To do this insertion, we will use a binary search over the list. 
-The functions \li{bisect_left} and \li{bisect_right} from the \li{bisect} module will do this for you. 
-A binary search over a list works under the assumption that the list is already ordered and gives you a fast way to know where to insert an item in your ordered list. 
-At each iteration, we will first remove the points that no longer are important to the points we are processing. 
-We will then iterate only over the pertinent part of the actives list, according to the range of $x$ values that are close to the point we are processing.
-
-You should use a binary search to figure out where you need to cut your list. 
-
-Also, for large numbers of points, you will want to import the functions you call into the local namespace to save on lookup time. 
-For each function, you can do this using a line of code that is something like \li{_bl = bs.bisect_left}. 
+The simplest way to do this in this case is to take advantage of some algebraic symmetry.
+As we compute the distance between two points, we have to calculate the difference between each of the corrdinates of the points in question. 
+If at any time the difference has an absolute value greater than the minimum distance we have encountered thus far, we know we don't need to finish processing the point.
+This is, theoretically, like slicing along the other axes in order to further reduce the "active" list of points.
+A similar result could be obtained by using a list, binary tree, or some other data structure to keep the list of active points sorted by $y$ value, but in this case the insertion and deletion operations involved are more costly.
 
 This algorithm can be illustrated as follows:
 
@@ -168,12 +155,7 @@ Notice that we only need to consider the points that lie in the box formed by th
 \end{figure}
 
 \begin{figure}[H]
-\includegraphics[width = \textwidth]{sweep6.pdf}
-\caption{A few more points along, we find that we mus reduce our minimum radius significantly.}
-\end{figure}
-
-\begin{figure}[H]
-\includegraphics[width = \textwidth]{sweep14.pdf}
+\includegraphics[width = \textwidth]{sweep13.pdf}
 \caption{This is where we actually hit the minimum distance.}
 \end{figure}
 
@@ -182,22 +164,12 @@ Notice that we only need to consider the points that lie in the box formed by th
 \caption{After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.}
 \end{figure}
 
+This algorithm is based primarily on for loops and array lookups, so it will be much faster if it is written in Cython.
+
 \begin{problem}
-Implement the algorithm above in 2 dimensions. 
+Implement the algorithm above in Cython. 
 Time it against the naive implementation at the beginning of this lab and against the simplified version you coded above.
 The new version should be faster, but speed depends heavily on how you have implemented it, so you may have some optimization left to do.
+Time how long it takes your new function to process ten million points in two dimensions. 
+Using the speed results you get from the first implementation we gave you, estimate how long it would take that function to process that many points.
 \end{problem}
-
-\begin{problem}
-Write a different version of the algorithm above which masks arrays to eliminate the points that do not need to be processed. 
-Use recursion to mask over arbitrarily many dimensions. 
-Allow the user to input a metric function like you did with the simpler version.
-Compare the speeds of your implementations on different data sets.
-Note: you may want to sort the points by $x$ value for this version.
-\end{problem}
-
-There are a variety of ways this algorithm can be implemented, and the actual performance for a real world problem will depend on your ability to exploit the symmetry of the situation at hand. 
-Theoretically, the best way to do this is to use a binary search tree to store the list of active points, but the initial cost of using these objects is expensive and outweighs the benefits in Python.
-Practically speaking, Python is designed for easy programming and high programmer output, so how fast something will run depend on the details of how all the different objects involved are implemented.
-To fully speed up a Python function, you would want to use an efficient algorithm, try several implementations, and use Cython or some lower level language to perform optimizations wherever possible.
-The fastest implementations are likely to be written in lower level languages.
