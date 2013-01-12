@@ -7,7 +7,7 @@
 the style of expression in writing, speech, or music that is typical of a particular period, person, or group.
 \end{definition}
 
-Python has many powerful idioms that are very common.  The experienced Python programmer will at some point in time encounter these idioms.  The idioms discussed in this chapter take special advantage of the Python language to do things in a cleaner, more elegant, and often more efficient manner.
+Python has many powerful idioms that are very common.  The experienced Python programmer will at some point in time encounter these idioms.  The idioms discussed in this chapter take special advantage of the Python language to do things in a cleaner, more elegant, and often more efficient manner.  We will use the Zen of Python as a guide to the concepts discussed in this lab.
 
 Lets begin:
 \begin{lstlisting}
@@ -35,6 +35,59 @@ If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
 \end{lstlisting}
 
+\section*{1. Beautiful is better than ugly}
+\begin{lstlisting}
+squares = []
+for n in range(10):
+    squares.append(n**2)
+    
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+\end{lstlisting}
+In this example, we are constructing a list of the squares of the numbers 1 to 10.
+Now lets add only the odd squares.
+\begin{lstlisting}
+oddsquares = []
+for n in range(10):
+    n = n**2
+    if n%2 == 0:
+        oddsquares.append(n)
+        
+[1, 9, 25, 49, 81]
+\end{lstlisting}
+In Python, both of these solutions are pretty clear and succinct.
+However, each problems can solved respectively as follows
+\begin{lstlisting}
+squares = [x**2 for x in range(10)]
+oddsquares = [x for x in squares if x%2 == 1]
+\end{lstlisting}
+These two solutions are known in Python as list comprehensions.
+List comprehension syntax closely mirrors the mathematical form of set definition.
+
+\section*{2. Explicit is better than implicit}
+\begin{lstlisting}
+from scipy import *
+a = rand(10,10)
+\end{lstlisting}
+
+Importing things into the global namespace (more on that later) is not a good idea.
+
+Things should be imported explicitly
+\begin{lstlisting}
+from scipy import rand as sprand
+a = sprand(10,10)
+\end{lstlisting}
+
+\section*{3. Flat is better than nested}
+
+\section*{4. Sparse is better than dense. Readability counts.}
+\begin{lstlisting}
+primes = [x for x in range(2, 50) if x not in [j for i in range(2,8) for j in range(i*2, 50, i)]]
+\end{lstlisting}
+
+
+
+\section*{5. Namespaces are one honking great idea -- let's do more of those!}
+
 \section*{Constructions}
 
 \subsection*{Strings}
@@ -53,7 +106,7 @@ Strings are immutable object in Python.  As such, it is quite costly to concaten
 : timeit accumStr(list(string.letters))
 1000000 loops, best of 3: 810 ns per loop
 \end{lstlisting}
-Notice that \li{accumStr} runs considerably faster.  What is actually happening in \li{concatStr} is that each time add an element from \li{list(string.letters)}, Python has to reallocate the entire string in memory.  Not only is \li{accumStr} more efficient, but it is also significantly shorter.
+Notice that \li{accumStr} runs considerably faster.  What is actually happening in \li{concatStr} is that each time we add an element from \li{list(string.letters)}, Python has to reallocate the entire string in memory.  Not only is \li{accumStr} more efficient, but it is also significantly shorter.
 
 Python has some really powerful string formatting options available.  More information is located at \url{http://www.python.org/dev/peps/pep-3101/}
 
@@ -141,6 +194,7 @@ Wh
 Python contains a handful of really nice ways to iterate though lists.
 
 When iterating though lists, it is recommended to iterate by object rather than by index.
+However, if indexes are needed, using \li{enumerate} is highly suggested.
 \begin{lstlisting}
 : a = list('abcdefghijklmnopqrstuvwxy')
 
@@ -153,6 +207,15 @@ a b c d e f g h i j k l m n o p q r s t u v w x y z
 : for l in a:
 :     print l,
 a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+#using enumerate
+: for i in enumerate(a):
+:     print i,
+(0, 'a') (1, 'b') (2, 'c') (3, 'd') (4, 'e') (5, 'f') 
+(6, 'g') (7, 'h') (8, 'i') (9, 'j') (10, 'k') (11, 'l') 
+(12, 'm') (13, 'n') (14, 'o') (15, 'p') (16, 'q') (17, 'r') 
+(18, 's') (19, 't') (20, 'u') (21, 'v') (22, 'w') 
+(23, 'x') (24, 'y') (25, 'z')
 \end{lstlisting}
 
 When iterating a list in reverse it is advisable to use the \li{reversed()} function.
