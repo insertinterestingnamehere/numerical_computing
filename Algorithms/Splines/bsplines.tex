@@ -38,3 +38,32 @@ One of the largest constrants we need is that the curve we are forming be contin
 It would be even better if it were differentiable, or even second-differentiable.
 The construction of the B-Spline Basis functions takes all of these factors into account.
 
+There are a number of ways the B-Spline basis functions can be defined.
+A common approach is to use recursion.
+Let $U = \lbrace u_0, u_1, ... , u_m \rbrace$ be a nodecreasing sequence of real numbers.
+$U$ is called the knot vector.
+The $u_i$ are called the knots.
+Note that each $u_i$ is not necessarily distinct.
+$N_{i,p}(u)$, the $i$'th B-Spline basis function of degree $p$, or order $p+1$ is defined as:
+
+\begin{equation}
+N_{i,0}(u) = 
+\begin{cases}
+1 & \text{if } u_i \leq u < u_{i+1} \\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+N_{i,p}(u) = \frac{u - u_i}{u_{i+p} - u_i} N_{i,p-1}(u) + \frac{u_{i + p + 1} - u}{u_{i + p + 1} - u_{i + 1}} N_{i+1,p-1}(u)
+\end{equation}
+
+You will notice that we defined $U$ to be nodecreasing, which means some $u_i$ may be repeated.
+When you acutually code this up, you will have to take an approach which avoids division by zero.
+When we get the indeterminate form $\frac{0}{0}$ we define these terms to be zero.
+
+Also note that $N_{i,0}$ is a step function which is zero except on $[u_i, u_{i+1})$. 
+The other basis functions are piecewise polynomials of degree $p$ that are nonzero on $[u_{i-p}, u_{i+1+p})$.
+This is also nice because computation of a set of basis functions requires only a knot vector $U$ and a degree $p$, so we can predefine basis functions before we know the actual positions of the control points.
+
+The following is an illustration of the recursive formation the B-Spline basis functions for 
