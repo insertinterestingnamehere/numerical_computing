@@ -57,12 +57,13 @@ def main(args):
                                 stderr=subprocess.STDOUT)
     filename = os.path.splitext(template)[0]+'.pdf'
     labname = os.path.splitext(lab_name)[0]+'.pdf'
+    stdout = ret.communicate()[0]
 
-    if ret.returncode:
+    if ret.returncode == 0:
         shutil.copy2(filename, os.path.join(cwd, lab_path, labname))
         print "{} -> {}".format(os.path.join(tmp_lab_path, labname), lab_path)
     else:
-        print ret.stdout.read()
+        print stdout
         print "{} could not be generated".format(labname)    
 
 
