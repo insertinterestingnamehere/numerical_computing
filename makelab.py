@@ -20,7 +20,7 @@ def substlab(template, lab_path, lab_file):
 
     i = t.index('%TEMPLATE_INSERT\n')
 
-    t.insert(i+1, '\\subimport{{{0}/}}{{{1}}}\n'.format(lab_path, lab_file))
+    t.insert(i+1, '\\subimport{{{0}{2}}}{{{1}}}\n'.format(lab_path, lab_file, os.sep))
     return t
 
 
@@ -72,7 +72,6 @@ if __name__ == "__main__":
     
 
     parser = argparse.ArgumentParser(description="makelab")
-    parser.add_argument('-o', action='store', help="output file name")
     parser.add_argument('lab', action='store')
     main(parser.parse_args())
 
