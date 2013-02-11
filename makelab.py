@@ -4,15 +4,6 @@ import ConfigParser
 import shutil
 import subprocess
 
-class ConfParser(ConfigParser.SafeConfigParser):
-
-    def as_dict(self):
-        d = dict(self._sections)
-        for k in d:
-            d[k] = dict(self._defaults, **d[k])
-            d[k].pop('__name__', None)
-        return d
-
 def substlab(template, lab_path, lab_file):
     """Read template and substitute labs"""
     with open(template, 'r') as temp:
@@ -23,16 +14,13 @@ def substlab(template, lab_path, lab_file):
     t.insert(i+1, '\\subimport{{{0}{2}}}{{{1}}}\n'.format(lab_path, lab_file, os.sep))
     return t
 
-
 def getDirs(root):
     return set([x for x in os.listdir(root) if os.path.isdir(x)])
     
 def main(args):
     tmp_dir = tempfile.mkdtemp()
-    c = ConfParser()
-    with open('makelab.conf', 'r') as conf:
-        c.readfp(conf)
-        config = c.as_dict()
+    c = ConfigParser.SafeConfigParser()
+    c.readfp(open('makelab.conf', 'r'))
         
     #get current working directory
     cwd = os.getcwd()
@@ -42,8 +30,8 @@ def main(args):
     tmp_lab_path = os.path.join(tmp_dir, lab_path)
     
     shutil.copytree(lab_path, tmp_lab_path)
-    filelist = config['root']['copyfiles'].split(',')
-    template = config['root']['template']
+    filelist = c.get('root', 'CopyFiles', raw=True).split(',')
+    template = c.get('root', 'Template', raw=True)
     template_subbed = substlab(template, lab_path, lab_name)
 
     for f in filelist:
@@ -65,7 +53,6 @@ def main(args):
     else:
         print stdout
         print "{} could not be generated".format(labname)    
-
 
 if __name__ == "__main__":
     import argparse
