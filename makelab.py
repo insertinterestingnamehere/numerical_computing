@@ -10,7 +10,7 @@ def substlab(template, lab_path, lab_file):
         t = temp.readlines()
 
     i = t.index('%TEMPLATE_INSERT\n')
-    t.insert(i+1, '\\subimport{{{0}/}{{{1}}}\n'.format(lab_path.replace('\\', '/'), lab_file))
+    t.insert(i+1, '\\subimport{{{0}/}}{{{1}}}\n'.format(lab_path.replace('\\', '/'), lab_file))
     return t
 
 def getDirs(root):
