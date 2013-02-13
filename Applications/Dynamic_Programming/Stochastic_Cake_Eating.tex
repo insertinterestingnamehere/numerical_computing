@@ -1,0 +1,131 @@
+\lab{Application}{Stochastic Cake-Eating Problem}{Stochastic Cake-Eating Problem}
+\newcommand\ve{\varepsilon}
+
+\objective{In this section we study the stochastic cake-eating problem with both normal and AR(1) shocks.}
+
+\section{Infinite Horizon, Stochastic, i.i.d.}\label{SecRecProbInfinHorStochiid}
+
+In practice, dynamic programming problems often involve some level of uncertainty.  For example as time progresses prices may change, return on investments may be unknown beforehand, or preferences themselves may change.  In this lab, we reexamine the cake eating problem, this time allowing for uncertainty.
+
+We return to the model TODO...
+
+Now assume that the individuals preferences fluctuate each period according to some "shock" $\ve$, meaning $\ve$ is a random variable.  We assume that the $\ve$ are identically and independently distributed (i.i.d).  In effect, this means the probabilities associated with the $\ve$ at each time are the same and do not depend on each other.  We assume for now that the $\ve$ are distributed normally with mean $\mu$ and variance $\sigma^2$.  The Bellman equation can be easily rewritten in the following way to incorporate the uncertainty,
+\begin{equation*}\label{stoch_Bellman}
+   V\left(W,\ve\right) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'}\left[V\left(W',\ve'\right)\right] \quad\text{where}\quad \ve \sim \text{N}(\mu,\sigma^2)
+\end{equation*}
+where $E$ is the unconditional expectations operator over all values in the support of $\ve$.  Note that now the value function is a function of two variables.  It represents the value of entering the period with $W$ the amount of cake, and preference shock of $\ve$.  For example, in a period where the realization of $\ve$ is higher, we will place more value on eating cake in the current period.  Because we do not know the value of the shock in the next period $\ve'$, we take consider only the expected value for future time.
+
+It turns out, we can solve this problem in a manner similar to the infinite horizon deterministic cake-eating problem considered in the Value Function Iteration lab.  It is worth noting that in this case, computationally the value and policy functions will be two dimensional as they will depend on both $W$ and $\ve$.  
+
+In order to deal with $\ve$ computationally, we would like to represent it as a vector of possible values it could take along with probabilities it takes each of those values.  However, $N(\mu,\sigma^2)$ is a continuous distribution meaning we cannot represent every value $\ve$ could take.  We need a discrete distribution that approximates $N(\mu,\sigma^2)$.
+
+To do this we can think of breaking the distribution $N(\mu,\sigma^2)$ up into bins with endpoints $v_1,v_2,\ldots, v_K$.
+
+\begin{figure}[h!]
+\label{stoch1_fig1}
+\begin{center}
+\includegraphics[scale = 0.5]{discnorm.pdf}
+\end{center}
+\caption{Discretization of $N(\mu,\sigma^2)$.  We approximate $P(\ve = \ve_k)$ by the area of the shaded region.}
+\end{figure}
+
+We can then associate $\ve_k$ with the area under the curve from $v_k$ to $v_{k+1}$.  In python we can find the area using the function norm.cdf in the stats package.  The cdf function gives the area under the curve from minus infinity to a specified value.  For example, in the following code, eps is the area under the curve from 0 to 1.
+
+\begin{lstlisting}[style=python]
+from scipy import stats as st
+
+mu = 0
+sigma = 1
+eps = st.norm.cdf(1,mu,sigma) - st.norm.cdf(0,mu,sigma)
+\end{lstlisting}
+
+In general, it is sufficient to take our points $\ve_k$ ranging from $\mu - 3\sigma$ to $\mu + 3\sigma$.
+
+\begin{problem}
+Write a function called discretenorm that accepts an integer representing the number of discrete points desired, a mean, and a standard deviation and returns a 1 by N vector of values ranging from $\mu - 3\sigma$ to $\mu + 3\sigma$  and a 1 by N vector of the associated probabilities probabilities.
+\end{problem}
+
+Now that we have a discrete distribution for $\ve$, we can solve our the problem TODO.
+
+\begin{problem}
+Complete the following steps to solve the problem described above.
+\begin{enumerate}
+   \item First we establish our approximation of $\ve$ using the function created in Problem 1. Let $\sigma^2 = 0.25$ and $\mu=4\sigma$ (This way the shocks, $\ve$, are always positive.) And let there be $K=7$ (make $m$ an odd number so the mean is included in the support) equally spaced points in the support so that $\ve$ is an $M$-length row vector.  Using the function discretenorm from problem 1, generate the probability distribution $\Gamma$ for $\ve$. This should be an $M$-length row vector whose entries indicate $P(\ve = \ve_k)$
+
+   \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. Initialize the value function to and $N by K$ matrix of zeros.  Assume that the period utility function is $u(c)=\sqrt(c)$, and that the discount factor is $\beta = 0.9$.  
+       
+   \item In order to evaluate the value function equation we need to compute $E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr]$.
+       
+   \item We must also compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.
+   \item We then iterate on the contraction \begin{equation}\label{EqContractStochiid}
+      V_{k+1}\left(W,\ve\right) \equiv C\Bigl(V_k\left(W,\ve\right)\Bigr) \equiv \max_{W'\in[0,W]}\: \ve u\left(W-W'\right) + \beta E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr].  
+   \end{equation}
+
+   \item Generate a norm $\delta_T = \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W',\ve'\right)}$ that measures the distance between the two value functions. Define the distance metric as the sum of the squares of each corresponding element in the two value functions,
+   \begin{equation}\label{EqDistStochiid}
+      \delta_T \equiv \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W'\ve'\right)} \equiv \text{vec}\left(V_T - V_{T+1}\right)'*\text{vec}\left(V_T - V_{T+1}\right)
+   \end{equation}
+   where $\text{vec}\left(V_T-V_{T+1}\right)'$ is the transpose of the column vectorized version of $V_T-V_{T+1}$. Defined in this way, $\delta_T\in\mathbf{R}_+$.
+
+   \item Take the resulting $V_T$ from exercise \#2, and perform the same contraction on it to generate $V_{T-1}$ and $\psi_{T-1}$. That is, generate,
+   \begin{equation*}
+      V_{T-1}\left(W,\ve\right) = C\Bigl(V_T\left(W,\ve\right)\Bigr) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta V_T\left(W',\ve'\right)
+   \end{equation*}
+   and the accompanying policy function $W'=\psi_{T-1}\left(W,\ve\right)$. Calculate the accompanying distance measure for $\delta_{T-1}$ using the formula from \eqref{EqDistStochiid} with the updated period subscripts. Compare $\delta_{T-1}$ with $\delta_T$ from exercise \#3.
+
+   \item Repeat exercise \#4 and generate $V_{T-2}$ and $\psi_{T-2}$ by performing the contraction on $V_{T-1}$. Compare $\delta_{T-2}$ to $\delta_{T-1}$ and $\delta_{T}$.
+
+   \item Write a loop in Python that performs the contraction operation from exercises \#2, \#4, and \#5 iteratively until the distance measure is very small $\delta_{T-s} < 10^{-9}$. How many iterations did it take ($s+1$)? Congratulations, you've just completed your first solution to a stochastic problem by value function iteration. The distance measure $\delta_{T-s}$ being arbitrarily close to zero means you have converged to the fixed point $V_{t} = V_{t-1} = V$.
+
+   \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x1$-axis) and the taste shock today ($x2$-axis).
+
+\end{enumerate}
+\end{problem}
+
+\newpage
+\section{Infinite Horizon, Stochastic, AR(1)}\label{SecRecProbInfinHorStochAR1}
+
+In the previous example we assumed that the shocks at time $t$ were independent of what happened in previous periods.  Often a shock may depend on recent events.  We will assume now that the shocks are persistent (TODO what is a shock) meaning my preferences in the current period are more likely to be close to what they were in the previous period.  We can characterize the persistence be characterized by what is called an autoregressive process of order one.  Such a process is defined as follows.
+\begin{equation}\label{EqAR1shock}
+   \ve' = (1-\rho)\mu + \rho\ve + \nu' \quad\text{where}\quad \rho\in(0,1) \quad\text{and}\quad \nu\sim N(0,\sigma^2)
+\end{equation}
+
+Essentially, instead of allowing the shocks to have a mean which is independent of the past, the mean is now a weighted average of some $\mu$ and the previous realization of the shock $\ve'$.  As it turns out, we can approximate this process by thinking of it like a Markov Chain. (TODO brief Tauchen-Hussey Explanation).
+
+Then the Bellman equation becomes the following, in which the only change from the problem in problem set \#4 is that the expectations operator is now a conditional expectation because of the persistent shock process,
+\begin{equation*}
+   V\left(W,\ve\right) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'|\ve}\left[V\left(W',\ve'\right)\right]
+\end{equation*}
+where $\ve'$ is distributed according to \eqref{EqAR1shock}. Let $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where $\ve_j'$ is the shock in the next period and $\ve_i$ is the value of the shock in the current period.
+
+TODO explain what a solution to this problem is (dimensions etc.)
+\vspace{5mm}
+\noindent[The following exercises require Python.]
+
+\begin{enumerate}
+   \item Use the method TODO to approximate the AR(1) process for $\ve$ from \eqref{EqAR1shock} as a first order Markov process. The Python function file ``tauchenhussey.py" will produce a vector of length $M$ for the support of $\ve$ and an $M\times M$ transition matrix $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where each element in row $i$ and column $j$ represents the probability of $\ve_j'$ tomorrow given $\ve_i$ today. As inputs, let $M=7$, the mean of the process $\mu=4\sigma$, $\rho = 1/2$, $\sigma=\sqrt{\sigma^2}=1/2$, and $basesigma=(0.5+\frac{\rho}{4})\sigma + (0.5 - \frac{\rho}{4})*\frac{\sigma}{\sqrt{1-\rho^2}}$.
+
+   \item As in exercise \#2 from Section \ref{SecRecProbInfinHorStochiid}, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0.01 and 1 and assume a value function $V_{T+1}\left(W',\ve'\right)$ for entering the period after the last period of life with cake size $W'$ and taste shock realization $\ve'$. This value function will be a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. So each element in the matrix is $V_{T+1}\left(W_n',\ve_m'\right)$. Let your initial guess for the value function $V_{T+1}$ be a matrix of zeros with $N$ rows and $M$ columns. Assume that the period utility function has the logarithmic functional form $u(c)=\log(c)$, and that the discount factor is $\beta = 0.9$. What is the resulting policy function $W' = \psi_T\left(W,\ve\right)$ and value function $V_T\left(W,\ve\right)$ when $V_T$ is defined as in \eqref{EqContractStochAR1} below? See Appendix \ref{AppDiscCompSpaceStochAR1} for a fast way to compute this exercise.
+   \begin{equation}\label{EqContractStochAR1}
+      V_{t-1}\left(W,\ve\right) \equiv C\Bigl(V_t\left(W,\ve\right)\Bigr) \equiv \max_{W'\in[0,W]}\: \ve u\left(W-W'\right) + \beta E_{\ve'|\ve}\Bigl[V_t\left(W',\ve'\right)\Bigr]
+   \end{equation}
+
+   \item Generate a norm $\delta_T = \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W',\ve'\right)}$ that measures the distance between the two value functions. Define the distance metric as the sum of the squares of each corresponding element in the two value functions,
+   \begin{equation}\label{EqDistStochAR1}
+      \delta_T \equiv \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W'\ve'\right)} \equiv \text{vec}\left(V_T-V_{T+1}\right)'*\text{vec}\left(V_T-V_{T+1}\right)
+   \end{equation}
+   where $\text{vec}\left(V_T-V_{T+1}\right)'$ is the transpose of the column vectorized version of $V_T-V_{T+1}$. Defined in this way, $\delta_T\in\mathbf{R}_+$.
+
+   \item Take the resulting $V_T$ from exercise \#2, and perform the same contraction on it to generate $V_{T-1}$ and $\psi_{T-1}$. That is, generate,
+   \begin{equation*}
+      V_{T-1}\left(W,\ve\right) = C\Bigl(V_T\left(W,\ve\right)\Bigr) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'|\ve}\Bigl[V_T\left(W',\ve'\right)\Bigr]
+   \end{equation*}
+   and the accompanying policy function $W'=\psi_{T-1}\left(W,\ve\right)$. Calculate the accompanying distance measure for $\delta_{T-1}$ using the formula from \eqref{EqDistStochAR1} with the updated period subscripts. Compare $\delta_{T-1}$ with $\delta_T$ from exercise \#3.
+
+   \item Repeat exercise \#4 and generate $V_{T-2}$ and $\psi_{T-2}$ by performing the contraction on $V_{T-1}$. Compare $\delta_{T-2}$ to $\delta_{T-1}$ and $\delta_{T}$.
+
+   \item Write a loop in Python that performs the contraction operation from exercises \#2, \#4, and \#5 iteratively until the distance measure is very small $\delta_{T-s} < 10^{-9}$. How many iterations did it take ($s+1$)? Congratulations, you've just completed your first solution to a stochastic AR(1) problem by value function iteration. The distance measure $\delta_{T-s}$ being arbitrarily close to zero means you have converged to the fixed point $V_{t} = V_{t-1} = V$.
+
+   \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x1$-axis) and the taste shock today ($x2$-axis).
+
+\end{enumerate}
