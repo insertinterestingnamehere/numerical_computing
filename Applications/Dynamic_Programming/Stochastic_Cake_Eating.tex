@@ -83,42 +83,28 @@ In the previous example we assumed that the shocks at time $t$ were independent 
    \ve' = (1-\rho)\mu + \rho\ve + \nu' \quad\text{where}\quad \rho\in(0,1) \quad\text{and}\quad \nu\sim N(0,\sigma^2)
 \end{equation}
 
-Essentially, instead of allowing the shocks to have a mean which is independent of the past, the mean is now a weighted average of some $\mu$ and the previous realization of the shock $\ve$.  As it turns out, we can approximate this process by thinking of it like a Markov Chain. (TODO brief Tauchen-Hussey Explanation).
+Essentially, instead of allowing the shocks to have a mean which is independent of the past, the mean is now a weighted average of some $\mu$ and the previous realization of the shock $\ve$.  As it turns out, we can approximate this process by thinking of it like a Markov Chain. This means we need to determine a discrete set of points representing possible values of $\ve$ and a Markov transition matrix that gives the probabilities of moving from one value of $\ve$ to another.  There are methods for determining the discrete approximation of $\ve$ with a Markov transition matrix.  The methods are beyond the scope of this section, but you can use the file tauchenhussey.py to implement them in the next problem.
 
-Then the Bellman equation becomes the following, in which the only change from the problem in problem set \#4 is that the expectations operator is now a conditional expectation because of the persistent shock process,
+The the Bellman equation becomes the following, in which the only change from the i.i.d. shock case is that the expectations operator is now a conditional expectation because in this case the expectation depends on the current realization of $\ve$,
 \begin{equation*}
    V\left(W,\ve\right) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'|\ve}\left[V\left(W',\ve'\right)\right]
 \end{equation*}
-where $\ve'$ is distributed according to \eqref{EqAR1shock}. Let $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where $\ve_j'$ is the shock in the next period and $\ve_i$ is the value of the shock in the current period.
+where $\ve'$ is distributed according to \eqref{EqAR1shock}. Let $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where $\ve_j'$ is the shock in the next period and $\ve_i$ is the value of the shock in the current period.  In other words, $\Gamma(\ve' | \ve)$ is the Markov transition matrix.
 
-TODO explain what a solution to this problem is (dimensions etc.)
-\vspace{5mm}
-\noindent[The following exercises require Python.]
+The solution to this problem is of the same type as that in the i.i.d. case since we have just changed the probability distribution of $\ve$.
 
+\begin{problem}
 \begin{enumerate}
-   \item Use the method TODO to approximate the AR(1) process for $\ve$ from \eqref{EqAR1shock} as a first order Markov process. The Python function file ``tauchenhussey.py" will produce a vector of length $M$ for the support of $\ve$ and an $M\times M$ transition matrix $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where each element in row $i$ and column $j$ represents the probability of $\ve_j'$ tomorrow given $\ve_i$ today. As inputs, let $M=7$, the mean of the process $\mu=4\sigma$, $\rho = 1/2$, $\sigma=\sqrt{\sigma^2}=1/2$, and $basesigma=(0.5+\frac{\rho}{4})\sigma + (0.5 - \frac{\rho}{4})*\frac{\sigma}{\sqrt{1-\rho^2}}$.
+   \item Use the file tauchenhussey.py to approximate the AR(1) process for $\ve$ from \eqref{EqAR1shock} as a first order Markov process. The Python function file ``tauchenhussey.py" will produce a vector of length $M$ for the support of $\ve$ and an $M\times M$ transition matrix $\Gamma(\ve'|\ve)=\text{Pr}\left(\ve_j'|\ve_i\right)$ where each element in row $i$ and column $j$ represents the probability of $\ve_j'$ tomorrow given $\ve_i$ today. As inputs, let $M=7$, the mean of the process $\mu=4\sigma$, $\rho = 1/2$, $\sigma=\sqrt{\sigma^2}=1/2$, and $basesigma=(0.5+\frac{\rho}{4})\sigma + (0.5 - \frac{\rho}{4})*\frac{\sigma}{\sqrt{1-\rho^2}}$.
 
-   \item As in exercise \#2 from Section \ref{SecRecProbInfinHorStochiid}, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0.01 and 1 and assume a value function $V_{T+1}\left(W',\ve'\right)$ for entering the period after the last period of life with cake size $W'$ and taste shock realization $\ve'$. This value function will be a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. So each element in the matrix is $V_{T+1}\left(W_n',\ve_m'\right)$. Let your initial guess for the value function $V_{T+1}$ be a matrix of zeros with $N$ rows and $M$ columns. Assume that the period utility function has the logarithmic functional form $u(c)=\log(c)$, and that the discount factor is $\beta = 0.9$. What is the resulting policy function $W' = \psi_T\left(W,\ve\right)$ and value function $V_T\left(W,\ve\right)$ when $V_T$ is defined as in \eqref{EqContractStochAR1} below? See Appendix \ref{AppDiscCompSpaceStochAR1} for a fast way to compute this exercise.
-   \begin{equation}\label{EqContractStochAR1}
-      V_{t-1}\left(W,\ve\right) \equiv C\Bigl(V_t\left(W,\ve\right)\Bigr) \equiv \max_{W'\in[0,W]}\: \ve u\left(W-W'\right) + \beta E_{\ve'|\ve}\Bigl[V_t\left(W',\ve'\right)\Bigr]
-   \end{equation}
-
-   \item Generate a norm $\delta_T = \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W',\ve'\right)}$ that measures the distance between the two value functions. Define the distance metric as the sum of the squares of each corresponding element in the two value functions,
-   \begin{equation}\label{EqDistStochAR1}
-      \delta_T \equiv \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W'\ve'\right)} \equiv \text{vec}\left(V_T-V_{T+1}\right)'*\text{vec}\left(V_T-V_{T+1}\right)
-   \end{equation}
-   where $\text{vec}\left(V_T-V_{T+1}\right)'$ is the transpose of the column vectorized version of $V_T-V_{T+1}$. Defined in this way, $\delta_T\in\mathbf{R}_+$.
-
-   \item Take the resulting $V_T$ from exercise \#2, and perform the same contraction on it to generate $V_{T-1}$ and $\psi_{T-1}$. That is, generate,
-   \begin{equation*}
-      V_{T-1}\left(W,\ve\right) = C\Bigl(V_T\left(W,\ve\right)\Bigr) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'|\ve}\Bigl[V_T\left(W',\ve'\right)\Bigr]
-   \end{equation*}
-   and the accompanying policy function $W'=\psi_{T-1}\left(W,\ve\right)$. Calculate the accompanying distance measure for $\delta_{T-1}$ using the formula from \eqref{EqDistStochAR1} with the updated period subscripts. Compare $\delta_{T-1}$ with $\delta_T$ from exercise \#3.
-
-   \item Repeat exercise \#4 and generate $V_{T-2}$ and $\psi_{T-2}$ by performing the contraction on $V_{T-1}$. Compare $\delta_{T-2}$ to $\delta_{T-1}$ and $\delta_{T}$.
-
-   \item Write a loop in Python that performs the contraction operation from exercises \#2, \#4, and \#5 iteratively until the distance measure is very small $\delta_{T-s} < 10^{-9}$. How many iterations did it take ($s+1$)? Congratulations, you've just completed your first solution to a stochastic AR(1) problem by value function iteration. The distance measure $\delta_{T-s}$ being arbitrarily close to zero means you have converged to the fixed point $V_{t} = V_{t-1} = V$.
-
-   \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x1$-axis) and the taste shock today ($x2$-axis).
-
+  \item Solving this version of the problem should be very similar to the i.i.d. case completed in problem 2.  The most significant difference is that now we need to compute the conditional expectation
+      \begin{equation}
+      E_{\ve'|\ve}\left[V\left(W',\ve'\right)\right].
+      \end{equation}
+      In this case, the expectation is two-dimensional since it depends on both $W'$ and on $\ve$.  The expectation can be computed by matrix multiplying $V(W',\ve')\Gamma(\ve' | \ve)'$ where the last "$'$" represents transposing $\Gamma$.  Again we will need an $N\times N\times K$ array, so we tile the result $K$ times representing that the expectation is constant along $W$.
+      
+  \item Solve for the optimal policy by Value Function Iteration.  Plot the policy surface.
+      
+  
 \end{enumerate} 
+\end{problem}
