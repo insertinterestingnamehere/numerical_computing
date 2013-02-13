@@ -15,7 +15,7 @@ Now assume that the individuals preferences fluctuate each period according to s
 \end{equation*}
 where $E$ is the unconditional expectations operator over all values in the support of $\ve$.  Note that now the value function is a function of two variables.  It represents the value of entering the period with $W$ the amount of cake, and preference shock of $\ve$.  For example, in a period where the realization of $\ve$ is higher, we will place more value on eating cake in the current period.  Because we do not know the value of the shock in the next period $\ve'$, we take consider only the expected value for future time.
 
-It turns out, we can solve this problem in a manner similar to the infinite horizon deterministic cake-eating problem considered in the Value Function Iteration lab.  It is worth noting that in this case, computationally the value and policy functions will be two dimensional as they will depend on both $W$ and $\ve$.  
+It turns out, we can solve this problem in a manner similar to the infinite horizon deterministic cake-eating problem considered in the Value Function Iteration lab.  It is worth noting that in this case, computationally the value and policy functions will be two dimensional as they will depend on both $W$ and $\ve$.
 
 In order to deal with $\ve$ computationally, we would like to represent it as a vector of possible values it could take along with probabilities it takes each of those values.  However, $N(\mu,\sigma^2)$ is a continuous distribution meaning we cannot represent every value $\ve$ could take.  We need a discrete distribution that approximates $N(\mu,\sigma^2)$.
 
@@ -52,32 +52,25 @@ Complete the following steps to solve the problem described above.
 \begin{enumerate}
    \item First we establish our approximation of $\ve$ using the function created in Problem 1. Let $\sigma^2 = 0.25$ and $\mu=4\sigma$ (This way the shocks, $\ve$, are always positive.) And let there be $K=7$ (make $m$ an odd number so the mean is included in the support) equally spaced points in the support so that $\ve$ is an $M$-length row vector.  Using the function discretenorm from problem 1, generate the probability distribution $\Gamma$ for $\ve$. This should be an $M$-length row vector whose entries indicate $P(\ve = \ve_k)$
 
-   \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. Initialize the value function to and $N by K$ matrix of zeros.  Assume that the period utility function is $u(c)=\sqrt(c)$, and that the discount factor is $\beta = 0.9$.  
+   \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. Initialize the value function to and $N by K$ matrix of zeros.  Assume that the period utility function is $u(c)=\sqrt{c}$, and that the discount factor is $\beta = 0.9$.
        
-   \item In order to evaluate the value function equation we need to compute $E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr]$.
+
+   \item In order to evaluate the value function equation we need to compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.  As in the Value Function Iteration Lab, we replace negative entries in $W-W'$ by 0 and the corresponding entries in $u(W-W')$ by a large negative number (e.g. $10^{-10}$).
        
-   \item We must also compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.
-   \item We then iterate on the contraction \begin{equation}\label{EqContractStochiid}
-      V_{k+1}\left(W,\ve\right) \equiv C\Bigl(V_k\left(W,\ve\right)\Bigr) \equiv \max_{W'\in[0,W]}\: \ve u\left(W-W'\right) + \beta E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr].  
-   \end{equation}
+   \item We also need to compute $E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr]$.  The expected value is simply
+       \begin{equation}
+       E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr] = \sum \Gamma(k)V_k(W',\ve_k')
+       \end{equation}  The result is an $N\times 1$ vector that gives the value for each $W'$.  However we need an $N\times N\times K$ array to add to $u(W-W')$.  Since the expected value does not depend on $W,\ve$, we tile the vector to create a 3D array that is constant along the $W$ and $\ve$ dimensions.
+           
+   \item We can now compute the value function contraction 
+     \begin{equation}\label{EqContractStochiid}
+      V_{k+1}\left(W,\ve\right) \equiv C\Bigl(V_k\left(W,\ve\right)\Bigr) \equiv \max_{W'\in[0,W]}\: \ve u\left(W-W'\right) + \beta E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr].
+      \end{equation}
+        We do so iteratively, also keeping the policy function which will be an $N\times K$ matrix that represents the $W'$ value that maximizes the value function for a given $W$ and $\ve$.
 
-   \item Generate a norm $\delta_T = \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W',\ve'\right)}$ that measures the distance between the two value functions. Define the distance metric as the sum of the squares of each corresponding element in the two value functions,
-   \begin{equation}\label{EqDistStochiid}
-      \delta_T \equiv \norm{V_T\left(W,\ve\right) - V_{T+1}\left(W'\ve'\right)} \equiv \text{vec}\left(V_T - V_{T+1}\right)'*\text{vec}\left(V_T - V_{T+1}\right)
-   \end{equation}
-   where $\text{vec}\left(V_T-V_{T+1}\right)'$ is the transpose of the column vectorized version of $V_T-V_{T+1}$. Defined in this way, $\delta_T\in\mathbf{R}_+$.
-
-   \item Take the resulting $V_T$ from exercise \#2, and perform the same contraction on it to generate $V_{T-1}$ and $\psi_{T-1}$. That is, generate,
-   \begin{equation*}
-      V_{T-1}\left(W,\ve\right) = C\Bigl(V_T\left(W,\ve\right)\Bigr) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta V_T\left(W',\ve'\right)
-   \end{equation*}
-   and the accompanying policy function $W'=\psi_{T-1}\left(W,\ve\right)$. Calculate the accompanying distance measure for $\delta_{T-1}$ using the formula from \eqref{EqDistStochiid} with the updated period subscripts. Compare $\delta_{T-1}$ with $\delta_T$ from exercise \#3.
-
-   \item Repeat exercise \#4 and generate $V_{T-2}$ and $\psi_{T-2}$ by performing the contraction on $V_{T-1}$. Compare $\delta_{T-2}$ to $\delta_{T-1}$ and $\delta_{T}$.
-
-   \item Write a loop in Python that performs the contraction operation from exercises \#2, \#4, and \#5 iteratively until the distance measure is very small $\delta_{T-s} < 10^{-9}$. How many iterations did it take ($s+1$)? Congratulations, you've just completed your first solution to a stochastic problem by value function iteration. The distance measure $\delta_{T-s}$ being arbitrarily close to zero means you have converged to the fixed point $V_{t} = V_{t-1} = V$.
-
-   \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x1$-axis) and the taste shock today ($x2$-axis).
+   \item To determine convergence, we need a norm $\delta_k = \norm{V_k\left(W,\ve\right) - V_{k-1}\left(W',\ve'\right)}$ that measures the distance between the two value functions.  Compute the norm using the scipy function scipy.linalg.norm.  Iterate on the contraction until $\delta_k < 10^{-9}$.
+       
+   \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow as a function of the cake today  and the taste shock today.
 
 \end{enumerate}
 \end{problem}
@@ -85,12 +78,12 @@ Complete the following steps to solve the problem described above.
 \newpage
 \section{Infinite Horizon, Stochastic, AR(1)}\label{SecRecProbInfinHorStochAR1}
 
-In the previous example we assumed that the shocks at time $t$ were independent of what happened in previous periods.  Often a shock may depend on recent events.  We will assume now that the shocks are persistent (TODO what is a shock) meaning my preferences in the current period are more likely to be close to what they were in the previous period.  We can characterize the persistence be characterized by what is called an autoregressive process of order one.  Such a process is defined as follows.
+In the previous example we assumed that the shocks at time $t$ were independent of what happened in previous periods.  Often a shock may depend on recent events.  We will assume now that the shocks are persistent meaning preferences in the current period are more likely to be close to what they were in the previous period.  We can characterize the persistence by what is called an autoregressive process of order one, denoted AR(1).  Such a process is defined as follows.
 \begin{equation}\label{EqAR1shock}
    \ve' = (1-\rho)\mu + \rho\ve + \nu' \quad\text{where}\quad \rho\in(0,1) \quad\text{and}\quad \nu\sim N(0,\sigma^2)
 \end{equation}
 
-Essentially, instead of allowing the shocks to have a mean which is independent of the past, the mean is now a weighted average of some $\mu$ and the previous realization of the shock $\ve'$.  As it turns out, we can approximate this process by thinking of it like a Markov Chain. (TODO brief Tauchen-Hussey Explanation).
+Essentially, instead of allowing the shocks to have a mean which is independent of the past, the mean is now a weighted average of some $\mu$ and the previous realization of the shock $\ve$.  As it turns out, we can approximate this process by thinking of it like a Markov Chain. (TODO brief Tauchen-Hussey Explanation).
 
 Then the Bellman equation becomes the following, in which the only change from the problem in problem set \#4 is that the expectations operator is now a conditional expectation because of the persistent shock process,
 \begin{equation*}
@@ -128,4 +121,4 @@ TODO explain what a solution to this problem is (dimensions etc.)
 
    \item Make a 3-D surface plot of the policy function for the converged problem $W' = \psi_{T-s}\left(W,\ve\right) = \psi\left(W,\ve\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x1$-axis) and the taste shock today ($x2$-axis).
 
-\end{enumerate}
+\end{enumerate} 
