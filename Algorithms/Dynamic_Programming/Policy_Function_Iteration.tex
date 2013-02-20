@@ -2,3 +2,78 @@
 
 \objective{This section teaches how to improve dynamic programming convergence using policy function iteration.}
 
+Now that we have covered how to solve simple dynamic programming problems by value funciton iteration, we examine the convergence of the algorithm.  We will find that it does not scale well, and implement an improved algorithm known as policy function iteration, or Howard's Improvement.
+
+For infinite horizon dynamic programming problems, it can be shown that value function iteration converges at the rate $\beta$ where $\beta$ is the discount factor.  In practice, $\beta$ is usually close to one which means this algorithm often converges slowly.  For large problems, it can be slow to the point of being infeasible.  In some applications it is desirable to solve the problem many times using different parameterizations.  This can be  overly slow (TODO).
+
+In order to decide how to speed up the algorithm, it is helpful to see where most of the time is being spent.
+
+\begin{problem}
+In Ipython, enter 
+\begin{lstlisting}[style=python]
+%run -p Stochastic_Cake_AR1 -s 'cumtime'
+\end{lstlisting}
+where Stochastic\_Cake\_AR1 is the name of your script from the Stochastic Cake Eating Lab.  This will list the function calls made by your code, sorted by the time it spends within each function (including time spent in subfunctions).
+
+Run the same command, this time changing the number of gridpoints $N$ to be 1000.
+
+Run the command once more, this time setting $N=1000$ and $\beta = .95$.
+\end{problem}
+
+In problem 1 you should have noticed that is took siginificantly longer to run for larger $N$ or $\beta$ closer to 1.  The profiler gives more detailed information than just the overall runtime howeever.  The results of problem 1 should look something like the following. 
+
+\begin{lstlisting}[style=python]
+%run -p Stochastic_Cake_AR1.py -s "cumtime"
+         13271 function calls in 64.337 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1   41.028   41.028   64.335   64.335 Stochastic_Cake_AR1.py:6(<module>)
+      126   12.254    0.097   12.254    0.097 {method 'argmax' of 'numpy.ndarray' objects}
+      129    6.459    0.050    6.459    0.050 {method 'repeat' of 'numpy.ndarray' objects}
+      126    4.436    0.035    4.436    0.035 {method 'max' of 'numpy.ndarray' objects}
+\end{lstlisting}
+
+We notice that the most time (12.254s) was spent in the argmax function.  Furthermore, the third most was spent in the max function.  This suggests that the maximization step of the algorithm is where we might make speed improvements.
+
+Notice that in the value function iteration method, we maximize at each step in order to determine a new policy and a new value function.  We could avoid maximizing at each step if we took a fixed policy and determined the corresponding value function.  We could then maximize to find a new policy.  In this way we iterate on the policy functions rather than the value functions.  The algorithm for the determinstic problem can be summarized as follows:
+
+\begin{enumerate}
+	\item Set an initial policy rule $W' = \psi_0(W)$.
+	
+	\item Compute the value function assuming this rule is used forever:
+\begin{equation}
+V(W_0) = \sum_{t=0}^\infty \beta^t u(\psi_k(W)-W)
+\end{equation}
+Set some tolerance $\nu$ and stop computing terms of the some when a term is reached such that $\beta^t u(\psi_0(W) - W) < \nu$.
+
+	\item Determine a new policy $\psi_{k+1}$ so that
+	\begin{equation}
+		\psi_{k+1} = \text{argmax}_{W'} u(W-W') + \beta V(W-W')
+	\end{equation}
+	
+	\item If $\delta_k = ||\psi_{k+1} - \psi_k|| < \delta$, stop, otherwise go back to step b with subscript $k+1$.
+\end{enumerate}
+
+In order to compute the value function, $V_k$ corresponding to a given policy $\psi_k$, we must compute
+
+\begin{equation}\label{Val_Fun}
+V_k(W) = u(W'-W) + \beta V_k(W').
+\end{equation}
+
+Equation \eqref{Val_Fun} is a linear system which we can rewrite as
+\begin{equation}\label{linear}
+V_k(W) = u(W'-W) + \beta QV_k(W)
+\end{equation}
+where $Q$ is the $N\times N$ matrix
+\begin{equation}
+Q_{ij} = \left\{
+     \begin{array}{lr}
+       1 & \text{if} \quad  W_j = W' = W_i\\
+       0 & \text{otherwise}
+     \end{array}
+   \right. .
+\end{equation}
+
+Thus we have $V_k = (I-\beta Q)^{-1}u(W'-W)$.  Although $Q$ may be large, we can take advantage of the fact that it is sparse.
