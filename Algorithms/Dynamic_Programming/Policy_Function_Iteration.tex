@@ -2,45 +2,49 @@
 
 \objective{This section teaches how to improve dynamic programming convergence using policy function iteration.}
 
-Now that we have covered how to solve simple dynamic programming problems by value funciton iteration, we examine the convergence of the algorithm.  We will find that it does not scale well, and implement an improved algorithm known as policy function iteration, or Howard's Improvement.
+Now that we have covered how to solve simple dynamic programming problems by value function iteration, we consider the convergence of the algorithm.  We demonstrate two other methods known as policy function iteration, or Howard's Improvement, and modified policy function iteration.
 
-For infinite horizon dynamic programming problems, it can be shown that value function iteration converges at the rate $\beta$ where $\beta$ is the discount factor.  In practice, $\beta$ is usually close to one which means this algorithm often converges slowly.  For large problems, it can be slow to the point of being infeasible.  In some applications it is desirable to solve the problem many times using different parameterizations.  This can be  overly slow (TODO).
+\section*{Policy Function Iteration}
+For infinite horizon dynamic programming problems, it can be shown that value function iteration converges at the rate $\beta$, where $\beta$ is the discount factor.  In practice, $\beta$ is usually close to one which means this algorithm often converges slowly.  
 
-In order to decide how to speed up the algorithm, it is helpful to see where most of the time is being spent.
+In order to examine the value function iteration algorithm, it is helpful to see which functions take the most runtime.
 
 \begin{problem}
 In Ipython, enter
 \begin{lstlisting}[style=python]
-%run -p Stochastic_Cake_AR1 -s 'cumtime'
+%run -p -s cum Value_Function_Iteration.py
 \end{lstlisting}
-where Stochastic\_Cake\_AR1 is the name of your script from the Stochastic Cake Eating Lab.  This will list the function calls made by your code, sorted by the time it spends within each function (including time spent in subfunctions).
+where Value\_Function\_Iteration.py is the name of your script that solves the infinite horizon problem from the value function iteration lab.  This will list the function calls made by your code, sorted by the time it spends within each function (including time spent in subfunctions).
 
 Run the same command, this time changing the number of gridpoints $N$ to be 1000.
 
 Run the command once more, this time setting $N=1000$ and $\beta = .95$.
 \end{problem}
 
-In problem 1 you should have noticed that is took siginificantly longer to run for larger $N$ or $\beta$ closer to 1.  The profiler gives more detailed information than just the overall runtime howeever.  The results of problem 1 should look something like the following.
+In problem 1 you should have noticed that runtime was significantly longer to run for larger $N$ or $\beta$ closer to 1.  The profiler gives more detailed information than just the overall runtime, however.  The results of problem 1 should look something like the following.
 
 \begin{lstlisting}[style=python]
-%run -p Stochastic_Cake_AR1.py -s "cumtime"
-         13271 function calls in 64.337 seconds
-
-   Ordered by: internal time
+%run -p -s cum Value_Function_Iteration.py
+         622 function calls in 2.542 seconds
+         
+   Ordered by: cumulative time
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1   41.028   41.028   64.335   64.335 Stochastic_Cake_AR1.py:6(<module>)
-      126   12.254    0.097   12.254    0.097 {method 'argmax' of 'numpy.ndarray' objects}
-      129    6.459    0.050    6.459    0.050 {method 'repeat' of 'numpy.ndarray' objects}
-      126    4.436    0.035    4.436    0.035 {method 'max' of 'numpy.ndarray' objects}
+        1    0.000    0.000    3.065    3.065 <string>:1(<module>)
+        1    0.001    0.001    3.065    3.065 {execfile}
+        1    0.955    0.955    3.064    3.064 Value_Function_Iteration.py:5(<module>)
+       59    0.000    0.000    1.418    0.024 fromnumeric.py:683(argmax)
+       59    1.417    0.024    1.417    0.024 {method 'argmax' of 'numpy.ndarray' objects}
+       59    0.001    0.000    0.613    0.010 fromnumeric.py:1774(amax)
+       59    0.612    0.010    0.612    0.010 {method 'max' of 'numpy.ndarray' objects}
 \end{lstlisting}
 
-We notice that the most time (12.254s) was spent in the argmax function.  Furthermore, the third most was spent in the max function.  This suggests that the maximization step of the algorithm is where we might make speed improvements.
+We notice that the most time was spent in the maximization step.  Remember, the value function iteration method maximizes $V$ (and determines the corresponding $\psi$) at every step.  Because we find both a new $V$ and a new $\psi$ at every step, we only apply the new policy function for one iteration.  This gives us a crude approximation to the value function that corresponds to the new policy function, resulting in slow convergence of the value function.  Instead, we might consider finding the exact value function associated with each new policy function.  
 
-Notice that in the value function iteration method, we maximize at each step in order to determine a new policy and a new value function.  We could avoid maximizing at each step if we took a fixed policy and determined the corresponding value function.  We could then maximize to find a new policy.  In this way we iterate on the policy functions rather than the value functions.  The algorithm for the determinstic problem can be summarized as follows:
+This is the idea behind the policy function iteration algorithm.  In this way we iterate on the policy functions rather than the value functions.  The algorithm for the policy function iteration can be summarized as follows:
 
 \begin{enumerate}
-	\item Set an initial policy rule $W' = \psi_0(W)$.
+	\item Set an initial policy rule $W' = \psi_0(W)$ and a tolerance $\delta$.
 	
 	\item Compute the value function assuming this rule is used forever:
 \begin{equation}
@@ -56,17 +60,19 @@ V(W_0) = \sum_{t=0}^\infty \beta^t u(\psi_k(W)-W)
 	\item If $\delta_k = ||\psi_{k+1} - \psi_k|| < \delta$, stop, otherwise go back to step b with subscript $k+1$.
 \end{enumerate}
 
-In order to compute the value function, $V_k$ corresponding to a given policy $\psi_k$, we must compute
+In order to compute the value function, $V_k$ corresponding to a given policy $\psi_k$, we must solve
 
 \begin{equation}\label{Val_Fun}
-V_k(W) = u(W-W') + \beta V_k(W').
+V_k(W) = u(W-W') + \beta V_k(W')
 \end{equation}
 
-Equation \eqref{Val_Fun} is a linear system which we can rewrite as
+for $V_k$.
+
+Once we have discretized $W$, equation \eqref{Val_Fun} is a linear system which we can rewrite as
 \begin{equation}\label{linear}
 V_k(W) = u(W-W') + \beta QV_k(W)
 \end{equation}
-where $Q$ is the $N\times N$ matrix
+where if $W$ is a vector of length $N$, then $Q$ is the $N\times N$ matrix
 \begin{equation}
 Q_{ij} = \left\{
      \begin{array}{lr}
@@ -76,12 +82,59 @@ Q_{ij} = \left\{
    \right. .
 \end{equation}
 
-Thus we have $V_k = (I-\beta Q)^{-1}u(W-W')$.  Although $Q$ may be large, we can take advantage of the fact that it is sparse. 
+Thus we have $V_k = (I-\beta Q)^{-1}u(W-W')$.  Although $Q$ may be large, we can take advantage of the fact that it is sparse, containing only $N$ nonzero entries out of $N^2$ total entries.
 
 \begin{problem}
-Solve the infinite horizon cake eating problem from the Value Function Iteration lab again, this time using policy function iteration.  Plot the policy function and compare with your policy function from the Value Function Iteration Lab.
+Solve the infinite horizon cake eating problem from the Value Function Iteration lab again, this time using policy function iteration.  In order to take advantage of the sparse matrices $I$ and $Q$, use the following import line
+
+\begin{lstlisting}[style=python]
+  from scipy.sparse.linalg import spsolve
+\end{lstlisting}
+
+and the following code to initialize $I$ (outside the loop)
+\begin{lstlisting}[style=python]
+I = sp.sparse.identity(N)
+\end{lstlisting}
+
+ and $Q$ (inside the loop)
+\begin{lstlisting}[style=python]
+    rows = sp.arange(0,N)
+    columns = psi_ind
+    data = sp.ones(N)
+    Q = sp.sparse.coo_matrix((data,(rows,columns)),shape = (N,N))
+    Q = Q.tocsr()
+\end{lstlisting}
+
+where $N$ is the size of the $W$ grid.  Rather than compute $(I-\beta Q)^{-1}$ directly, use scipy's sparse solver
+
+\begin{lstlisting}[style=python]
+V = spsolve(I-beta*Q,u(W-W[psi_ind]))
+\end{lstlisting}
+
+where psi\_ind gives the indices of $W'$ for a given $W$ according to the current policy.  
+
+Take $N = 1000$ and $\beta = .95$.
+
+Plot the policy function and compare with your policy function from the Value Function Iteration Lab.
+\end{problem}
+
+\section*{Modified Policy Function Iteration}
+
+While policy function iteration converges in fewer iterations, solving the linear system can be slow, especially for problems with a large state space.  There is an alternative to this called modified policy function iteration.
+
+In modified policy function iteration, we don't compute the exact value function corresponding to a policy.  Instead, at step (b) of the policy iteration algorithm we iterate $m$ times on the value function equation (Bellman equation) to get an approximation of the new value function.  This is faster than solving for the exact value function for large state spaces.  There is no strict rule on the value of $m$, the number of value function iterations.  In practice values such as $m=10$ or $m=15$ often work well.
+
+Note that our methods for solving dynamic programs boil down to some combination of two things: iterating on the value function and iterating on the policy function.  Modified policy function does a combination of the two, taking advantage of the advantages of both methods.  Because modified policy iteration takes only slightly more work to code than value function iteration, it is often preferred in practice.  Whether policy or modified policy iteration will perform better may depend on the problem.
+
+\begin{problem}
+Solve the same problem as in problem 2, this time using the modified policy function iteration method with $m=15$.  In this case let convergence be determined in the same way (computing $\delta_k$) in the same way as in the value function iteration problem.
+
+Use the same code as in problem 2 to initialize the sparse matrix $Q$.
 \end{problem}
 
 \begin{problem}
-We should see the policy function method converging in fewer iterations, and faster for large problems.  Run the profiler for both the Value Function and Policy Function solutions with N=2500, $\beta = .99$.  See the example above for the syntax for running the profiler.
+Solve the cake eating problem with each of the three methods and report how many iterations each takes.  Use $N= 1000$ as the number of grid points for $W$ and $\beta = 0.95$.  It is important that you use the same initial guess in each case in order to make the results comparable.  The accuracy of the initial guess greatly effects the number of iterations to convergence.  Take your initial guess as $V = 0$ which corresponds to an initial guess of the policy function with indices $[0,1,2,\ldots, N-1]$ (meaning $\psi = 0$).
 \end{problem}
+
+In general we should see that value function iteration takes more iterations than modified policy function iteration which in turn takes more iterations than policy function iteration.  It is important to note that this does not directly say anything about runtime.  Each iteration of policy iteration may take longer than an iteration of value function iteration.
+
