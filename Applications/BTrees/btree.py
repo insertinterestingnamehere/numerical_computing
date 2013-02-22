@@ -52,74 +52,82 @@ class Node(object):
 
 class BTree(object):
     def __init__(self, branches):
-        self._minkeys = int(ceil(branches/2.0))
-        self._maxkeys = branches
-        self.root = None
+        self._maxkeys = branches - 1
+        self._minkeys = int(ceil(self._maxkeys/2.0))
+        
+        self.root = Node(leaf=True)
         self.size = 0
+        self.height = 1
         
     def _find(self, key, node):
         i = bisect(node.keys, key)
 
         if node.leaf:
-            if i-1 >= 0 and key == node.keys[i-1]:
-                return node, i-1
+            if i-1 >= 0 and key == node.keys[i-1].key:
+                return node, i
             else:
                 return node, -1
         else:
+            print "Recursing down ", node.pages[i]
             return self._find(key, node.pages[i])
 
     def find(self, key):
         if self.root is not None:
-            if key is not Key:
-                key = Key(key)
             return self._find(key, self.root)
     
     def insert(self, key, value):
-        def split_node(node):
-            if not node.leaf:
-                new_node = Node(parent=node._parent)
+        def split_child(node, i):
+            #print "Splitting child {} of node {}".format(i, node)
+            z = Node()
+
+            y = node.pages[i]
+            z.leaf = y.leaf
+
+            #move latter half of keys to node z
+            if y.leaf:
+                minkeys = self._minkeys
+
+                #connect the leaf nodes a doubly linked list
+                z._prev = y
+                z._next = y._next
+                y._next = z
             else:
-                new_node = Node(n=node._next, prev=node, parent=node._parent)
+                minkeys = self._minkeys + 1
 
-            
-            #move last half of old leaf to new leaf
-            nkeys = int(((node.nkeys - 1)/2.) + 1)
-            for i in xrange(nkeys):
-                new_node.insert(node.pages.pop())
+                #move latter half of pages to node z
+                z.pages[:], y.pages[:] = (y.pages[minkeys:],
+                                        y.pages[:minkeys])
 
+            z.keys[:], m_key, y.keys[:] = (y.keys[minkeys:], 
+                                            y.keys[self._minkeys], 
+                                            y.keys[:self._minkeys])
+                
+
+            node.keys.insert(i, m_key)
+            node.pages.insert(i, z)
+
+
+        def insert_nonfull(node, K):
+            i = bisect(node.keys, K)
             if node.leaf:
-                #copy up smallest key into parent
-                copykey = Key(node[0], node)
-                node._parent.insert(copykey)
+                #just insert if we are in a leaf node
+                node.keys.insert(i, K)
             else:
-                #internal node
-                #push up smallest key into parent
-                node._parent.insert(node.pages.pop(0))
+                if len(node.pages[i].keys) == self._maxkeys:
+                    split_child(node, i)
+                    if K > node.keys[i]:
+                        i += 1
+                insert_nonfull(node.pages[i], K)
 
-            if node._parent is None:
-                #we are at the root and need to split
-                newroot = Node()
-                newroot.keys.append(node.pages.pop(0))
-                newroot.pages.extend([node, new_node])
-                self.root = newroot
+        K = Key(key, value)
 
-
-            return new_node
-
-        key = Key(key, value)
-        leaf_node = self.search(key)
-
-        #insert the new key
-        leaf_node.insert(key)
-
-        #check to see if node overflowed
-        _inode = leaf_node
-        while len(_inode) > self._maxkeys:
-            n = split_node(_inode)
-            _inode = n._parent
-
-
-    def remove(self, key):
-        def join_leaf(self, leaf):
-            pass
-        pass
+        r = self.root
+        if len(r.keys) == self._maxkeys:
+            s = Node(leaf=False)
+            self.root = s
+            s.pages.append(r)
+            split_child(s, 0)
+            insert_nonfull(s, K)
+            self.height += 1
+        else:
+            insert_nonfull(r, K)
