@@ -18,7 +18,7 @@ class Key(object):
     
     def __lt__(self, other):
         return self.key < other.key
-    
+        
     def __repr__(self):
         return "<{}; {}>".format(self.key.__repr__(), self.data.__repr__())
     
@@ -60,19 +60,38 @@ class BTree(object):
         self.height = 1
         
     def _find(self, key, node):
-        i = bisect(node.keys, key)
+
+        def binsearch(n, k):
+            """Perform a binary search on n for k"""
+            imin = 0
+            imax = len(n)
+
+            while imin < imax:
+                imid = (imin+imax)//2
+
+                if k < n[imid]:
+                    imax = imid
+                else:
+                    imin = imid + 1
+
+            return imin
+
+        #i = bisect(node.keys, key)
+        i = binsearch(node.keys, key)
 
         if node.leaf:
-            if i-1 >= 0 and key == node.keys[i-1].key:
+            if i-1 >= 0 and key == node.keys[i-1]:
                 return node, i
             else:
-                return node, -1
+                return node, "Not Found"
         else:
             print "Recursing down ", node.pages[i]
             return self._find(key, node.pages[i])
 
     def find(self, key):
         if self.root is not None:
+            if not isinstance(key, Key):
+                key = Key(key, None)
             return self._find(key, self.root)
     
     def insert(self, key, value):
