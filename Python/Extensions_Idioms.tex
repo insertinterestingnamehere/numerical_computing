@@ -84,9 +84,43 @@ a = sprand(10,10)
 primes = [x for x in range(2, 50) if x not in [j for i in range(2,8) for j in range(i*2, 50, i)]]
 \end{lstlisting}
 
-
-
 \section*{5. Namespaces are one honking great idea -- let's do more of those!}
+Two python objects cannot share the same name.  If two python objects happen to share a name,
+one of the objects will override the other.  There is no notion of method overloading in Python.
+In other languages two functions may share the same name if they accept different input arguments.
+In Python, the most recently defined will override any method that shares the same name,
+regardless of the input arguments.
+\begin{lstlisting}
+def random(x):
+    return x**2+.5**.215%x
+def random(y):
+    return y**9**(1./3)-.52%y
+\end{lstlisting}
+In the code above, the second \li{random} function will override the first \li{random}.
+After the second function is defined, the first function is completely inaccessible.
+Now let's import Python's \li{random} module (\li{import random}).  Now \li{random} refers
+to the module and not to our defined function.  This is where the concept of namespaces becomes important.
+A namespace is a space or collections of names.  It is Python's method of keeping names from colliding.
+Namespaces are defined in Python using modules.  We mention namespaces because, it not understood could be
+a source of grief.  We illustrate with another example
+\begin{lstlisting}
+def add(x, y):
+    return x*y/(x+y)
+\end{lstlisting}
+As you can see, our function clearly does add two numbers in the standard way.  There are three ways
+to import Python modules.  We will use the SciPy library as an example.
+\begin{enumerate}
+\item \li{import scipy} imports all the functions in the SciPy namespace and places them in
+the \li{scipy} namespace.  SciPy also has an add function which adds elements of two arrays.
+This add function can be accessed by \li{scipy.add} while our version of add is still accessible by \li{add}.
+If we don't want to always type \li{scipy.}, we can define an alias for the namespace by importing our module
+with \li{import scipy as sp}.  Then we access SciPy's add function by \li{sp.add}.
+\item \li{from scipy import add} will import SciPy's add function into the current namespace.  Our add function
+will no longer be accessible after this import.  We can again define an alias by \li{from scipy import add as sadd}.
+\item \li{from scipy import *} is highly discouraged as it provides no control over namespaces.  It will import all
+functions in the SciPy namespace, clobbering any function in current namespace that shares the same name.
+\end{enumerate}
+
 
 \section*{Constructions}
 
@@ -95,12 +129,12 @@ Strings are immutable object in Python.  As such, it is quite costly to concaten
 \begin{lstlisting}
 : import string
 : def concatStr(strs):
-:     m = ''
+:     m = `'
 :     for s in strs:
 :         m += s
 :     return m
 : def accumStr(strs):
-:     return ''.join(strs)
+:     return `'.join(strs)
 : timeit concatStr(list(string.letters))
 100000 loops, best of 3: 3.03 us per loop
 : timeit accumStr(list(string.letters))
@@ -115,7 +149,7 @@ Python creates tuples whenever the interpreter encounters a list of comma separa
 \begin{lstlisting}
 : a = 1, 2, 3, 4, 5
 : print a, type(a)
-(1, 2, 3, 4, 5) <type 'tuple'>
+(1, 2, 3, 4, 5) <type `tuple'>
 \end{lstlisting}
 We can also unpack a tuple into several variables
 \begin{lstlisting}
@@ -187,8 +221,11 @@ One might be tempted to do the following to create a list of ten $1$s.
 : for x in range(5):
 :     l.append(8)
 \end{lstlisting}
-Wh
-
+The same can be done with the following.  The plus operator on lists means concatenate and the
+multiplication operator on lists means repeat or tile.
+\begin{lstlisting}
+: l = [1]*10+[8]*5
+\end{lstlisting}
 
 \subsection*{List Iteration}
 Python contains a handful of really nice ways to iterate though lists.
@@ -196,7 +233,7 @@ Python contains a handful of really nice ways to iterate though lists.
 When iterating though lists, it is recommended to iterate by object rather than by index.
 However, if indexes are needed, using \li{enumerate} is highly suggested.
 \begin{lstlisting}
-: a = list('abcdefghijklmnopqrstuvwxy')
+: a = list(`abcdefghijklmnopqrstuvwxy')
 
 #iterate by index
 : for i in range(len(a)):
@@ -211,11 +248,11 @@ a b c d e f g h i j k l m n o p q r s t u v w x y z
 #using enumerate
 : for i in enumerate(a):
 :     print i,
-(0, 'a') (1, 'b') (2, 'c') (3, 'd') (4, 'e') (5, 'f') 
-(6, 'g') (7, 'h') (8, 'i') (9, 'j') (10, 'k') (11, 'l') 
-(12, 'm') (13, 'n') (14, 'o') (15, 'p') (16, 'q') (17, 'r') 
-(18, 's') (19, 't') (20, 'u') (21, 'v') (22, 'w') 
-(23, 'x') (24, 'y') (25, 'z')
+(0, `a') (1, `b') (2, `c') (3, `d') (4, `e') (5, `f') 
+(6, `g') (7, `h') (8, `i') (9, `j') (10, `k') (11, `l') 
+(12, `m') (13, `n') (14, `o') (15, `p') (16, `q') (17, `r') 
+(18, `s') (19, `t') (20, `u') (21, `v') (22, `w') 
+(23, `x') (24, `y') (25, `z')
 \end{lstlisting}
 
 When iterating a list in reverse it is advisable to use the \li{reversed()} function.
