@@ -1,0 +1,78 @@
+\lab{Algorithms}{Multi-Armed Bandit Problems}{Multi-Armed Bandit Problems}
+\objective{This lesson explains Markov decision processes and specifically multi-armed bandit problems and solving them by Gittins index.}
+
+\section*{Markov Decision Processes}
+Previously we considered what we called dynamic programming problems.  These problems involved making sequential decisions in some optimal way, possibly under uncertainty.  Dynamic programming problems are actually a subclass of a more broad set of problems called Markov Decision Processes.
+
+A Markov Decision Process (MDP) involves the following elements
+
+\begin{itemize}
+\item   A set of decision times
+\item   A set of states
+\item   A set of actions
+\item   A set of rewards dependent on the state and action
+\item   Transition probabilities dependent on states and actions.
+\end{itemize}
+
+For our purposes we will consider discrete time problems so that our set of decision times is $t = 1,2,3,\ldots$.  In the dynamic programming problems considered in the previous labs, the set of states was the possible levels of wealth and the actions were how much to wealth to save for next period, the rewards were given by the utility function $u(\cdot)$, and we considered only deterministic transitions where $W_{t+1}$ was equal to $W_t - c_t$.  In general we could allow the way we move from state to state to be random and allow for more complex reward systems.
+
+\section*{Bandit Problems}
+In particular, we consider what is called the multi-armed bandit problem.  The name comes from the following example.  Suppose there is a row of $N$ slot machines ("one-armed bandits") that each pays out with probability $p_i$, $i= 1,2,\ldots,N$, where the probabilities are unknown to the gambler.  The gambler seeks to determine the sequence of levers to pull in order to maximize their winnings.
+
+While the name comes from this TODO example, bandit problems have a wide range of applications.  One can consider the "arms" to be the different treatments in a clinical trial, the different forms of advertising a product, or the different research projects a company might invest in.
+
+We now formulate the multi-armed bandit problem.  For simplicity we suppose there are $2$ arms, though the discussion is easily extendable to $N$ arms.  At each time $t= 1,2,\ldots$ one arm can be pulled.  With (unknown) probability $p_i$, the $i$th arm gives reward $1$ and with probability $1-p_i$ it gives reward $0$.  Note we have now defined a set of decision times and actions.  We define the state to be the number of successful and unsuccessful pulls on each arm written
+
+\begin{equation}\label{state}
+R(a_1,b_1,a_2,b_2)
+\end{equation}
+
+where $a_i$ is the number of successful pulls on arm $i$ and $b_i$ is the number of unsuccessful pulls on arm $i$.
+
+As we pull the arms, we must balance between pulling the arm that has been most successful and pulling all arms in order to gain information.  This tradeoff is called exploring versus exploiting.  In essence, while gaining rewards, we will also come up with estimates of the $p_i$.  We will do so by Bayesian Updating.
+
+\section*{Bayesian Updating}
+While a full exposition of Bayesian inference is well beyond the scope of this lab, the essential concepts are fairly straightforward.  We recognize that we do not know the values of the $p_i$, but given our past history of successful and unsuccessful pulls we can say something about what range we think they might be in. This is different than guessing a specific value for the $p_i$.  For example the value of $p_i$ might be represented by a curve like the following.
+
+PLOT HERE
+
+The curves are thought of as probability distributions.  So if you have had $1$ success and $2$ failures, you might think that $p_i$ is around $\frac{1}{3} = \frac{1}{1+2}$. However, you have very little information at this point, so better yet you might think that the probability it is between $x$ and $y$ is $z$ as the green curve would suggest.  As you get more information, the curve gets narrower around a smaller range of possible values of $p_i$.  This is the concept of Bayesian inference.  
+
+In this manner we approach the multi-armed bandit problem.  We do not know the $p_i$ but each time we pull an arm, we update our distribution of where we think it might be.  In particular we use a beta distribution to represent our opinion on what the $p_i$ are.  A beta distribution has two parameters $a,b$.  So in our problem the state \eqref{state} can be thought of as representing two beta distributions one for each $p_i$. The details of the updating process are unimportant for now, except for this important property, the two parameters $a,b$ correspond exactly with successes an failures.  So if we start with a distribution Beta$(a,b)$ and the next pull is success, our new distribution is Beta$(a+1,b)$ and if the next pull is a failure then the new distribution is Beta$(a,b+1)$.  Notice this corresponds with the way our states evolve.
+
+
+\section*{Direct Dynamic Programming Solution}
+This framework lends itself well to a dynamic programming type solutions.  Rather than just letting $R(a_1,b_1,a_2,b_2)$ represent the state, consider it as the value function, meaning the optimal expected value that can be achieved starting from this state.  Then we have
+
+\begin{align}\label{recurs}
+R(a_1,b_1,a_2,b_2) = \max&\left\{\hat{p}_1\cdot[1 + \beta R(a_1+1,b_1,a_2,b_2)] + (1-\hat{p}_1)\beta R(a_1,b_1+1,a_2,b_2)\right. ,\\
+&  \left.\hat{p}_2\cdot[1 + \beta R(a_1,b_1,a_2+1,b_2)] + (1-\hat{p}_2)\beta R(a_1,b_1,a_2,b_2+1)\right\}
+\end{align}
+
+The terms on the right represent the expected value of pulling lever one and lever two respectively...
+
+Notice that the expressions inside of $R(\cdot)$ on the right side have parameters values that add to one greater than the $R(\cdot)$ on the left side.  So for example if we want to compute $R(1,1,1,1)$ we need to know $R(2,1,1,1)$, $R(1,2,1,1)$, $R(1,1,2,1)$ and $R(1,1,1,2)$ (all possible combinations of parameters that add up to 5.  To compute these, we need to know all possible combinations of parameters that add up to 6, and so on.  Consequently, we could make a guess for all $R$ for all parameter combinations that add up to some large $N$, then work backward until we get to $R(1,1,1,1)$.  This is backward induction, just as we saw in dynamic programming.  However, the number of computations in this problem grow much too quickly because of the branching nature of having multiple arms.  In fact, if there are more than two arms this method of computation is infeasible.  
+
+
+\section*{Gittins Index Solution}
+One way we might hope to solve a bandit problem is by computing some sort of "index" for each arm.  That is, we want a number associated with each arm that in some sense captures the value of pulling that arm.  We could then compare the index for each arm and pull the arm with highest index.  It turns out that bandit problems can be solved optimally by such methods and are computationally more feasible than the dynamic programming approach we saw above.
+
+To compute an index for this problem, we consider comparing an arm with unknown payoff probability $p_i$ to an arm with known payoff $p$.  Then equation \eqref{recurs} becomes
+
+\begin{align}\label{recurs}
+R(p,a_i,b_i) = \max&\left\{\frac{1}{1-\beta} \right. ,\\
+&  \left.\hat{p}_i\cdot[1 + \beta R(p,a_i+1,b_i)] + (1-\hat{p}_i)\beta R(p, a_i,b_i+1)\right\}\\
+\end{align}
+
+where if the optimal choice is to pull the deterministic arm, then the value is...
+
+If we can find the $p$ such that we are indifferent between the deterministic arm and the unknown arm, this will give us an index that quantifies the value of arm $p_i$ (this can be proved). 
+
+Putting all of this together, our algorithm for solving the multi-armed bandit problem with two arms is as follows.  For each arm $i$, compute \eqref{recurs} over a range of $p$ value to find the $p$ such that you would be indifferent between the arm with probability $p$ and arm $i$. Store this as the index $\lambda_i$.  Compare the $\lambda_i$ and pull the arm with largest index.
+
+In order to compute \eqref{recurs} we use dynamic programming, starting with a guess for $R$ for parameters that add up to some large $N$ and use backward induction.  In the process, we find $R$ and $\lambda_i$ for each combination of parameters that adds up to any $n\leq N$. Thus we do not have to compute new $\lambda_i$ after each pull, we can just look them up.
+
+Show examples of some code stuff.  TODO
+\begin{problem}
+Code up the rest.
+\end{problem} 
