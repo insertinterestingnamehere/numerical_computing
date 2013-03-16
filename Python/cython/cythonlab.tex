@@ -202,6 +202,7 @@ Write three Cython versions as well, one which types the for loop to iterate ove
 
 Compare the speed of the functions you just wrote, the built in \li{sum} function and numpy's built in \li{sum} function.
 What do you see?
+Notice that when you type your variables in ways that don't work well, you may actually slow things down.
 
 \end{problem}
 
@@ -222,7 +223,8 @@ Cython in itself does not add really add any new algorithms that you can use for
 In many cases this optimization will give you access to problems that are significantly larger than normal Python code could handle in a reasonable amount of time.
 
 Note: As of this writing, Cython does not yet allow the use of generator objects or nested functions.
-Hopefully these will be included in future releases.
+It also does not allow the declaration of typed variables inside loops.
+Some of these may change with future releases.
 
 \begin{problem}
 Port your solution to the linesweep lab to Cython.
@@ -231,3 +233,31 @@ Use the typed for loops, typed arrays (or memoryviews), and the additional compi
 Compare the speed of your new solution to the speed of the Python based version you wrote earlier.
 \end{problem}
 
+Here is some code for the next problem:
+\begin{verbatim}
+import numpy as np
+def mymult(X,power):
+    prod = np.empty_like(X)
+    prod[:]=X
+    temparr = np.empty_like(X[0])
+    size=X.shape[0]
+    for n in xrange(1,power):
+        for i in xrange(size):
+            for j in xrange(size):
+                tot=0.
+                for k in xrange(size):
+                    tot+=prod[i,k]*X[k,j]
+                temparr[j]=tot
+            prod[i]=temparr
+    return prod
+\end{verbatim}
+
+\begin{problem}
+The code above defines a python function which takes a matrix to the n'th power.
+Port it to Cython. Write three different versions which use typed arrays, typed arrays with the special compiler directives, and typed arrays with typed memoryviews and the compiler directives.
+
+Compare the speed of the python function, the three functions you just wrote, and the built in \li{sp.dot} function.
+The built in function will probably be faster, but only by an order of magnitude or so.
+This is because matrix multiplication in SciPy runs using LAPACK, which is a heavily optimized set of Fortran routines for doing linear algebra using arrays.
+This is probably one of the best-optimized portions of NumPy and Scipy.
+\end{problem}
