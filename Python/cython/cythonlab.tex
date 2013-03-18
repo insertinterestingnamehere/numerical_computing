@@ -77,6 +77,7 @@ Cython gets around this by using purely integer variables the whole way through 
 Similar ideas also apply to repeated operations with other types of variables, for example, if you have an array of double precision floating point values and you want to take the sum of all of them, your code will run faster if you declare the types of all the variables you use before you do any computation.
 It is much easier for your computer to perform aritmetic operations without having to infer what datatypes are being used, what types need to be modified before computation can actually be done, and which version of each operation needs to be performed.
 Adding types unnecessarily may not actually result in an increase in performance. If it is done poorly it can actually slow things down, but if you have a large number of computations involving the same data type, adding type declarations should speed things up considerably.
+Statements using \li{cdef} are also not allowed inside loops, so you will have to declare all the variables you need before you use them.
 
 \section*{Optimized Array Access}
 
@@ -172,10 +173,12 @@ cimport cython
 
 Cython has several other useful compiler directives.
 One that you should be aware of is the cdivision option.
+In Python, the \li{\%} operator returns a number with the sign of the second argument, while C keeps the sign of the first argument.
 In Python, \li{-1\%5} returns \li{4}, while in C, this returns \li{-1}.
 Cython, by default will behave like Python.
-Cython also checks for zero division like Python does.
+Cython will also check for zero division and raise a \li{ZeroDivisionError} when necessary.
 Again, this does cost a little, so if you are working with integer division and want a sleight speedup, you can set \li{cdivision} to \li{True} in the same way you would change the boundscheck and wraparound options.
+This will make the \li{\%} operator behave like it would in C and turn off the check for zero division.
 
 \section*{Functions in Cython}
 
@@ -197,7 +200,7 @@ These functions are declared using the same syntax as you would in python except
 These functions can be called within the module you are building, but are not actually imported into your namespace when you load the Cython module.
 Cython also allows you to declare functions using the \li{cpdef} statement.
 These functions are C functions that, when compiled, are also wrapped as Python functions so they can be called in Python.
-This allows you to do the function calls within the module in C, while still making a Python version of your function available for use outside the module itself.
+This allows you to do the function calls within the module in C, while still making a Python wrapper for your function available for use outside the module itself.
 You can specify the return type for functions declared using \li{cdef} and \li{cpdef} like you would a variable, for example:
 \begin{lstlisting}
 cpdef int myfunction(np.ndarray[dtype=double,ndim=1] X, int n, double h, items):
@@ -206,9 +209,8 @@ cpdef int myfunction(np.ndarray[dtype=double,ndim=1] X, int n, double h, items):
 
 This will make two functions, one will be a C function which will return an integer value.
 The other will be a Python wrapper for the C function.
-It will accept all the same arguments and return the same value, but be callable from Python.
-C functions in Cython do not support keyword arguments like Python functions.
-If you would like to use keyword arguments for the Python version, you will have to write your own Python function which calls the C function and passes it all the necessary arguments.
+The Python-accessible function will accept all the same arguments and return the same value, but it will be callable from Python.
+Really what this is doing is making a simple Python function that calls the C function that is already defined.
 
 \begin{problem}
 
@@ -241,10 +243,6 @@ It can make wrapping these libraries much easier.
 
 Cython in itself does not add really add any new algorithms that you can use for more problems, but it does allow you to optimize many of the algorithms you already use.
 In many cases this optimization will give you access to problems that are significantly larger than normal Python code could handle in a reasonable amount of time.
-
-Note: As of this writing, Cython does not yet allow the use of generator objects or nested functions.
-It also does not allow the declaration of typed variables inside loops.
-Some of these may change with future releases.
 
 \begin{problem}
 Port your solution to the linesweep lab to Cython.
