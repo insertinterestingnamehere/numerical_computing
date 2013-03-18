@@ -76,17 +76,33 @@ This is because every time Python does the comparison operation to see if it nee
 Cython gets around this by using purely integer variables the whole way through and skipping all the extra checking.
 Similar ideas also apply to repeated operations with other types of variables, for example, if you have an array of double precision floating point values and you want to take the sum of all of them, your code will run faster if you declare the types of all the variables you use before you do any computation.
 It is much easier for your computer to perform aritmetic operations without having to infer what datatypes are being used, what types need to be modified before computation can actually be done, and which version of each operation needs to be performed.
-Adding types unnecessarily may not actually result in an increase in performance. If it is done poorly, it can actually slow things down, but if you have a large number of computations involving the same data type, adding type declarations should speed things up considerably.
+Adding types unnecessarily may not actually result in an increase in performance. If it is done poorly it can actually slow things down, but if you have a large number of computations involving the same data type, adding type declarations should speed things up considerably.
 
 \section*{Optimized Array Access}
 
 Often we want to iterate over large arrays very quickly.
-In Python, the \li{__getitem__} method (i.e. array access using \li{[ ]}) for numpy arrays is written purely in Python.
+In Python, the \li{__getitem__} method (i.e. array access using \li{[ ]}) for numpy arrays is written for Python and includes the corresponding overhead.
 We would, again like to be able to remove the extra overhead involved.
 There are several ways this can be done.
 If the array is an intermediate array in the program, it could possibly be replaced entirely with a C array in Cython, but this may not interface nicely with Python code for returning values, etc., so we would like to avoid that option.
 We would really like to do this using arrays.
 Cython includes syntax for declaring the types of NumPy arrays.
+A typed NumPy array can be declared using the following syntax:
+\begin{lstlisting}
+cimport numpy as np
+...
+cdef np.ndarray[dtype=double,ndim=2] X = ...
+\end{lstlisting}
+
+You can also specify more about the memory layout of the array using the additional argument \li{mode} to specify whether the array is C-contigous, Fortran-contiguous, full, or strided (some of what this means will be explained later).
+The corresponding options are 'c', 'fortran', 'full', and 'strided'.
+The syntax to declare arrays like this is:
+\begin{lstlisting}
+cimport numpy as np
+...
+#C-contiguous
+cdef np.ndarray[dtype=double,ndim=2,mode='c'] X = ...
+\end{lstlisting}
 The syntax is inelegant, but it allows us to access individual items in a numpy array at roughly the same speed we could access items in a C array.
 We get all the convenience of using a numpy array and can still use the different array operations, but we also get to access single items in the array more quickly.
 The catch is that this fast array access only works when we are accessing the array \textit{one item at a time}.
@@ -94,11 +110,13 @@ Generally we can get around the slicing, but if we need to pass around numpy arr
 Cython has a memoryview object designed for this.
 Memoryviews support the same fast indexing as the numpy arrays, and allow creating array slices at roughly the same speed as numpy arrays.
 The main improvement is that slices of memoryviews continue to support the optimized buffer acces, while slices of numpy arrays do not.
-Memoryviews also work better when used in an inline function.
-The syntax is relatively simpler.
-The speeds for slicing and single item acces are roughly the same as they would be for the Python, but memoryview objects are faster when passed between Cython functions and work better when inlined as well.
-The catch is that memoryviews are slower when passed to NumPy functions.
-If you need to use numpy array functions and pass memoryviews between functions you can define a memoryview that views the same data as an array.
+%% I'll demostrate this in the solutions
+Memoryviews are good for when you need to pass array slices between functions in your module.
+Memoryviews work especially well when used in inline functions, and the syntax is relatively simpler.
+%%will demonstrate benefits of inlining as well
+The catch is that memoryviews are slower when passed to NumPy functions since they must first be converted to numpy arrays.
+%%also shown in solutions
+If you need to use numpy array functions and pass memoryviews between functions you can define a memoryview that views the same data as your array.
 If for some reason you need to convert a memoryview to a numpy array, you can use the \li{np.asarray} function, but, as always, comes at a cost.
 
 The syntax to use when declaring a memory view of an array \li{X} is:
@@ -127,7 +145,7 @@ Not all arrays are stored nicely in contigous blocks, but the generic memoryview
 It is also worth noting that many of the array operations in Cython can also be done using pointers.
 The speed is roughly the same as with the optimized array lookups, but the code is often much less readable.
 Cython does not allow you to dereference a pointer using the \li{*} syntax.
-You should use the braces \li{[ ]}.
+You should use braces \li{[ ]}.
 
 \section*{Compiler Directives}
 
