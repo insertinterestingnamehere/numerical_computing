@@ -121,7 +121,7 @@ Memoryviews work especially well when used in inline functions, and the syntax i
 The catch is that memoryviews are slower when passed to NumPy functions since they must first be converted to numpy arrays.
 %%also shown in solutions
 If you need to use numpy array functions and pass memoryviews between functions you can define a memoryview that views the same data as your array.
-If for some reason you need to convert a memoryview to a numpy array, you can use the \li{np.asarray} function, but, as always, comes at a cost.
+If for some reason you need to convert a memoryview to a numpy array, you can use the \li{np.asarray} function, but that, as always, comes at a cost.
 
 The syntax to use when declaring a memory view of an array \li{X} is:
 \begin{lstlisting}
@@ -135,14 +135,14 @@ If we know that \li{X} is C-contiguous (which is normal for a newly initialized 
 cdef double [:,::1] Xview = X
 \end{lstlisting}
 
-If the array is fortran contiguous we would us the following:
+If the array is Fortran contiguous we would use the following:
 
 \begin{lstlisting}
 cdef double[::1,:] Xview = X
 \end{lstlisting}
 
 An array is said to be C contiguous if rows are stored in contigous blocks of memory.
-This means that, in memory, a value is adjacent to the values that correspond to the values of the array that are adjacent to it in its row.
+This means that, in memory, a value is adjacent to adjacent values in the row of the array.
 An array is said to be F or Fortran Contiguous if columns are stored in contiguous blocks of memory.
 Not all arrays are stored nicely in contigous blocks, but the generic memoryview syntax still works.
 
@@ -194,8 +194,8 @@ def myfunction(np.ndarray[dtype=double,ndim=1] X, int n, double h, items):
 \end{lstlisting}
 
 Notice that we did not have to include type declarations for all of the arguments.
-Keyword arguments are also supported for python functions.
-The usual rules apply.
+The untyped arguments are expected to be Python objects with the corresponding methods, and computations involving these untyped arguments will use Python instead of C.
+Keyword arguments are also supported.
 
 Cython also allows you to make C functions that are only callable within the extension library you are currently building.
 The type declarations for these functions are a little more useful (you don't usually gain much by declaring a type for a python function).
@@ -213,7 +213,7 @@ cpdef int myfunction(np.ndarray[dtype=double,ndim=1] X, int n, double h, items):
 This will make two functions, one will be a C function which will return an integer value.
 The other will be a Python wrapper for the C function.
 The Python-accessible function will accept all the same arguments and return the same value, but it will be callable from Python.
-Really what this is doing is making a simple Python function that calls the C function that is already defined.
+Really what this is doing is making a simple Python function that calls the C function that has already been defined.
 
 \begin{problem}
 
@@ -244,8 +244,8 @@ These functions are good for large amounts of computation when we don't want to 
 Cython also allows you to import other C functions and C libraries.
 It can make wrapping these libraries much easier.
 
-Cython in itself does not add really add any new algorithms that you can use for more problems, but it does allow you to optimize many of the algorithms you already use.
-In many cases this optimization will give you access to problems that are significantly larger than normal Python code could handle in a reasonable amount of time.
+Cython in itself does not add any new algorithms that you can use for more problems, but it does allow you to optimize many of the algorithms you already use.
+In many cases this optimization will give you access to problems that are significantly larger than normal Python code could handle in any reasonable amount of time.
 
 \begin{problem}
 Port your solution to the linesweep lab to Cython.
@@ -278,10 +278,10 @@ The code above defines a python function which takes a matrix to the n'th power.
 Port it to Cython. Write three different versions: one which use typed arrays, another using typed arrays with the special compiler directives, and another using typed arrays with corresponding typed memoryviews of their corresponding data and the compiler directives.
 
 Compare the speed of the python function, the three functions you just wrote, and the built in \li{sp.dot} function.
-The built in function will probably be faster, but only by an order of magnitude or so.
-This is because matrix multiplication in SciPy runs using the BLAS (Basic Linear Algegra Subroutines) on each computer, which are usually very well optomized.
+The built in function should be faster, but only by an order of magnitude or so.
+This speed increase is because matrix multiplication in SciPy runs using the BLAS (Basic Linear Algegra Subroutines) on each computer, which are usually very well optomized.
 The speed of the built in function depends a great deal on wether or not your numpy installation interfaces with your computer's BLAS and how effective that BLAS is.
 Scipy also uses a set of Fortran routines called Lapack to perform fast computation.
 This is probably one of the best-optimized portions of NumPy and Scipy.
-The difference in performance should be particularly clear in this case because of the high order of the algorithm.
+The difference in performance should be particularly clear in this case because of the high order of complexity of the algorithm.
 \end{problem}
