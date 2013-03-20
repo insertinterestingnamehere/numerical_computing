@@ -53,12 +53,22 @@ Complete the following steps to solve the problem described above.
    \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. Initialize the value function to an $N$ by $K$ matrix of zeros.  Assume that the period utility function is $u(c)=\sqrt{c}$, and that the discount factor is $\beta = 0.9$.
 
 
-   \item In order to evaluate the value function equation we need to compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $\ve u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.  As in the Value Function Iteration Lab, we replace negative entries in $W-W'$ by 0.
+   \item In order to evaluate the value function equation we need to compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $\ve u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.  This can be achieved using the tile function.  For example, if $u(W-W')$ is represented by the $N\times N$ matrix util\_grid, and eps is the vector of $\ve$ values, then we could create the $\ve u(W-W')$ matrix by the following:
+       
+       \begin{lstlisting}[style = python]
+       util3 = sp.tile(util_grid[:,:,sp.newaxis],(1,1,K))
+       eps_grid = eps[sp.newaxis,sp.newaxis,:]
+       eps_util = eps_grid*util3
+       \end{lstlisting}
+         
+       The input (1,1,K) tells sp.tile to repeat util\_grid K times in the third dimension.  Note we have to put util\_grid[:,:,sp.newaxis] in order to have a three-dimensional input since util\_grid is only two dimensional.
+         
+       As in the Value Function Iteration Lab, we replace negative entries in $W-W'$ by 0.
 
    \item We also need to compute $E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr]$.  The expected value is simply
        \begin{equation*}
-       E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr] = \sum \Gamma(k)V_k(W',\ve_k')
-       \end{equation*}  The result is an $N\times 1$ vector that gives the value for each $W'$.  However we need an $N\times N\times K$ array to add to $u(W-W')$.  Since the expected value does not depend on $W,\ve$, we tile the vector to create a 3D array that is constant along the $W$ and $\ve$ dimensions.
+       E_{\ve'}\Bigl[V_k\left(W',\ve'\right)\Bigr] = \sum_k \Gamma(k)V_k(W',\ve_k')
+       \end{equation*}  The result is an $N\times 1$ vector that gives the value for each $W'$.  However we need an $N\times N\times K$ array to add to $\ve u(W-W')$.  Since the expected value does not depend on $W,\ve$, we tile the vector to create a 3D array that is constant along the $W$ and $\ve$ dimensions.
 
    \item We can now compute the value function contraction
      \begin{equation}\label{EqContractStochiid}
