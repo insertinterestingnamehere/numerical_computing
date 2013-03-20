@@ -91,7 +91,7 @@ First, we need a function that will compute all the pairs of $a,b$ that add up t
 
 \begin{lstlisting}[style = python]
 
-# computes pairs of numbers starting with alphamin and betamin that
+# computes pairs of numbers starting with mina and minb that
 # add up to N
 
 def compute_indices(N,mina,minb):
@@ -108,9 +108,9 @@ def compute_indices(N,mina,minb):
 In order to perform the backward induction, we need to be able to estimate the value $R(p,a,b)$ for $a+b = N$.  To do so we have to estimate the second quantity in \eqref{index}.  We will estimate it as $(\frac{a}{a+b})/(1-\beta)$.  This is the value one would get by pulling an arm with $p_i$ equal to the expected value of $Beta(a,b)$ forever.
 \begin{problem}
 Write a function ``end\_reward" that accepts $p,a,b,$ and $\beta$ and returns the estimated value of $R(p,a,b)$ for $a,b$ such that $a+b=N$.
-\end{problem} 
+\end{problem}
 
-For convenience it will be nice to have a function that will compute $R(p,a,b)$ given values of $p,\bar{p},a,b,\beta,N$ as well as values of $R(p,a+1,b)$ and $R(p,a,b+1)$.  This should follow directly from \eqref{index}. 
+For convenience it will be nice to have a function that will compute $R(p,a,b)$ given values of $p,\bar{p},a,b,\beta,N$ as well as values of $R(p,a+1,b)$ and $R(p,a,b+1)$.  This should follow directly from \eqref{index}.
 
 \begin{problem}
 Write a function ``rewards" that will compute $R(p,a,b)$ given the quantities mentioned above.
@@ -123,9 +123,9 @@ Write a function ``backward" as described above by following the steps below.  T
 
 \begin{enumerate}
 \item   Initialization: First use the functions written previously to obtain an $N\times 2$ array of indices $a,b$ that add up to $N$ along with an $N\times 1$ vector of the rewards associated with each of those $a,b$ pairs.  Initialize the $N\times N$ $R$ matrix to zeros.
-    
+
     Now initialize the entries of $R$ for all the entries corresponding to $a+b = N$ with the rewards determined previously.
-    
+
 \item   Induction: Iterate backward to fill in the $R$ matrix.  Use the ``rewards" function to compute the value of $R(p,a,b)$ given $R(p,a+1,b)$ and $R(p,a,b+1)$ as you go.  Note you will have to be careful about the order in which you iterate through the matrix so that you only fill entries $a,b$ for which $R(a+1,b)$ and $R(a,b+1)$ have already been computed.  Return the $R$ matrix.
 \end{enumerate}
 \end{problem}
@@ -133,11 +133,11 @@ Write a function ``backward" as described above by following the steps below.  T
 Now, we need to compute the $R$ matrix for many values of $p$ in order to determine the index.
 
 \begin{problem}
-Write a function ``compute\_pgrid" that accepts a minimum value of $a$ and of $b$, $\beta$, and $N$ and returns two things.  First it should return a $100\times N\times N$ array that consists of 100 $R$ matrices given by the ``backward" function each corresponding to a different value of $p$ where the values of $p$ are evenly spaced between 0 and 100.  For convenience, also return the vector of $p$ values.
+Write a function ``compute\_pgrid" that accepts a minimum value of $a$ and of $b$, $\beta$, and $N$ and returns two things.  First it should return a $100\times N\times N$ array that consists of 100 $R$ matrices given by the ``backward" function each corresponding to a different value of $p$ where the values of $p$ are evenly spaced between 0 and 100.  Also return the vector of $p$ values.
 \end{problem}
 
 Now all of the pieces are in place to compute the $\lambda_i$ for a given arm.
 
 \begin{problem}
-Write a function ``compute\_gittins" that accepts $a,b,\beta$, a vector of $p$ values, and the corresponding $100\times N\times N$ array of $R(p,a,b)$ from the ``compute\_pgrid" function.  Use these to find the value of $p$ such that for an arm with $a$ successes and $b$ failures, you would be indifferent between pulling that arm and an arm with known probability $p$.  (Remember, the reward for pulling the known arm is $\frac{p}{1-\beta}$).
-\end{problem}
+Write a function ``compute\_gittins" that accepts $a,b,\beta$, a vector of $p$ values, and the corresponding $100\times N\times N$ array of $R(p,a,b)$ from the ``compute\_pgrid" function.  Use these to find the value of $p$ such that for an arm with $a$ successes and $b$ failures, you would be indifferent between pulling that arm and an arm with known probability $p$.  Remember, the reward for pulling the known arm is $\frac{p}{1-\beta}$.  That value of $p$ is the index $\lambda$.
+\end{problem} 
