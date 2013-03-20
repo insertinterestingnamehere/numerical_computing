@@ -54,17 +54,11 @@ class timer(object):
         if funcname == "<lambda>":
             funcname = func.__repr__()
         pfunc = lambda: func(*args, **kargs)
-        print "Timing %s ..." % funcname
+        print "Timing {} ...".format(funcname),
         elapsed = timeit.repeat(pfunc, self.gbcol, repeat=self.repeats, number=self.loops)
         runtime = min(elapsed)/self.loops
-        
+        print runtime
         if funcname in self.results:
             self.results[funcname].append(runtime)
         else:
             self.results[funcname] = [runtime]
-
-    def printTimes(self):
-        """
-        Print the results to stdout in an easy to read fashion
-        """
-        print '\n'.join(["%s finished in %.5fs (%s loops, repeated %s times): %.5fs per loop (with %s)" % (f[1], f[0], self.loops, self.repeats, f[0]/self.loops, self.gbcol) for f in self.results])
