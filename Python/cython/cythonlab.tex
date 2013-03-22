@@ -14,7 +14,7 @@ Cython is a language designed to allow easy interfacing between C and Python.
 It is a superset of the Python language, so in theory, all valid Python code is also valid Cython code.
 In practice that is only partially true.
 Cython is especially useful for doing large amounts of repetitive calculation, especially when that calculation involves the same data types each time.
-It is essentially just Python with some extra type declarations.
+\textbf{It is essentially just Python with some extra type declarations.}
 It also allows you to easily import some C functions.
 Cython is, however, not run interactively.
 Cython is written in a \li{.pyx} file which is then compiled to C, then compiled to machine code.
@@ -81,12 +81,12 @@ Statements using \li{cdef} are also not allowed inside loops, so you will have t
 
 Often we want to iterate over large arrays very quickly.
 In Python, the \li{__getitem__} method (i.e. array access using \li{[ ]}) for NumPy arrays is written for Python and includes the corresponding overhead.
-We would, again like to be able to remove the extra overhead involved.
+As before, we would like to get around the extra cost involved with Python objects.
 There are several ways this can be done.
 If the array is an intermediate array in the program, it could possibly be replaced entirely with a C array in Cython, but this may not interface nicely with Python code for returning values, etc., so we would like to avoid that option.
 We would really like to do this using arrays.
 Cython includes syntax for declaring the types of NumPy arrays.
-A typed NumPy array can be declared using the following syntax:
+A typed NumPy array can be declared like this:
 \begin{lstlisting}
 cimport numpy as np
 ...
@@ -110,7 +110,7 @@ Memoryviews support the same fast indexing as the NumPy arrays, and allow creati
 The main improvement is that slices of memoryviews continue to support the optimized buffer access, while slices of NumPy arrays do not.
 %% I'll demostrate this in the solutions
 Memoryviews are good for when you need to pass array slices between functions in your module.
-Memoryviews work especially well when used in inline functions, and the syntax is relatively simpler.
+Memoryviews work especially well when used in inline functions, and the corresponding syntax is relatively simpler.
 %%will demonstrate benefits of inlining as well
 The catch is that memoryviews are slower when passed to NumPy functions since they must first be converted to NumPy arrays.
 %%also shown in solutions
@@ -119,12 +119,12 @@ If for some reason you need to convert a memoryview to a NumPy array, you can us
 
 The syntax to use when declaring a memory view of an array \li{X} is:
 \begin{lstlisting}
-cdef double [:,:] Xview = X
+cdef double[:,:] Xview = X
 \end{lstlisting}
 If we know more about the memory layout of \li{X} we can also add that to the type declaration.
 If we know that \li{X} is C-contiguous (which is normal for a newly initialized NumPy array) the following works:
 \begin{lstlisting}
-cdef double [:,::1] Xview = X
+cdef double[:,::1] Xview = X
 \end{lstlisting}
 If the array is Fortran-contiguous we would use the following:
 \begin{lstlisting}
@@ -181,13 +181,14 @@ def myfunction(np.ndarray[dtype=double,ndim=1] X, int n, double h, items):
     ...
 \end{lstlisting}
 Notice that we did not have to include type declarations for all of the arguments.
-The untyped arguments are expected to be Python objects with the corresponding methods, and computations involving these untyped arguments will use Python instead of C.
+The untyped arguments are expected to be Python objects with the corresponding methods. Computations involving these untyped arguments will use Python instead of C.
 Keyword arguments are also supported.
 
 Cython also allows you to make C functions that are only callable within the extension library you are currently building.
 The type declarations for these functions are a little more useful (you don't usually gain much by declaring a type for a python function).
 These functions are declared using the same syntax as you would in python except that you replace the keyword \li{def} with \li{cdef}.
 These functions can be called within the module you are building, but are not actually imported into your namespace when you load the Cython module.
+
 Cython also allows you to declare functions using the \li{cpdef} statement.
 These functions are C functions that, when compiled, are also wrapped as Python functions so they can be called in Python.
 This allows you to do the function calls within the module in C, while still making a Python wrapper for your function available for use outside the module itself.
