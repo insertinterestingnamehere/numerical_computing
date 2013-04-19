@@ -53,8 +53,10 @@ It is worth noting that this particular difference scheme is \textit{not} an acc
 
 Here is an example of the application of Anisotropic Diffusion to a picture.
 
+We have read in the image using the \li{scipy.misc.imread} function, and normalized it so that the colors are represented as floating point values between 0 and 1.
+
 The first is the original, then the pictures that follow are after 20, 50, 100, and 1000 iterations respectively.
-For this example we used $\sigma = .7$ and $\lambda = .25$
+For this example we used $\sigma = .7$ and $\lambda = .2$
 
 \includegraphics[width=\textwidth]{baloonbw}
 
@@ -70,11 +72,11 @@ Leave the boundaries constant this time and just iterate over the interior of th
 \end{problem}
 
 \begin{problem}
-Write a new version of the previous problem with the following boundary conditions added:
+Write a new version of the previous problem using the following boundary conditions:
 For the top edge let 
 \begin{equation*}
 \begin{split}
-v_{l,m}^{n+1} =& v_{l,m}^n + \frac{4 \lambda}{3} (g(|v_{l-1,m}^n - v_{l,m}|)(v_{l-1,m}^n - v_{l,m}) + g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) \\
+v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(|v_{l-1,m}^n - v_{l,m}|)(v_{l-1,m}^n - v_{l,m}) + g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) \\
  &+ g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
 \end{split}
 \end{equation*}
@@ -82,9 +84,37 @@ Do the other edges similarly.
 
 For the top left corner let
 \begin{equation*}
-v_{l,m}^{n+1} = v_{l,m}^n + 2 \lambda (g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) + g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
+v_{l,m}^{n+1} = v_{l,m}^n + \lambda (g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) + g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
 \end{equation*}
 Do the other corners similarly.
+
+Essentially we are just using the terms of the difference scheme that are actually defined.
+\end{problem}
+
+Colored images can be processed in a similar manner.
+Instead of being represented as a two-dimensional array, colored images are represented as three dimensional arrays.
+The third dimension is used to store the intensities of each of the standard 3 colors.
+This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|v_{l+1,m}^n - v_{l,m}|)$ as before, we will now use something of the form $g(||v_{l+1,m}^n - v_{l,m}||)$, where $v_{l+1,m}^n$ and $v_{l,m}$ are vectors now instead of scalars.
+The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
+\begin{equation*}
+\begin{split}
+v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n - v_{l,m}) + g(||v_{l+1,m}^n - v_{l,m}||)(v_{l+1,m}^n - v_{l,m}) \\
+ &+ g(||v_{l,m-1} - v_{l,m}||)(v_{l,m-1} - v_{l,m}) + g(||v_{l,m+1} - v_{l,m}||)(v_{l,m+1} - v_{l,m}))
+\end{split}
+\end{equation*}
+
+The following are examples of the same diffusion of the color version of the same image as before.
+The first is the original, the second is after 20 iterations, and the third is after 100 iterations.
+We use the same parameters a before, i.e. $\sigma = .7$ and $\lambda = .2$
+
+\includegraphics[width=\textwidth]{baloon_col}
+
+\includegraphics[width=\textwidth]{baloon_col20}
+
+\includegraphics[width=\textwidth]{baloon_col100}
+
+\begin{problem}
+Make a new version of the code you wrote for the previous problem which processes a colored image.
 \end{problem}
 
 This sort of anisotropic diffusion can be very effective, but, depending on the image, it may also smear out edges that do not have large gradients between them.
