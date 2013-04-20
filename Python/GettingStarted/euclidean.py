@@ -1,13 +1,11 @@
-a = float(raw_input("Enter a: "))
-b = float(raw_input("Enter b: "))
+import sys
 
-if a == 0:
-    print b
+a = int(raw_input("Enter a: "))
+b = int(raw_input("Enter b: "))
 
 while b != 0:
-    if a > b:
-        a = a - b
-    else:
-        b = b - a
-
-print "The gcd is", a
+    tmp = b
+    b = a % b
+    a = tmp
+    
+print "The gcd is ", a
