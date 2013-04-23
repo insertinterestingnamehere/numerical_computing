@@ -8,16 +8,16 @@ It is often useful in image processing to remove extra static from an image.
 This is most easy done by simply blurring the image, but this has the unfortunate consequence of also blurring the boundary lines between distinct elements of the image.
 This blurring can be done by treating the image as a rectangular domain where we are applying the diffusion equation:
 $$u_t = b \Delta u$$
-where $b$ is some diffusion constant.
+where $b$ is some diffusion constant and $\Delta$ is the Laplace Operator.
 A more general form of the diffusion equation in two dimensions is:
 $$u_t = div \left( c(x,y,t) \nabla u \right)$$
 where $c$ is a function representing the diffusion coefficient at each given point and time.
-Note that $div$ is the divergence operator and $\nabla$ is the gradient.
-If we want to blur a picture uniformly, we can allow $c$ to be constant, but we are often interested in \textit{preserving the edges} of components of the image.
+In this case, $div$ is the divergence operator and $\nabla$ is the gradient.
+If we want to blur a picture uniformly, we can allow $c$ to be constant, but we are often interested in \textit{preserving the edges} between features of the image.
 $c$ can be used to control how much diffusion is allowed at each point, so we would like to modify it so that it minimizes diffusion across edges in the image.
-If we can limit diffusion near the boundaries of different elements of the image, we will be able to allow smaller details of the image to blur away while maintaining the overall form of the image.
+If we can limit diffusion near the boundaries between different features of the image, we will be able to allow smaller details of the image to blur away while maintaining the overall form of the image.
 This is especially useful for denoising low quality images. 
-This approach was first introduced by Perona and Malik in 1987.
+This approach was first introduced by Pietro Perona and Jitendra Malik in 1987.
 It is known as Anisotropic Diffusion or Perona-Malik Diffusion.
 
 Suppose we have some estimate $E$ of the rate of change at a given point in an image.
@@ -29,10 +29,10 @@ We will implement this idea of limiting diffusion at edges in the following way:
 The following finite difference scheme is consistent with the Laplace Operator:
 $$\Delta u = u_{xx}+u_{yy} \approx \frac{v_{l-1,m}^n - 2 v_{l,m}^n + v_{l+1,m}^n}{(\Delta x)^2} + \frac{v_{l,m-1}-2 v_{l,m}^n + v_{l,m+1}^n}{(\Delta y)^2}$$
 Since we are working with images, we may say, without loss of generality, that the distance between pixels is always one, so $\Delta x = \Delta y = 1$. Rearranging the terms we have:
-$$ \Delta u \approx (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$. 
+$$ \Delta u \approx (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$
 
 Again, since we are working with images and not some time based problem, we may say, without loss of generality, that $\Delta t = 1$, so we will have the following finite difference scheme:
-$$v_{l,m}^{n+1} = v_{l,m}^n + (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$.
+$$v_{l,m}^{n+1} = v_{l,m}^n + (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$
 We will now limit the diffusion near the edges of objects by making the following modification:
 \begin{equation*}
 \begin{split}
@@ -45,12 +45,17 @@ Where $\lambda \leq \frac{1}{4}$ for stability.
 
 In this way, we allow each term to be affected most by the terms that are already the most simlar to it, so less diffusion will happen anywhere where there is a sharp difference between pixels.
 
+This particular scheme has the useful property that it does not increase or decrease the total brightness of the image.
+Intuitively, this is because the effect of each point on each of its neighbors is exactly oposite the effect its neighbors have on it.
+
 Two good examples of commonly used functions for $g$ are $g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}$ and $g(x) = \frac{1}{1+\left(\frac{x}{\sigma}\right)^2}$. 
 In both cases, $\sigma$ is a parameter which allows us to control how sharply we decrease diffusion across boundaries.
 Larger $\sigma$ values allow more diffusion across boundaries.
 Also note that in both cases, $g(0) = 1$ and $\displaystyle{\lim_{x\to \infty} g(x) = 0}$.
+For our examples here we use $g(x)=e^{-\left(\frac{x}{\sigma}\right)^2}$.
 
 It is worth noting that this particular difference scheme is \textit{not} an accurate finite difference scheme for the version of the diffusion equation we discussed before, but it \textit{does} accomplish the same thing in the same way.
+As it turns out, this particular scheme is the solution to a sleightly different diffusion PDE, but it is used the same way.
 
 For all of the examples here we have read in the image using the \li{scipy.misc.imread} function, and normalized it so that the colors are represented as floating point values between 0 and 1.
 
@@ -86,6 +91,7 @@ For all of the examples here we have read in the image using the \li{scipy.misc.
 \begin{problem}
 Implement the above finite difference scheme.
 Leave the boundaries constant this time and just iterate over the interior of the image.
+You may use either of the two functions listed for $g$.
 \end{problem}
 
 \begin{problem}
@@ -106,6 +112,8 @@ v_{l,m}^{n+1} = v_{l,m}^n + \lambda (g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_
 Do the other corners similarly.
 
 Essentially we are just using the terms of the difference scheme that are actually defined.
+
+Try running this scheme with $\lambda$ a little greater than $\frac{1}{4}$. What do you observe?
 \end{problem}
 
 Colored images can be processed in a similar manner.
@@ -119,6 +127,8 @@ v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n -
  &+ g(||v_{l,m-1} - v_{l,m}||)(v_{l,m-1} - v_{l,m}) + g(||v_{l,m+1} - v_{l,m}||)(v_{l,m+1} - v_{l,m}))
 \end{split}
 \end{equation*}
+
+When implementing this scheme for colored images, use the infinity norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
 
 \newpage
 \vfill
@@ -151,14 +161,12 @@ v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n -
 
 \begin{problem}
 Make a new version of the code you wrote for the previous problem which processes a colored image.
-Measure the difference between using pixels using the infinity norm and not treat the colors of each pixel separately.
+Measure the difference between using pixels using the infinity norm.
+Do not treat the colors of each pixel separately.
 \end{problem}
 
-This sort of anisotropic diffusion can be very effective, but, depending on the image, it may also smear out edges that do not have large gradients between them.
-A similar way of denoising the image involves limiting the influence of diffusion on points that are adjacent to points of similar value.
-This will quickly remove isolated pixels that are dissimilar from their surroundings, but it may not allow the image to change as much under so many iterations.
-
-An example of this can be seen in the following image.
+This sort of anisotropic diffusion can be very effective, but, depending on the image, it may also smear out edges that do not have large differences between them.
+An example of this limitation can be seen in the following image.
 The following are the original image and the filtered images after 20, and 100 iterations.
 In this case we used $\sigma = .1$ and $\lambda = .25$
 
@@ -176,18 +184,19 @@ In this case we used $\sigma = .1$ and $\lambda = .25$
 \end{minipage}
 \end{figure}
 
-As we can see, after 100 iterations, some of the boundaries between similar shades of grey have smeared unevenly.
+As we can see, after 100 iterations, some of the boundaries between similar shades of grey have smeared unevenly. You may still have to look closely to see it.
 
 If we have random static in the image, we can remove this using a modified version of the filter.
 Instead of measuring the rate of change in the picture in each direction, we change each point according to whether or not any of its adjacent points have roughly the same value it has. 
 This is called a minimum-biased filter. 
 This sort of trick is especially good for removing isolated pixels that are different from those around them.
 A very simple way to do this is by taking the average of the two smallest differences between each point and its eight neighbors for each pixel and using that in place of $g$ in the difference scheme above.
+Along the boundaries, we do not have 8 neighbors for each pixel, but we can get by by just using the pixels we have and eliminating the other terms in the difference scheme, just as we did before.
 This will make it so that points that neighbor points of similar value will not be changed, while points that do not match their surroundings will be faded to become more like the points surrounding them.
 This does not have the same symmetrical diffusion as the other scheme, i.e. if one pixel changes, it does not necessarily change its neighboring pixels by the same amount.
 As long as you leave $\lambda \leq \frac{1}{4}$ and you have scaled the pixels to have floating point values between 0 and 1, the scheme will still remain within its minimum and maximum bounds, since the tendency is always to move points closer to the values of their neighbors.
 To demonstrate the action of such a filter, we make changes to random pixels in the color version of the same photo and use both filters to remove the noise we have added.
-Here is the color version of that same photo after several iterations of a minimum-biased difference scheme.
+Here is an example where we have added noise to the color version of that same picture, then used a minimum-biased filter to diminish the noise and the original filter to smooth what remains.
 
 \newpage
 \vfill
@@ -219,8 +228,11 @@ Here is the color version of that same photo after several iterations of a minim
 \clearpage
 
 \begin{problem}
+%%if this lab is too long, just give them the code for it and then have them use it and comment on the results
 Implement the minimum-biased finite difference scheme described above. 
 \end{problem}
+
+References:
 
 Perona, Pietro, and Jitendra Malik. "Scale-Space and Edge Detection Using Anisotropic Diffusion." IEE Transactions on Pattern Analysis and Machine Intelligence 12 (1990): 629-39. Web.
 
