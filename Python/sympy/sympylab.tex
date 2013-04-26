@@ -21,4 +21,209 @@ The idea is that this is a package that, when used properly, can do large amount
 This can be incredibly useful in a wide variety of situations.
 As you may have guessed, such packages generally have a wide variety of features. 
 If you want to know how to do something, consider checking the documentation  at the Sympy \href{http://sympy.org/en/index.htmll}{website}.
-This lab should teach you to do some basic symbolic manipulations in Sympy.
+This lab should teach you to do some basic symbolic manipulations in Sympy, but keep in mind that this introduction is by no means comprehensive.
+
+\section*{Basic Number Types}
+Sympy has some good built in datatypes which can be used to represent rational numbers and arbitrary precision floating point numbers.
+These can be useful if you need to do computation to a very high precision, or to avoid possible overflow error in computation.
+They are, however, much more costly to compute.
+
+You can declare a rational number $\frac{a}{b}$ using \li{sy.Rational(a,b)}.
+A real number $r$ of precision $n$ can be declared using $sy.Float(r,n)$.
+
+A nice example of the use of these datatypes is the following function which computes $\pi$ to the $n$'th digit.
+\begin{lstlisting}
+def mypi(n):
+    #calculates pi to n decimal points.
+    tot=sy.Rational(0,1)
+    term=1
+    bound=sy.Rational(1,10)
+    bound=bound**(n+1)
+    i=0
+    while bound<=term:
+        term=6*sy.Rational(sy.factorial(2*i),4**i*(sy.factorial(i))**2*(2*i+1)*2**(2*i+1))
+        tot+=term
+        i+=1
+    return sy.Float(tot,n)
+\end{lstlisting}
+
+This function works by evaluating the Taylor Series for $6\arcsin\left(\frac{1}{2}\right)$.
+We used a rather crude error estimate to ensure that we were close enough to break the loop.
+
+\begin{problem}
+Write a function which evaluates $e$ to the $n$'th digit.
+Use the series $\displaystyle{e=\sum_{n=0}^{\infty} \frac{1}{n!}}$.
+Use the same condition as above to determine when to break your while loop.
+\end{problem}
+
+\section*{Symbolic Manipulation}
+In Sympy, you need to declare symbolic objects before you use them.
+To define a symbol $x$, we write \li{x=sy.symbols('x')}.
+This can also be used to define multiple variables at once, as in \li{x,y,z=sy.symbols('x,y,z')}.
+The string form of each variable on the right is used for showing expressions that involve the variable.
+You will need to be careful about capitalization and that last 's' in the name of the function.
+Calling \li{sy.Symbol()} will allow you to create a single symbolic variable, but \li{sy.symbol} is a submodule and cannot be called at all.
+
+Sympy can be used to solve difficlult expressions for given variables.
+Not everything can be solved, but Sympy's algorithms are pretty good and can often save a great deal of work.
+We consider the following example:
+Say we know that for variables $w,x,y,z$ that
+$$\frac{w}{w-x}+\frac{x}{x-y}+\frac{y}{y-z}+\frac{z}{z-w}=0$$
+Say we need an explicit solution for a given variable. 
+Since the expression is symmetrical, it doesn't really matter which one, but we can solve this in the following way:
+\begin{lstlisting}
+import sympy as sy
+w,x,y,z=sy.symbols('w,x,y,z')
+expr=w/(w-x)+x/(x-y)+y/(y-z)+z/(z-w)
+sy.solve(expr,w)
+\end{lstlisting}
+Verify this.
+In any variable, this expression is quadratic, but it has coefficients in three variables.
+This would be a terrible pain to do by hand, but Sympy can take care of that for us.
+It is worth noting that Sympy cannot always do everything for us, but if we keep in mind what we are doing and are familiar with the tools it has, it can make complex algebraic operations a great deal simpler.
+
+In this particular example, you will notice that we only used a symbolic expression and not a full equation.
+What Sympy did was it set the expression equal to zero, solved for the variable we wanted, then returned the result.
+Sympy does also support expression objects, but this approach is often easier.
+If you need to declare an equations, they can be declared using something of the form \li{equation=Eq(x,y)} which represents the equation $x=y$
+
+\begin{problem}
+Use Sympy to solve the equation $y=e^x+x$ for $x$.
+The answer will be in terms of the Lambert W function, which is a special function available in most major symbolic math libraries.
+It is defined as the inverse of $y=x e^x$.
+\end{problem}
+
+Sympy can also be used to expand and simplify different symbolic expressions.
+As an example we will simplify the expression
+$$\sin^6(x)+\frac{3}{4}\sin^2(x)\sin^2(2x)+\frac{3}{4}\sin^2(2x)\cos^2(x)+\cos^6(x)$$
+\begin{lstlisting}
+x=sy.symbols('x')
+expr=sy.sin(x)**6+3*sy.sin(x)**2*sy.sin(2*x)**2/4+3*sy.sin(2*x)**2*sy.cos(x)**2/4+sy.cos(x)**6
+expr.simplify()
+\end{lstlisting}
+When we evaluate this cell, we can see that the expression simplifies to 1.
+\li{simplify} is the general simplification method for a sympy expression.
+It can be called as a function from the module, i.e. as \li{sy.simplify()} or it can be used as a method for an object as in the example above.
+You can also tell Sympy to do more specific types of simplification, for example if you want to factor an expression, you can use \li{sy.factor()} or the \li{.factor()} method of the expression.
+If you want to tell it to expand an expression you can use \li{sy.expand()} or \li{.expand()}, if you want it to focus purely on simplifying the trigonometric aspects of the expression you can use \li{sy.trigsimp()} or \li{.trigsimp()}.
+If you want Sympy to cancel variable expressions in the numerator and denominator of rational expressions use \li{sy.cancel()} or \li{.cancel()}.
+There are several more sorts of algebraic manipulations you can do in sympy, see the documentation for a more comprehensive list.
+
+Another useful feature is substitution.
+Substitution can be done using the \li{.subs()} method of an expression.
+You can substitute numbers and variables in for variables and even expressions.
+For example, if you want to see what an expression looks like if $x$ is set to zero, you can use:
+\begin{lstlisting}
+expr.subs(x,0)
+\end{lstlisting}
+where expr is the expression you have already defined.
+Note that all these operations do not modify the expression in place.
+They return a modified version of the expression, but do not actually change the original.
+
+Substitution also can be used (to some extent) to substitute different expressions for different expressions.
+For example, if you want to apply the double angle identity to replace products of sines and cosines, you could use the following:
+\begin{lstlisting}
+expr.subs(sy.sin(x)*sy.cos(x),sy.sin(2*x)/2)
+\end{lstlisting}
+If you want to eliminate higher powers of a variable in an expression you can use something like:
+\begin{lstlisting}
+expr.subs(x**3,0)
+\end{lstlisting}
+which will eliminate all terms of the expression involving $x^3$.
+At present time this will not eliminate terms involving $x^4$ or higher powers of $x$.
+
+\begin{problem}
+Problems of the following form are useful in proving that finite difference schemes remain bounded as the number of iterations increases.
+This property is called stability and will be discussed later in volume 4.
+Here we will just walk you through the symbolic manipulations necessary to show that a scheme is stable.
+Consider the Crank-Nicolson finite difference scheme for the partial differential equation $u_t+a u_x=0$.
+$$\frac{v_{m}^{n+1}-v_{m}^{n}}{k}+a \frac{v_{m+1}^{n+1}-v_{m-1}^{n+1}+v_{m+1}^{n}-v_{m-1}^{n}}{4h}=0$$
+Due to an important result by Von Neumann, we know that this scheme will be stable if and only if when we make the following substitutions, the absolute value of the amplification factor $g$ is always less than or equal to 1.
+Prove that this scheme is stable in the following way:
+\begin{itemize}
+\item Substitute $g^a e^{i b \theta}$ for $v_a^b$.
+Note that when you have solved the expression for $g$, $g$ will be a function of $\theta$.
+You are free to assume that $\theta$, $h$, and $k$ are real.
+You can tell Sympy that these variables are real by including the argument \li{real=True} in the \li{symbols} function when you declare these variables.
+$g$ may or may not be real, depending on the problem.
+hint: \li{sy.I} is the imaginary number.
+\item Use Sympy to cancel redundant terms, simplify the expression, and solve for $g$.
+Since the whole expression is set to zero, factor it, look at the factors and cancel all you can.
+You will want to apply Euler's formula before you solve for $g$.
+In this case we only want to make this particular substitution, so do this using the \li{.subs()} method.
+\item Once you have an expression for $g$, we may consider $|g|^2$, which can be found by multiplying $g$ by the complex conjugate of $g$. 
+You can take the conjugate of an expression using the \li{.conjugate()} method.
+In this case, $|g|$ should always be $1$, which shows that this scheme is stable for any $h$ and $k$.
+\end{itemize}
+\end{problem}
+
+\section*{Calculus in Sympy}
+Sympy can also be used to take limits, integrals, and derivatives.
+Again, this can be very helpful when doing things that would be difficult to do by hand.
+For example, the following equation takes the 20'th partial derivative of $\displaystyle{\prod_{i=1}^{23} \left(x+i y\right)}$ with respect to $x$.
+\begin{lstlisting}
+x,y=sy.symbols('x,y')
+i=sy.symbols('i')
+expr=sy.product((x+i*y),(i,1,23))
+expr=expr.expand()
+expr.diff(x,20)
+\end{lstlisting}
+
+We can also integrate difficult things, for example, if we want to integrate $e^x\sin(x)\sinh(x)$, this can be done with one line in sympy.
+\begin{lstlisting}
+sy.Integral(sy.sin(x)*sy.exp(x)*sy.sinh(x),x).doit()
+\end{lstlising}
+Notice the \li{.doit()} method.
+This tells sympy to evaluate all derivatives, integrals, limits, etc. inside the expression.
+
+You can also use sympy to solve some sorts of basic ordinary differential equations.
+This will solve the equation $y_{xx}-2*y_x+y=\sin\left(x\right)$
+\begin{lstlisting}
+x=sy.symbols('x')
+f=sy.Function('f')
+eq=sy.Derivative(f(x),x,2)-2*sy.Derivative(f(x),x)+f(x)-sy.sin(x)
+sy.dsolve(eq)
+\end{lstlisting}
+
+\begin{problem}
+Use sympy to solve the following differential equation:
+\begin{equation*}
+\begin{split}
+ y_{xxxxxx} & + 3y_{xxxx} + 3y_{xx} + y = \\
+& x^{10}e^x + x^{11}\sin\left(x\right) + x^{12}e^x\sin\left(x\right) -x^{13}\cos\left(2x\right) + x^{14}e^x\cos\left(3x\right)
+\end{split}
+\end{equation*}
+You may recall from your last class on differential equations that this sort of problem is solved by the method of undetermined coefficients. 
+Imagine how terrible this would be to do by hand!
+\end{problem}
+
+Sympy also allows you to do simple separation of variables on PDE's, Taylor Series, Laurent Series, Fourier Series, and a great many other things.
+
+\section*{Interfacing With Numerical Software}
+Sympy also has a variety of built in ways to take an expression and turn it into a python function that can be evaluated quickly.
+The simplest way to do this is the \li{lambdify} function in \li{sympy.utilities.lambdify}.
+It takes an expression and makes it into a callable python function. 
+It allows you to specify which library to use to compute the function, so if you would like to operate on arrays, you can use numpy functions for $\sin$, $\cos$, etc.
+It also allows you to tell it to use functions from the math library, sympy itself, and mpmath.
+We can take an expression in $x$ and $y$ and make a corresponding python function \li{fc} which uses NumPy as its backend in the following way:
+\begin{lstlisting}
+import sympy as sy
+from sympy.utilities.lambdify import lambdify
+import numpy as np
+x,y=sy.symbols('x,y')
+expr=sy.sin(x)*sy.exp(x)-sy.cosh(x)
+fc=lambdify([x,y],expr,'numpy')
+\end{lstlisting}
+This interoperability allows us to move quickly between symbolic calculations in Sympy and faster numerical evaluation on arrays in NumPy.
+
+Sympy also has built in ways that allow you to make functions that iterate over arrays using f2py, Cython, or Theano.
+Using these other libraries can result in very fast numerical evaluation of symbolic expressions for relatively little effort.
+One such function is \li{ufuncify} which returns a function for the expression that works in a similar way as the built in mathematical functions in NumPy. 
+These automatic wrapping features depend on these other libraries and may require some setup, but they can be exremely useful.
+
+\begin{problem}
+Use the lambdify function to make a numpy-dependent function for your solution to the previous problem. Set all the constants that would come from the initial conditions equal to 1.
+The solution to the differential equation is an equality, but you can get the right hand side of the equality using \li{expr.rhs}.
+Use the function you have just defined to plot the solution from -2 to 2. 
+It should be very large, and should look something like a sine curve.
+\end{problem}
