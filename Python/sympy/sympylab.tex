@@ -11,7 +11,7 @@ It is actually used for much of the symbolic computation in Sage.
 An example of what we mean by "symbolic computation" is the following:
 \begin{lstlisting}
 import sympy as sy
-x=sy.symbols('x')
+x = sy.symbols(`x')
 sy.expand((x+1)**10)
 \end{lstlisting}
 which will return the following:
@@ -30,26 +30,24 @@ Arbitrary precision floating point operations are supported through the package 
 These can be useful if you need to do computation to a very high precision, or to avoid possible overflow error in computation.
 They are, however, much more costly to compute.
 
-You can declare a rational number $\frac{a}{b}$ using \li{sy.Rational(a,b)}.
+You can declare a rational number $\frac{a}{b}$ using \li{sy.Rational(a, b)}.
 A real number $r$ of precision $n$ can be declared using $sy.Float(r,n)$.
 
 A nice example of the use of these datatypes is the following function which computes $\pi$ to the $n$th digit.
 \begin{lstlisting}
 def mypi(n):
     #calculates pi to n decimal points.
-    tot=sy.Rational(0,1)
-    term=1
-    bound=sy.Rational(1,10)
-    bound=bound**(n+1)
-    i=0
-    while bound<=term:
-        term=6*sy.Rational(sy.factorial(2*i),4**i*(sy.factorial(i))**2*(2*i+1)*2**(2*i+1))
-        tot+=term
-        i+=1
-    return sy.Float(tot,n)
+    tot = sy.Rational(0, 1)
+    term = 1
+    bound = sy.Rational(1, 10)**(n+1)
+    i = 0
+    while bound <= term:
+        term = 6 * sy.Rational(sy.factorial(2*i), 4**i*(sy.factorial(i))**2*(2*i+1)*2**(2*i+1))
+        tot += term
+        i += 1
+    return sy.Float(tot, n)
 \end{lstlisting}
-
-This function works by evaluating the Taylor Series for $6\cdot\arcsin\left(\frac{1}{2}\right)$.
+This function works by evaluating the Taylor Series for $6\arcsin\left(\frac{1}{2}\right)$.
 We used a rather crude error estimate to ensure that we were close enough to break the loop.
 
 \begin{problem}
@@ -63,13 +61,13 @@ Use the same condition as above to determine when to break your while loop.
 
 \section*{Symbolic Manipulation}
 In SymPy, you need to declare symbolic objects before you use them.
-To define a symbol $x$, we write \li{x = sy.symbols('x')}.
-This can also be used to define multiple variables at once, as in \li{x, y, z = sy.symbols('x,y,z')}.
+To define a symbol $x$, we write \li{x = sy.symbols(`x')}.
+This can also be used to define multiple variables at once, as in \li{x, y, z = sy.symbols(`x,y,z')}.
 The string form of each variable on the right is used for showing expressions that involve the variable.
-You will need to be careful about capitalization and that last 's' in the name of the function.
+You will need to be careful about capitalization and that last `s' in the name of the function.
 Calling \li{sy.Symbol()} will allow you to create a single symbolic variable, but \li{sy.symbol} is a submodule and cannot be called at all.
 
-SymPy can be used to solve difficlult expressions for given variables.
+SymPy can be used to solve difficult expressions for given variables.
 Not everything can be solved, but SymPy's algorithms are pretty good and can often save a great deal of time.
 We consider the following equation:
 \begin{equation*}
@@ -79,21 +77,20 @@ Say we need an explicit solution for a given variable.
 Since the expression is symmetrical, it doesn't really matter which one, but we can solve this in the following way:
 \begin{lstlisting}
 import sympy as sy
-w, x, y, z = sy.symbols('w,x,y,z')
+w, x, y, z = sy.symbols(`w,x,y,z')
 expr = w/(w-x) + x/(x-y) + y/(y-z) + z/(z-w)
 sy.solve(expr, w)
 \end{lstlisting}
-Verify this.
 In any variable, this expression is quadratic, but each coefficient will depend on the other 3 variables.
 This would be a terrible pain to do by hand, but SymPy can take care of that for us.
 It is worth noting that SymPy cannot do everything, but if we keep in mind what we are doing and are familiar with the tools it has, it can make complex algebraic operations a great deal faster. 
-We should also note that \li{solve} returns a list.
+We should also note that \li{solve()} returns a list of expressions.
 If we want an expression to work with, we must take an item from the list.
 
 In this particular example, you will notice that we only used a symbolic expression and not a full equation.
 What SymPy did was set the expression equal to zero, solve for the variable we wanted, then return the result.
-SymPy does also support equation objects (and inequalities), but this approach is often easier.
-If you need to declare equations, they can be declared using something like \li{equation=Eq(x,y)} which represents the equation $x=y$
+SymPy also supports equation objects (and inequalities), but this approach is often easier.
+If you need to declare equations, they can be declared using something like \li{equation = Eq(x,  y)} which represents the equation $x=y$
 
 \begin{problem}
 Use SymPy to solve the equation $y=e^x+x$ for $x$.
@@ -107,16 +104,16 @@ As an example we will simplify the expression
 \sin^6(x)+\frac{3}{4}\sin^2(x)\sin^2(2x)+\frac{3}{4}\sin^2(2x)\cos^2(x)+\cos^6(x)
 \end{equation*}
 \begin{lstlisting}
-x = sy.symbols('x')
-expr = sy.sin(x)**6 + 3*sy.sin(x)**2*sy.sin(2*x)**2/4 + 3*sy.sin(2*x)**2*sy.cos(x)**2/4 + sy.cos(x)**6
+x = sy.symbols(`x')
+expr = sy.sin(x)**6+3/4*sy.sin(x)**2*sy.sin(2*x)**2+3/4*sy.sin(2*x)**2*sy.cos(x)**2+sy.cos(x)**6
 expr.simplify()
 \end{lstlisting}
 When we evaluate this cell, we can see that the expression simplifies to 1.
 \li{simplify} is the general simplification method for a SymPy expression.
 It can be called as a function from the module, i.e. as \li{sy.simplify()} or it can be used as a method for an object as in the example above.
-You can also tell SymPy to do more specific types of simplification, for example if you want to factor an expression, you can use \li{sy.factor()} or the \li{.factor()} method of the expression.
-If you want to tell it to expand an expression you can use \li{sy.expand()} or \li{.expand()}, if you want it to focus purely on simplifying the trigonometric aspects of the expression you can use \li{sy.trigsimp()} or \li{.trigsimp()}.
-If you want SymPy to cancel variable expressions in the numerator and denominator of all rational subexpressions, use \li{sy.cancel()} or \li{.cancel()}.
+You can also tell SymPy to do more specific types of simplification, for example if you want to factor an expression, you can use \li{factor()}.
+If you want to tell it to expand an expression you can use \li{expand()}, if you want it to focus purely on simplifying the trigonometric aspects of the expression you can use \li{trigsimp()}.
+If you want SymPy to cancel variable expressions in the numerator and denominator of all rational sub-expressions, use \li{cancel()}.
 There are several other kinds of algebraic manipulations you can do in SymPy, see the documentation for a more comprehensive list.
 
 Another useful feature is substitution.
@@ -177,8 +174,7 @@ For example, the following equation takes the 20'th partial derivative with resp
 \prod_{i=1}^{23} \left(x+i y\right)
 \end{equation*}
 \begin{lstlisting}
-x, y = sy.symbols('x,y')
-i = sy.symbols('i')
+x, y, i = sy.symbols(`x,y,i')
 expr = sy.product((x+i*y), (i, 1, 23))
 expr = expr.expand()
 expr.diff(x, 20)
@@ -252,15 +248,15 @@ Use SymPy to numerically estimate $\frac{\partial}{\partial x}e^{\sin\left(\cos\
 You can also use SymPy to solve some sorts of basic ordinary differential equations.
 This will solve the equation $y_{xx}-2*y_x+y=\sin\left(x\right)$
 \begin{lstlisting}
-x = sy.symbols('x')
-f = sy.Function('f')
+x = sy.symbols(`x')
+f = sy.Function(`f')
 eq = f(x).diff(x, 2) - 2*f(x).diff(x) + f(x) - sy.sin(x)
 sy.dsolve(eq)
 \end{lstlisting}
 or, equivalently,
 \begin{lstlisting}
-x = sy.symbols('x')
-f = sy.Function('f')
+x = sy.symbols(`x')
+f = sy.Function(`f')
 eq = f(x).diff(x, 2) - 2*f(x).diff(x) + f(x) - sy.sin(x)
 sy.dsolve(eq)
 \end{lstlisting}
@@ -290,9 +286,9 @@ We can take an expression in $x$ and $y$ and make a corresponding python functio
 import sympy as sy
 from sympy.utilities.lambdify import lambdify
 import numpy as np
-x, y = sy.symbols('x,y')
+x, y = sy.symbols(`x,y')
 expr = sy.sin(x)*sy.exp(x)-sy.cosh(x)
-fc = lambdify([x, y], expr, 'numpy')
+fc = lambdify([x, y], expr, `numpy')
 \end{lstlisting}
 This interoperability allows us to move quickly between symbolic calculations in SymPy and faster numerical evaluation on arrays in NumPy.
 
