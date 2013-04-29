@@ -1,14 +1,65 @@
 \lab{Python}{Generators}{Generators}
 \label{lab:Python_Generators}
 
+Lists, tuples, sets, and dictionaries are examples of sequences in Python.
+Often it is useful to visit all the elements of a sequence.  This process of visiting
+each element of a sequence once is called \emph{iteration}. 
+Python types above each define their own iterators.  You use them every time you execute the statement \li{for <elem> in <list>}.
+Python has a special type of object called a \emph{generator}.
+Similar to an iterator, a generator returns a sequence of values.
+The important difference, though, is that a generator computes the next value in the sequence and returns it.
+One way to think of it is: \emph{Iterators return their values while generators yield their values}.
+In fact, Python uses the \li{yield} keyword to define a generator.
+Let's illustrate the difference between iterating and generating by re-implementing Python's \li{range} function
+as both an iterator and a generator.
+\begin{lstlisting}
+def range_iter(start, stop, step=1):
+    i = start
+    r = []
+    while i < stop:
+       r.append(i)
+       i = i + step
+    return r
+\end{lstlisting}
+\begin{lstlisting}
+def range_gen(start, stop, step=1):
+    i = start
+    while i < stop:
+        yield i
+        i = i + step
+\end{lstlisting}
+The two functions look very similar.  But, you will soon see that they behave very differently.
+The first function, when executed will immediately build a list, one element at a time until the done
+at which point it returns the entire list.  On the authors computer, this function takes about 1.43ms
+to build and return a list of 10000 elements.  The second function is only marginally better at
+returning the 10000 elements in approximately 1.09ms.  
+This gap between the two function understandably grows much wider as the inputs are increased.
+Where the real difference in the two functions lies is in the time the function takes to execute when
+it is first called.  The first function requires 1.43ms to execute the first time.  The second function,
+a mere .00000041ms!  The reason for this is the first function calculates its results and returns them all at once.  The second function only creates a \emph{generator} object.  This object has several methods.
+The most important and most useful method is the \li{next()} method.  Every time this method is called, 
+the generator is resumed from is previous state (each time \li{yield} statement is executed, the generator 
+is effectively suspended until \li{next()} is called again).  When the generator has finished executing, a
+\li{StopIteration} exception is raised the generator terminates.  Capability has been added to send values 
+and throw exceptions to the generators via the \li{send()} and \li{throw()} methods respectively.  For more information on these methods, we refer you to PEP 342 (Python Enhancement Proposal 342).
 
-\begin{problem}
-Find the sum of the first four billion odd Fibonacci numbers that are divisible by 3.
-\end{problem}
+How are generators effective?  If you encounter the situations below, you consider trying to solve 
+your problem using generators.  Generators have proven to be very useful in these situations.
+\begin{itemize}
+\item \emph{Iterating through only part of a sequence.}  Sometimes it is inefficient to create the 
+entire sequence if we know that we will only sometimes use all of it.  If we could write a generator for 
+the sequence, we would only need to calculate the values needed from the sequence.
+\item \emph{Iterating through a sequence once.} Consider the statement 
+\li{sum([i for i in range(1000) if i\%2 == 0])}.
+We are creating two sequences just to iterate through them once and never use them again.
+We can more efficiently write the same statement using generators.
+\li{sum(i for i in xrange(1000) if i\%2 == 0)}
+Often the solution using generators will execute faster, but it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
+\item \emph{Calculating large sequences.}  The sequence must be stored somewhere in computer memory.
+If the sequence is very large, we could very easily exhaust all available memory.
+\item \emph{Calculations involving infinite sequences.}  Sequences that are pre-computed are, by physical limitations, finite.  We cannot create a list that stores all natural numbers.  However, we can create a generator that returns the next natural number every time it is called.
+\end{itemize}
 
-
-Python generators produce values of a sequence on demand.  When iterating over a large
-sequence, generators a much more efficient.
 
 \section*{Combinations}
 Combinations are subsets of a set.  The powerset of a set, $S$, is the set of all combinations
