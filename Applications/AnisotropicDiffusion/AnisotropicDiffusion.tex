@@ -55,7 +55,7 @@ Also note that in both cases, $g(0) = 1$ and $\displaystyle{\lim_{x\to \infty} g
 For our examples here we use $g(x)=e^{-\left(\frac{x}{\sigma}\right)^2}$.
 
 It is worth noting that this particular difference scheme is \textit{not} an accurate finite difference scheme for the version of the diffusion equation we discussed before, but it \textit{does} accomplish the same thing in the same way.
-As it turns out, this particular scheme is the solution to a sleightly different diffusion PDE, but it is used the same way.
+As it turns out, this particular scheme is the solution to a sleightly different diffusion PDE, but can still be used the same way.
 
 For all of the examples here we have read in the image using the \li{scipy.misc.imread} function, and normalized it so that the colors are represented as floating point values between 0 and 1.
 
@@ -64,25 +64,25 @@ For all of the examples here we have read in the image using the \li{scipy.misc.
 \begin{figure}[ht]
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloonbw}
+\includegraphics[width=\textwidth]{baloon_resized_bw}
 \caption*{original image}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon20}
-\caption*{after 20 iterations with $\sigma = .7$ and $\lambda = .2$}
+\includegraphics[width=\textwidth]{baloon_resized_bw_5}
+\caption*{after 5 iterations with $\sigma = .7$ and $\lambda = .2$}
 \end{minipage}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon100}
-\caption*{after 100 iterations}
+\includegraphics[width=\textwidth]{baloon_resized_bw_20}
+\caption*{after 20 iterations}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon1000}
-\caption*{after 1000 iterations}
+\includegraphics[width=\textwidth]{baloon_resized_bw_100}
+\caption*{after 100 iterations}
 \end{minipage}
 \end{figure}
 \vfill
@@ -135,25 +135,25 @@ When implementing this scheme for colored images, use the infinity norm on 3-spa
 \begin{figure}[ht]
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon_col}
+\includegraphics[width=\textwidth]{baloon_resized_color}
 \caption*{original image}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon_col20}
-\caption*{after 20 iterations with $\sigma = .7$ and $\lambda = .2$}
+\includegraphics[width=\textwidth]{baloon_resized_color_5}
+\caption*{after 5 iterations with $\sigma = .7$ and $\lambda = .2$}
 \end{minipage}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon_col100}
-\caption*{after 100 iterations}
+\includegraphics[width=\textwidth]{baloon_resized_color_20}
+\caption*{after 20 iterations}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloon_col1000}
-\caption*{after 1000 iterations}
+\includegraphics[width=\textwidth]{baloon_resized_color_100}
+\caption*{after 100 iterations}
 \end{minipage}
 \end{figure}
 \vfill
@@ -168,29 +168,29 @@ Do not treat the colors of each pixel separately.
 This sort of anisotropic diffusion can be very effective, but, depending on the image, it may also smear out edges that do not have large differences between them.
 An example of this limitation can be seen in the following image.
 The following are the original image and the filtered images after 20, and 100 iterations.
-In this case we used $\sigma = .1$ and $\lambda = .25$
+In this case we used $\sigma = .1$ and $\lambda = .2$
 
 \begin{figure}[ht]
 \begin{minipage}[b]{.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloonsbw}
+\includegraphics[width=\textwidth]{baloons_resized_bw}
 \caption*{original image}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloons100}
-\caption*{after 100 iterations}
+\includegraphics[width=\textwidth]{baloons_resized_bw_50}
+\caption*{after 50 iterations}
 \end{minipage}
 \end{figure}
 
 As we can see, after 100 iterations, some of the boundaries between similar shades of grey have smeared unevenly. You may still have to look closely to see it.
-
+This can be counteracted somewhat by further decreasing the $\sigma$ value, but if we have random noise throughout the image, this will not remove it.
 If we have random static in the image, we can remove this using a modified version of the filter.
 Instead of measuring the rate of change in the picture in each direction, we change each point according to whether or not any of its adjacent points have roughly the same value it has. 
 This is called a minimum-biased filter. 
 This sort of trick is especially good for removing isolated pixels that are different from those around them.
-A very simple way to do this is by taking the average of the two smallest differences between each point and its eight neighbors for each pixel and using that in place of $g$ in the difference scheme above.
+A very simple way to do this is by taking the average of the two smallest differences between each pixel and its eight neighbors and using that in place of $g$ in the difference scheme above.
 Along the boundaries, we do not have 8 neighbors for each pixel, but we can get by by just using the pixels we have and eliminating the other terms in the difference scheme, just as we did before.
 This will make it so that points that neighbor points of similar value will not be changed, while points that do not match their surroundings will be faded to become more like the points surrounding them.
 This does not have the same symmetrical diffusion as the other scheme, i.e. if one pixel changes, it does not necessarily change its neighboring pixels by the same amount.
@@ -203,32 +203,33 @@ Here is an example where we have added noise to the color version of that same p
 \begin{figure}[ht]
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloons_col}
+\includegraphics[width=\textwidth]{baloons_resized_color}
 \caption*{original image}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloons_noisy}
-\caption*{randomly changed 40\%}
+\includegraphics[width=\textwidth]{baloons_resized_noisy}
+\caption*{randomly changed 100000 color values}
 \end{minipage}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloons_minbias}
-\caption*{80 iterations of a min-biased scheme}
+\includegraphics[width=\textwidth]{baloons_resized_minbias}
+\caption*{300 iterations of a min-biased scheme}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
-\includegraphics[width=\textwidth]{baloons_both}
-\caption*{after 15 additional iterations of the first filter}
+\includegraphics[width=\textwidth]{baloons_resized_both}
+\caption*{after 8 additional iterations of the first filter with $\lambda=.25$ and $\sigma=.04$.}
 \end{minipage}
 \end{figure}
 \vfill
 \clearpage
 
 \begin{problem}
-%%if this lab is too long, just give them the code for it and then have them use it and comment on the results
+%%if this lab is too long, just give them the code for it and then have them use it and comment on the results??
+(optional)
 Implement the minimum-biased finite difference scheme described above. 
 \end{problem}
 
