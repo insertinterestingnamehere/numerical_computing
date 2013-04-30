@@ -105,19 +105,28 @@ As an example we will simplify the expression
 \end{equation*}
 \begin{lstlisting}
 x = sy.symbols(`x')
-expr = sy.sin(x)**6+3/4*sy.sin(x)**2*sy.sin(2*x)**2+3/4*sy.sin(2*x)**2*sy.cos(x)**2+sy.cos(x)**6
+expr = sy.sin(x)**6+sy.Rational(3,4)*sy.sin(x)**2*sy.sin(2*x)**2+sy.Rational(3,4)*sy.sin(2*x)**2*sy.cos(x)**2+sy.cos(x)**6
 expr.simplify()
 \end{lstlisting}
 When we evaluate this cell, we can see that the expression simplifies to 1.
-\li{simplify} is the general simplification method for a SymPy expression.
+\li{simplify()} is the general simplification method for a SymPy expression.
 It can be called as a function from the module, i.e. as \li{sy.simplify()} or it can be used as a method for an object as in the example above.
+This example also demonstrates an important point.
+You must always remember that integers and floats in Python are still integers and floats in Python.
+If we had done something like \li{3/4} we would have made the middle terms become zero, and would not have gotten the result we expected.
+If we had done something like \li{3./4.} we would have introduced floating point arithmetic into the sympy expression, which is something we would prefer to avoid.
+Something of the form \li{3*x/4} where \li{x} is a symbol or really any symbolic expression will work, since the 3 and the 4 become part of the symbolic expression on either side.
 You can also tell SymPy to do more specific types of simplification, for example if you want to factor an expression, you can use \li{factor()}.
 If you want to tell it to expand an expression you can use \li{expand()}, if you want it to focus purely on simplifying the trigonometric aspects of the expression you can use \li{trigsimp()}.
 If you want SymPy to cancel variable expressions in the numerator and denominator of all rational sub-expressions, use \li{cancel()}.
 There are several other kinds of algebraic manipulations you can do in SymPy, see the documentation for a more comprehensive list.
+Many of these more important functions in SymPy are also available as methods to expressions.
+This is the case with all of the abolve examples.
 
 Another useful feature is substitution.
 Substitution can be done using the \li{subs()} method of an expression.
+%As of this writing, there is no subs function, though one has been discussed.
+%I deliberately left the ambiguity here for compatibility with future releases.
 You can substitute numbers and variables in for variables and even expressions.
 For example, if you want to see what an expression looks like if $x$ is set to zero, you can use:
 \begin{lstlisting}
@@ -302,6 +311,15 @@ The solution to the differential equation is an equality, but you can get the ri
 Use the function you have just defined to plot the solution from -3 to 3. 
 It should be very large, and should look kind of like a sine curve.
 \end{problem}
+
+Sympy also includes a simplified plotting wrapper around Matplotlib.
+A simple example is:
+\begin{lstlisting}
+x=sy.symbols('x')
+expr=sy.sin(x)*sy.exp(x)
+sy.plot(expr,(x,-3,3))
+\end{lstlisting}
+which will plots $\sin\left(x\right) e^x$ for values of $x$ from -3 to 3.
 
 It is also worth noting that SymPy has several nice options for printing equations.
 If you want to get a rough idea of what the equation looks like, you can use \li{sy.pprint()}.
