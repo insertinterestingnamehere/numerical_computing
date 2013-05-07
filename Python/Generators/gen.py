@@ -12,14 +12,16 @@ def bin_combinations(n):
 def binary_gray(seq):
     """Return a binary gray code.  Does not yield an empty set!"""
     pool = tuple(seq)
-    n = len(pool) - 1
     
-    _old = (0 >> 1) ^ 0
+    #We are subtracting one from the bit_length, one from the index
+    n = len(pool) - 2
+    
+    old = (0 >> 1) ^ 0
     for i in xrange(1, 2**(n + 1)):
-        _new = (i >> 1) ^ i
-        ind = n - int(log(_old^_new, 2))
-        yield pool[ind], bool(_new & (1 << (n-ind)))
-        _old = _new
+        new = (i >> 1) ^ i
+        ind = n - (old ^ new).bit_length()
+        yield pool[ind], bool(new & (1 << (n - ind)))
+        old = new
         
 def gray_combinations(n):
     s = len(n)
