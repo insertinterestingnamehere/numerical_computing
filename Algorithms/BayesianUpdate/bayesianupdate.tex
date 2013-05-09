@@ -1,12 +1,12 @@
 \lab{Algorithms}{Bayesian Updates}{Bayesian Updates}
-
 \objective{Understand the basic principles of computing a posterior distribution from a prior and data.}
 
 All of us are Bayesians, whether we would like to admit it or not. Each of us subconsciously computes probabilities of different outcomes every day. At any given point in time, we have a belief (a \emph{prior}) of how probable any given outcome is, though we may not be able to quantize it. If it occurs or not (our data), we update our belief accordingly (once again, subconsciously). This updated belief is essentially our \emph{posterior}.
 
 As mathematicians and statisticians, we would like to quantify this notion, and it all follows from Bayes Rule:
-
-$$\mathbb{P}(A | B) = \frac{\mathbb{P}(B | A)\mathbb{P}(A)}{\mathbb{P}(B)}.$$
+\begin{equation*}
+\mathbb{P}(A | B) = \frac{\mathbb{P}(B | A)\mathbb{P}(A)}{\mathbb{P}(B)}
+\end{equation*}
 
 Let us suppose we are going to run a medical trial on a given treatment, where we consider each sample to be a Bernoulli random variable, i.e. success or failure, with parameter $\theta$. Collectively, these compose a binomial distribution with the same parameter. The frequentist approach is to suppose no prior knowledge about the success of the treatment, though we often have some prior knowledge about similar treatments which we can carry over, giving us a \emph{prior} $p$ on our parameter $\theta$. This prior essentially relates our belief about the true value of $\theta$ (the true probability of success for a sample), which we do not know, including its expected value, variance, etc.
 
@@ -23,15 +23,15 @@ Let us suppose that we place a beta distribution as a prior over $\theta$ with p
 
 This is simply the beta distribution over $\theta$ with parameters $\alpha + n_{1} - 1$ and $\beta + n_{2} - 1$. Python has this density built in. Given parameters $\alpha$ and $\beta$, we can evaluate and plot the density for many values of $\theta$:
 
-\begin{lstlisting}[style=python]
-: import scipy as sp
+\begin{lstlisting}
+: import numpy as np
 : import matplotlib.pyplot as plt
 : from scipy.stats import beta
 : a = 8
 : b = 2
-: x = sp.arange(0,1.01,by=.01)
-: y = beta.pdf(x,a,b)
-: plt.plot(x,y)
+: x = np.arange(0, 1.01, by=.01)
+: y = beta.pdf(x, a, b)
+: plt.plot(x, y)
 : plt.show()
 \end{lstlisting}
 
@@ -46,7 +46,7 @@ This is simply the beta distribution over $\theta$ with parameters $\alpha + n_{
 Write a function that accepts a data set of i.i.d. Bernoulli random variables and a beta prior over $\theta$ with parameters $\alpha$ and $\beta$, and which plots the posterior distribution of $\theta$. Test it on the data in the file \emph{trial.csv}. How did your belief about the treatment success rate ($\theta$) change?
 \end{problem}
 
-Let's now suppose that we run a fruit stand, selling apples, bananas, mangos, oranges, and watermelons. We assume that when a person comes and buys fruit, he selects a piece of fruit from a categorical distribution (a discrete probability distribution over the five kinds of fruit) based on the populace, with parameter $\theta$. Thus $\theta$ is a vector of length five, with nonnegative entries summing to $1$, each entry being the probability of selecting the corresponding fruit.
+Let's now suppose that we run a fruit stand, selling apples, bananas, mangos, oranges, and watermelons. We assume that when a person comes and buys fruit, he selects a piece of fruit from a categorical distribution (a discrete probability distribution over the five kinds of fruit) based on the populace, with parameter $\theta$. Thus $\theta$ is a vector of length five, with non-negative entries summing to $1$, each entry being the probability of selecting the corresponding fruit.
 
 We don't know what $\theta$ is, but we have some prior belief of the populace's fruit preferences, which we represent as a Dirichlet prior $\alpha$ over $\theta$, that is, $$\mathbb{P}(\theta) = \frac{1}{B(\alpha)} \prod_{i=1}^{5} \theta_{i}^{\alpha_{i} - 1}$$ where $B(\alpha)$ is the multivariate Beta function, $$B(\alpha) = \frac{\prod_{i=1}^{5} \Gamma(\alpha_{i})}{\Gamma(\sum_{i=1}^{5} \alpha_{i})}.$$ Given a sequence of fruit selections $\mathbf{y} = y_{1}, \cdots, y_{n}$ from a number of people, where each $$y_{i} \in \{\text{Apple, Banana, Mango, Orange, Watermelon}\},$$ we let 
 \begin{align*}
@@ -84,28 +84,33 @@ Write your own function to compute an inverse gamma probability density function
 
 Let's look at how to plot each of these prior distributions:
 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : from scipy.stats import norm
 : mu_0 = 74.
 : sigma2_0 = 25.
 : alpha = 2.
 : beta = 25.
-: x = sp.arange(0, 100.1, step=0.1)
-: y = norm.pdf(x, loc=mu_0, scale=sp.sqrt(sigma2_0))
+: x = np.arange(0, 100.1, step=0.1)
+: y = norm.pdf(x, loc=mu_0, scale=5)
 : plt.plot(x, y)
 : plt.show()
-: x = sp.arange(0.1, 100.1, step=0.1)
+: x = np.arange(0.1, 100.1, step=0.1)
 : y = invgammapdf(x, alpha=alpha, beta=beta)
 : plt.plot(x, y)
 : plt.show()
 \end{lstlisting}
 
-\begin{figure}
-\begin{center}
-\subfloat[Prior distribution for $\mu$.]{\label{figur:1}\includegraphics[height=1.75in]{mean_prior.jpeg}}
-\subfloat[Prior distribution for $\sigma^{2}$.]{\label{figur:2}\includegraphics[height=1.75in]{variance_prior.jpeg}}
-\label{figur}\caption{Plots of prior distributions.}
-\end{center}
+\begin{figure}[h]
+\centering
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{mean_prior.jpeg}
+\caption{Prior distribution for $\mu$.}
+\end{subfigure}
+\begin{subfigure}[b]{.49\textwidth}
+\includegraphics[width=\textwidth]{variance_prior.jpeg}
+\caption{Prior distribution for $\sigma^{2}$.}
+\end{subfigure}
+\caption{Plots of prior distributions}
 \end{figure}
 
 Supposing first that we know the true variance $\sigma^{2}$ for the score distribution, the posterior distribution of $\mu$ given the data $\mathbf{y}$ is
@@ -118,5 +123,5 @@ Write a function that accepts a data set of real numbers, a prior ($\mu_{0}$ and
 \end{problem}
 
 \begin{problem}
-Write a function that accepts a data set of real numbers, a prior ($\alpha$ and $\beta$) for the variance $\sigma^{2}$ of a normal distribution, and the true mean $\mu$ of the distribution, and returns the updated posterior parameters for $\sigma^{2}$. Test it on the data in the file \emph{examscores.csv} with prior $\alpha=2, \beta = 25$ and true mean $\mu = 62$. Plot your posterior distribution for $\sigma^{2}$.
+Write a function that accepts a dataset of real numbers, a prior ($\alpha$ and $\beta$) for the variance $\sigma^{2}$ of a normal distribution, and the true mean $\mu$ of the distribution, and returns the updated posterior parameters for $\sigma^{2}$. Test it on the data in the file \emph{examscores.csv} with prior $\alpha=2, \beta = 25$ and true mean $\mu = 62$. Plot your posterior distribution for $\sigma^{2}$.
 \end{problem}
