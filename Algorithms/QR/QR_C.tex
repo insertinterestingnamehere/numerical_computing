@@ -1,4 +1,4 @@
-\lab{Algorithms}{QR decomposition}{QR decomposition}
+\lab{Algorithms}{Modified Gram-Schmidt (QR)}{QR decomposition}
 \label{lab:QRdecomp}
 
 \objective{Understand how the QR algorithm works and write your own implementation.}
@@ -15,18 +15,14 @@ $\{\x_i\}_{i=1}^n$ be a basis for the inner product space $V$. Let
 \]
 and define $\q_2,\q_3,\ldots,\q_n$ recursively by
 \[
-\q_{k+1} = \frac{\x_{k+1} - \p_k}{\norm{\x_{k+1} - \p_k}},
+\q_{k+1} = \x_{k+1} - \sum^k_{j=1}\frac{\langle \x_{k+1}, \q_j\rangle}{\norm{\q_{j}}^2}\q_j,
 \]
-where
-\[
-\p_k = \sum^k_{j=1} \langle \x_{k+1}, \q_j\rangle \q_j
-\]
-is a projection of $\x_{k+1}$ onto the subspace $\mbox{Span}(\q_1,\q_2,\ldots,\q_k)$.  Then the set $\{\q_i\}_{i=1}^n$ is an orthonormal basis for $V$.
+
+the sum term is a projection of $\x_{k+1}$ onto the subspace $\mbox{Span}(\q_1,\q_2,\ldots,\q_k)$.  Then the set $\{\q_i\}_{i=1}^n$ is an orthonormal basis for $V$.
 \end{theorem}
 \vspace{5mm}
 
-For the above algorithm, let $r_{k k} = \|\x_k - \p_{k-1}\|$ and
-$r_{j k} = \langle \x_k, \q_j\rangle$.  Then
+For the above algorithm, let $r_{j k} = \langle \x_k, \q_j\rangle$ when $j \leq k$.  Then
 \begin{align*}
 r_{1 1} \q_1 &= \x_1\\
 r_{k k} \q_k &= \x_k - r_{1 k} \q_1 - r_{2 k} \q_2 - r_{3 k} \q_3 -
@@ -73,20 +69,9 @@ with orthonormal columns and $R$ is a nonsingular $n \times n$ upper
 triangular matrix.
 \end{theorem}
 
-\begin{matlab}
-There are several options to MATLAB's QR routine.  We will be using
-the ``economy option''.  Type the following into MATLAB
-\begin{lstlisting}[style=matlab]
->> A = randn(4,3)
->> [Q,R] = qr(A,0)
->> Q*R
->> Q'*Q
-\end{lstlisting}
-\end{matlab}
 
-\begin{python}
 There are three mode options available in SciPy's implementation of QR Decomposition.  We will be using the ``economic" option.
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : import scipy as sp
 : from scipy import linalg as la
 : A = sp.randn(4,3)
@@ -95,7 +80,6 @@ There are three mode options available in SciPy's implementation of QR Decomposi
 : sp.dot(Q, R) - A
 : sp.dot(Q.T, Q)
 \end{lstlisting}
-\end{python}
 
 In order to interpret the results correctly, we need to understand that the computer has limited precision (especially with floating point numbers).  This is why \li{sp.dot(Q, R)} is not exactly equal to A.  But subtracting the two yields numbers that are essentially zero.  This shows that indeed the product of $Q$ and $R$ is $A$.  Note also that $Q^T Q = I$.  This implies that the column vectors of $Q$ are orthonormal (why?).
 
