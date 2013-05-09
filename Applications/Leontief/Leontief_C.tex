@@ -9,20 +9,12 @@ For example, in economics one might be interested in how one the inputs of one s
 
 We will explain the basics of this model using a simple imaginary economy involving agriculture, textiles and construction.
 
-Suppose that we have the data given in Table \ref{IORawTable} (we could say that it is in terms of millions or billions of dollars if we wished to make the numbers realistic). In this table the columns represent the inputs to a particular industry and the rows represent outputs. This matrix is known as the exchange matrix. If we divide each column by the output of the corresponding industry we can obtain a coefficient matrix that represents the amount of each input we need to obtain one additional unit of output. This matrix is known as the consumption matrix. We can do this in \ProgrammingLanguage as follows, and we obtain the coefficients in Table \ref{IOCoefTable}.
-\begin{python}
+Suppose that we have the data given in Table \ref{IORawTable} (we could say that it is in terms of millions or billions of dollars if we wished to make the numbers realistic). In this table the columns represent the inputs to a particular industry and the rows represent outputs. This matrix is known as the exchange matrix. If we divide each column by the output of the corresponding industry we can obtain a coefficient matrix that represents the amount of each input we need to obtain one additional unit of output. This matrix is known as the consumption matrix. We can do this in Python as follows, and we obtain the coefficients in Table \ref{IOCoefTable}.
+
 \begin{lstlisting}[style=python]
 : IO = sp.array([[250,150,30,600],[25,25,20,280],[50,20,5,120]])
 : IOCoeff = IO[:,0:3]/sp.dot(sp.ones((3,1),dtype=sp.float_),IO[:,3].reshape(1,3))
 \end{lstlisting}
-\end{python}
-
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> IO = [250 150 30 600;25 25 20 280; 50 20 5 120];
->> IOCoeff = IO(:,1:3)./(ones(3,1)*IO(:,4)')
-\end{lstlisting}
-\end{matlab}
 So, for example, to produce one extra unit of agriculture output we need to input .4 units of agriculture, .04 units of textiles and .08 units of construction.
 
 \begin{table}
@@ -61,10 +53,10 @@ Where $X$ is the output vector of our economy (the output of each industry) and 
 \[
 D = (I-C)X
 \]
-Now we have a simple relation between demand and production. We can accordingly use the backslash command to predict how changes in demand will affect overall production.
+Now we have a simple relation between demand and production. We can accordingly use \li{linalg.solve()} to predict how changes in demand will affect overall production.
 
 \begin{problem}
-What are the demand levels for the three product economy? This can be solved for either using backslash and the coefficient matrix or by directly using the raw data.
+What are the demand levels for the three product economy? This can be solved for either using the \li{linalg.solve()} function and the coefficient matrix or by directly using the raw data.
 \end{problem}
 
 \begin{problem}
@@ -72,14 +64,10 @@ If demand for construction increases by fifty percent what will the output vecto
 \end{problem}
 
 \begin{problem}
-\begin{matlab}
-The file \li{WashingtonIOData.txt} contains the raw input output data for the state of Washington in the year 2002. Import the data using the \li{uiimport} command. You can then obtain the raw input output data in the form that we present above using the command: \li{IO = data(1:50,[1:50 60]);}. The source of this file is the file \li{io2002table.xls}, and you can find the industry corresponding to each column using that file.
-\end{matlab}
-\begin{python}
+The file \li{WashingtonIOData.txt} contains the raw input output data for the state of Washington in the year 2002. Import the data using the \li{sp.genfromtxt()} command. You can then obtain the raw input output data in the form that we present above using the command: \li{IO = data[0:50,sp.concantenate((sp.arange(0:50) ,[58]))]}. The source of this file is the file \li{io2002table.xls}, and you can find the industry corresponding to each column using that file.
  %Unknown how to import xls into pylab. Should be simple though, with a bit of tinkering
-\end{python}
 
-Find the output vector if the demand for construction increases by ten percent. This will require first finding the initial demand vector, and then increasing the correct entry by ten percent and using backslash to find the new output vector.
+Find the output vector if the demand for construction increases by ten percent. This will require first finding the initial demand vector, and then increasing the correct entry by ten percent and using \li{linalg.lstsq()} to find the new output vector.
 \end{problem}
 
 This method can be used to model economies of almost any scale. One of the primary limitations is that this model assumes that production varies linearly in its inputs, which may not be realistic.

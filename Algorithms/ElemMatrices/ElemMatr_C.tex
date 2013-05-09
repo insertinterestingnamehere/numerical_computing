@@ -1,4 +1,4 @@
-\lab{Algorithms}{Elementary Matrices}{Elementary Matrices}
+\lab{Algorithms}{RREF/Elementary Matrices}{RREF/Elementary Matrices}
 \label{lab:LUdecomp}
 \objective{In this section we will use elementary matrices to find the RREF and to find the LU decomposition.}
 
@@ -29,20 +29,6 @@ a_{31}&a_{32}&a_{33}&a_{34}
 \end{pmatrix}.
 \]
 E in this case is called a type I matrix.
-\begin{matlab}
-A MATLAB function that creates this elementary matrix is
-\begin{lstlisting}[style=matlab]
-function out = type1m(n,j,k)
-%
-% Type I Elementary Matrix
-%
-out = eye(n); 
-out(j,j)=0; 
-out(k,k)=0; 
-out(k,j)=1; 
-out(j,k)=1;
-\end{lstlisting}
-\end{matlab}
 
 Now let's examine the next row operation.  If we want to multiply,
 say, the second row of $A$ by the constant $b$, we can left multiply
@@ -64,17 +50,6 @@ a_{31}&a_{32}&a_{33}&a_{34}
 \end{pmatrix}.
 \]
 $\tilde{E}$ is called a type II matrix.  
-\begin{matlab}
-The MATLAB code that creates a type II matrix is
-\begin{lstlisting}[style=matlab]
-function out = type2m(n,j,a)
-%
-% Type II Elementary Matrix
-%
-out = eye(n); 
-out(j,j)=a;
-\end{lstlisting}
-\end{matlab}
 
 Now let's examine the last row operation.  If we want to multiply,
 say, the first row of $A$ by a constant $c$ and add it to the second
@@ -96,22 +71,9 @@ a_{31}&a_{32}&a_{33}&a_{34}
 \end{pmatrix}.
 \]
 $\widehat{E}$ is called a type III matrix.
-\begin{matlab}
-The MATLAB function that creates this elementary matrix is
-\begin{lstlisting}[style=matlab]
-function out = type3m(n,j,k,c)
-%
-% Type III Elementary Matrix
-%
-out = eye(n); 
-out(j,k)=c;
-\end{lstlisting}
-\end{matlab}
 
-\begin{python}
 Below, the elementary matrices corresponding to each row operation is implemented in Python.
 \lstinputlisting[style=python, style=fromfile, name=row_opers.py]{row_opers.py}
-\end{python}
 
 \section*{Programming Row Reduction}
 
@@ -127,18 +89,8 @@ A fundamental problem in linear algebra is using matrix representations to solve
 
 By iteratively left multiplying by elementary matrices, we can reduce as follows:
 
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> A = [4 5 6 3; 2 4 6 4; 7 8 0 5]
->> B = type3m(3,2,1,-A(2,1)/A(1,1)) * A
->> C = type3m(3,3,1,-B(3,1)/B(1,1)) * B
->> D = type3m(3,3,2,-C(3,2)/C(2,2)) * C
-\end{lstlisting}
-\end{matlab}
-
-\begin{python}
 Remember that our functions returns the elementary array corresponding to the desired row operation.  Also note that setting the type of our initial array is crucial.
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : import scipy as sp
 : import row_opers as op
 : A = sp.array([[4, 5, 6, 3],[2, 4, 6, 4],[7, 8, 0, 5]], dtype='float32')
@@ -158,7 +110,6 @@ array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  1.5,  3. ,  2.5],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
-\end{python}
 
 To complete REF we would need to divide each row by its leading
 coefficient.  We can do that using Type II matrices.  We leave it to
@@ -166,29 +117,16 @@ you to carry this out.
 
 \begin{problem}
 \label{prob:REF}
-Write a \ProgrammingLanguage function, which takes as input an
-$n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) and performs the above naive row reduction to REF using elementary matrices.
+Write a Python function, which takes as input an
+$n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) and performs the above naive row reduction to REF using elementary matrices. (You do not need to worry about underdetermined matrices or getting zeros on the main diagonal)
 \end{problem}
 
 \section*{LU Decomposition}
 
-Again, consider the matrix $A$. By iteratively left multiplying by
+Again, consider the matrix $A$. By iteratively left multiplying by Type 3
 elementary matrices, we reduce as follows:
 
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> A = [4 5 6 3; 2 4 6 4; 7 8 0 5]
->> E1 = type3m(3,2,1,-A(2,1)/A(1,1))
->> B = E1 * A
->> E2 = type3m(3,3,1,-B(3,1)/B(1,1))
->> C = E2 * B
->> E3 =  type3m(3,3,2,-C(3,2)/C(2,2))
->> U = E3 * C
-\end{lstlisting}
-\end{matlab}
-
-\begin{python}
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : E1 = op.cmultadd(3,1,0,-A[1,0]/A[0,0]); E1
 array([[ 1. ,  0. ,  0. ],
        [-0.5,  1. ,  0. ],
@@ -205,7 +143,6 @@ array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  1.5,  3. ,  2.5],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
-\end{python}
 Note that we have reduced the above matrix into upper-triangular
 form, denoted as $U$.  Hence, we have
 \[
@@ -224,16 +161,7 @@ Then we define $L$ to be
 L = E_1^{-1} E_2^{-1} E_3^{-1},
 \]
 which yields $L U = A$.  
-\begin{matlab}
-We carry this out in MATLAB:
-\begin{lstlisting}[style=matlab]
->> L = inv(E1) * inv(E2) * inv(E3)
->> L * U
-\end{lstlisting}
-\end{matlab}
-
-\begin{python}
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : from scipy import linalg as la
 : I = lambda x: la.inv(x)
 : L = sp.dot(sp.dot(I(E1), I(E2)), I(E3)); L
@@ -245,18 +173,10 @@ array([[ 4.,  5.,  6.,  3.],
        [ 2.,  4.,  6.,  4.],
        [ 7.,  8.,  0.,  5.]])
 \end{lstlisting}
-\end{python}
 What makes $LU$ decomposition so easy is that the inverses of
 elementary matrices are elementary matrices.  For example, the
 inverse of a Type 3 elementary matrix is the same matrix with the
 opposite sign in the $(j,k)$ entry.  In the above problem, we have:
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> L = type3m(3,2,1,A(2,1)/A(1,1)) * ...
-       type3m(3,3,1,B(3,1)/B(1,1)) * ...
-       type3m(3,3,2,C(3,2)/C(2,2))
-\end{lstlisting}
-\end{matlab}
 Note that the minus signs are gone.  Doing it this way, we don't
 have to actually invert anything to compute $L$.  This makes the
 computation much faster.
@@ -274,7 +194,7 @@ for the following reasons:
 
 \begin{problem}
 \label{prob:LU}
-Write a \ProgrammingLanguage function which takes as input
+Write a Python function which takes as input
 a random $n\times n$ matrix, performs the LU decomposition and
 returns $L$ and $U$.  To verify that it works, multiply $L$ and $U$ together
 and compare to $A$. Note: you should not use the \li{inv} function when you do this. You should only use the elementary matrices that we just created.
@@ -283,5 +203,5 @@ Additionally, have your function count the number of operations needed to perfor
 
 \begin{problem}
 \label{prob:det}
-Write a \ProgrammingLanguage function which uses the solution to Problem \ref{prob:LU} to find the determinant of $A$.
+Write a Python function which uses the solution to Problem \ref{prob:LU} to find the determinant of $A$.
 \end{problem}

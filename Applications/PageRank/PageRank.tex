@@ -3,7 +3,7 @@
 
 \objective{Explain the basics of the PageRank Algorithm, and some of its applications}
 
-The PageRank Algorithm is core algorithm used by Google to classify search results. It is based upon an interesting mathematical model that involves random processes, Markov chains and eigenvalues. It ranks pages webpages based upon their connectivity properties with the rest of the web. When you make a query on Google's webpage they find every webpage that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
+The PageRank Algorithm is a core algorithm used by Google to classify search results. It is based upon an interesting mathematical model that involves random processes, Markov chains and eigenvalues. It ranks pages webpages based upon their connectivity properties with the rest of the web. When you make a query on Google's webpage they find every webpage that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
 
 The PageRank Algorithm works by supposing that a person surfing the internet randomly clicks links on the webpages. We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$. We can write an equation for this probability from one time step to the next using the following notation:
 \[
@@ -37,7 +37,7 @@ We can write $K$ neatly as follows:
 K = (B^{-1}A)^T
 \]
 
-Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the outdegree of each vertex\begin{matlab} (i.e. \li{diag(sum(A'))})\end{matlab}. Recall that we have to modify our graph so that any page without outbound links points to every other page, otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
+Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the outdegree of each vertex. Recall that we have to modify our graph so that any page without outbound links points to every other page, otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
 
 There are several ways to solve for $\lim_{t \to \infty} R(t)$. One option is simply iterate the equation until $\norm{R(t)-R(t-1)}$ is sufficiently small. Another option is to instead assume a steady state (i.e. $R(t) = R(t-1)$) giving the equation:
 \[
@@ -60,23 +60,12 @@ This algorithm has been used in several settings (primarily in academia). For ex
 
 Let's try implementing the PageRank algorithm on a small subset of the internet. The file \li{internet.dat} contains the connections between webpages on all of the websites supported by Notre Dame University in the year 1999 ({\bf We might need permission to use this file...also need a link}). We can load this data to a sparse matrix using the following:
 
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
-load internet.dat;
-internet(:,1:2) = internet(:,1:2) + 1;
-A = spconvert(internet);
-\end{lstlisting}
 
-The second line is necessary because the numbering of webpages started at $0$ instead of $1$ in the original data file. The \li{spy} command of this adjacency matrix yields the plot shown in figure \ref{Fig:WebSparse}
-\end{matlab}
-
-\begin{python}
 \begin{lstlisting}[style=python]
 : internet = sp.load("internet.npy")
 : A = spconvert(internet)
 \end{lstlisting}
 The \li{matplotlib.pyplot.spy} command of this adjacency matrix yields the plot shown in figure \ref{Fig:WebSparse}
-\end{python}
 
 
 \begin{figure}

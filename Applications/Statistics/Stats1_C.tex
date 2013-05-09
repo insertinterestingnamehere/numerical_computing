@@ -1,7 +1,7 @@
-\lab{Applications}{Linear Algebra in Statistics}{Statistics}
+\lab{Applications}{Correlation and Covariance (Stats1)}{Correlation and Covariance}
 \label{Stats1}
 
-\objective{This section will teach about using \ProgrammingLanguage~to solve problems in statistics. This will include finding means, correlation matrices, and solving least squares problems.}
+\objective{This section will teach about using Python to solve problems in statistics. This will include finding means, correlation matrices, and solving least squares problems. Also understand and implement the Cholesky Decomposition.}
 
 \section*{Shifting Data by the Mean}
 
@@ -27,25 +27,7 @@ Average  & 72 & 78 & 73 & 70\\
 \end{center}
 \end{figure}
 
-We can shift our data set by subtracting each column by its average value.  This makes it so that the average of each column in the matrix below is zero.  If $W$ represents the matrix of scores, the following \ProgrammingLanguage command will subtract out the average.  Why does this work?
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> X = W - ones(7,1)*mean(W)
-\end{lstlisting}
-\[
-X=
-\begin{bmatrix}
-17 & 13 & 4 & 5 \\
--5 & -6 & 3 & -4 \\
-0 & -1 & -4 & 0 \\
--16 & -18 & -18 & -9 \\
-20 & 20 & 16 & 16 \\
-11 & 10 & 17 & 14 \\
--27 & -18 & -18 & -22.
-\end{bmatrix}
-\]
-\end{matlab}
-\begin{python}
+We can shift our data set by subtracting each column by its average value.  This makes it so that the average of each column in the matrix below is zero.  If $W$ represents the matrix of scores, the following Python command will subtract out the average.  Why does this work?
 \begin{lstlisting}[style=python]
 :X = W - sp.dot(sp.ones((7,1),dtype=sp.float_),sp.mean(W,axis=0).reshape(1,4));X
 array([[ 17.,  13.,   4.,   5.],
@@ -56,7 +38,7 @@ array([[ 17.,  13.,   4.,   5.],
        [ 11.,  10.,  17.,  14.],
        [-27., -18., -18., -22.]])
 \end{lstlisting}
-\end{python}
+
 
 \section*{Angles Between Vectors}
 
@@ -73,12 +55,6 @@ Alternatively, if we can first divide our vectors by their length (these are cal
 \cos{\theta} = \left\langle\frac{x}{\norm{x}},\frac{y}{\norm{y}}\right\rangle
 \]
 Hence, we can find the cosine of the angles between our data columns in $X$ by dividing each column by its length.  There are a couple of ways of doing this.  The following is an interesting way of doing it.  Be sure to explore why it works:
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> Y = X ./ (ones(7,1)*sqrt(diag(X'*X)).')
-\end{lstlisting}
-\end{matlab}
-\begin{python}
 \begin{lstlisting}[style=python]
 : Y = X / sp.dot(sp.ones((7,1),dtype=sp.float_),sp.sqrt(sp.diag(sp.dot(X.T,X)).T).reshape(1,4));Y
 array([[ 0.39848615,  0.35329218,  0.11386819,  0.15371887],
@@ -89,7 +65,6 @@ array([[ 0.39848615,  0.35329218,  0.11386819,  0.15371887],
        [ 0.25784398,  0.27176321,  0.4839398 ,  0.43041282],
        [-0.63288976, -0.48917378, -0.51240685, -0.67636301]])
 \end{lstlisting}
-\end{python}
 Hence we have:
 \[
 Y=
@@ -103,13 +78,7 @@ Y=
 -0.6329 & -0.4892 & -0.5124 & -0.6764
 \end{bmatrix}
 \]
-Finally, we get the cosines of the angles between columns by computing $Y^T Y$.  In \ProgrammingLanguage, that's just
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> Y'*Y
-\end{lstlisting}
-\end{matlab}
-\begin{python}
+Finally, we get the cosines of the angles between columns by computing $Y^T Y$.  In Python, that's just
 \begin{lstlisting}[style=python]
 : sp.dot(Y.T,Y)
 array([[ 1.        ,  0.97782999,  0.89014869,  0.94908967],
@@ -117,7 +86,6 @@ array([[ 1.        ,  0.97782999,  0.89014869,  0.94908967],
        [ 0.89014869,  0.90978843,  1.        ,  0.9276955 ],
        [ 0.94908967,  0.92490144,  0.9276955 ,  1.        ]])
 \end{lstlisting}
-\end{python}
 This yields
 \[
 Y^T Y = 
@@ -147,14 +115,8 @@ The notion of correlation is important in establishing the relationships between
 Download the file lab8.txt from the following link:
 \url{http://www.math.byu.edu/~jeffh/teaching/m343h/lab8.txt}
 You can load this datafile by typing
-\begin{matlab}
-\li{load lab8.txt}
-Note that the data is available in the matrix \li{lab8}.  This consists of two columns.  Find the correlation coefficient of the two columns.  Then plot the original data and see if the value that you got is reasonable.
-\end{matlab}
-\begin{python}
 \li{lab8 = sp.genfromtxt("lab8.txt")}
 The data is now available in the array \li{lab8} (also, make sure Python is working in the directory of lab8.txt).  \li{lab8} consists of two columns.  Find the correlation coefficient of the two columns.  Then plot the original data and see if the value that you got is reasonable.
-\end{python}
 \end{problem}
 
 \section*{Least Squares}
@@ -200,45 +162,24 @@ To find the spring constant $k$, we simply need to solve the following linear sy
 21.12\\
 \end{pmatrix}.
 \]
-However, there is no solution to this system because it is overdetermined.  Instead, we seek the ``best'' $k$ that fits the data.  Least squares (which we mentioned in a previous exercise) allows us to find that ``best'' solution. We can find the least squares solution by computing the following in \ProgrammingLanguage:
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> A = [1.04;2.03;2.95;3.92;5.06;6.00;7.07];
->> b = [3.11;6.01;9.07;11.99;15.02;17.91;21.12];
->> k = inv(A'*A)*A'*b
-\end{lstlisting}
-\end{matlab}
-\begin{python}
+However, there is no solution to this system because it is overdetermined.  Instead, we seek the ``best'' $k$ that fits the data.  Least squares (which we mentioned in a previous exercise) allows us to find that ``best'' solution. We can find the least squares solution by computing the following in Python:
 \begin{lstlisting}[style=python]
-: A = sp.array([[1.04],[2.03],[2.95],[3.92],[5.06],[6.00],[7.07]])
-: b = sp.array([[3.11],[6.01],[9.07],[11.99],[15.02],[17.91],[21.12]])
+: A = sp.vstack([1.04,2.03,2.95,3.92,5.06,6.00,7.07])
+: b = sp.vstack([3.11,6.01,9.07,11.99,15.02,17.91,21.12])
 : k = sp.dot(sp.dot(la.inv(sp.dot(A.T,A)),A.T),b);k
+: # Using the built in least squares function this is just: k=la.lstsq(A,b);k
 array([[ 2.99568294]])
 \end{lstlisting}
-\end{python}
 Hence, we find the spring constant to be $k = 2.9957$.  We plot the data against the best fit as follows:
 \begin{figure}[h!]
 \label{fig1}
 \begin{center}
-\begin{matlab}
-\includegraphics[scale = .6]{./FiguresMAT/lab9_line}
-\end{matlab}
-\begin{python}
-\includegraphics[scale = .6]{./Figures/lab9_line_py}
-\end{python}
+\includegraphics[scale = .6]{lab9_line_py}
 \caption{The graph of the spring data together with its linear fit}
 \label{Fig:SpringFit}
 \end{center}
 \end{figure}
 
-\begin{matlab}
-\begin{lstlisting}[style=matlab]
->> x0 = linspace(0,8,100);
->> y0 = k*x0;
->> plot(A,b,'*',x0,y0)
-\end{lstlisting}
-\end{matlab}
-\begin{python}
 \begin{lstlisting}[style=python]
 : x0 = sp.linspace(0,8,100)
 : y0 = k[0]*x0
@@ -246,7 +187,6 @@ Hence, we find the spring constant to be $k = 2.9957$.  We plot the data against
 : plt.plot(A,b,'*',x0,y0)
 : plt.show()
 \end{lstlisting}
-\end{python}
 See Figure \ref{Fig:SpringFit} to see how well the line fits the data.
 
 
@@ -280,13 +220,66 @@ Note that $A$ has rank $2$ as long as not all of the $x_k$ values are the same. 
 Download the file lab9.txt from the following link:
 \url{http://www.math.byu.edu/~jeffh/teaching/m343h/lab9.txt}
 You can load this datafile by typing
-\begin{matlab}
-\li{load lab9.txt}
-Note that the data is available in the matrix \li{lab9}.
-\end{matlab}
-\begin{python}
 \li{lab9 = sp.genfromtxt("lab9.txt")}
 Now the data is available in the array \li{lab9}.
-\end{python}
 This consists of two columns corresponding to the $x$ and $y$ values of a given data set.  Use least squares to find the slope and $y$-intercept that best fits the data.  Then plot the data points and the line on the same graph.  Finish off the problem with a discussion of what you've learned.
 \end{problem}
+
+\section*{The Cholesky Decomposition}
+
+For certain circumstances, we have a more efficient alternative to the LU decomposition.  The Cholesky decomposition requires half the number of calculations and half the memory that the standard LU decomposition needs.  Furthermore, it is a numerically stable decomposition, which makes it all the more useful.  Because of the efficiency and numerical stability, Cholesky decomposition is used in solving least squares, optimization, and state estimation problems.  The Cholesky decomposition, however, is only applicable for positive definite matrices (symmetric matrices with strictly positive eigenvalues).  In fact, the Cholesky decomposition is an efficient way to test if a matrix is positive definite.  The Cholesky decomposition of a positive definite matrix is unique.  Think of the Cholesky decomposition as the matrix equivalent taking the square root of a positive real number.
+
+The Cholesky decomposition of a $A$ is an lower-triangular matrix, $L$, such that
+\begin{equation*}
+ A = LL^H
+\end{equation*}
+
+where the entries of $L$ are calculated as follows.
+\begin{align*}
+&L_{i,j} = \frac{1}{L_{j,j}}\left(A_{i,j} -\sum_{k=1}^{j-1}{L_{i,k}L_{j,k}^*}\right) \mbox{ for $i>j$} \\ \\
+&L_{i,i} = \sqrt{A_{i,i} - \sum_{k=1}^{i-1}{L_{i,k}L_{i,k}^*}}
+\end{align*}
+where $L^*$ denotes the conjugate transpose of $L$.
+
+This is an iterative process where the current calculation may depend on previous calculations.  To calculate $L$ properly, you must start in the upper left corner and iterate down.
+
+
+\begin{problem}
+Write your own implementation of the Cholesky decomposition. Test it using a random symmetric matrix (build a random square matrix $A$, then $A^TA$ will be positive definite). Check the output of your function to ensure that it is functioning properly.
+\end{problem}
+
+A classical way of solving the least squares problem is to use the Cholesky decomposition, thus reducing the problem to 
+\begin{equation*}
+ L^HLx=A^Hb
+\end{equation*}
+where $L$ is the Cholesky decomposition of $A^HA$.\\
+The method to do this is as follows:
+\begin{enumerate}
+\item[1.] Form the matrix $A^HA$ and the vector $A^Hb$.
+\item[2.] Compute the Cholesky factorization $A^HA=L^HL$.
+\item[3.] Solve the lower-triangular system $L^Hw=A^Hb$ for $w$.
+\item[4.] Solve the upper-triangular system $Lx=w$ for $x$.
+\end{enumerate}
+
+
+
+\begin{comment}
+algorithm taken from Trefethen, Numerical Linear Algebra pg. 82
+\end{comment}
+
+
+\begin{problem}
+Use your implementation of Cholesky decomposition to solve problem 2.
+\end{problem}
+
+
+
+\begin{comment}
+\begin{problem}
+Compare how your Cholesky decomposition performs against your LU decomposition from Lab \ref{lab:LUdecomp}.  Perform the following comparisons by decomposing increasingly large positive definite matrices.  Plot the comparison results.
+\begin{itemize}
+ \item Runtime: Time how long each decomposition needs to decompose the input matrix.
+ \item Operations: Count the number of operations needed to compute each decomposition.  This can be done by adding a line in the loop to count each time an operation occurs.
+\end{itemize}
+\end{problem}
+\end{comment}
