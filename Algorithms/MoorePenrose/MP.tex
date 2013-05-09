@@ -89,7 +89,7 @@ How do the performances compare?
 \end{problem}
 
 \begin{problem}
-{\bf Continuity of the pseudo-inverse:} This problem demonstrates why the pseudo-inverse is not generally a continous operation. Create a random $5 \times 5$ matrix $A$, and find its SVD using the code:
+{\bf Continuity of the pseudo-inverse:} This problem demonstrates why the pseudo-inverse is not generally a continuous operation. Create a random $5 \times 5$ matrix $A$, and find its SVD using the code:
 %should we use 'econ' here? I haven't read whatever section that comes from
 \begin{lstlisting}
 U,s,Vh = la.svd(A,full_matrices=False)
@@ -103,13 +103,13 @@ Set the bottom right entry of $S$ to zero, and then set $A = U*S*V'$. Now set $S
 
 The SVD is a powerful tool for calculating the pseudo-inverse. However, for large matrices it can be costly to calculate the SVD. Accordingly, there are several other methods for calculating the pseudo-inverse of a matrix.
 
-One method is an iterative approach established by Ben-Israel and Cohen\footnote{Ben-Israel, Adi; Cohen, Dan (1966). "On Iterative Computation of Generalized Inverses and Associated Projections". SIAM Journal on Numerical Analysis 3: 410–419.}. This method uses the recursive sequence
+One method is an iterative approach established by Ben-Israel and Cohen\footnote{Ben-Israel, Adi; Cohen, Dan (1966). ``On Iterative Computation of Generalized Inverses and Associated Projections''. SIAM Journal on Numerical Analysis 3: 410–419.}. This method uses the recursive sequence
 
 \[
 A_{i+1} = 2A_i - A_i A A_i
 \]
 
-With $A_0$ satisfying the equation $A_0 A = (A_0 A)^*$. The convergence of this sequence eventually becomes quadractic, which is a very desirable property. The simplest choice for $A_0$ is $\alpha A^*$, with $0 < \alpha < 2/\sigma_1^2(A)$, where $\sigma_1$ denotes the largest singular value (the condition on $\alpha$ is a technical condition established in the original paper to guarantee fast convergence).
+With $A_0$ satisfying the equation $A_0 A = (A_0 A)^*$. The convergence of this sequence eventually becomes quadratic, which is a very desirable property. The simplest choice for $A_0$ is $\alpha A^*$, with $0 < \alpha < 2/\sigma_1^2(A)$, where $\sigma_1$ denotes the largest singular value (the condition on $\alpha$ is a technical condition established in the original paper to guarantee fast convergence).
 
 One tricky part of developing this method is finding an appropriate $\alpha$. We don't want to waste much time calculating $\sigma_1$. Luckily there is an easy equivalence that we can leverage:
 
@@ -142,10 +142,10 @@ The implementation we wrote above is naive in a few ways. Make the following thr
 \item If $A$ isn't close to square then it is not advantageous to use at all, as we explained above. Adapt the code to only use \li{eigs} as you think it's appropriate. Remember that you can use the matrix $2$-norm and a constant like $1.1$ in cases where  isn't appropriate.
 \end{itemize}
 
-Now test your code against the svd method, using the same cases that you did for that method. How does it perform?
+Now test your code against the SVD method, using the same cases that you did for that method. How does it perform?
 \end{problem}
 
-It should be noted that this method, although powerful, sometimes performs worse than the svd method. Specifically, when the matrix is ill-conditioned, it may take a long time for the sequence to enter the region of quadratic convergence, making this method a poor choice.
+It should be noted that this method, although powerful, sometimes performs worse than the SVD method. Specifically, when the matrix is ill-conditioned, it may take a long time for the sequence to enter the region of quadratic convergence, making this method a poor choice.
 
 \subsection*{The QR method}
 
@@ -154,7 +154,7 @@ This final method, while only applicable in certain cases, offers a very fast me
 A^\dagger = (A^* A)^{-1} A^*
 \]
 
-Direct calculation of the pseudo-inverse using this formula is not very helpful, since matrix inversion is so costly. However, since $A$ is full rank, then $A^*A$ is positive definite, and thus has a cholesky decomposition. Therefore, we can rewrite this equation as:
+Direct calculation of the pseudo-inverse using this formula is not very helpful, since matrix inversion is so costly. However, since $A$ is full rank, then $A^*A$ is positive definite, and thus has a Cholesky decomposition. Therefore, we can rewrite this equation as:
 
 \[
 R^*R A^\dagger = A^*
@@ -168,7 +168,7 @@ We can speed calculation even further by noting that we don't even have to calcu
 A^* A = R^*Q^*QR = R^* R
 \]
 
-These equalities hold since $Q$ is orthogonal. Further, in the QR decomposition $R$ is upper-triangular, and thus we can calculate the cholesky factorization easily using the QR decomposition.
+These equalities hold since $Q$ is orthogonal. Further, in the QR decomposition $R$ is upper-triangular, and thus we can calculate the Cholesky factorization easily using the QR decomposition.
 
 Combining these facts we can write the following code to calculate the pseudo-inverse for a matrix that has full column rank as follows:
 
@@ -183,7 +183,7 @@ The first line performs QR decomposition for $R$. The second line conducts the b
 
 \begin{problem}
 %This Problem did not exactly work in Python, my function was slower when A was square when using la.lstsq
-Compare the run-time of this code against SciPy's \li{la.pinv}, for the values used in the other problems. Also, make sure to use a non-square matrix for A, or for square matricies change the \li{la.lstsq}'s to \li{la.solve}'s to maximize performance.  How does it compare? It should be a lot faster. This demonstrates that by leveraging the correct information (full column rank) we can significantly improve the speed of this operation. Note that we can beat SciPy's own implementation significantly in this case.
+Compare the run-time of this code against SciPy's \li{la.pinv}, for the values used in the other problems. Also, make sure to use a non-square matrix for A, or for square matrices change the \li{la.lstsq}'s to \li{la.solve}'s to maximize performance.  How does it compare? It should be a lot faster. This demonstrates that by leveraging the correct information (full column rank) we can significantly improve the speed of this operation. Note that we can beat SciPy's own implementation significantly in this case.
 
 \end{problem}
 
