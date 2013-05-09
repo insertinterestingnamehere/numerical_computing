@@ -1,0 +1,66 @@
+\lab{Algorithms}{CDHMM Generation}{CDHMM Generation}
+
+\objective{Understand the formulation of Continuous Density Hidden Markov Models and how to simulate from them.}
+
+Some of the most powerful applications of HMMs (speech and voice recognition) result from allowing the observation space to be continuous instead of discrete.  These are called Continuous Density Hidden Markov Models (CDHMMs), and they have two standard formulations: Gaussian HMMs and Gaussian Mixture Model HMMs (GMMHMMs).
+
+In a Gaussian HMM, there is a fixed value $K$ being the length of each continuous observation vector, and associated with each state $i$ is a multivariate normal distribution, hence parameters $\mathbf{\mu}_{i}$ and $\mathbf{\Sigma}_{i}$, of length $K$ and size $K \times K$ respectively. The initial state distribution $\mathbf{\pi}$ and the transition probability matrix $A$ remain the same. State transitions occur just as normal, but instead of drawing discrete observations from a categorical distribution, we draw a continuous observation from a multivariate normal distribution.
+
+Let's define a full Gaussian HMM with $2$ states, and $K=3$:
+
+\begin{lstlisting}[style=python]
+: import scipy as sp
+: A = sp.array([[.65, .35],
+                [.15, .85]])
+: pi = sp.array([.8, .2])
+: mu1 = sp.array([0., 17., -4.])
+: mu2 = sp.array([-5., 3., 23.])
+: means = sp.rowstack((mu1, mu2))
+: sigma1 = sp.eye(3)*5
+: sigma2 = sp.eye(3)*10
+: covars = sp.array([sigma1, sigma2])
+: gaussianhmm = [A, means, covars, pi]
+\end{lstlisting}
+
+We can draw a random sample from the multivariate normal distribution corresponding to the first state as follows:
+
+\begin{lstlisting}[style=python]
+: sample = sp.random.multivariate_normal(means[0,:], covars[0,:,:])
+\end{lstlisting}
+
+\begin{problem}
+Write a function which accepts a Gaussian HMM in the format above, as well as an integer $n\_sim$, and simulates the GaussianHMM process, generating $n\_sim$ different observations. It should return an array of states and a matrix, each row of which is an observation. Note that the length of the state array should be the same as the number of rows in the observation matrix. Draw $100$ samples from the Gaussian HMM defined above.
+\end{problem}
+
+In a GMMHMM, there is again a fixed value $K$ being the length of each continuous observation vector, but associated with each state $i$ is a Gaussian Mixture Model (GMM), each with $M$ components, hence having nonnegative weights $c_{ij}$ summing to $1$, means $\mathbf{\mu}_{ij}$ and covariances $\mathbf{\Sigma}_{ij}$, for $1 \leq j \leq M$. Thus, when generating an observation from state $i$, we first draw a component $j$ from the categorical distribution $c_{i}$, and then we draw an observation from the multivariate normal distribution with mean $\mathbf{\mu}_{ij}$ and covariance $\mathbf{\Sigma}_{ij}$.
+
+Let's define a full Gaussian HMM with $2$ states, $K = 3$, and $3$ components, leaving $A$ and $\mathbf{\pi}$ as before.
+
+\begin{lstlisting}[style=python]
+: components = sp.array([[.7, .2, .1],
+                         [.1, .5, .4]])
+: means1 = sp.array([[0., 17., -4.],
+                     [5., -12., -8.],
+                     [-16., 22., 2.]])
+: means2 = sp.array([[-5., 3., 23.],
+                     [-12., -2., 14.],
+                     [15., -32., 0.]])
+: means = sp.array([means1, means2])
+: covars1 = sp.array([sp.eye(3)*5, sp.eye(3)*7, sp.eye(3)])
+: covars2 = sp.array([sp.eye(3)*10, sp.eye(3)*3, sp.eye(3)*4])
+: covars = sp.array([covars1, covars2])
+: gmmhmm = [A, components, means, covars, pi]
+\end{lstlisting}
+
+We can draw a random sample from the Gaussian Mixture Model corresponding to the second state as follows:
+
+\begin{lstlisting}[style=python]
+: sample_component = int(sp.argmax(sp.random.multinomial(1, components[1,:])))
+: sample = sp.random.multivariate_normal(means[1, sample_component, :], covars[1, sample_component, :, :])
+\end{lstlisting}
+
+\begin{problem}
+Write a function which accepts a GMMHMM in the format above, as well as an integer $n\_sim$, and simulates the GMMHMM process, generating $n\_sim$ different observations. It should return an array of states, an array of components, and a matrix, each row of which is an observation. Note that the length of the state array, the length of the component array, and the number of rows in the observation matrix should all be equal. Draw $100$ samples from the GMMHMM defined above.
+\end{problem}
+
+The classic problems for discrete observation HMMs work as well with CDHMMs, though with continuous observations it is much more difficult to keep things numerically stable. We will not have you implement any of the three problems for CDHMMs yourself, but you will use a stable module we provide you in the next lab to train and score with CDHMMs.

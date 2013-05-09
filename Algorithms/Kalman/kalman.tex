@@ -1,0 +1,60 @@
+\lab{Algorithms}{Kalman Filter}{Kalman Filter}
+
+\objective{Understand how to implement the standard Kalman filter}
+
+Often measured observations experience significant noise, due to restrictions on measurement accuracy. For example, most commercial GPS devices can provide a good estimate of geolocation, but only within a dozen meters or so. A Kalman filter is an algorithm that attempts to smooth out the noise by coupling measured observations with known information about a system. 
+
+Continuing with the GPS example, suppose a truck driver has a GPS in his vehicle. If the driver is travelling North, the measured GPS coordinates will likely show the driver lurching 5 meters to the East or West at each iteration, but will generally show that he is also moving North. Because we know something about the laws of physics, we can smooth out these ``lurches'' by combining our measurements with basic Newtonian mechanics.
+
+The standard Kalman filter assumes that we have a linear dynamic system, where the state of the system evolves over time with some noise, and we receive noisy measurements about the state of the system at each iteration. More formally, letting $\mathbf{x}_{k}$ denote the state of the system at time $k$, we have
+$$\mathbf{x}_{k+1} = F_{k} \mathbf{x}_{k} + B_{k}\mathbf{u}_{k} + \mathbf{w}_{k}$$
+where $F_{k}$ is a state transition model, $B_{k}$ is a control-input model, $\mathbf{u}_{k}$ is a control vector, and $\mathbf{w}_{k}$ is the state noise present at iteration $k$. This noise is assumed to have zero mean and be drawn from a multivariate Gaussian distribution with covariance matrix $Q_{k}$. The control-input model and control vector allows the assumption that the state can be influenced by some other factor than the linear state transition model as well.
+
+We further assume that the states are ``hidden'' and we only get noisy observations 
+$$\mathbf{z}_{k} = H_{k}\mathbf{x}_{k} + \mathbf{v}_{k}$$ where $H_{k}$ is the observation model mapping the state space to the observation space, and $\mathbf{v}_{k}$ is the observation noise present at iteration $k$. We assume that this noise also has zero mean drawn from a multivariate Gaussian distribution with covariance matrix $R_{k}$. Note that $\mathbf{x}_{k}$ and $\mathbf{z}_{k}$ are vectors that do not have to have the same dimension, so in particular $H_{k}$ and $F_{k}$ do not have to have the same dimensions.
+
+Throughout this lab and the following lab, we will assume that the transition models, control vector, and noise covariances are constant, i.e. we will replace $F_{k}, \mathbf{u}_{k}, Q_{k},$ and $R_{k}$ with $F, \mathbf{u}, Q,$ and $R$ throughout. We will also assume that $B = I$ is the identity matrix, so it too can be ignored.
+
+\begin{problem}
+Write a function that accepts matrices $F, B, Q,$ and $R$, vectors $\mathbf{u}$ and $\mathbf{x}_{0}$, and an integer $n$, and evolves the linear dynamic system above $n$ iterations, using $\mathbf{x}_{0}$ as the initial state. It should return $n$ states and $n$ measured observations.
+\end{problem}
+
+The Kalman filter is a recursive estimator in that it smooths out the noise in real time, estimating each current state based on the past state estimate and the current measurement. This process is done by repeatedly invoking two steps: Predict and Update. The predict step is used to estimate the current state based on the previous state. The update step then combines this prediction with the measurement for the current state.
+
+To describe these steps in detail, we need additional notation. Let 
+\begin{itemize}
+	\item $\widehat{\mathbf{x}}_{n|m}$ be the state estimate at time $n$ given only measurements up through time $m$; and
+	\item $P_{n|m}$ be an error covariance matrix, measuring the estimated accuracy of the state at time $n$ given only measurements up through time $m$.
+\end{itemize}
+
+The two pieces $\widehat{\mathbf{x}}_{k|k}$ and $P_{k|k}$ represent the state of the filter at time $k$, being the state estimate and the accuracy of the estimate.
+
+We evolve the filter recursively, as follows:
+
+\begin{align*}
+\textbf{Predict} & & \widehat{\mathbf{x}}_{k|k-1} & = F\widehat{\mathbf{x}}_{k-1|k-1} + \mathbf{u} \\
+ & & P_{k|k-1} & = FP_{k-1|k-1}F^{T} + Q \\
+\textbf{Update} & & \tilde{\mathbf{y}}_{k} & = \mathbf{z}_{k} - H\widehat{\mathbf{x}}_{k|k-1} \\
+ & & S_{k} & = HP_{k|k-1}H^{T} + R \\
+ & & K_{k} & = P_{k|k-1}H^{T}S_{k}^{-1} \\
+ & & \widehat{\mathbf{x}}_{k|k} & = \widehat{\mathbf{x}}_{k|k-1} + K_{k}\tilde{\mathbf{y}}_{k} \\
+ & & P_{k|k} & = (I - K_{k}H)P_{k|k-1}
+\end{align*}
+
+\begin{problem}
+Write a function which given the system models, an initial state estimate $\widehat{\mathbf{x}}_{0|0}$, matrix $P_{0|0}$, and a sequence of observations $\mathbf{z}_{1}, \cdots, \mathbf{z}_{n}$, computes the state estimates for each iteration $1$ through $n$, using the above Predict-Update procedure. Your function should return a sequence of state estimates $\widehat{\mathbf{x}}_{1|1}, \cdots, \widehat{\mathbf{x}}_{n|n}$ as computed by the Kalman filter.
+\end{problem}
+
+In the absence of measurements, we can still infer some information about the state of the system at some future time. We can see this by recognizing that the expected state noise $\mathbb{E}\left[\mathbf{w}_{k}\right] = 0$ at any time $k$. Thus, given a current state estimate $\widehat{\mathbf{x}}_{n|m}$ using only measurements up through time $m$, the expected state at time $n+1$ is $$\widehat{\mathbf{x}}_{n+1|m} = F \widehat{\mathbf{x}}_{n|m} + \mathbf{u}.$$
+
+\begin{problem}
+Write a function which given a current state estimate $\widehat{\mathbf{x}}_{k|k}$ and the system models, predicts the state up through iteration $n+k$, in the absence of measured observations.
+\end{problem}
+
+In the absence of measurements, we can also reverse the system and iterate backward in time to infer information about states of the system prior to measured observations. The system is reversed by
+$$\mathbf{x}_{k} = F^{-1}\mathbf{x}_{k+1} - F^{-1}\mathbf{u} - F^{-1}\mathbf{w}_{k+1}.$$
+Considering again that $\mathbb{E}\left[\mathbf{w}_{k}\right] = 0$ at any time $k$, we can ignore this term, simplifying the recursive estimation backward in time.
+
+\begin{problem}
+Write a function which given a current state estimation $\widehat{\mathbf{x}}_{k|k}$ and the system models, rewinds the system to time $0$, returning state estimates for times $0$ through $k-1$.
+\end{problem}

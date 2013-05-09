@@ -1,0 +1,37 @@
+\lab{Applications}{English Language}{English Language}
+
+\objective{Understand how HMMs can be used in simple natural language processing.}
+
+Consider each letter in a document to be an observation emitted by an HMM with two states. For simplicity, we will make everything lowercase and consider only the $26$ lowercase letters in the English alphabet and spaces to be in our observation space. In this fashion, our HMM parameters will consist of a $2 \times 2$ transition matrix $A$, a $2 \times 27$ observation matrix $B$, and a vector $\mathbf{\pi}$ of length $2$.
+
+Given the matrix $B$, we might be able to infer some information about the two states. Note that
+\begin{align*}
+\mathbb{P}(\mathbf{x}_{t} = i | O_{t},\lambda) & = \frac{\mathbb{P}(\mathbf{x}_{t} = i, O_{t} | \lambda)}{\mathbb{P}(O_{t} | \lambda)} \\
+& = \frac{\mathbb{P}(O_{t} | \mathbf{x}_{t} = i, \lambda) \mathbb{P}(\mathbf{x}_{t} = i | \lambda)}{\mathbb{P}(O_{t} | \lambda)} \\
+& \propto \mathbb{P}(O_{t} | \mathbf{x}_{t} = i, \lambda) \mathbb{P}(\mathbf{x}_{t} = i| \lambda)
+\end{align*}
+
+The first term in the last expression is simply $b_{iO_{t}}$, so if we know something about the overall probability of the system being in state $i$ at an arbitrary time $t$, then we can have an idea of how likely a state is, given the associated observation. Recall that any irreducible, aperiodic Markov chain has a unique invariant distribution $\pi$ such that $$\lim_{t \rightarrow \infty} \mathbb{P}(\mathbf{x}_{t} = j | \mathbf{x}_{0} = i) = \pi_{j}$$ for \emph{any} initial state $i$. Note also that $\mathbb{P}(\mathbf{x}_{t} = j | \mathbf{x}_{0} = i) = (A^{t})_{ij}$ where $A$ is the row-stochastic transition matrix defining the Markov chain $\mathbf{X}$. While we could directly compute the invariant stationary distribution from a system of equations, we can easily estimate it by using any row of $A^{t}$, where $t$ is sufficiently large.
+
+\begin{problem}
+Pickle in the HMM contained in the file `englishHMM' which was trained on the US Constitution. Using the transition matrix $A$, estimate
+\begin{align*}
+\mathbb{P}(\mathbf{x} = 1 | \lambda) & = \pi_{1} \\
+\mathbb{P}(\mathbf{x} = 2 | \lambda) & = \pi_{2}
+\end{align*}
+by considering any row of $A^{10}$. Compute these probabilities directly with a system of equations. How close is your estimation?
+\end{problem}
+
+\begin{problem}
+Using the probabilities 
+\begin{align*}
+\mathbb{P}(\mathbf{x} = 1 | \lambda) & = \pi_{1} \\
+\mathbb{P}(\mathbf{x} = 2 | \lambda) & = \pi_{2}
+\end{align*}
+computed in the previous problem, compute the probability $\mathbb{P}(\mathbf{x}_{t} = i | O_{t})$ for $i = 1,2$ and $O_{t}$ in the $27$ character alphabet. Which characters are more likely to correspond with state $1$ and which with state $2$? What do you notice?
+\end{problem}
+It looks like a $2$-state HMM trained on English characters distinguishes clearly between vowels and consonants. But how clearly?
+
+\begin{problem}
+Parse the file `declaration.txt' containing the Declaration of Independence, removing all punctuation and making every letter lowercase. Estimate the state for each letter in the sequence using the HMM provided, i.e. using the HMM and your code from the previous lab, uncover the optimal hidden state sequence). Write another function to classify each letter as a vowel or a consonant, given your actual knowledge of the English language and considering spaces to be vowels. Compare this true classification with the estimated state classification. What is your misclassification rate? It should be quite low.
+\end{problem}
