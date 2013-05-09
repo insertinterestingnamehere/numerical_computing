@@ -10,8 +10,7 @@ def substlab(template, lab_path, lab_file):
         t = temp.readlines()
 
     i = t.index('%TEMPLATE_INSERT\n')
-
-    t.insert(i+1, '\\subimport{{{0}{2}}}{{{1}}}\n'.format(lab_path, lab_file, os.sep))
+    t.insert(i+1, '\\subimport{{{0}/}}{{{1}}}\n'.format(lab_path.replace('\\', '/'), lab_file))
     return t
 
 def getDirs(root):
@@ -25,7 +24,7 @@ def main(args):
     #get current working directory
     cwd = os.getcwd()
 
-    lab_path, lab_name = os.path.split(args.lab)
+    lab_path, lab_name = os.path.split(args.lab.strip())
     lab_path = os.path.relpath(lab_path, start=cwd)
     tmp_lab_path = os.path.join(tmp_dir, lab_path)
     
