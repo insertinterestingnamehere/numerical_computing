@@ -58,40 +58,13 @@ It is worth noting that this particular difference scheme is \textit{not} an acc
 As it turns out, this particular scheme is the solution to a sleightly different diffusion PDE, but can still be used the same way.
 
 For all of the examples here we have read in the image using the \li{scipy.misc.imread} function, and normalized it so that the colors are represented as floating point values between 0 and 1.
-
-\newpage
-\vfill
-\begin{figure}[ht]
-\begin{minipage}[b]{0.45\linewidth}
-\centering
-\includegraphics[width=\textwidth]{baloon_resized_bw.jpg}
-\caption*{original image}
-\end{minipage}
-\hspace{0.5cm}
-\begin{minipage}[b]{0.45\linewidth}
-\centering
-\includegraphics[width=\textwidth]{baloon_resized_bw_5.jpg}
-\caption*{after 5 iterations with $\sigma = .7$ and $\lambda = .2$}
-\end{minipage}
-\begin{minipage}[b]{0.45\linewidth}
-\centering
-\includegraphics[width=\textwidth]{baloon_resized_bw_20.jpg}
-\caption*{after 20 iterations}
-\end{minipage}
-\hspace{0.5cm}
-\begin{minipage}[b]{0.45\linewidth}
-\centering
-\includegraphics[width=\textwidth]{baloon_resized_bw_100.jpg}
-\caption*{after 100 iterations}
-\end{minipage}
-\end{figure}
-\vfill
-\clearpage
+An image can converted to black and white when it is read by including the argument \li{flatten=True}
 
 \begin{problem}
-Implement the above finite difference scheme.
+Implement the above finite difference scheme for black and white images.
 Leave the boundaries constant this time and just iterate over the interior of the image.
 You may use either of the two functions listed for $g$.
+One possible way to do these problems is to iterate over the array and operate in place.
 \end{problem}
 
 \begin{problem}
@@ -113,22 +86,13 @@ Do the other corners similarly.
 
 Essentially we are just using the terms of the difference scheme that are actually defined.
 
-Try running this scheme with $\lambda$ a little greater than $\frac{1}{4}$. What do you observe?
+You can do this by iterating over the image the normal way.
+A possibly better solution would be to operate on slices of a new version and an old version of the image and then update the image itself after each iteration.
+You will want to exploit the fact that the slices will all be viewing the same data.
+If you use the second approach, it would be wise to pre allocate all the temporary arrays you need and to do all the slicing outside of your primary loop.
+
+Try running this scheme with $\lambda$ a little larger than $\frac{1}{4}$. What do you observe?
 \end{problem}
-
-Colored images can be processed in a similar manner.
-Instead of being represented as a two-dimensional array, colored images are represented as three dimensional arrays.
-The third dimension is used to store the intensities of each of the standard 3 colors.
-This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|v_{l+1,m}^n - v_{l,m}|)$ as before, we will now use something of the form $g(||v_{l+1,m}^n - v_{l,m}||)$, where $v_{l+1,m}^n$ and $v_{l,m}$ are vectors now instead of scalars.
-The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
-\begin{equation*}
-\begin{split}
-v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n - v_{l,m}) + g(||v_{l+1,m}^n - v_{l,m}||)(v_{l+1,m}^n - v_{l,m}) \\
- &+ g(||v_{l,m-1} - v_{l,m}||)(v_{l,m-1} - v_{l,m}) + g(||v_{l,m+1} - v_{l,m}||)(v_{l,m+1} - v_{l,m}))
-\end{split}
-\end{equation*}
-
-When implementing this scheme for colored images, use the infinity norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
 
 \newpage
 \vfill
@@ -158,6 +122,20 @@ When implementing this scheme for colored images, use the infinity norm on 3-spa
 \end{figure}
 \vfill
 \clearpage
+
+Colored images can be processed in a similar manner.
+Instead of being represented as a two-dimensional array, colored images are represented as three dimensional arrays.
+The third dimension is used to store the intensities of each of the standard 3 colors.
+This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|v_{l+1,m}^n - v_{l,m}|)$ as before, we will now use something of the form $g(||v_{l+1,m}^n - v_{l,m}||)$, where $v_{l+1,m}^n$ and $v_{l,m}$ are vectors now instead of scalars.
+The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
+\begin{equation*}
+\begin{split}
+v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n - v_{l,m}) + g(||v_{l+1,m}^n - v_{l,m}||)(v_{l+1,m}^n - v_{l,m}) \\
+ &+ g(||v_{l,m-1} - v_{l,m}||)(v_{l,m-1} - v_{l,m}) + g(||v_{l,m+1} - v_{l,m}||)(v_{l,m+1} - v_{l,m}))
+\end{split}
+\end{equation*}
+
+When implementing this scheme for colored images, use the infinity norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
 
 \begin{problem}
 Make a new version of the code you wrote for the previous problem which processes a colored image.
@@ -196,7 +174,17 @@ This will make it so that points that neighbor points of similar value will not 
 This does not have the same symmetrical diffusion as the other scheme, i.e. if one pixel changes, it does not necessarily change its neighboring pixels by the same amount.
 As long as you leave $\lambda \leq \frac{1}{4}$ and you have scaled the pixels to have floating point values between 0 and 1, the scheme will still remain within its minimum and maximum bounds, since the tendency is always to move points closer to the values of their neighbors.
 To demonstrate the action of such a filter, we make changes to random pixels in the color version of the same photo and use both filters to remove the noise we have added.
-Here is an example where we have added noise to the color version of that same picture, then used a minimum-biased filter to diminish the noise and the original filter to smooth what remains.
+Below, we include an example where we have added noise to the color version of that same picture, then used a minimum-biased filter to diminish the noise and the original filter to smooth what remains.
+
+\begin{problem}
+Implement the minimum-biased finite difference scheme described above. 
+\end{problem}
+
+References:
+
+Perona, Pietro, and Jitendra Malik. "Scale-Space and Edge Detection Using Anisotropic Diffusion." IEE Transactions on Pattern Analysis and Machine Intelligence 12 (1990): 629-39. Web.
+
+Kim, Seongjai. "Edge-Preserving Noise Removal, Part I: Second Order Anisotropic Diffusion." University of Kentucky Department of Mathematics Technical Report (2009): n. pag. Web.
 
 \newpage
 \vfill
@@ -226,15 +214,3 @@ Here is an example where we have added noise to the color version of that same p
 \end{figure}
 \vfill
 \clearpage
-
-\begin{problem}
-%%if this lab is too long, just give them the code for it and then have them use it and comment on the results??
-(optional)
-Implement the minimum-biased finite difference scheme described above. 
-\end{problem}
-
-References:
-
-Perona, Pietro, and Jitendra Malik. "Scale-Space and Edge Detection Using Anisotropic Diffusion." IEE Transactions on Pattern Analysis and Machine Intelligence 12 (1990): 629-39. Web.
-
-Kim, Seongjai. "Edge-Preserving Noise Removal, Part I: Second Order Anisotropic Diffusion." University of Kentucky Department of Mathematics Technical Report (2009): n. pag. Web.
