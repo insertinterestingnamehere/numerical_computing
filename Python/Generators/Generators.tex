@@ -1,14 +1,65 @@
 \lab{Python}{Generators}{Generators}
 \label{lab:Python_Generators}
 
+Lists, tuples, sets, and dictionaries are examples of sequences in Python.
+Often it is useful to visit all the elements of a sequence.  This process of visiting
+each element of a sequence once is called \emph{iteration}. 
+Python types above each define their own iterators.  You use them every time you execute the statement \li{for <elem> in <list>}.
+Python has a special type of object called a \emph{generator}.
+Similar to an iterator, a generator returns a sequence of values.
+The important difference, though, is that a generator computes the next value in the sequence and returns it.
+One way to think of it is: \emph{Iterators return their values while generators yield their values}.
+In fact, Python uses the \li{yield} keyword to define a generator.
+Let's illustrate the difference between iterating and generating by re-implementing Python's \li{range} function
+as both an iterator and a generator.
+\begin{lstlisting}
+def range_iter(start, stop, step=1):
+    i = start
+    r = []
+    while i < stop:
+       r.append(i)
+       i = i + step
+    return r
+\end{lstlisting}
+\begin{lstlisting}
+def range_gen(start, stop, step=1):
+    i = start
+    while i < stop:
+        yield i
+        i = i + step
+\end{lstlisting}
+The two functions look very similar.  But, you will soon see that they behave very differently.
+The first function, when executed will immediately build a list, one element at a time until the done
+at which point it returns the entire list.  On the authors computer, this function takes about 1.43ms
+to build and return a list of 10000 elements.  The second function is only marginally better at
+returning the 10000 elements in approximately 1.09ms.  
+This gap between the two function understandably grows much wider as the inputs are increased.
+Where the real difference in the two functions lies is in the time the function takes to execute when
+it is first called.  The first function requires 1.43ms to execute the first time.  The second function,
+a mere .00000041ms!  The reason for this is the first function calculates its results and returns them all at once.  The second function only creates a \emph{generator} object.  This object has several methods.
+The most important and most useful method is the \li{next()} method.  Every time this method is called, 
+the generator is resumed from is previous state (each time \li{yield} statement is executed, the generator 
+is effectively suspended until \li{next()} is called again).  When the generator has finished executing, a
+\li{StopIteration} exception is raised the generator terminates.  Capability has been added to send values 
+and throw exceptions to the generators via the \li{send()} and \li{throw()} methods respectively.  For more information on these methods, we refer you to PEP 342 (Python Enhancement Proposal 342).
 
-\begin{problem}
-Find the sum of the first four billion odd Fibonacci numbers that are divisible by 3.
-\end{problem}
+How are generators effective?  If you encounter the situations below, you consider trying to solve 
+your problem using generators.  Generators have proven to be very useful in these situations.
+\begin{itemize}
+\item \emph{Iterating through only part of a sequence.}  Sometimes it is inefficient to create the 
+entire sequence if we know that we will only sometimes use all of it.  If we could write a generator for 
+the sequence, we would only need to calculate the values needed from the sequence.
+\item \emph{Iterating through a sequence once.} Consider the statement 
+\li{sum([i for i in range(1000) if i\%2 == 0])}.
+We are creating two sequences just to iterate through them once and never use them again.
+We can more efficiently write the same statement using generators.
+\li{sum(i for i in xrange(1000) if i\%2 == 0)}
+Often the solution using generators will execute faster, but it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
+\item \emph{Calculating large sequences.}  The sequence must be stored somewhere in computer memory.
+If the sequence is very large, we could very easily exhaust all available memory.
+\item \emph{Calculations involving infinite sequences.}  Sequences that are pre-computed are, by physical limitations, finite.  We cannot create a list that stores all natural numbers.  However, we can create a generator that returns the next natural number every time it is called.
+\end{itemize}
 
-
-Python generators produce values of a sequence on demand.  When iterating over a large
-sequence, generators a much more efficient.
 
 \section*{Combinations}
 Combinations are subsets of a set.  The powerset of a set, $S$, is the set of all combinations
@@ -28,7 +79,82 @@ of elements of that set.  You will have to impose some sort of ordering on the s
 in the set to a position in the binary representation).
 \end{problem}
 
+This is however an inefficient way to generate combinations.  Ideally, we would want
+to generate the next combination by modifying the previous combination.  However, with
+out current method of counting in binary, we are rebuilding the combination from scratch
+each time.  For example it we have a combination represented by \texttt{01111}, the next
+combination would be \texttt{10000}.  We added one element and removed four elements!
+We want to get our next combination by changing the previous combination as little as possible.
+Fortunately, there is a really neat method for doing this.  We now introduce you to
+Gray codes.  Gray codes is a reflected binary code where each new code is generated by
+changing the previous code by exactly one bit.  Geometrically, we can think of it as
+traversing a unit cube by moving only along the edges of the cube.  Grey codes are used frequently in error correction schemes.
 
-Use combinations to find all factors of n
+A Gray code is constructed as follows.
+\footnote{Brualdi, Richard Brualdi. \emph{Introductory Combinatorics}. New Jersey: Pearson, 2009}
+To calculate the Gray code of order $n$:
+\begin{enumerate}
+\item The Gray code of order 1 is 0, 1.
+\item Compute the Gray code of order $n-1$.  Write the codes and then write them again in reverse order (reflect them so that the last Gray code or order $n-1$ is first and the first Gray code of order $n-1$ is last).
+\item Prepend a 0 to the first $n-1$ codes and prepend a 1 to the remaining $n-1$ codes.
+\end{enumerate}
+While this is a simple algorithm to describe, it is not very efficient.  
+To generate a Gray code of order $n$, we have to generate all previous Gray codes.  
+If we were to calculate the Gray codes up to order 6, we would calculate the Gray code of order 6 once, order 5 twice, order 4 three times, order 3 four times, and order 2 five times!
+Fortunately, there exists another way to compute Gray codes of order $n$ much more efficiently.
+The algorithm is given in Brualdi's book.  
+We note first that a Gray code of order $n$ is of length $2n-2$ with each code of length $n$.
+We also observe that the reflected gray codes always begin with $0\dots0$ and terminate with $10\dots0$.
+\begin{enumerate}
+\item Start with $0\dots0$ ($n$ zeros).  This is the current Gray code.
+\item Sum the digits of the current Gray code.
+\begin{enumerate}
+\item If the sum of the digits is even, add 1 to the last digit mod 2.
+This becomes our new current Gray and we go back to step 1.
+\item If the sum of the digits is odd, locate digit $i$, where $i$ is the rightmost non-zero digit.  Add 1 to the $i-1$ digit mod 2.  This becomes our new current Gray and we go back to step 1.
+\end{enumerate}
+\end{enumerate}
 
-Introduce itertools
+\begin{problem}
+\label{prob:brualdi_gray}
+Implement the algorithm above for calculating the Gray code of order $n$.
+Your implementation must function as a generator.
+\end{problem}
+
+\begin{problem}
+\label{prob:changed_elem_gray}
+Gray codes are an ordering of the powerset such that any consecutive subsets differ by exactly one element.  Write a generator that will only return the change required to arrive at the next subset in the ordering.  Each time the generator is called, 
+it should return a single element and a boolean value that determines if that element should be
+added or removed from the set to obtain the next Gray code.  This function should be able to accept any set with arbitrary elements.
+\end{problem}
+
+\section*{Itertools}
+There is a very powerful library in the Python Standard Library that is built around the concept
+of generators and iterators.  The functions in \li{itertools} are designed to be used as
+building blocks in larger functions.  These functions are fast and memory efficient.
+We encourage you to view the documentation for \li{itertools} on the Python website.  Itertools has a much more general and much faster solutions for generating combinations and permutations of a set.  However the generator that we have written as a solution to \ref{prob:changed_elem_gray} is very useful when we are interested in the changed elements of between successive subsets.  It is useful in cases where we want to continuously update a single data structure using the elements that have from the previous Gray code.  It will be useful if it is costly to add to or remove from this data structure.
+The documentation also includes various recipes for very useful generator functions.
+
+\begin{problem}
+\label{prob:subblocks}
+Write a generator function that will evenly split a 1-dimensional array into sub-blocks.
+Your function should be capable of returning sub-blocks that could possibly overlap.
+The function should accept as arguments: a 1-dimensional array,
+a block width, and an optional offset.  If array cannot be evenly divided into
+sub-blocks, raise and error.
+\end{problem}
+
+\begin{problem}
+Expand your solution to Problem \ref{prob:subblocks} to work with 2-dimensional and 3-dimensional
+arrays.  You may implement them as separate functions if you wish.
+\end{problem}
+
+\printbibliography
+
+% \begin{thebibliography}{99}
+% \bibitem{brualdi09}
+% Richard Brualdi, 
+% \emph{Introductory Combinatorics}.
+% Pearson, New Jersey, 5th edition, 2009.
+% 
+% \end{thebibliography}
