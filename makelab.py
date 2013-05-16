@@ -39,12 +39,15 @@ def main(args):
     os.chdir(tmp_dir)
     with open('template.tex', 'w') as t:
         t.writelines(template_subbed)
-    ret = subprocess.Popen(['xelatex', '-halt-on-error', template],
+    
+    #in case we have references, we need to run multiple times.
+    for i in xrange(3):
+        ret = subprocess.Popen(['xelatex', '-halt-on-error', template],
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
-    filename = os.path.splitext(template)[0]+'.pdf'
-    labname = os.path.splitext(lab_name)[0]+'.pdf'
-    stdout = ret.communicate()[0]
+        filename = os.path.splitext(template)[0]+'.pdf'
+        labname = os.path.splitext(lab_name)[0]+'.pdf'
+        stdout = ret.communicate()[0]
 
     if ret.returncode == 0:
         shutil.copy2(filename, os.path.join(cwd, lab_path, labname))
