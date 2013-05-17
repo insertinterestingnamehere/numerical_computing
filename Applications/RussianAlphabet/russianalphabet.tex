@@ -1,54 +1,46 @@
 \lab{Applications}{Russian Alphabet}{Russian Alphabet}
-
 \objective{Understand how to use Unicode characters in Python and to identify Russian vowels and consonants.}
 
-Until now we have rarely had occasion to deal with any characters outside of ASCII. While the alphabets used in the romance languages can nearly entirely be written with ASCII characters, many alphabets cannot. For example, the Cyrillic script must be represented in a computer by Unicode, a standard for representing characters encountered in any language. The two packages `unicodedata' and `codecs' enable us to read Unicode characters into Python and format them properly.
-
+Until now we have rarely had occasion to deal with any characters outside of ASCII. While the alphabets used in the romance languages can nearly entirely be written with ASCII characters, many alphabets cannot. For example, the Cyrillic script must be represented in a computer by Unicode, a standard for representing characters encountered in any language. The two packages \li{unicodedata} and \li{codecs} enable us to read Unicode characters into Python and format them properly.
 Unicode strings are different from standard strings, so the way we display them and use them must be appropriately altered. For example, before printing a unicode string, we must encode it properly:
-
-\begin{lstlisting}[style=python]
-print u'\u0431'.encode('utf-8')
+\begin{lstlisting}
+print u`\u0431'.encode(`utf-8')
 \end{lstlisting}
-
 The above code will print the Russian letter б.
 
 \begin{problem}
-Pickle in the file `russian\_alphabet' and print each of the $33$ characters in Python.
+Unpickle the file \texttt{russian\_alphabet} and print each of the 33 characters in Python.
 \end{problem}
 
-To read the lines of a file containing unicode characters, we use the package `codecs'. We use the first seven chapters from a Russian translation of the New Testament as our example.
-
-\begin{lstlisting}[style=python]
+To read the lines of a file containing unicode characters, we use the \li{codecs} package. We use the first seven chapters from a Russian translation of the New Testament as our example.
+\begin{lstlisting}
 import codecs
 import unicodedata
 import sys
 
-infile = codecs.open('russian.txt','r','utf-8')
+infile = codecs.open(`russian.txt',`r',`utf-8')
 data = []
 for line in infile:
 	data.append(line)
 \end{lstlisting}
-
-For the purposes of this lab, we will want to preprocess the characters in the file `russian.txt' by removing any newline commands, punctuation, and making everything lowercase. We would also like the text to be represented by a list of individual characters. We can process the data we read in as follows:
-
-\begin{lstlisting}[style=python]
-tbl = dict.fromkeys(i for i in xrange(sys.maxunicode) if unicodedata.category(unichr(i)).startswith('P'))
+For the purposes of this lab, we will want to pre-process the characters in the file \texttt{russian.txt} by removing any newline commands, punctuation, and making everything lowercase. We would also like the text to be represented by a list of individual characters. We can process the data we read in as follows:
+\begin{lstlisting}
+tbl = dict.fromkeys(i for i in xrange(sys.maxunicode) if unicodedata.category(unichr(i)).startswith(`P'))
 
 def remove_punctuation(text):
 	return text.translate(tbl)
 
 characters = []
 for i in xrange(len(data)):
-	characters += list(remove_punctuation(data[i].rstrip() + ' ').lower())
+	characters += list(remove_punctuation(data[i].rstrip() + ` ').lower())
 \end{lstlisting}
-
 We have now removed all punctuation and capitalization from our text, representing it as a list of unicode characters (the Russian alphabet and space).
 
 \begin{problem}
-Train a discrete HMM with $2$ states on the Russian character list. Do this $5$ times with different random initializations each time, using a convergence tolerance of $0.1$ and a maximum of $100$ iterations for each training. Keep the parameter estimations yielding the greatest log-likelihood.
+Train a discrete HMM with 2 states on the Russian character list. Do this 5 times with different random initializations each time, using a convergence tolerance of $0.1$ and a maximum of 100 iterations for each training. Keep the parameter estimations yielding the greatest log-likelihood.
 \end{problem}
 
-Considering that a $2$-state HMM trained on English characters distinguished vowels from consonants, we might expect this to be the case for Russian as well.
+Considering that a 2-state HMM trained on English characters distinguished vowels from consonants, we might expect this to be the case for Russian as well.
 
 \begin{problem}
 Similar to our previous examples with an English HMM, use your Russian HMM to separate the characters into two states. Print out the characters corresponding with the first state, and separately print out the characters corresponding with the second state. How well does this separate Russian vowels from consonants? Since you probably don't know Russian, you will need to use some outside sources to determine this.
