@@ -1,21 +1,24 @@
 \lab{Algorithms}{HMM State Estimation}{HMM State Estimation}
-
 \objective{Understand how to implement forward-backward algorithm for HMM state estimation.}
 
-Given an HMM with parameters $$\lambda$$ and an observation sequence $O$, we would like to answer two questions:
+Given an HMM with parameters $\lambda$ and an observation sequence $O$, we would like to answer two questions:
 \begin{enumerate}
  \item What is $\mathbb{P}(O | \lambda)$? In other words, what is the likelihood that our model generated the observation sequence?
  \item What is the most likely state sequence to have generated $O$, given the model $\lambda$?
 \end{enumerate}
-
 The answers to these two questions compose what is known as the \emph{forward-backward} algorithm for HMMs. For the second question, the approach taken in this lab will be to try to find the state sequence maximizing the expected number of correct states. 
 
-We assume throughout this lab that the HMM has a discrete state space of cardinality $N$ and a discrete observation space of cardinality $M$, hence $$\lambda = \left( A, B, \mathbf{\pi} \right)$$ where $A$ is an $N \times N$ row-stochastic matrix, $B$ is an $N \times M$ row-stochastic matrix, and $\mathbf{\pi}$ is a stochastic vector of length $N$.
+We assume throughout this lab that the HMM has a discrete state space of cardinality $N$ and a discrete observation space of cardinality $M$, hence $\lambda = \left( A, B, \mathbf{\pi} \right)$ where $A$ is an $N \times N$ row-stochastic matrix, $B$ is an $N \times M$ row-stochastic matrix, and $\mathbf{\pi}$ is a stochastic vector of length $N$.
 
 We define the \emph{forward probabilities} $\alpha_{t}(i)$ to be the joint probability of the partial observation sequence up through time $t$ and the event that the system is in state $i$ at time $t$, conditioned on the model parameters $\lambda$, i.e.
-$$\alpha_{t}(i) = \mathbb{P}(O_{1},\cdots,O_{t},\mathbf{x}_{t} = i | \lambda).$$
+\begin{equation*}
+\alpha_{t}(i) = \mathbb{P}(O_{1},\cdots,O_{t},\mathbf{x}_{t} = i | \lambda)
+\end{equation*}
 We also define the \emph{backward probabilities} $\beta_{t}(i)$ to be the probability of the partial observation sequence after time $t$, conditioned on the model parameters $\lambda$ and the event that the system is in state $i$ at time $t$, i.e.
-$$\beta_{t}(i) = \mathbb{P}(O_{t+1},\cdots,O_{T} | \mathbf{x}_{t} = i, \lambda).$$
+\begin{equation*}
+\beta_{t}(i) = \mathbb{P}(O_{t+1},\cdots,O_{T} | \mathbf{x}_{t} = i, \lambda)
+\end{equation*}
+
 
 The forward probabilities $\alpha_{t}(i)$ can be computed recursively as follows:
 \begin{itemize}
@@ -28,9 +31,7 @@ The backward probabilities $\beta_{t}(i)$ can be computed recursively as well, a
  \item $\beta_{T}(i) = 1$
  \item $\beta_{t}(i) = \sum_{j=1}^{N} a_{ij}b_{jO_{t+1}}\beta_{t+1}(j)$ for $t = T-1, \cdots, 1$.
 \end{itemize}
-
 Unfortunately, this is then subject to serious underflow issues, since we are repeatedly multiplying together numbers between $0$ and $1$. We modify the forward pass as follows:
-
 \begin{itemize}
  \item $\tilde{\alpha}_{1}(i) = \pi_{i} b_{iO_{1}}$
  \item $\sigma_{1} = \frac{1}{\sum_{i=1}^{N} \tilde{\alpha}_{1}(i)}$
@@ -48,7 +49,6 @@ Write a function that will compute the modified forward pass, given model parame
 \end{problem}
 
 We also need to modify the backward pass:
-
 \begin{itemize}
  \item $\widehat{\beta}_{T}(i) = \sigma_{T}$
  \item $\widehat{\beta}_{t}(i) = \sigma_{t} \cdot \sum_{j=1}^{N} a_{ij}b_{jO_{t+1}}\widehat{\beta}_{t+1}(j)$ for $t = T-1, \cdots, 1$.
@@ -62,15 +62,27 @@ It turns out that the way in which we have scaled our probabilities yields an ef
 $$\log \mathbb{P}(O | \lambda) = - \sum_{t=1}^{T} \log \sigma_{t}.$$
 
 \begin{problem}
-Pickle in the observations and the HMM parameters contained in the files `observations' and `hmm' respectively. The file `hmm' is a list $\left[ A, \; B, \; \mathbf{\pi}, \; obs\_space \right]$ where $obs\_space$ denotes the observation space for the model. Compute the log-likelihood of the data given the model. The observations come from the observation space $$\left( \text{`Clean'} \; \; \; \text{`Run'} \; \; \; \text{`Work'} \right)$$ so you may need to make an appropriate transformation of the observation sequence to work with your previous functions. Note that `Clean' corresponds with the first column of the observation matrix in the HMM, `Run' with the second observation, and `Work' with the third.
+Pickle in the observations and the HMM parameters contained in the files `observations' and `hmm' respectively. The file `hmm' is a list $\left[ A, \; B, \; \mathbf{\pi}, \; obs\_space \right]$ where $obs\_space$ denotes the observation space for the model. Compute the log-likelihood of the data given the model. The observations come from the observation space
+\begin{verbatim}
+('Clean', 'Run', 'Work')
+\end{verbatim}
+so you may need to make an appropriate transformation of the observation sequence to work with your previous functions. Note that `Clean' corresponds with the first column of the observation matrix in the HMM, `Run' with the second observation, and `Work' with the third.
 \end{problem}
 
-It also turns out that $$\mathbb{P}(\mathbf{x}_{t} = i | O, \lambda) = \frac{\widehat{\alpha}_{t}(i)\widehat{\beta}_{t}(i)}{\sum_{j=1}^{N} \widehat{\alpha}_{t}(j)\widehat{\beta}_{t}(j)},$$ and so we can easily compute the expected state at time $t$ by $$\mathbf{x}_{t}^{*} = \argmax_{i} \widehat{\alpha}_{t}(i) \widehat{\beta}_{t}(i).$$ We refer to the above probability as $\gamma_{t}(i)$.
+It also turns out that 
+\begin{equation*}
+\mathbb{P}(\mathbf{x}_{t} = i | O, \lambda) = \frac{\widehat{\alpha}_{t}(i)\widehat{\beta}_{t}(i)}{\sum_{j=1}^{N} \widehat{\alpha}_{t}(j)\widehat{\beta}_{t}(j)}
+\end{equation*}
+and so we can easily compute the expected state at time $t$ by
+\begin{equation*}
+\mathbf{x}_{t}^{*} = \argmax_{i} \widehat{\alpha}_{t}(i) \widehat{\beta}_{t}(i)
+\end{equation*}
+We refer to the above probability as $\gamma_{t}(i)$.
 
 \begin{problem}
 Using the same observations and HMM parameters, maximize the expected number of correct states. Pickle in the true states from the file `states', and write a function to compute the error rate in your state estimations. This should simply be the number of states incorrectly estimated divided by the total number of time iterations $T$.
 \end{problem}
 
 \begin{problem}
-Write a function that accepts $\alpha$ and $\beta$ and returns a $T \times N$ matrix of state probabilties $\gamma$.
+Write a function that accepts $\alpha$ and $\beta$ and returns a $T \times N$ matrix of state probabilities $\gamma$.
 \end{problem}

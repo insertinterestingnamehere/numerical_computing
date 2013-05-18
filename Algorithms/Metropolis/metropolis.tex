@@ -1,12 +1,14 @@
 \lab{Algorithms}{Metropolis Algorithm}{Metropolis Algorithm}
-
 \objective{Understand the basic principles of the Metropolis algorithm.}
 
 Thus far when computing posterior distributions, we have dealt with scenarios in which the distributions take on a nice form, i.e. where the posterior distribution is of the same form as the prior. These are called \emph{conjugate prior} distributions. There are, however, times when computing the posterior distribution is not so simple. Often this arises due to our inability to efficiently compute the integral in the denominator of our typical use of Bayes Rule:
-
-$$\mathbb{P}(\theta | \mathbf{y}) = \frac{\mathbb{P}(\mathbf{y} | \theta) \mathbb{P}(\theta)}{\int \mathbb{P}(\mathbf{y} | \theta)\mathbb{P}(\theta) d\theta}$$
-
-If we ignore the denominator, we can write $$\mathbb{P}(\theta | \mathbf{y}) \propto \mathbb{P}(\mathbf{y} | \theta) \mathbb{P}(\theta)$$
+\begin{equation*}
+\mathbb{P}(\theta | \mathbf{y}) = \frac{\mathbb{P}(\mathbf{y} | \theta) \mathbb{P}(\theta)}{\int \mathbb{P}(\mathbf{y} | \theta)\mathbb{P}(\theta) d\theta}
+\end{equation*}
+If we ignore the denominator, we can write 
+\begin{equation*}
+\mathbb{P}(\theta | \mathbf{y}) \propto \mathbb{P}(\mathbf{y} | \theta) \mathbb{P}(\theta)
+\end{equation*}
 which is often easier to compute.
 
 The Metropolis algorithm provides us a method by which we can sample from the posterior distribution, provided that we can easily compute the right hand side of the above equation, which we will denote $f(\theta)$. This is done by constructing a Markov chain which is irreducible, non-null recurrent and aperiodic, which has $\mathbb{P}(\theta | \mathbf{y})$ as its unique invariant distribution.
@@ -14,15 +16,16 @@ The Metropolis algorithm provides us a method by which we can sample from the po
 We begin by choosing a simple Markov chain over the state space that has symmetric transition matrix $Q$, such that $Q(x | x) = 0$ for all $x$ in the state space. Obviously, for non-discrete state spaces, $Q$ is not really a matrix, but it must still define transition probabilities such that $Q(x | y) = Q(y | x)$. We then define an acceptance matrix $A$, where $A(x | y) = \min{1,\frac{f(x)}{f(y)}}$. Again, $A$ is not a matrix if the state space is not discrete, but it will be defined for all pairs $x,y$ in the state space.
 
 We combine these to produce a Markov chain with transition probabilities
-
-$$H(x | y) = \begin{cases} Q(x | y)A(x | y) & \mbox{ if } x \neq y, \\ 1 - \sum_{y \neq x} Q(x | y)A(x | y) & \mbox{ if } x = y \end{cases}.$$
+\begin{equation*}
+H(x | y) = \begin{cases} Q(x | y)A(x | y) & \mbox{ if } x \neq y, \\ 1 - \sum_{y \neq x} Q(x | y)A(x | y) & \mbox{ if } x = y \end{cases}
+\end{equation*}
 
 Essentially, given our current state, we propose a new state according to $Q$. We then accept or reject it according to $A$, and continue the process. So long as $Q$ defines an irreducible, non-null recurrent, and aperiodic Markov chain, then $H$ will define a Markov chain whose unique invariant distribution will be $\mathbb{P}(\theta | \mathbf{y})$. Furthermore, given any initial state, the chain will converge to this invariant distribution.
 
 What this means is that we can sample from the desired distribution after a ``burn-in'' period (to remove the effects of our initial state choice). We will use the Metropolis algorithm to obtain samples from a multivariate normal distribution to demonstrate this process.
 
 Suppose we can easily sample from the multivariate normal distribution with mean $\mu$ and covariance matrix $I$, the identity. In Python, this is as follows:
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : import scipy as sp
 : import scipy.linalg as la
 : mu = sp.array([3., -5.])
@@ -38,13 +41,19 @@ Suppose also that we desire to obtain samples from a multivariate normal distrib
 \end{align*}
 
 \begin{problem} \label{problem1}
-Write an acceptance function that computes $$p = \min \{1, e^{-\frac{1}{2}\left((\mathbf{x} - \mu)^{T} \Sigma^{-1} (\mathbf{x} - \mu) - (\mathbf{y} - \mu)^{T} \Sigma^{-1} (\mathbf{y} - \mu)\right)}\}$$ given $\mathbf{x}, \mathbf{y}, \mu,$ and $\Sigma$, and then draws from a Bernoulli distribution with parameter $p$. It should return a $1$ if it accepts the new state, and a $0$ if it rejects it.
+Write an acceptance function that computes 
+\begin{equation*}
+p = \min \{1, e^{-\frac{1}{2}\left((\mathbf{x} - \mu)^{T} \Sigma^{-1} (\mathbf{x} - \mu) - (\mathbf{y} - \mu)^{T} \Sigma^{-1} (\mathbf{y} - \mu)\right)}\}
+\end{equation*}
+given $\mathbf{x}, \mathbf{y}, \mu,$ and $\Sigma$, and then draws from a Bernoulli distribution with parameter $p$. It should return a $1$ if it accepts the new state, and a $0$ if it rejects it.
 \end{problem}
 
 Specifically, we will try to sample from the distribution centered at the origin, with covariance matrix
-$$\Sigma = \left[ \begin{array}{cc} 12 & 4 \\ 4 & 16 \end{array} \right]$$
+\begin{equation*}
+\Sigma = \left[ \begin{array}{cc} 12 & 4 \\ 4 & 16 \end{array} \right]
+\end{equation*}
 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : import scipy as sp
 : import scipy.linalg as la
 : mu = sp.zeros(2)
@@ -72,21 +81,18 @@ Write a function that accepts an initial point $\mathbf{x}$, a mean $\mu$ and co
 We would like to see how long it takes for our algorithm to converge to the right distribution. We can do this by plotting the log-probs returned by our function. Here we use an initial state $\mathbf{x} = \left[\begin{array}{cc} 100 & 100 \end{array}\right]$.
 
 \begin{figure}[h]
-\begin{center}
-\includegraphics[height=1.75in]{logprobs.jpeg}
-\end{center}
-\caption{Log probabilities of our samples..}
+\centering
+\includegraphics[width=\textwidth]{logprobs.jpeg}
+\caption{Log probabilities of our samples.}
 \end{figure}
 
 From this we can see that after between $300$ and $500$ iterations, we had converged to the correct distribution. We can visualize the path of our sampler by plotting the samples themselves:
-
 \begin{figure}[h]
-\begin{center}
-\includegraphics[height=1.75in]{samples.jpeg}
-\end{center}
+\centering
+\includegraphics[width=\textwidth]{samples.jpeg}
 \caption{Samples from the Metropolis algorithm.}
 \end{figure}
 
 \begin{problem}
-Using $\mu$ and $\Sigma$ as defined previously and using an initial state $$\mathbf{x} = \left[ \begin{array}{cc} 1000 & -1000 \end{array} \right]$$ run your Metropolis sampler for $10000$ iterations. Plot the log probs as well as the samples. How long did it take to converge?
+Using $\mu$ and $\Sigma$ as defined previously and using an initial state $\mathbf{x} = \left[ \begin{array}{cc} 1000 & -1000 \end{array} \right]$ run your Metropolis sampler for $10000$ iterations. Plot the log probs as well as the samples. How long did it take to converge?
 \end{problem}
