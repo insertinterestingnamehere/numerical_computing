@@ -16,10 +16,13 @@ In practice that is only partially true.
 Cython is especially useful for doing large amounts of repetitive calculation, especially when that calculation involves the same data types each time.
 \textbf{It is essentially just Python with some extra type declarations.}
 It also allows you to easily import some C functions.
-Cython is, however, not run interactively.
+
+Cython has a more complex compilation process than Python and is not usually run interactively.
 Cython is written in a \li{.pyx} file which is then compiled to C, then compiled to machine code.
+The Cython code is not run in Python itself, but is instead imported as a module and used to interface with C.
+Many of the NumPy functions are written using a similar approach to interface with C and Fortran instead of doing heavy computation in Python.
 Cython does not just translate modified Python code to C, it is designed to make C code that interfaces nicely with Python and runs within Python's memory management system.
-Many of the same builtin features, datatypes, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions can slow down a Cython based program.
+Many of the same builtin features, datatypes, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython based program.
 
 There are a variety of ways to import Cython functions and classes to Python.
 The standard way is to make a python file that builds the C extension module in a given directory.
@@ -232,9 +235,13 @@ Cython in itself does not add any new algorithms that you can use for more probl
 In many cases this optimization will give you access to problems that are significantly larger than normal Python code could handle in any reasonable amount of time.
 
 \begin{problem}
-Port your solution from the Linesweep lab to Cython. Use the typed for loops, typed arrays (or memoryviews), and the additional compiler directives in your optimized solution.
+In an earlier lab, you wrote a function to compute the Cholesky decomposition of a hermitian positive-definite matrix.
+Port it to Cython.
+Use the typed for loops, typed arrays (or memoryviews), and the additional compiler directives in your optimized solution.
+You may assume, in this case, that you are only dealing with real arrays of double precision floating point numbers.
 
 Compare the speed of your new solution to the speed of the Python based version you wrote earlier.
+For testing the speed of your solutions, you can generate large, symmetric, positive-definite arrays by first generating a random array of floating point values, then multiplying it by its transpose (here we mean matrix multiplication using \li{np.dot()}).
 \end{problem}
 
 \begin{problem}
@@ -243,17 +250,17 @@ Here is some code for the next problem:
 import numpy as np
 def mymult(X,power):
     prod = np.empty_like(X)
-    prod[:]=X
+    prod[:] = X
     temparr = np.empty_like(X[0])
-    size=X.shape[0]
-    for n in xrange(1,power):
+    size = X.shape[0]
+    for n in xrange(1, power):
         for i in xrange(size):
             for j in xrange(size):
-                tot=0.
+                tot = 0.
                 for k in xrange(size):
-                    tot+=prod[i,k]*X[k,j]
-                temparr[j]=tot
-            prod[i]=temparr
+                    tot += prod[i,k]*X[k,j]
+                temparr[j] = tot
+            prod[i] = temparr
     return prod
 \end{lstlisting}
 
@@ -267,4 +274,69 @@ The speed of the built in function depends a great deal on whether or not your N
 Scipy also uses a set of Fortran routines called Lapack to perform fast computation.
 This is probably one of the best-optimized portions of NumPy and Scipy.
 The difference in performance should be particularly clear in this case because of the high order of complexity of the algorithm.
+\end{problem}
+
+It is important to recognize that choice of algorithm and fast implementation can both drastically effect the speed of your code.
+A simple example is the tridiagonal algorithm (also called the Thomas Algorithm) which is used to solve systems of the form:
+
+\[
+\begin{bmatrix}
+b_0 & c_0 & 0 & 0 & 0 & \cdots & \cdots & 0 \\
+a_0 & b_1 & c_1 & 0 & 0 & \cdots & \cdots & 0 \\
+0 & a_1 & b_2 & c_2 & 0 & \cdots & \cdots & 0 \\
+0 & 0 & a_2 & b_3 & c_3 & \cdots & \cdots & 0 \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \ddots & \ddots & \vdots \\
+\vdots & \vdots & \vdots & \vdots & \vdots & \ddots & \ddots & c_{n-1} \\
+0 & 0 & 0 & 0 & 0 & \cdots & a_{n-1} & b_n 
+\end{bmatrix}
+\begin{bmatrix}
+d_0\\
+d_1\\
+d_2\\
+d_3\\
+\vdots\\
+\vdots\\
+d_n
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_0\\
+x_1\\
+x_2\\
+x_3\\
+\vdots\\
+\vdots\\
+x_n
+\end{bmatrix}
+\]
+
+The following Python code solves this system.
+Notice that \li{x} and \li{c} are modified in place.
+The final result is stored in \li{x}, and \li{c} is used to store temporary values.
+
+\begin{lstlisting}
+def tridiag(a, b, c, x):
+    #note: overrides c and x
+    size = x.size
+    temp = 0.
+    c[0] = c[0] / b[0]
+    x[0] = x[0] / b[0]
+    for n in range(size-2):
+        temp = 1. / (b[n+1] - a[n]*c[n])
+        c[n+1] *= temp
+        x[n+1] = (x[n+1] - a[n]*x[n]) * temp
+    x[size-1] = (x[size-1] - a[size-2]*x[size-2])  /  (b[size-1] - a[size-2]*c[size-2])
+    for n in range(b.size-2, -1, -1):
+        x[n] = x[n] - c[n] * x[n+1]
+\end{lstlisting}
+
+\begin{problem}
+Port the above code to Cython using typed for loops, optimized array accesses and the special compiler directives.
+Compare the speed of your new function with the pure Python version given above.
+Now compare the speed of both of these functions with the \li{solve} function in \li{scipy.linalg}.
+For your first two functions a good starting point for computation will be to consider $1000000 \times 1000000$ sized systems and then adjust the size so you get good results on your particular machine.
+When testing the built in algorithm, you will probably want to start with systems involving a $1000 \times 1000$ matrix and then go up from there.
+Keep in mind that the SciPy function is heavily optimized, but that it uses a much more general algorithm.
+What does this example tell you about the relationship between good implementation and proper choice of algorithm?
+In this case, the LU decomposition method used by the SciPy function has complexity $\mathcal{O}\left( n^3 \right)$, while the tridiagonal algorithm is $\mathcal{O}\left( n \right)$.
 \end{problem}
