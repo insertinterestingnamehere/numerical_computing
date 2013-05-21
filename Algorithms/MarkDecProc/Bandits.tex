@@ -1,8 +1,8 @@
 \lab{Algorithms}{Multi-Armed Bandit Problems}{Multi-Armed Bandit Problems}
-\objective{This lesson explains Markov decision processes and specifically multi-armed bandit problems and solving them by Gittins index.}
+\objective{This lesson explains Markov decision processes and specifically multi-armed bandit problems and solving them by Thompson Sampling.}
 
 \section*{Markov Decision Processes}
-Previously we considered what we called dynamic programming problems.  These problems involved making sequential decisions in some optimal way, possibly under uncertainty.  Dynamic programming problems are actually a subclass of a more broad set of problems called Markov Decision Processes.
+Previously we considered what we called dynamic programming problems.  These problems involved making sequential decisions in some optimal way, possibly under uncertainty.  Dynamic programming problems are closely related to a class of problems called Markov Decision Processes.
 
 A Markov Decision Process (MDP) involves the following elements
 
@@ -42,10 +42,18 @@ While a full exposition of Bayesian inference is well beyond the scope of this l
 \label{fig:priors}
 \end{figure}
 
-The curves are thought of as probability distributions.  So if you have had $1$ success and $2$ failures, you might think that $p_i$ is around $\frac{1}{3} = \frac{1}{1+2}$. However, you have very little information at this point, so better yet you might represent your belief of what $p_i$ is by the blue probability distribution in Figure \ref{fig:priors}.  As you get more information, the curve gets narrower.  In the figure, we see that the distributions have expected value of $1/3$ and become tighter around that value.  This is fitting since the parameter values have success $\alpha$ one third of the time and the tighter distributions correspond to having more prior information.  If we need an estimate for $p_i$ we can use the expected value of our distribution corresponding to $p_i$.  We will denote this estimate by $\bar{p_i}$
+The curves are thought of as probability distributions.  So if you have had $1$ success and $2$ failures, you might think that $p_i$ is around $\frac{1}{3} = \frac{1}{1+2}$. However, you have very little information at this point, so better yet you might represent your belief about $p_i$ by the blue probability distribution in Figure \ref{fig:priors}.  As you get more information, the curve gets narrower.  In the figure, we see that the distributions have expected value of $1/3$ and become tighter around that value.  This is fitting since the parameter values have success $\alpha$ one third of the time and the tighter distributions correspond to having more prior information.  If we need an estimate for $p_i$ we can use the expected value of our distribution corresponding to $p_i$.  We will denote this estimate by $\bar{p_i}$
 
 In this manner we approach the multi-armed bandit problem.  We do not know the $p_i$ but each time we pull an arm, we update our distribution of where we think it might be.  In particular we use a beta distribution to represent our opinion on what the $p_i$ are.  A beta distribution has two parameters $a,b$.  So in our problem the state \eqref{state} can be thought of as representing two beta distributions one for each $p_i$. The details of the updating process are unimportant for now, except for this important property, the two parameters $a,b$ correspond exactly with successes and failures.  So if we start with a distribution Beta$(a,b)$ and the next pull is success, our new distribution is Beta$(a+1,b)$ and if the next pull is a failure then the new distribution is Beta$(a,b+1)$.  Notice this corresponds with the way our states evolve.
 
+\section*{Simulation and Sampling in a Bayesian Framework}
+Along with the estimate $\bar p_i$ TODO we can also compute many other useful quantities in our Bayesian problem via random sampling.  Essentially, we can take random draws from our prior distribution and estimate the mean, median, or other quantities based on the value of those quantities in the random sample.
+
+TODO
+
+\begin{problem}
+Write a function sim\_data that accepts an $n\times 2$ array where each row represents the parameters of a beta distribution and a positive integer $k$ that represents the number of random draws to return.  The function should return an $n\times k$ matrix where each row has a random sample from each of the $k$ arms.
+\end{problem}
 
 \section*{Direct Dynamic Programming Solution}
 This framework lends itself well to a dynamic programming type solutions.  Rather than just letting $R(a_1,b_1,a_2,b_2)$ represent the state, consider it as the value function, meaning the optimal expected value that can be achieved starting from this state.  Then we have
@@ -60,9 +68,10 @@ R(a_1,b_1,&a_2,b_2) =\\
 
 The two terms in the maximization represent the expected value of pulling lever one or lever two respectively.  For example, if lever one is pulled it is expected to yield a reward with probability $\bar{p_1}$.  The reward has value $1$ plus the future rewards (discounted by $\beta$) moving to a state with one more success on arm 1.  With probability $1-\bar{p_1}$, lever one does not give a reward and so rewards are simply the discounted expected reward starting in the next state.
 
-Notice that the expressions inside of $R(\cdot)$ on the right side have parameters values that add to one greater than the $R(\cdot)$ on the left side.  So for example if we want to compute $R(1,1,1,1)$ we need to know $R(2,1,1,1)$, $R(1,2,1,1)$, $R(1,1,2,1)$ and $R(1,1,1,2)$ (all possible combinations of parameters that add up to 5.  To compute these, we need to know all possible combinations of parameters that add up to 6, and so on.  Consequently, we could make a guess for all $R$ for all parameter combinations that add up to some large $N$, then work backward until we get to $R(1,1,1,1)$.  This is backward induction, just as we saw in dynamic programming.  However, the number of computations in this problem grow much too quickly because of the branching nature of having multiple arms.  In fact, if there are more than two arms this method of computation is infeasible!
+Notice that the expressions inside of $R(\cdot)$ on the right side have parameters values that add to one greater than the $R(\cdot)$ on the left side.  So for example if we want to compute $R(1,1,1,1)$ we need to know $R(2,1,1,1)$, $R(1,2,1,1)$, $R(1,1,2,1)$ and $R(1,1,1,2)$ (all possible combinations of parameters that add up to 5).  To compute these, we need to know all possible combinations of parameters that add up to 6, and so on.  Consequently, we could make a guess for all $R$ for all parameter combinations that add up to some large $N$, then work backward until we get to $R(1,1,1,1)$.  This is backward induction, just as we saw in dynamic programming.  However, the number of computations in this problem grow much too quickly because of the branching nature of having multiple arms.  In fact, if there are more than two arms this method of computation is infeasible!
 
 
+\begin{comment}
 \section*{Gittins Index Solution}
 One way we might hope to solve a bandit problem is by computing some sort of ``index'' for each arm.  That is, we want a number associated with each arm that in some sense captures the value of pulling that arm.   Ideally such an index would depend only on that arm, and not on the others.  We could then compare the indices for all of the arms and pull the arm with highest index.  It turns out that bandit problems can be solved optimally by such methods and are computationally more feasible than the dynamic programming approach we saw above.
 
@@ -112,6 +121,15 @@ Write a function ``end\_reward" that accepts $p,a,b,$ and $\beta$ and returns th
 
 For convenience it will be nice to have a function that will compute $R(p,a,b)$ given values of $p,\bar{p},a,b,\beta,N$ as well as values of $R(p,a+1,b)$ and $R(p,a,b+1)$.  This should follow directly from \eqref{index}.
 
+\end{comment}
+
+\section*{Thompson Sampling}
+There is a method for computing the optimal solution to the multi-armed bandit problem called the Gittins Index Theorem.  Computationally it is similar to the dynamic programming approach, but less costly.  However, it is still too costly for large problems.
+
+There are, however, many heuristic methods of solving the multi-armed bandit problem.  In particular we will use a method sometimes called Thompson Sampling, or Randomized Probability Matching.  The idea is that we should choose arm $i$ with probability equal to the...
+
+
+\begin{comment}
 \begin{problem}
 Write a function ``rewards" that will compute $R(p,a,b)$ given the quantities mentioned above.
 \end{problem}
@@ -141,3 +159,8 @@ Now all of the pieces are in place to compute the $\lambda_i$ for a given arm.
 \begin{problem}
 Write a function ``compute\_gittins" that accepts $a,b,\beta$, a vector of $p$ values, and the corresponding $100\times N\times N$ array of $R(p,a,b)$ from the ``compute\_pgrid" function.  Use these to find the value of $p$ such that for an arm with $a$ successes and $b$ failures, you would be indifferent between pulling that arm and an arm with known probability $p$.  Remember, the reward for pulling the known arm is $\frac{p}{1-\beta}$.  That value of $p$ is the index $\lambda$.
 \end{problem} 
+\end{comment}\
+
+With these functions in hand we can easily compute which arm to pull at each time step as follows:
+
+In the following applications lab, we will investigate an area in which this is useful and simulate the bandit problem using the functions in this lab.
