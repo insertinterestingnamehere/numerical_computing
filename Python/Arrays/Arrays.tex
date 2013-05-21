@@ -65,7 +65,7 @@ Arrays have several attributes.  We use \emph{shape} and \emph{size} to describe
 60
 \end{lstlisting}
 
-If we want to know how much memory an array takes to store, we can use \li{arr.nbytes}.  The number of bytes is dependent on the data type (\emph{dtype}) of the array.  The data types that NumPy uses are different from Python data types.  An integer in NumPy is not the same as an integer Python.  Remembering this is vital.  NumPy uses machine data types to speed up calculations.  However, these datatypes are susciptible to a problem called \emph{overflow}.  A 64 bit integer has enough bits to represent integers between $-9,223,372,036,854,775,808$ and $9,223,372,036,854,775,807$.  If we have an array with $-9,223,372,036,854,775,808$ and we decide to subtract $1$, the integer wraps around and becomes $9,223,372,036,854,775,807$!  
+If we want to know how much memory an array takes to store, we can use \li{arr.nbytes}.  The number of bytes is dependent on the data type (\emph{dtype}) of the array.  The data types that NumPy uses are different from Python data types.  An integer in NumPy is not the same as an integer Python.  Remembering this is vital.  NumPy uses machine data types to speed up calculations.  However, these datatypes are susceptible to a problem called \emph{overflow}.  A 64 bit integer has enough bits to represent integers between $-9,223,372,036,854,775,808$ and $9,223,372,036,854,775,807$.  If we have an array with $-9,223,372,036,854,775,808$ and we decide to subtract $1$, the integer wraps around and becomes $9,223,372,036,854,775,807$!  
 
 \begin{lstlisting}
 : arr.dtype
@@ -227,7 +227,6 @@ Array broadcasting allows NumPy to effectively work with arrays with sizes that 
 \item An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has a value exactly 1.
 \item If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
 \end{remunerate}
-
 To broadcast arrays, at least one of the following must be true.
 \begin{remunerate}
 \item All input arrays have exactly the same shape.
@@ -238,3 +237,36 @@ To broadcast arrays, at least one of the following must be true.
 \begin{problem}
 Explore array broadcasting.  Create example for each of the three cases where arrays are broadcasted.
 \end{problem}
+
+\section*{Saving Arrays}
+Sometimes it is desirable to save an array to a file to be used for later.  NumPy provides several easy to use methods for saving and loading array data to files.
+\begin{table*}[h]
+\begin{tabular}{|l|l|}
+\hline
+\li{np.save(file, arr)} & Save an array to a binary file \\
+\li{np.savez(file, *arrs)} & Save multiple arrays to a binary file \\
+\li{np.savetxt(file, arr)} & Save an array to a text file \\
+\hline
+\end{tabular}
+\end{table*}
+
+\begin{table*}[h]
+\begin{tabular}{|l|l|}
+\hline
+\li{np.load(file)} & Load and return an array from a binary file \\
+\li{np.loadtxt(file)} & Load and return an array from text file \\
+\hline
+\end{tabular}
+\end{table*}
+
+Let's practice saving an array to a file and loading it again.  Note that when saving 
+an array, NumPy automatically appends the extension \li{.npy} if it does not already exist.
+\begin{lstlisting}
+a = np.arange(30)
+np.save('test_arr', a)
+new_a = np.load('test_arr.npy')
+np.savez('test_multi', a=a, new_a=new_a)
+arrs = np.load('test_multi.npz')
+\end{lstlisting}
+The variable \li{arrs} points to a dictionary object with the keys \li{a} and \li{new_a} which reference the arrays that have been saved.
+
