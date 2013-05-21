@@ -11,10 +11,10 @@ This method is the same that is used by Google Analytics.  Take a moment to skim
 \begin{center} http://analytics.blogspot.com/2013/01/multi-armed-bandit-experiments.html.
 \end{center}
 
-In this lab we will apply the Thompson Sampling method from the previous lab (the same method used by Google) to solve this problem.  We will simulate the results and attempt to replicate Google's results found at the website above.  
+In this lab we will apply the Thompson Sampling method from the previous lab (the same method used by Google) to solve this problem.  We will simulate the results and attempt to replicate Google's results found at the website above.
 
 \section*{The Experiment}
-Here we describe how we will design our web page experiment using bandits and how we will simulate it.  We will have some number of variations of a web page, $n$.  Each day, the web-page will receive 100 visitors (for the purposes of our simulation).  Twice each day, at the beginning and after 50 visits, we will compute the number of each variation to deliver to the next 50 visitors using the weights method described in the previous lab (you should have written a function that does this in the previous algorithms lab).  
+Here we describe how we will design our web page experiment using bandits and how we will simulate it.  We will have some number of variations of a web page, $n$.  Each day, the web-page will receive 100 visitors (for the purposes of our simulation).  Twice each day, at the beginning and after 50 visits, we will compute the number of each variation to deliver to the next 50 visitors using the weights method described in the previous lab (you should have written a function that does this in Problem 4 of the previous algorithms lab).
 
 \begin{problem}
 Write a function that simulates the experiment for one day.  The function should accept a vector of length $n$ of the true probabilities (CvR) for different web page variations.  It should also accept the state of the variations at the beginning of the day; this is an $n$ by $2$ array with the number of previous success plus one in the first column and the number of failures plus one in the second column (so if it is the first day the state for any arm would be $(1,1)$ corresponding to a $Beta(1,1)$ distribution).
@@ -28,20 +28,20 @@ def pull(p):
 \end{lstlisting}
 This will return a random one or zero based on the probability input p.
 
-As this happens also update the state of each arm.  Then recompute the weights and do the same for the next 50 to result in 100 visits.  
+As this happens also update the state of each arm.  Then recompute the weights and do the same for the next 50 to result in 100 visits.
 
 This function should return the resulting states, and also the weights.
 \end{problem}
 
 In this manner we will continue from day to day, always updating the state of each arm (the beta distribution for the CvR of each arm).  We will have three criteria to determine when to stop the experiment.  The first, is that the experiment must run at least two weeks to make sure the results are not overly influenced by a small number of random draws.
 
-The second stopping criteria is that there is $95\%$ probability that one of the variations is the best variation.  This is the same as saying that of the weights for each variation (computed with a function from the previous lab), the largest is greater than $.95$.
+The second stopping criteria is that there is $95\%$ probability that one of the variations is the best variation.  This is the same as saying that of the weights for each variation, the largest is greater than $.95$.
 
-It may seem that these two criteria should be enough.  However, in some cases the experiment could last a very long time using just these criteria.  For example, consider the case that two of the web page variations have nearly the same CvR.  In this case it will be very difficult to determine which is best.  It will also not be very important since the results are so similar.  Thus we will use a measure that we will call the potential value remaining in the experiment as the third criteria.  The value remaining is computed by simulating many draws for each arm (using the function you wrote in the previous lab).  Using this data, the potential value remaining for arm $i$ is obtained by computing the following for each simulated data point:
+It may seem that these two criteria should be enough.  However, in some cases the experiment could last a very long time using just these criteria.  For example, consider the case that two of the web page variations have nearly the same CvR.  In this case it will be very difficult to determine which is best.  It will also not be very important since the results are so similar.  Thus we will use a measure that we will call the potential value remaining in the experiment as the third criteria.  The value remaining is computed by simulating many draws for each arm.  Using this data, the potential value remaining for arm $i$ is obtained by computing the following for each simulated data point:
 
 \begin{equation}\label{valrem}
 \frac{\theta_{max} - \theta^*}{\theta^*}
-\end{equation}  
+\end{equation}
 where $\theta_{max}$ is the largest value for the random draw and $\theta^*$ is the value of the arm that is currently believed to be the best (the arm with the highest weighting, or probability of being optimal).  The result is some distribution of numbers between $0$ and $1$ that we can think of as the distribution of value remaining.  For example, if $50\%$ of the numbers are 0, then about $50\%$ of the time the arm that is currently believed optimal will perform the best.  The potential value remaining is the $95$th percentile of this distribution.  If the potential value remaining were $.2$, we could interpret it as meaning that there is about a $5\%$ chance that another arm beats the current best arm by $.2$ or more.  We stop the experiment if this value is less than $1\%$ of the current best arm's CvR.  This way we stop the experiment if there seems to be little chance of improvement over the current best arm, regardless of whether we've met the $95\%$ tolerance for the weights.
 
 The value remaining can be computed using the following code:
@@ -49,18 +49,20 @@ The value remaining can be computed using the following code:
 \begin{lstlisting}[style = python]
 def val_remaining(data,prob):
     import scipy as sp
-    
+
     champ_ind = sp.argmax(prob)
     thetaM = sp.amax(data,1)
     valrem = (thetaM - data[:,champ_ind])/data[:,champ_ind]
     pvr = sp.stats.mstats.mquantiles(valrem,.95)
-    
-    return valrem,pvr    
+
+    return valrem,pvr
 \end{lstlisting}
-where data is data simulated using the function from the previous lab, and prob is a vector containing the probabilities that each arm is optimal (also computed using a function from the previous lab).
+where data is data simulated using the sim\_data function from the previous algorithms lab, and prob is a vector containing the probabilities that each arm is optimal (also computed using a function from the previous lab).
 
 \begin{problem}
 Write a function that simulates this problem as described, using the stopping criteria described above.  The function should accept a vector of the true probabilities of the arms.  It should use the function from the previous problem to simulate each day and continue until the stopping criteria are met.
+
+The function should return the state of each arm (i.e. an $n$ by $2$ matrix with the successes and failures of each arm), a matrix that contains the weights assigned to each arm each day, the index of the winning variation, and the number of days it took to converge.
 
 Your code should have a while loop that checks for the stopping criteria after each day.  It might look something like this
 \newpage
@@ -80,7 +82,7 @@ Next run the same simulation 200 times and keep track of how many days the exper
 
 \begin{lstlisting}[style = python]
 plt.figure()
-hist, bins = sp.histogram(dayvec,bins = 12)
+hist, bins = scipy.histogram(dayvec,bins = 12)
 width = (bins[1]-bins[0])
 center = (bins[:-1]+bins[1:])/2
 plt.bar(center, hist, align = 'center', width = width,color = 'g')
@@ -107,7 +109,7 @@ Create the same two types of plots, this time with six variations having weights
 
 
 \section*{Comparison with Classical Tests}
-Using the bandit approach described here has significant advantages over a classical test.  There are two main reasons why the bandit approach is more efficient.  
+A more classical approach to this problem would be to split traffic between each variation for a predetermined amount of time which should give enough data to determine the best arm with some level of confidence.  Using the bandit approach described here has significant advantages over a classical test.  There are two main reasons why the bandit approach is more efficient.
 
 The first reason is that the bandit method generally converges quicker.  A standard test would require splitting the web page views between the different variations over a long period of time.  According to Google's explanation in the website mentioned at the beginning of this lab, the two arm case would take 223 days and the 6 arm case would take 919 days.  The results from the simulations you performed should show that on average the bandit method finishes much faster.  There are other ways we could choose our stopping criteria that may result in even shorter experiment times.  In general, we can always adjust the tolerance of our stopping criteria to shorten experiment time or increase accuracy.
 
