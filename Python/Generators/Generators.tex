@@ -44,7 +44,9 @@ the generator resumes from its previous state and computes the next value in the
 When the generator has finished executing, a \li{StopIteration} exception is raised the generator terminates.
 You can send values and throw exceptions to the generators via the \li{send()} and \li{throw()} methods respectively.
 For more information on these methods we refer to PEP 342 (Python Enhancement Proposal 342).
-The \li{xrange()} function that is built into Python is a generator based version of \li{range()}.
+
+When you are writing \li{for} loops, you should be sure to use a generator whenever it is reasonable to do so.
+The \li{xrange()} function that is built into Python is a generator based version of \li{range()} and is generally faster when used in \li{for} loops.
 
 When are generators helpful? If you encounter the situations below, consider trying to solve 
 your problem using generators.  Generators have proven to be very useful in these situations.
@@ -74,14 +76,12 @@ generating the power set of a set.
 
 We can generate the power set of a set by representing each element in a set by one bit.
 If a bit is 0, then we do not include the element in the current combination.  If a
-bit is 1, the element is included in the combination.  Then we count from 0 to $2^{\abs{A}}-1$
-and look as the binary representation of the number, including or excluding elements based
-on the bits in their respective location.
+bit is 1, the element is included in the combination.
+Using this representation we can count through the power set of any finite set $A$, by counting from 0 to $2^{\abs{A}}-1$, looking at the binary representation of the number, and then including or excluding elements based on the value of each bit.
 
 \begin{problem}
-Write a function that will accept a set of elements and return a list of all the combinations
-of elements of that set.  You will have to impose some sort of ordering on the set (map each element
-in the set to a position in the binary representation).
+Write a function that will accept a list and return a list of all the combinations
+of elements of that list.
 \end{problem}
 
 This is, however, an inefficient way to generate combinations.  Ideally, we would want
@@ -144,18 +144,20 @@ We encourage you to view the documentation for \li{itertools} on the Python webs
 The generator that we have written as a solution to \ref{prob:changed_elem_gray} is especially useful when we are interested in the changed elements between successive subsets, or when we want to continuously update a single data structure using the elements of a Gray code.
 The benefits of such an approach would be particularly apparent in cases where it is costly to add or remove items from the data sructure.
 The documentation for \li{itertools} also includes various recipes for other useful generator functions.
+Feel free to look through the documentation \href{http://docs.python.org/2/library/itertools.html}{here}.
 
 \begin{problem}
 \label{prob:subblocks}
 Write a generator function that will evenly split a 1-dimensional array into sub-blocks.
 Your function should be capable of returning sub-blocks that could possibly overlap.
-The function should accept as arguments: a 1-dimensional array,
-a block width, and an optional offset.  If the array cannot be evenly divided into
-sub-blocks, raise and error.
+The function should accept as arguments: a 1-dimensional array, a block width, and an optional offset.
+If the array cannot be evenly divided into sub-blocks, raise and error.
+For example, if I want to divide an array\li{X} with 9 elements into subblocks of 3 elements with a step of 2 between each block, my generator would return the values \li{X[0:3]}, \li{X[2:5]}, \li{X[4:7]}, and \li{X[6:9]}.
+It wouldraise an error if I were to ask for that sort of stepping on an array with 10 entries since the last item could not be included in any subblock.
 \end{problem}
 
 \begin{problem}
-Expand your solution to Problem \ref{prob:subblocks} to work with 2-dimensional and 3-dimensional
+Expand your solution to Problem \ref{prob:subblocks} to work with 2-dimensional
 arrays.  You may implement them as separate functions if you wish.
 \end{problem}
 
