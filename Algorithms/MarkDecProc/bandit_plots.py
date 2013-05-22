@@ -13,9 +13,9 @@ def priors_plot():
     y3 = beta.pdf(x,10,20)
     y4 = beta.pdf(x,100,200)
     
-    plt.plot(x,y2, label = r'$\alpha = 1$, $\beta = 2$')
-    plt.plot(x,y3, label = r'$\alpha = 10$,$\beta = 20$')
-    plt.plot(x,y4, label = r'$\alpha = 100$,$\beta = 200$')
+    plt.plot(x,y2, label = r'$\alpha = 1, \beta = 2$')
+    plt.plot(x,y3, label = r'$\alpha = 10, \beta = 20$')
+    plt.plot(x,y4, label = r'$\alpha = 100, \beta = 200$')
     plt.legend()
     plt.savefig('priors.pdf')
     
