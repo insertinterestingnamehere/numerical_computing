@@ -1,60 +1,165 @@
 \lab{Algorithms}{Line-Search Algorithms}{Line-Search Algorithms}
 \objective{Investigate various Line-Search algorithms for one-dimensional optimization.}
 
-Line search procedures are an integral part of many nonlinear optimization techniques. In some sense, they represent the simplest nontrivial case in general optimization, as we only have to worry about one parameter. And yet far more sophisticated optimization algorithms really crucially on the effectiveness and efficiency of line searches, since higher-dimensional problems are often broken down into one-dimensional optimizations. There are many different line search methods, and their effectiveness depends very much on the nature of the optimization problem. Although the line search procedure is often only a subroutine of the optimization algorithm at hand, understanding the basics of the line search is necessary for understanding the robustness of the entire algorithm.
+Line search procedures are an integral part of many nonlinear optimization techniques. 
+In some sense, they represent the simplest nontrivial case in general optimization, as 
+we only have to worry about one parameter. And yet far more sophisticated optimization 
+algorithms really crucially on the effectiveness and efficiency of line searches, since 
+higher-dimensional problems are often broken down into one-dimensional optimizations. 
+There are many different line search methods, and their effectiveness depends very much 
+on the nature of the optimization problem. Although the line search procedure is often 
+only a subroutine of the optimization algorithm at hand, understanding the basics of 
+the line search is necessary for understanding the robustness of the entire algorithm.
 
-\section*{Derivative versus Derivative-Free Methods}
-As you have seen in calculus classes, the derivative of a function gives information about how the value of the function changes at each point, and can be used to determine local optima. However, not all objective functions are differentiable, so we need other techniques at our disposal. Line search methods may be broadly separated into two groups based on whether they use the derivative of the objective function. We discuss two simple examples to illustrate this distinction.
+\subsection*{Derivative versus Derivative-Free Methods}
+As you have seen in calculus classes, the derivative of a function gives information 
+about how the value of the function changes at each point, and can be used to determine 
+local optima. However, not all objective functions are differentiable, so we need other 
+techniques at our disposal. Line search methods may be broadly separated into two groups 
+based on whether they use the derivative of the objective function. We discuss two 
+simple examples to illustrate this distinction.
 
-\section{Golden Section Search}
-This method is appropriate when minimizing a real-valued function on the reals over a closed interval. The function must further satisfy the \emph{unimodal} property, i.e. it has just one local minimum, and in fact decreases monotonically to the minimum from the left, and increases monotonically to the right. The goal, of course, find the global minimum. We do this by making a sequence of ``guesses" that we hope will converge quickly to the minimum. Although we may not end up with the exact minimum, this method will allow us to pin down the true minimum within an interval of any given width in a finite number of steps.
+\subsection*{Golden Section Search}
+This method is appropriate when minimizing a real-valued function on the reals over a 
+closed interval. The function must further satisfy the \emph{unimodal} property, i.e. 
+it has just one local minimum, and in fact decreases monotonically to the minimum from 
+the left, and increases monotonically to the right. The goal, of course, find the 
+global minimum. We do this by making a sequence of ``guesses" that we hope will converge 
+quickly to the minimum. Although we may not end up with the exact minimum, this method 
+will allow us to pin down the true minimum within an interval of any given width in a 
+finite number of steps.
 
-For the Golden Section Search, each step consists of evaluating the function at two points within the current interval, comparing these values, and then reducing the size of the interval for the next step. Let us consider typical step in the algorithm. At the outset, we have our function $f$ and a closed interval $[a, b]$ over which we seek to minimize $f$. Choose two points $a'$ and $b'$ within the interval, and assume that $a' < b'$. Now calculate $f(a')$ and $f(b')$, and assume that $f(a') \geq f(b')$. Because of the unimodal condition, we now know that the minimizer must be in the interval $[a', b]$, for otherwise the function $f$ would have a local minimum in both $[a, a']$ and $[a', b]$. In the next step, we repeat the process over the interval $[a', b]$. If instead we had $f(b') \geq f(a')$, then we choose the interval $[a, b']$ for the next step, and if the two values are equal, then it does not matter which interval is chosen.
+For the Golden Section Search, each step consists of evaluating the function at two 
+points within the current interval, comparing these values, and then reducing the size 
+of the interval for the next step. Let us consider typical step in the algorithm. At 
+the outset, we have our function $f$ and a closed interval $[a, b]$ over which we seek 
+to minimize $f$. Choose two points $a'$ and $b'$ within the interval, and assume that 
+$a' < b'$. Now calculate $f(a')$ and $f(b')$, and assume that $f(a') \geq f(b')$. 
+Because of the unimodal condition, we now know that the minimizer must be in the 
+interval $[a', b]$, for otherwise the function $f$ would have a local minimum in 
+both $[a, a']$ and $[a', b]$. In the next step, we repeat the process over the interval 
+$[a', b]$. If instead we had $f(b') \geq f(a')$, then we choose the interval $[a, b']$ 
+for the next step, and if the two values are equal, then it does not matter which 
+interval is chosen.
 
-We now have the basic description of the algorithm, but how do we choose the two test points $a'$ and $b'$? There is in fact an optimal choice, which reduces the amount of work we have to do. Given an interval $[a, b]$, choose $a'$ and $b'$ satisfying $$
+We now have the basic description of the algorithm, but how do we choose the two test 
+points $a'$ and $b'$? There is in fact an optimal choice, which reduces the amount of 
+work we have to do. Given an interval $[a, b]$, choose $a'$ and $b'$ satisfying 
+\begin{equation*}
 a' = a + \rho(b - a) //
 b' = a + (1 - \rho)(b - a),
-$$ where $\rho = \frac{1}{2}(3 - \sqrt{5}) \approx 0.382$. By choosing these particular points, we need to only evaluate the function at one additional point in the next step. To demonstrate this fact, the reader may verify that, within the interval $[a, b']$, the point $a'$ already satisfies the equation $$a' = a + (1 - \rho)(b' - a),$$ and so we need only evaluate the function at the point $c$ satisfying $$c = a + \rho(b' - a).$$ (The constant $\rho$ is not difficult to derive, and is related to the famous Golden Ratio, hence the name of this algorithm.)
+\end{equation*}
+where $\rho = \frac{1}{2}(3 - \sqrt{5}) \approx 0.382$. By choosing these particular 
+points, we need to only evaluate the function at one additional point in the next step. 
+To demonstrate this fact, the reader may verify that, within the interval $[a, b']$, 
+the point $a'$ already satisfies the equation 
+\begin{equation*}
+a' = a + (1 - \rho)(b' - a),
+\end{equation*}
+and so we need only evaluate the function at the point $c$ satisfying 
+\begin{equation*}
+c = a + \rho(b' - a).
+\end{equation*}
+(The constant $\rho$ is not difficult to derive, and is related to the famous Golden Ratio, hence the name of this algorithm.)
 
-At each step, the interval is reduced by a factor of $1-\rho$, which means that after $n$ steps, we have pinned down the minimizer to within an interval approximately $(0.61803)^n$ times the length of the original interval. Note that this convergence is independent of the objective function.
+At each step, the interval is reduced by a factor of $1-\rho$, which means that after 
+$n$ steps, we have pinned down the minimizer to within an interval approximately 
+$(0.61803)^n$ times the length of the original interval. Note that this convergence is 
+independent of the objective function.
 
 \begin{problem}
-Implement Golden Section Search as described above. Use this to minimize $\exp{x} - 4x$ on the interval $\lbrack 0, 3 \rbrack$. How many steps do you need to take to get within $.001$ of the true minimizer? Check that with the sentence preceding this problem.
+Implement Golden Section Search as described above. Use this to minimize $\exp{x} - 4x$ 
+on the interval $\lbrack 0, 3 \rbrack$. How many steps do you need to take to get 
+within $.001$ of the true minimizer? Check that with the sentence preceding this 
+problem.
 \end{problem}
 
-\section{Newton's Method}
-To use this method, we need a real-valued function of a real variable that is twice differentiable. The idea is to approximate the function with a quadratic polynomial and then solve the trivial problem of minimizing the polynomial. Doing so in an iterative manner can lead us to the actual minimizer. Let $f$ be a function satisfying the appropriate conditions, and let us make an initial guess, $x_0$. The relevant quadratic approximation to $f$ is $$q(x) = f(x_0) + f'(x_0)(x-x_0) + \frac{1}{2}f''(x_0)(x-x_0)^2,$$ or just the second-degree Taylor polynomial for $f$ centered at $x_0$. The minimum for this quadratic function is easily found by solving $q'(x) = 0$, and we take the obtained $x$-value as our new approximation. The formula for the $(n+1)$-th approximation, which the reader can verify, is $$x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)}.$$
+\subsection*{Newton's Method}
+To use this method, we need a real-valued function of a real variable that is twice 
+differentiable. The idea is to approximate the function with a quadratic polynomial and 
+then solve the trivial problem of minimizing the polynomial. Doing so in an iterative 
+manner can lead us to the actual minimizer. Let $f$ be a function satisfying the 
+appropriate conditions, and let us make an initial guess, $x_0$. The relevant quadratic 
+approximation to $f$ is 
+\begin{equation*}
+q(x) = f(x_0) + f'(x_0)(x-x_0) + \frac{1}{2}f''(x_0)(x-x_0)^2,
+\end{equation*}
+or just the second-degree Taylor polynomial for $f$ centered at $x_0$. The minimum 
+for this quadratic function is easily found by solving $q'(x) = 0$, and we take the 
+obtained $x$-value as our new approximation. The formula for the $(n+1)$-th 
+approximation, which the reader can verify, is 
+\begin{equation*}
+x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)}.
+\end{equation*}
 
-As is typical with optimization algorithms, Newton's Method generates a sequence of points or successive approximations to the minimizer. However, the convergence properties of this sequence depend heavily on the initial guess $x_0$ and the function $f$. Roughly speaking, if $x_0$ is sufficiently close to the actual minimizer, and if $f$ is well-approximated by parabolas, then one can expect the sequence to converge quickly. However, there are cases when the sequence converges slowly or not at all.
+As is typical with optimization algorithms, Newton's Method generates a sequence of 
+points or successive approximations to the minimizer. However, the convergence 
+properties of this sequence depend heavily on the initial guess $x_0$ and the function 
+$f$. Roughly speaking, if $x_0$ is sufficiently close to the actual minimizer, and if 
+$f$ is well-approximated by parabolas, then one can expect the sequence to converge 
+quickly. However, there are cases when the sequence converges slowly or not at all.
 
 \begin{problem}
-Implement Newton's Method as described above. Use this to again minimize $\exp{x} - 4x$ with an initial guess of $x_0 = 0$. Run the algorithm for as many steps as used for the Golden Section Search. Which method gives the better result?
+Implement Newton's Method as described above. Use this to again minimize $\exp{x} - 4x$ 
+with an initial guess of $x_0 = 0$. Run the algorithm for as many steps as used for the 
+Golden Section Search. Which method gives the better result?
 \end{problem}
 
-\section*{General Line Search Methods}
-We now discuss some important conditions for line search methods in a more general setting. We will deal here only with methods that use the derivative.
+\subsection*{General Line Search Methods}
+We now discuss some important conditions for line search methods in a more general 
+setting. We will deal here only with methods that use the derivative.
 
-Line-search methods require choosing a direction and a step size at each step in the algorithm. The basic iteration is simply $$x_{k+1} = x_k + \alpha_kp_k$$, where $p_k$ is the search direction, and $alpha_k$ is the step size. We will not discuss how the search direction is selected, but only the step size. A common approach involves the \emph{Wolfe conditions}:
+Line-search methods require choosing a direction and a step size at each step in the 
+algorithm. The basic iteration is simply 
+\begin{equation*}
+x_{k+1} = x_k + \alpha_kp_k,
+\end{equation*}
+where $p_k$ 
+is the search direction, and $alpha_k$ is the step size. We will not discuss how the 
+search direction is selected, but only the step size. A common approach involves the 
+\emph{Wolfe conditions}:
 
 \begin{align*}
 &f(x_k + \alpha_kp_k) \leq f(x_k) + c_1\alpha_k\nabla f_k^Tp_k, &(0 < c_1 < 1)
 \\ &\nabla f(x_k + \alpha_kp_k)^Tp_k \geq c_2\nabla f_k^Tp_k, &(c_1 < c_2 < 1)
 \end{align*}
 
-Here, $f$ is the objective function, and we use the shorthand notation $\nabla f_k$ to mean the gradient of $f$ evaluated at the point $x_k$. The search direction $p_k$ is often required to satisfy $p_k^T \nabla f_k < 0$, in which case it is called a \emph{descent direction}, since in this case the function is guaranteed to decrease in this direction. Generally speaking, choosing a step size satisfying these conditions ensures that we achieve sufficient decrease in the function and also that we do not terminate the search at a point of steep decrease (since then we could achieve even better results by choosing a slightly larger step size). The first condition is known as the \emph{Armijo} condition. The second of the two conditions can be replaced by $$ | \nabla f(x_k + \alpha_kp_k)^Tp_k| \leq c_2 | \nabla f_k^Tp_k|,$$ and in this case we have the \emph{strong Wolfe conditions}.
+Here, $f$ is the objective function, and we use the shorthand notation $\nabla f_k$ to 
+mean the gradient of $f$ evaluated at the point $x_k$. The search direction $p_k$ is 
+often required to satisfy $p_k^T \nabla f_k < 0$, in which case it is called a 
+\emph{descent direction}, since in this case the function is guaranteed to decrease in 
+this direction. Generally speaking, choosing a step size satisfying these conditions 
+ensures that we achieve sufficient decrease in the function and also that we do not 
+terminate the search at a point of steep decrease (since then we could achieve even 
+better results by choosing a slightly larger step size). The first condition is known 
+as the \emph{Armijo} condition. The second of the two conditions can be replaced by 
+\begin{equation*}
+| \nabla f(x_k + \alpha_kp_k)^Tp_k| \leq c_2 | \nabla f_k^Tp_k|,
+\end{equation*}
+and in this case we have the \emph{strong Wolfe conditions}.
 
 The \emph{Goldstein conditions} for choosing step size:
-$$
-f(x_k) + (1-c)\alpha_k\nabla f_k^Tp_k \leq f(x_k + \alpha_kp_k) \leq f(x_k) + c\alpha_k\nabla f_k^Tp_k,
-$$
-where $0 < c < 0.5$. Similar to the Wolfe conditions, the Goldstein conditions ensure sufficient decrease in the function and prevent the step size from being too small. In the area of quasi-Newton optimization methods, however, the Wolfe conditions are preferred.
+\begin{equation*}
+f(x_k) + (1-c)\alpha_k\nabla f_k^Tp_k \leq f(x_k + \alpha_kp_k) \leq f(x_k) + 
+c\alpha_k\nabla f_k^Tp_k,
+\end{equation*}
+where $0 < c < 0.5$. Similar to the Wolfe conditions, the Goldstein conditions ensure 
+sufficient decrease in the function and prevent the step size from being too small. In 
+the area of quasi-Newton optimization methods, however, the Wolfe conditions are 
+preferred.
 
 \emph{Sufficient Decrease and Backtracking:}
 
-Another way to require a sufficient decrease without taking too short of a step involves the idea of backtracking: start with an assumed step size, and if it does not satisfy a sufficient decrease requirement (which is to say, the step is too long), scale the step down repeatedly until the Armijo condition is satisfied.
+Another way to require a sufficient decrease without taking too short of a step 
+involves the idea of backtracking: start with an assumed step size, and if it does not 
+satisfy a sufficient decrease requirement (which is to say, the step is too long), 
+scale the step down repeatedly until the Armijo condition is satisfied.
 
 \begin{problem}
-Implement the backtracking algorithm by writing a function that accepts as input an objective function, the gradient of the function, the point at which to evaluate the function, and a search direction. Note that you also need to choose the scaling factor and the constant $c_1$ in the Armijo condition, as well as an initial step length.
+Implement the backtracking algorithm by writing a function that accepts as input an 
+objective function, the gradient of the function, the point at which to evaluate the 
+function, and a search direction. Note that you also need to choose the scaling factor 
+and the constant $c_1$ in the Armijo condition, as well as an initial step length.
 \end{problem}
 
 
