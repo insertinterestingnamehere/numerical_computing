@@ -21,7 +21,7 @@ Write a function that simulates the experiment for one day.  The function should
 
 The function could be outlined like this: first compute how many times each variation should be used in the next 50 visits.  When determining the weights you will need to use the \li{sim_data} function.  Use 100 as the number of draws here and throughout this lab.  Then ``visit'' each page the number of times given by the weights.  Whether each visit results in a conversion (1) or not (0) can be randomly determined using the following function:
 
-\begin{lstlisting}[style = python]
+\begin{lstlisting}
 import scipy as sp
 def pull(p):
     return sp.random.binomial(1,p,size = None).
@@ -46,7 +46,7 @@ where $\theta_{max}$ is the largest value for the random draw and $\theta^*$ is 
 
 The value remaining can be computed using the following code:
 
-\begin{lstlisting}[style = python]
+\begin{lstlisting}
 import scipy as sp
 def val_remaining(data,prob):
     champ_ind = sp.argmax(prob)
@@ -64,7 +64,7 @@ The function should return the state of each arm (i.e. an $n$ by $2$ matrix with
 
 Your code should have a while loop that checks for the stopping criteria after each day.  It might look something like this:
 \newpage
-\begin{lstlisting}[style = python]
+\begin{lstlisting}
 while ((delta < p_tol) and (champ_cvr/float(100) < v_quant)) or days < 14:
 \end{lstlisting}
 where \li{delta} is the largest weight for the current day, meaning if there were two arms and you determined the weights to be .9 and .1, then delta would be .9.  We stop when the largest weight is greater than .95, so \li{p_tol} is .95.  The variables \li{champ_cvr} and \li{v_quant} describe the stop mechanism that accounts for the potential value remaining.  First, \li{champ_cvr} is the conversion rate of the current best arm over the course of the experiment.  So if it has been used 100 times with 4 successes, then \li{champ_cvr} would be .04.  The variable \li{v_quant} is the potential value remaining, i.e. the $95$th percentile of the value remaining distribution described above.  The variable \li{pvr} can be computed using the \li{val_remaining} function given above.
@@ -74,11 +74,11 @@ The \li{days} variable simply keeps track of how many days the experiment has be
 Now let's see how our bandit performs with specific examples.
 
 \begin{problem}
-Suppose a web page has two variations and the true CvR of the original is $.04$ and the true CvR of the new variation is $.05$.  Create a plot similar to \ref{weights1} that shows how the weights assigned to the pages changes from day to day until the optimal page is chosen and the experiment stops.
+Suppose a web page has two variations and the true CvR of the original is $.04$ and the true CvR of the new variation is $.05$.  Create a plot similar to \ref{fig:weights1} that shows how the weights assigned to the pages changes from day to day until the optimal page is chosen and the experiment stops.
 
 Next run the same simulation 200 times and keep track of how many days the experiment took in each case.  Create a histogram that shows the number of days it takes to complete the experiment.  The following code will create such a histogram:
 
-\begin{lstlisting}[style = python]
+\begin{lstlisting}
 import scipy as sp
 from matplotlib import pyplot as plt
 hist, bins = sp.histogram(dayvec, bins = 12)
@@ -92,19 +92,19 @@ where \li{dayvec} is a vector containing the number of days each simulation took
 Create the same two types of plots, this time with six variations having weights $.04,.02,.03,.035,.045,.05$.  This time only run the simulation 100 times.  What percent of the time did the bandit find the optimal arm in this case?
 \end{problem}
 
-\begin{figure}\label{fig:weights1}
+\begin{figure}
 \begin{center}
-        \includegraphics[scale=0.4]{./Applications/MarkDecProc/weights1.pdf}
+        \includegraphics[width=\textwidth]{./Applications/MarkDecProc/weights1.pdf}
         \caption{Optimal arm probabilities in the two arm case}
 \end{center}
-\end{figure}
+\end{figure}\label{fig:weights1}
 
-\begin{figure}\label{fig:weights2}
+\begin{figure}
 \begin{center}
-        \includegraphics[scale=0.4]{./Applications/MarkDecProc/weights2.pdf}
+        \includegraphics[width=\textwidth]{./Applications/MarkDecProc/weights2.pdf}
         \caption{Optimal arm probabilities in the six arm case}
 \end{center}
-\end{figure}
+\end{figure}\label{fig:weights2}
 
 \section*{Comparison with Classical Tests}
 A more classical approach to this problem would be to split traffic between each variation for a predetermined amount of time, which should give enough data to determine the best arm with some level of confidence.  Using the bandit approach described here has significant advantages over a classical test.  There are two main reasons why the bandit approach is more efficient.
