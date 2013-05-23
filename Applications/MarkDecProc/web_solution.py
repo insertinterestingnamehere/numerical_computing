@@ -24,15 +24,9 @@ def simulate_day(pvec, priors):
     for k in xrange(0, 2):
         data = bs.sim_data(priors, datasize)
         prob = bs.prob_opt(data)
-<<<<<<< HEAD
-        weights = bs.get_weights(prob,50)
-        for i in xrange(0,n):
-            for j in xrange(0,int(weights[i])):
-=======
         weights = bs.get_weights(prob, 50)
         for i in xrange(0, n):
             for j in xrange(0, int(weights[i])):
->>>>>>> d96a9c262a9c5e7a28574e4fbcf025329111a043
                 result = pull(pvec[i])
                 if result == 0:
                     priors[i,1] += 1
