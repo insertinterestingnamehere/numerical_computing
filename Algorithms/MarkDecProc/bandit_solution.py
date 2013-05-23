@@ -39,11 +39,11 @@ def prob_opt(data):
     return prob
         
 #Problem 4
-def get_weights(prob,M):
+def get_weights(prob, M):
     n = prob.shape[0]
     weights = floor(prob*M)
     missing = int(M-weights.sum())
-    for i in xrange(0,missing):
+    for i in xrange(0, missing):
         assign_index = sp.random.random_integers(0, n-1)
         weights[assign_index] = weights[assign_index]+1
         
