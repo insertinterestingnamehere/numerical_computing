@@ -2,29 +2,39 @@
 \label{lab:Essentials_NumPy}
 
 \section*{Why Arrays?}
-\begin{problem}
 Let's begin with a simple demonstration of why arrays are important for numerical computation.
 Why use arrays when Python already has a reasonably efficient list object?
 In this demonstration, we will try squaring a matrix.
 The matrix will be represented as a two dimensional list (i.e. a list of lists).
 
-Write a function that will accept two matrices (two dimensional list), $A$ and $B$, and return $AB$ following the usual rules of matrix multiplication.
+The following is a function that will accept two matrices (two dimensional list), $A$ and $B$, and return $AB$ following the usual rules of matrix multiplication.
 \begin{lstlisting}
-k = 10
-a = [range(i, i+k) for i in range(0, k**2, k)]
+: def arrmul(A,B):
+:     new = []
+:     for i in range(len(A)):
+:         newrow = []
+:         for k in range(len(B[0])):
+:             tot = 0
+:             for j in range(len(B)):
+:                 tot += A[i][j] * B[j][k]
+:             newrow.append(tot)
+:         new.append(newrow)
+:     return new
 \end{lstlisting}
-Time how long your function takes to square matrices for increasing values of \li{k}.
-In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}, for example:
+We can initialize a $k \times k$ ``array" of integers like this:
 \begin{lstlisting}
-%timeit range(100)
+: k = 10
+: a = [range(i, i+k) for i in range(0, k**2, k)]
 \end{lstlisting}
-\li{\%timeit} runs the line of code multiple times.
-If you only want it to run once (for example if you expect it to take a long time), use \li{\%time} instead.
 
-Now import NumPy and create a NumPy array, $b$ as shown below.
-We demonstrate how to square NumPy arrays as matrices below.
-\li{b*b} does not square the array, but rather multiplies $b$ with itself element-wise.
-To get matrix multiplication for NumPy arrays, you must use \li{np.dot}
+\begin{problem}
+Time how long this function takes to square matrices for increasing values of \li{k}.
+In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}, as in \li{\%timeit range(100)}.
+
+Now import NumPy and create a NumPy array, $b$, and square it.
+This is done like this:
+\li{b*b} does not square the array, but rather multiplies $b$ with itself element by element.
+To get matrix multiplication for NumPy arrays, you must use \li{np.dot}.
 \begin{lstlisting}
 import numpy as np
 b = np.array([range(i, i+k) for i in range(0, k**2, k)])
@@ -33,6 +43,8 @@ np.dot(b, b)
 Time how long NumPy takes to square arrays for increasing sizes of \li{k}.
 
 What do you notice about the time needed to square a two dimensional list vs. a two dimensional NumPy array?
+
+\end{problem}
 
 % Below is a comparison of runtimes needed to square a matrix
 % \begin{center}
@@ -50,8 +62,11 @@ What do you notice about the time needed to square a two dimensional list vs. a 
 % \end{tabular}
 % 
 % \end{center}
-\end{problem}
 
+The reason for the drastic speed diference is that Python, as a high level interpreted language, tends to be slower than lower level compiled languages.
+The algorithms implemented in NumPy are heavily optimized and are usually implemented in C or Fortran.
+Instead of operating purely in Python, they use Python to run code that is written in other languages.
+NumPy interfaces with some of the best known packages for doing computational linear algebra and can be used to write relatively fast programs.
 
 \section*{NumPy}
 NumPy is a fundamental package for scientific computing with Python.
@@ -391,6 +406,49 @@ What is the difference between their output?
 Let \li{A} be the an array with shape \li{(1,1000000)}.
 What is the difference in the output between \li{np.vstack(A)} and \li{A.T}?
 Which of the two is faster?
+\end{problem}
+
+\begin{problem}
+One good application of array slicing is the Jacobi method for solving Laplace's equation on a square.
+This is an example of a simple iterative method.
+In this case we will modify our array in place.
+Make a function that accepts an array and a tolerance as input and does the following:
+\begin{itemize}
+\item Make a copy of the array.
+\item Make a variable representing the difference between the arrays.
+Start with it set equal to the tolerance.
+\item While the difference is less than or equal to the tolarance
+\begin{itemize}
+	\item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors.
+Use the values from the old array for this computation.
+This should only take one line and should be based entirely on array slices.
+	\item update the difference to be the maximum of the absolute value of the new array minus the old one.
+	\item copy the values from the new array into the old one (without creating a new array).
+\end{itemize}
+\end{itemize}
+
+Now use the following code to generate a plot of your results
+
+\begin{lstlisting}
+: from matplotlib import pyplot as plt
+: from mpl_toolkits.mplot3d import Axes3D
+: n = 100
+: tol = .0001
+: U = np.ones((n, n))
+: U[:,0] = 100
+: U[:,-1] = 100
+: U[0] = 0
+: U[-1] = 0
+: laplace2(U, tol)
+: X = np.linspace(0, 1, n)
+: Y = np.linspace(0, 1, n)
+: X, Y = np.meshgrid(X, Y)
+: fig = plt.figure()
+: ax = fig.gca(projection='3d')
+: ax.plot_surface(X, Y, U, rstride=5)
+: plt.show()
+\end{lstlisting}
+
 \end{problem}
 
 \section*{Array Broadcasting}
