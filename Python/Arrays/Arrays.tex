@@ -24,21 +24,21 @@ The following is a function that will accept two matrices (two dimensional list)
 We can initialize a $k \times k$ ``array" of integers like this:
 \begin{lstlisting}
 : k = 10
-: a = [range(i, i+k) for i in range(0, k**2, k)]
+: A = [range(i, i+k) for i in range(0, k**2, k)]
 \end{lstlisting}
 
 \begin{problem}
 Time how long this function takes to square matrices for increasing values of \li{k}.
 In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}, as in \li{\%timeit range(100)}.
 
-Now import NumPy and create a NumPy array, $b$, and square it.
+Now import NumPy and create a NumPy array, \li{A}, and square it.
 This is done like this:
-\li{b*b} does not square the array, but rather multiplies $b$ with itself element by element.
-To get matrix multiplication for NumPy arrays, you must use \li{np.dot}.
+\li{A*A} does \emph{not} square the array, but rather multiplies $b$ with itself element by element.
+To get matrix multiplication for NumPy arrays, you must use \li{np.dot} like this:
 \begin{lstlisting}
 import numpy as np
-b = np.array([range(i, i+k) for i in range(0, k**2, k)])
-np.dot(b, b)
+A = np.array([range(i, i+k) for i in range(0, k**2, k)])
+np.dot(A, A)
 \end{lstlisting}
 Time how long NumPy takes to square arrays for increasing sizes of \li{k}.
 
@@ -65,12 +65,12 @@ What do you notice about the time needed to square a two dimensional list vs. a 
 
 The reason for the drastic speed difference is that Python, as a high level interpreted language, tends to be slower than lower level compiled languages.
 The algorithms implemented in NumPy are heavily optimized and are usually implemented in C or Fortran.
-Instead of operating purely in Python, they use Python to run code that is written in other languages.
+Instead of operating purely in Python, they use Python to run code that is written and optimized in other languages.
 NumPy interfaces with some of the best known packages for doing computational linear algebra and can be used to write relatively fast programs.
 
 \section*{NumPy}
 NumPy is a fundamental package for scientific computing with Python.
-It provides an efficient $n$-dimensional array object for fast computations.
+It provides an efficient $n$-dimensional (arbitrary dimensional) array object for fast computations.
 These arrays are commonly known as \emph{ndarrays}.
 This lab will focus on how to use these powerful objects.
 NumPy is commonly imported as shown below.
@@ -78,7 +78,7 @@ NumPy is commonly imported as shown below.
 \begin{lstlisting}
 : import numpy as np
 \end{lstlisting}
-Before beginning this lab, it will be useful to understand certain concepts and terms used to describe NumPy arrays.
+First, it will be useful to explain certain concepts and terms used to describe NumPy arrays.
 
 \subsection*{Arbitrary Dimensions}
 One, two, and three dimensional arrays are easy to visualize.
@@ -95,11 +95,12 @@ Let's define a three dimensional array.
 \end{lstlisting}
 
 Arrays are objects in Python.
-For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss are also implemented as methods of \li{ndarray} objects.
+For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss here are also implemented as methods of \li{ndarray} objects.
 These methods and other attributes are accessible using the \li{.} operator.
-We use \emph{shape} and \emph{size} to describe the how big an array is.
-\emph{Shape} gives information about the size of the array in each dimension.
-\emph{Size} gives the total number of elements in every dimension of the array.
+Two simple attributes of arrays are \li{shape} and \li{size}
+\li{shape} and \li{size} both describe how big an array is.
+\li{shape} gives information about the size of the array in each dimension.
+\li{Size} gives the total number of elements in every dimension of the array.
 \begin{lstlisting}
 : arr.shape
 (5, 4, 3)
@@ -114,8 +115,8 @@ An integer in NumPy is not the same as an integer Python.
 Remembering this is vital.
 NumPy uses low level data types to speed up calculations.
 However, these data types are susceptible to a problem called \emph{overflow}.
-A 64 bit integer has enough bits to represent integers between $-9,223,372,036,854,775,808$ and $9,223,372,036,854,775,807$.
-If we have an array with $-9,223,372,036,854,775,808$ and we decide to subtract $1$, the integer wraps around and becomes $9,223,372,036,854,775,807$!  If we wish to reduce memory usage, we can use smaller integer types.
+A 64 bit integer has enough bits to represent integers between $-2^{63}$ (that's $-9,223,372,036,854,775,808$) and $2^{63} - 1$.
+If we have an array with $-2^{63}$ and we decide to subtract 1, the integer wraps around and becomes $2^{63} - 1$!  If we wish to reduce memory usage, we can use smaller integer types.
 NumPy has support for 8, 16, 32, and 64 bit integers. 
 \begin{lstlisting}
 : arr.dtype
@@ -126,10 +127,10 @@ dtype('int64')
 240
 \end{lstlisting}
 
-Each element of the array has a unique address that describes it location.
+Each element of the array has a unique address that describes its location.
 Indexing always starts at $0$.
-Also, like Python lists, negative indices are valid and count from the tail of the array.
-We will discuss indexing in detail later in this lab.
+Also, like Python lists, negative indices are valid and count backwards from the end of the array.
+We will discuss indexing in more detail later in this lab.
 \begin{lstlisting}
 : arr[0, 0, 0] #returns the first element of arr
 : arr[-1, -1, -1] #returns the last element of arr
@@ -137,12 +138,12 @@ We will discuss indexing in detail later in this lab.
 
 \section*{Creating Arrays}
 NumPy has several functions for creating and initializing arrays.
-When creating an array, we can optionally specify the data type that is stored in the array.
-NumPy arrays are homogeneous, meaning that they all elements must have the same datatype.
+When creating an array, we can, optionally, specify the data type that is stored in the array.
+NumPy arrays are homogeneous, meaning that all elements in an array must have the same datatype.
 The array order dictates how the array is laid out in memory.
 Two common layouts are C order and Fortran order.
 C ordered arrays are also known as row-major arrays.
-This means that the fastest changing index correspond to the rows of the array.
+This means that the fastest changing index corresponds to the rows of the array.
 This is because rows are stored in contiguous blocks in memory.
 Fortran ordered arrays are column-major.
 Another common way of saying this is that an array is C contiguous or Fortran contiguous.
@@ -155,10 +156,10 @@ Can also be used to make a new array based on an old one, possibly with a change
 \item \li{np.empty_like}: Allocates a new uninitialized array with the same shape and type as the input array.
 \item \li{np.ones}: Allocates and array and initializes each element to $1$.
 \item \li{np.ones_like}: Allocates a new array of ones with the same shape and type as the input array.
-\item \li{np.zeros}: Allocates and array and initializes each element to $0$.
+\item \li{np.zeros}: Allocates an array and initializes each element to $0$.
 \item \li{np.zeros_like}: Allocates a new array of zeros with the same shape and type as the input array.
-\item \li{np.identity}: Allocates a 2D array array with the main diagonal initialized to $1$ and zeros everywhere else.
-\item \li{np.random.rand}: Allocates an array of random floating point values between 0 and 1 of the specified shape.
+\item \li{np.identity}: Allocates a 2D array with ones along the main diagonal and zeros everywhere else.
+\item \li{np.random.rand}: Allocates an array of random floating point values between 0 and 1.
 \end{itemize}
 
 \subsection*{Universal Functions (ufuncs)}
@@ -168,9 +169,10 @@ There are far more functions available in NumPy than could possibly be included 
 If you need to do any sort of simple operation on an array, there is very often a function there to do it.
 These functions are almost always faster and more convenient than iterating through the whole array.
 
-Most of these functions also allow you to specify an array for the output.  It is useful in cases where you would like
-to recycle arrays.  The output array does need to be the correct shape to store the output.
-For example
+Most of these functions also allow you to specify an array for the output.
+It is useful in cases where you would like to avoid unnecessary memory allocation.
+The output array does need to be the correct shape to store the output.
+For example:
 \begin{lstlisting}
 : np.exp(A, out=A) #take exp(A) and store result in A
 \end{lstlisting}
@@ -182,14 +184,14 @@ For example:
 : np.max(A, axis=0) #max along axis 0
 \end{lstlisting}
 The above example returns a row of A which represents the maximum of all the rows of A.
-if we had set \li{axis=1}, it would have taken the maximum of all the columns.
+If we had set \li{axis=1}, it would have taken the maximum of all the columns.
 If, for purposes of broadcasting (discussed later) you need the output of one of these functions to have the same number of dimensions as the original array, you can also include the argument \li{keepdims=True}.
 
 \begin{problem}
 Generate a random $1000 \times 1000$ array \li{A}.
 Take \li{exp(A)} and have NumPy store the output directly in \li{A}.
 This is called operating in place.
-Now Take the maximum along the vertical axis and average the result.
+Now take the maximum along the vertical axis and average the result.
 The final number should be fairly close to $e$.
 \end{problem}
 
@@ -201,8 +203,8 @@ Understand that even though they may look the same, views and copies are very di
 
 Views are special arrays that reference other arrays.
 Changing elements in a view changes the array it references.
-Below we demonstrate the behavior of a view.
-Notice that \li{c} looks like a copy of \li{b}, but it is, in fact, not at all.
+Below, we demonstrate the behavior of a view.
+Notice that \li{c} looks like a copy of \li{b} even though it is not.
 \begin{lstlisting}
 : b = np.reshape(np.arange(25), (5,5))
 : b
@@ -269,10 +271,9 @@ The two arrays address different locations in memory.
 
 \subsubsection*{Slices}
 Each element of an array has a unique address that we can use to retrieve that element.
-Indexing NumPy arrays uses the very similar syntax and conventions as indexing Python lists.
-We will demonstrate on a random 2D array.
-Remember that slicing arrays always return views of the array.
-In this case, the indexing object is a Python tuple.
+Indexing and slicing of NumPy arrays follows syntax that is similar to the syntax used with Python lists.
+We will demonstrate on a simple 2D array.
+Remember that slicing arrays always return a view of an array.
 \begin{lstlisting}
 : arr = np.reshape(np.arange(25), (5,5))
 : arr
@@ -291,7 +292,7 @@ array([0, 1, 2, 3, 4])
 We can access ranges of elements using Python lists.
 We can also more concisely select ranges using the \li{arr[start:stop:step]} range notation.
 \begin{lstlisting}
-: arr[::2] #get every other row.  equivalent to arr[range(0, len(arr), 2)]
+: arr[::2] #get every other row, equivalent to arr[range(0, len(arr), 2)]
 array([[ 0,  1,  2,  3,  4],
        [10, 11, 12, 13, 14],
        [20, 21, 22, 23, 24]])
@@ -312,8 +313,8 @@ They do not copy any data.
 \subsubsection*{Fancy Indexing}
 When the indexing object is a list or an array, NumPy behaves a little differently.
 This feature is commonly referred to as fancy indexing.
-One difference is that fancy indexes always return a copy of an array instead of a view.
-There are two types of fancy indexes: boolean and integer.
+One difference is that fancy indices always return a copy of an array instead of a view.
+There are two types of fancy indexing: boolean and integer.
 Boolean indexing returns an array of \li{True} or \li{False} values depending on some evaluating condition.
 \begin{lstlisting}
 : bmask = (arr > 15) & (arr < 23)
@@ -347,12 +348,9 @@ Though fancy indexing does not return a view of the array, it \emph{can} be used
 For example, we will set all values of an array that are less than .5 to 0 as follows:
 \begin{lstlisting}
 : from numpy.random import rand
-: A = np.rand(10, 10)
+: A = rand(10, 10)
 : A[A<.5] = 0.
 \end{lstlisting}
-
-The \li{take} function works the same as fancy indexing, except that it does not support item assignment.
-It can be faster for very large arrays.
 
 \begin{problem}
 Generate two random $10 \times 10$ arrays \li{A} and \li{B} using the \li{rand()} function as above.
@@ -361,9 +359,8 @@ This should be similar to the last example.
 \end{problem}
 
 \section*{The Transpose and Other Useful Operations}
-You may have noticed that we already used the \li{reshape()} method of a NumPy array.
-There is a corresponding \li{reshape()} function.
-Both of them allow us to make a new view of our array with a desired shape.
+You may have noticed that we already used the \li{reshape()} function.
+It allows us to make a new view of our array with a desired shape.
 The new shape must make an array of the same size as the original array.
 If we need to take the transpose of an array \li{A}, we can use the transpose attribute of the array, \li{A.T}, which will give us a new view of the same array with the order of the dimensions reversed.
 The NumPy \li{transpose()} function will also do this.
@@ -385,9 +382,9 @@ For example:
 \end{lstlisting}
 
 \begin{problem}
-Operations that create completely new arrays are generally slower than operations that just create views because they have to copy all of the data from the original array.
-Create an array, \li{A}, a $1000 \times 1000$ array of floating point values.
-Compare the speed of the operations \li{A.reshape(A.size)} and \li{A.flatten()}.
+Operations that create completely new arrays are generally slower than operations that create views because they have to copy all of the data from the original array.
+Create a $1000 \times 1000$ array \li{A} of floating point values.
+Compare the speed of the operations \li{A.reshape(A.size)} and \li{A.flatten()} (here we are calling the methods of the arrays, these are the same as \li{np.reshape(A, A.size)}, and \li{np.flatten(A)} respectively).
 Why is there such a difference in speed?
 What is the difference between their output?
 \end{problem}
@@ -411,7 +408,7 @@ Initialize it as the tolerance.
 \begin{itemize}
 	\item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors.
 Use the values from the old array for this computation.
-This should only take one line and should be based entirely on array slices.
+This should only take one line and should be based entirely on array slicing.
 	\item update the difference to be the maximum of the absolute value of the new array minus the old one.
 	\item copy the values from the new array into the old one (without creating a new array).
 \end{itemize}
@@ -440,7 +437,7 @@ Now use the following code to generate a plot of your results
 \end{problem}
 
 \section*{Array Broadcasting}
-Array broadcasting allows NumPy to effectively work with arrays with sizes that don't match exactly.
+Array broadcasting allows NumPy to work effectively with arrays of sizes that don't match exactly.
 There are four basic rules to determine the behavior of broadcasted arrays.
 \begin{remunerate}
 \item All input arrays of lesser dimension than the input array with largest dimension have 1's prepended to their shapes.
@@ -452,7 +449,7 @@ To broadcast arrays, at least one of the following must be true.
 \begin{remunerate}
 \item All input arrays have exactly the same shape.
 \item All input arrays are of the same dimension and the length of corresponding dimensions match or is 1.
-\item All input arrays of fewer dimension can have 1 prepended to their shapes to satisfy the second criteria.
+\item All input arrays of fewer dimension can have 1 prepended to their shapes to satisfy the second criterion.
 \end{remunerate}
 
 One simple example is multiplying a two dimensional array by a set of numbers along its rows or columns.
@@ -470,6 +467,8 @@ array([[ 1.,  2.,  3.],
        [ 1.,  2.,  3.],
        [ 1.,  2.,  3.]])
 \end{lstlisting}
+
+For a more detailed description of array broadcasting rules, see \url{http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html}.
 
 When working with multi-dimensional arrays, it can be useful to create new views of your arrays that change the order of the dimensions.
 This will give you greater control over how different arrays are broadcast together.
@@ -519,4 +518,3 @@ arrs = np.load('test_multi.npz')
 \end{lstlisting}
 The variable \li{arrs} points to a dictionary object with the keys \li{a} and \li{new_a} which reference the arrays that have been saved.
 The \li{.npz} file extension is the file type used to store multiple arrays.
-
