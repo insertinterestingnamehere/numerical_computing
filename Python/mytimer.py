@@ -30,12 +30,6 @@ class timer(object):
         else:
             return True
 
-    def results(self):
-        """
-        Return a dictionary of timing results
-        """
-        return self.results
-
     def time(self, func, *args, **kargs):
         """
         Time a function using timeit.  The result of each execution of this 
