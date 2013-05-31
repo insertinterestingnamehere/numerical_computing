@@ -1,0 +1,116 @@
+\lab{Python}{Python Standard Library}{Standard Library}
+\objective{Become familiar with the Python standard library}
+
+% Topics to cover:
+% os
+% sys
+% pickle
+% timeit
+% linecache
+% argparse
+
+One of the reasons Python is so useful as a scientific computing platform is because
+it is not limited to only scientific computing.  Python has a very large and comprehensive standard library that is available with almost every Python environment.
+In this lab, we will look at the more useful parts of Python's standard library.  The standard library is comprised of over a hundred different modules that provide extra functionality to Python.
+Modules can be imported via the \li{import} statement.
+
+\section*{\texttt{math} Module}
+The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
+Common mathematical functions are defined in this module such as: \li{cos}, \li{sin}, \li{log}, \li{sqrt}, etc.  These functions wrap around the functionality of the C math library.
+
+\begin{problem}
+NumPy also implements these special mathematical functions.  However, there is a difference.
+The NumPy variants are designed two work on NumPy arrays.  For scalar inputs, the functions
+in Python's \li{math} or \li{numpy.math} are much faster.
+
+Import NumPy with \li{import numpy as np}.  Time how long it takes to execute the following statements.
+\begin{lstlisting}
+np.sin(.5)
+math.sin(.5)
+\end{lstlisting}
+\end{problem}
+
+\section*{\texttt{sys} Module}
+The \li{sys} module allow you to access information specific to the system running Python.  Some of the most useful functions are the following
+
+\subsection*{\texttt{sys.argv}}
+This returns a list of arguments passed to the current environment.  Accessing these arguments is important.  Many programs are written to execute differently based on the various arguments and options specified at execution.  For example, if we execute our script from the command line as follows
+\begin{verbatim}
+python myscript.py 5 no yes yes
+\end{verbatim}
+\li{sys.argv} would return the list
+\begin{verbatim}
+[`myscript.py', `5', `no', `yes', `yes']
+\end{verbatim}
+We can use \li{sys.argv} in combination with \li{argparse} to obtain a full featured argument processing system.
+
+\section*{\texttt{pickle} Module}
+The pickle module turns a Python object into a bytestream and saves it to a file.
+It can also take a bytestream and turn it back into a Python object.
+Pickle can be used to store any builtin Python data type such as lists, tuple, integers, etc.
+Not all Python objects can be pickled.
+Dumping a bytestream to a file is easy
+\begin{lstlisting}
+import pickle
+a = range(10)
+pickle.dump(open('out.pkl', 'w'), a)
+\end{lstlisting}
+What pickle does is write a small program that will rebuild your data structures when you read it.
+When unpickling a file, pickle executes this file in the interpreter.  Because of this,
+pickle is meant to be used as a temporary storage and data persistence mechanism.  It is not designed
+to be used for long term storage of data.  The pickle documentation includes this warning
+\begin{quote}
+\textbf{The pickle module is not intended to be secure against erroneous or maliciously constructed data. Never unpickle data received from an untrusted or unauthenticated source.}
+\end{quote}
+To unpickle an object on simple use \li{pickle.load()}.  It accepts a file handle and returns the Python object it creates.
+
+\begin{problem}
+Create a list of numbers and strings.  Pickle the object to a file.  Inspect the contents of the file you created when pickling.  Unpickle the object.
+\end{problem}
+
+\section*{\texttt{timeit} Module}
+This module is used to time the execution of small bits of Python code.
+It is recommended to time lines of Python using this module because it avoids a number of common pitfalls in measuring execution time.  IPython's \li{\%timeit} magic function is a wrapper around this module.  
+
+\begin{problem}
+For most timing situations, we rely on IPython's \li{\%timeit} magic function.
+This however has one major drawback.  It only works in IPython.
+The solution to this problem will be useful in other labs where you will be
+asked to time the performance of your coded solutions.
+Write a function that will 
+time the execution of another function.  You will need to use the \li{timeit} module.
+Your function, should accept as arguments, a function, $f$, and any arguments that
+should be passed to $f$.  Your function should return the minimum runtime.
+
+Because of the way that Python's \li{timeit} module functions, we must use a \emph{callable}
+function.  This essentially means we, have to wrap the function we are timing and all of
+its arguments into a function object that can be called by \li{timeit}.
+This can be done by declaring a Python \li{lambda} function which takes no arguments.
+\begin{lstlisting}
+pfunc = lambda: f(*args, **kargs)
+\end{lstlisting}
+where \li{args} is a tuple and \li{kargs} is a dictionary.  
+This syntax is explained in chapter 4 of the Official Python Tutorial).
+\end{problem}
+
+
+\section*{\texttt{os.path} Module}
+The \li{os.path} module contains several methods for interfacing with the local file system in a cross-platform manner.
+\begin{table}[h]
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\li{os.path.abspath} & Return a normalized absolute version given path. \\
+\li{os.path.exists} & Return \li{True} if given path exists on the file system. \\
+\li{os.path.isfile} & Return \li{True} if given path refers to an existing file. \\
+\li{os.path.isdir} & Return \li{True} if given path refers to an existing directory. \\
+\li{os.path.join} & Join one or more elements of a path intelligently, depending on the current platform. \\
+\li{os.realpath} & Return the system's canonical form of a given path. \\
+\li{os.split} & Split a given path into a tuple where the second entry is the final path element and the first element is all elements up to the final element. \\
+\li{os.splitext} & Split a given path into a tuple of two elements where the second entry is the extension of the file referred to by the path.  The first entry contains everything up to the extension separator. \\
+\hline
+\end{tabular}
+\caption{Some useful functions provided by \li{os.path}}
+\end{table}
+
+
+
