@@ -34,33 +34,26 @@ if __name__ == "__main__":
 	#problem 2
 	print "problem 2"
 	A = rand(1000,1000)
+	B = np.empty_like(A)
+	for i in xrange(100):
+		B[:] = rand(1000,1000)
+		A[A<B] = B[A<B]
 	np.exp(A, out=A)
 	print np.average(np.max(A, axis=1))
 	
 	#problem 3
 	print "problem 3"
-	A = rand(10,10)
-	print "A originally is:"
-	print A
-	B = rand(10,10)
-	print "B is:"
-	print B
-	A[A<B] = B[A<B]
-	print "After modification, A is:"
-	print A
-	
-	#problem 4
-	print "problem 4"
 	A = rand(1000,1000)
 	number = 100
 	tm = ti("A.reshape(A.size)", setup="from __main__ import A", number=number)
 	print "A.reshape(A.size) executed ", number, " times in ", tm, " seconds."
-	number=100
+	number = 100
 	tm = ti("A.flatten()", setup="from __main__ import A", number=number)
 	print "A.flatten() executed ", number, " times in ", tm, " seconds."
+	number = ti("A.reshape((1,A.size))", setup="from __main__ import A", number=number)
+	print "A.reshape((1,A.size)) executed ", number, " times in ", tm, " seconds."
 	
-	#problem 5
-	print "problem 5"
+	#part 2 of problem 3
 	print "the difference is that np.vstack(A) returns a new array"
 	print "while A.T returns a view"
 	print "A.T is much faster"
@@ -72,8 +65,8 @@ if __name__ == "__main__":
 	tm = ti("A.T", setup="from __main__ import A", number=number)
 	print "A.T executed ", number, " times in ", tm, " seconds."
 	
-	#problem 6
-	print "problem 6"
+	#problem 4
+	print "problem 4"
 
 def laplace(U,tol):
 	new = U.copy()
@@ -99,10 +92,9 @@ if __name__ == "__main__":
 	X, Y = np.meshgrid(X, Y)
 	ax.plot_surface(X, Y, U, rstride=5)
 	plt.show()
-	
-	#problem 7
-	print "problem 7"
-	
+
+#problem 5
+
 def broadcast_1():
     """All input arrays have exactly the same shape"""
     a = np.random.rand(4, 5)
@@ -129,6 +121,7 @@ def broadcast_3():
     print "Case 3: {} * {} = {}".format(a.shape, b.shape, r.shape)
 
 if __name__ == "__main__":
+	print "problem 5"
 	broadcast_1()
 	broadcast_2()
 	broadcast_3()
