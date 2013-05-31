@@ -1,7 +1,8 @@
 import timeit
+from functools import partial
 
 def time_func(f, args=(), kargs={}, repeat=3, number=100):
-    pfunc = lambda: f(*args, **kargs)
+    pfunc = partial(f, *args, **kargs)
     T = timeit.Timer(pfunc)
 
     try:
