@@ -50,134 +50,6 @@ $n^3$ steps to calculate its inverse,
 and thus inverting a matrix is $O(n^3)$.
 There is something inherently more difficult about inverting a matrix; 
 there is complexity that simply isn't there with the straightforward operation of addition.
-	
-\section*{Advanced Matrix Tools}
-We now introduce a few different ways to build matrices. 
-Two important methods available for building matrices are \li{zeros()} and \li{ones()}.
-These commands allow us to build matrices populated entirely with zeros or ones, respectively.
-For example, to build a 3-vector filled with zeros we enter the following command:
-\begin{lstlisting}
-: import scipy as sp
-: sp.zeros((3,1))
-array([[ 0.],
-       [ 0.],
-       [ 0.]])
-\end{lstlisting}
-
-To find additional options for these methods, you can use the help system.
-
-%Better explanation and an example or two should go here.
-
-One important use of the \li{zeros()} method is to allow us to pre-allocate memory. 
-Pre-allocation is simply the practice of reserving a chunk of memory for later use.
-We can always add more space to a matrix using the methods we learned in lab 1,
-but this requires many extra internal operations because of way arrays are stored in memory.
-Thus, it is generally faster to allocate a matrix with its final size and modify its 
-values rather than building an array as you go.
-
-%Problem here comparing pre-allocation vs. no pre-allocation.  There should be several orders of magnitude difference.
-
-% Perhaps more of a segue here?
-
-Table 1.3 gives a few commands that allow us to build types of useful matrices.
-
-\begin{table}[h!]
-
-\begin{center}
-
-    \begin{tabular}{|l|p{4cm}|l|}
-
-    \hline
-
-    Function & Description & Usage \\
-
-    \hline
-
-    \li{eye()} & Identity matrix & sp.eye(m, n)\\
-
-    \li{zeros()} & Zero matrix & sp.zeros((m, n))\\
-
-    \li{ones()} & One matrix & sp.ones((m, n))\\
-
-    \li{diag()} & Building (or retrieving) along a diagonal&\\
-
-    \li{linalg.toeplitz()} & Matrix with constant diagonals & la.toeplitz()\\
-
-    \li{linalg.triu()} & Upper triangular&\\
-    
-    \li{linalg.tril()} & Lower triangular&\\
-    
-    \li{rand} & Psuedo-random matrix, uniformly distributed&\\
-
-   \li{randn} & Psuedo-random matrix, normally distributed&\\
-
-   \li{random.randint()} & Psuedo-random matrix, uniformly distributed integers & sp.random.randint()\\
-    
-    \li{tile()} & Copy across a given dimension & sp.tile(A, reps)\\
-
-    \hline
-
-    \end{tabular}
-	\caption{Special matrix creation commands}
-
-\end{center}
-\end{table}
-For example, suppose that we want to create a matrix with $-2$ on the diagonal, 
-and ones on the super and sub diagonal. We can do this by using the following command:
-\begin{lstlisting}
-: from scipy import linalg as la
-: la.toeplitz([-2,1,0])
-array([[-2,  1,  0],
-       [ 1, -2,  1],
-       [ 0,  1, -2]])
-\end{lstlisting}
-This matrix is useful because it numerically approximates the second derivative of a function. 
-We investigate some properties of this matrix in Problem 6 of this lab, and explain more about this matrix later.
-
-\begin{problem}
-Use the \li{diagflat()} method to create the following matrices. 
-All of these matrices should be easily scalable (i.e., only minor modification would be required to change the size).
-\begin{equation*}
-\begin{pmatrix}
-1&2&3&4&5\\
-0&1&2&3&4\\
-0&0&1&2&3 \\
-0&0&0&1&2 \\
-0&0&0&0&1 \\
-\end{pmatrix}
-\hspace{8mm}
-\begin{pmatrix}
-1&1/2&1/3 & 1/4 &1/5\\
-1/2&1&1/2&1/3&1/4\\
-1/3&1/2&1&1/2&1/3 \\
-1/4&1/3&1/2&1&1/2 \\
-1/5&1/4&1/3&1/2&1 \\
-\end{pmatrix}
-\end{equation*}
-\label{prob:diagflat}
-\end{problem}
-
-\begin{problem}
-Create the matrices from Problem \ref{prob:diagflat} using the methods 
-\li{linalg.toeplitz()} or \li{linalg.triu()}. 
-Which method is easier? Now use whichever command is easiest to create the matrix:
-\begin{equation*}
-\begin{pmatrix}
-1&0&0&0&0\\
-0&2&0&0&0\\
-0&0&3&0&0 \\
-0&0&0&4&0 \\
-0&0&0&0&5 \\
-\end{pmatrix}
-\end{equation*}
-\end{problem}
- 
-\begin{comment}
-\begin{problem}
-Write a function that will create a matrix of size $n$ that has ones on the diagonal and has normally-distributed random entries in the last two columns and the last two rows.
-%Do this in one line using the commands from this section and matrix building techniques from Lab 1.1.
-\end{problem}
-\end{comment}
 
 \section*{Sparse Matrices}
 In this section we discuss how sparse matrices are used and constructed. 
@@ -190,7 +62,7 @@ Each way has it pros and cons (the reader is encouraged to read the help for eac
 
 \begin{center}
 
-    \begin{tabular}{|c|c|}
+    \begin{tabular}{|l|l|}
 
     \hline
 
@@ -221,9 +93,9 @@ Each way has it pros and cons (the reader is encouraged to read the help for eac
 \end{table}
 Type the following into IPython.
 \begin{lstlisting}
-: from scipy import sparse as spar
-: A = sp.diagflat([2,3,4])
-: B = spar.csc_matrix(A)
+: from scipy import sparse
+: A = np.diagflat([2,3,4])
+: B = sparse.csc_matrix(A)
 : C = B.todense()
 \end{lstlisting}
 Notice that the matrix $A$ has only three non-zero entries, and so we can consider it sparse. 
@@ -232,23 +104,27 @@ each entry, meaning that a $3 \times 3$ matrix requires a total 9 blocks of memo
 However, if we leverage the sparsity of $A$ we realize that we only need to store 3 numbers.
 The \li{sparse} methods do exactly this: they store only the non-zero entries and their locations in the matrix.
 No longer are we working with array.  SciPy has many methods for performing operations on sparse arrays.
-To convert back to a dense matrix, we use the \li{.todense()} property of the sparse matrix. 
+To convert back to a dense matrix, we use the \li{todense()} method of the sparse matrix. 
 We can also convert between the different types sparse arrays.
 
 We remark that if you want to make a sparse diagonal matrix, the
 best way to do it isn't to use \li{diagflat()} followed by \li{sparse},
 it's actually better to use the \li{sparse.spdiags()} method:
 \begin{lstlisting}
-: spar.spdiags([2,3,4],0,3,3)
+: sparse.spdiags([2,3,4],0,3,3)
 \end{lstlisting}
 This is because oftentimes when we are using sparse matrices we are dealing with matrices 
-that are too large to be handled efficiently by python when represented in full form.
+that are too large to be handled efficiently when represented in full form.
 
 \section*{Banded Matrices}
 A banded matrix is one whose only non-zero entries are diagonal
 strips.  For example, the matrix
 \begin{equation*}
-A = \begin{pmatrix} 1&2&0&0\\3&4&5&0\\0&6&7&8\\0&0&9&10
+A = \begin{pmatrix} 
+1 & 2 & 0 & 0 \\
+3 & 4 & 5 & 0 \\
+0 & 6 & 7 & 8 \\
+0 & 0 & 9 & 10
 \end{pmatrix}
 \end{equation*}
 is banded because there are three nonzero diagonals.  This
@@ -257,23 +133,23 @@ particular type of banded matrix is called a tri-diagonal matrix.
 You can easily create banded matrices using the \li{diagflat()} method.
 For example, the matrix $A$ above can be created by entering
 \begin{lstlisting}
-: sp.diagflat([3,6,9],-1) + sp.diagflat([1,4,7,10],0) + sp.diagflat([2,5,8],1)
+: np.diagflat([3, 6, 9], -1) + np.diagflat([1, 4, 7, 10], 0) + np.diagflat([2, 5, 8], 1)
 \end{lstlisting}
 
-Often a better way to create a tri-diagonal is it use the \li{spar.spdiags()} method. 
+Often a better way to create a tri-diagonal is it use the \li{sparse.spdiags()} method. 
 This is because many diagonal matrices are sparse. 
 For example, we create the same matrix in Python (while designating that it is sparse) using the command:
 \begin{lstlisting}
-: Z = sp.array([[3, 1, 0],[6, 4, 2],[9, 7, 5],[0,10,8]]).T
-: spar.spdiags(Z,[-1,0,1],4,4)
+: Z = np.array([[3, 1, 0], [6, 4, 2], [9, 7, 5], [0, 10, 8]]).T
+: sparse.spdiags(Z, [-1, 0, 1], 4, 4)
 \end{lstlisting}
 
 For more information, check the documentation by typing \li{spar.spdiags?}. 
 For example we create a tri-diagonal array with uniformly distributed random entries. 
 This example also demonstrates the efficiency of using sparse arrays.
 \begin{lstlisting}
-: B = sp.rand(3,10000)
-: A = spar.spdiags(B,range(-1,2),10000,10000)
+: B = np.rand(3,10000)
+: A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
 : denseA = A.todense()  #only do this step if you have _lots_ of memory!
 : A.data.nbytes
 240000          #about 0.24MB of memory
@@ -282,7 +158,7 @@ This example also demonstrates the efficiency of using sparse arrays.
 \end{lstlisting}
 We can't use the \li{full} command in this case because the computer will almost 
 certainly run out of memory (the matrix is $10000 \times 10000$). 
-However, we can still visualize this matrix using the \li{plt.spy()} command from matplotlib, 
+However, we can still visualize this matrix using the \li{plt.spy()} command from Matplotlib, 
 which essentially shows the location of non-zero entries in a matrix. 
 The output of \li{plt.spy(A)} in this case is shown in Figure \ref{fig:mpl_spy}.
 \begin{figure}[h]
@@ -293,9 +169,8 @@ The output of \li{plt.spy(A)} in this case is shown in Figure \ref{fig:mpl_spy}.
 \end{figure}
 
 \section*{Using Sparse Matrices}
-Consider the linear system $A x = b$, where $A$ is a
- $100000\times 100000$ tri-diagonal matrix.  To store a full
-matrix of that size in your computer, it would normally require 10
+Consider the linear system $A x = b$, where $A$ is a $100000\times 100000$ tri-diagonal matrix. 
+To store a full matrix of that size in your computer, it would normally require 10
 billion double-precision floating-point numbers.  Since it takes 8
 bytes to store a double, it would take roughly 80GB to store the
 full matrix.  For most desktop computers, that fact alone makes the
@@ -326,15 +201,12 @@ a tri-diagonal matrix is $O(n)$. Let's see how long it takes to
 solve the system for random data:
 \begin{lstlisting}
 : from scipy.sparse import linalg as sparla
-: from timer import timer
 : D = sp.rand(3, 100000)
 : b = sp.rand(1, 100000)
 : A = spar.spdiags(D,[-1,0,1],100000,100000)
 : def solSys():
 :     return sparla.spsolve(A,b)
-: with timer() as t:
-:     t.time(solSys)
-:     t.printTimes()
+: %timeit solSys()
 \end{lstlisting}
 
 \begin{problem}
