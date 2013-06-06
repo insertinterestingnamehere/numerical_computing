@@ -17,7 +17,7 @@ def pickle_obj():
     j = ['5', 4, 2, 1, 'Python', 99918]
 
     with open('out.pkl', 'w') as f:
-        pickle.dump(f, j)
+        pickle.dump(j, f)
 
     with open('out.pkl', 'r') as f:
         a = pickle.load(f)
