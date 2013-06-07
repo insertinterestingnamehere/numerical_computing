@@ -1,13 +1,15 @@
 \lab{Algorithms}{Classification Trees}{Classification Trees}
-
 \objective{Understand how to build a classification tree and use it to predict survival of Titanic passengers.}
 
-Classification trees are a class of decision trees, used in a wide variety of settings where labeled training data is available, and the desired outcome is a model which is able to accurately assign labels to unlabeled data. We assume that each sample $d$ has $P$ attributes, which can be real-valued or categorical, and that each sample belongs som some class $k$, where there are $K$ classes. The tree is composed of many \emph{nodes}, which represent a decision point (i.e. a question is asked about the sample which has a boolean response). If the response is \emph{True}, then the sample is ``pushed'' down the tree to the left child node. If the response is \emph{False}, then the sample is ``pushed'' down the tree to the right child node. Each \emph{leaf} node has a classification assigned to it, and an unlabeled sample is labeled with that classification upon arrival at the leaf node.
+Classification trees are a class of decision trees, used in a wide variety of settings where labeled training data is available, and the desired outcome is a model which is able to accurately assign labels to unlabeled data. We assume that each sample $d$ has $P$ attributes, which can be real-valued or categorical, and that each sample belongs som some class $k$, where there are $K$ classes. The tree is composed of many \emph{nodes}, which represent a decision point (i.e. a question is asked about the sample which has a boolean response). If the response is \li{True}, then the sample is ``pushed'' down the tree to the left child node. If the response is \li{False}, then the sample is ``pushed'' down the tree to the right child node. Each \emph{leaf} node has a classification assigned to it, and an unlabeled sample is labeled with that classification upon arrival at the leaf node.
 
 How do we train a classification tree? We start with a labeled data set $D$ and choose the best attribute $p$ and value $x$ by which to \emph{split} the data. We have now partitioned $D$ into two sets, which we may then split as well. We continue in this manner until some stopping criterion is met (often a maximum depth of the tree). To formalize this, we need several definitions.
 
 \begin{definition}
-Let $D$ be a data set with $K$ different classes. Let $N_{k}$ be the number of samples labeled class $k$ for each $1 \leq k \leq K$, and let $f_{k} = \frac{N_{k}}{N}$ where $N$ is the total number of samples in $D$. We define the \emph{Gini impurity} to be $$G(D) = 1 - \sum_{k=1}^{K} f_{k}^{2}.$$
+Let $D$ be a data set with $K$ different classes. Let $N_{k}$ be the number of samples labeled class $k$ for each $1 \leq k \leq K$, and let $f_{k} = \frac{N_{k}}{N}$ where $N$ is the total number of samples in $D$. We define the \emph{Gini impurity} to be 
+\begin{equation*}
+G(D) = 1 - \sum_{k=1}^{K} f_{k}^{2}
+\end{equation*}
 \end{definition}
 
 \begin{problem}
@@ -27,14 +29,25 @@ Write a function that computes the split of a data set for a given variable $p$ 
 \end{problem}
 
 \begin{definition}
-Let $s_{D}(p,x) = D_{1},D_{2}$ be a split. We define the \emph{information gain} of this split to be $$I(s_{D}(p,x)) = G(D) - \sum_{i=1}^{2} \frac{\lvert D_{i} \rvert}{\lvert D \rvert} \cdot G(D_{i}).$$
+Let $s_{D}(p,x) = D_{1},D_{2}$ be a split. We define the \emph{information gain} of this split to be 
+\begin{equation*}
+I(s_{D}(p,x)) = G(D) - \sum_{i=1}^{2} \frac{\abs{D_{i}}}{\abs{D}} \cdot G(D_{i})
+\end{equation*}
 \end{definition}
 
 \begin{problem}
 Write a function that computes the information gain for the split of a data set for a given variable $p$, value $x$.
 \end{problem}
 
-We define the optimal split of a data set to be $$s_{D}^{*} = s_{D}(p^{*}, x^{*})$$ where $$p^{*}, x^{*} = \text{argmax}_{p,x} I(s_{D}(p,x)).$$ From this partition, we create two child nodes, assigning the left child node data set $D_{1}$, and right child node data set $D_{2}$.
+We define the optimal split of a data set to be
+\begin{equation*}
+s_{D}^{*} = s_{D}(p^{*}, x^{*})
+\end{equation*}
+where 
+\begin{equation*}
+p^{*}, x^{*} = \text{argmax}_{p,x} I(s_{D}(p,x))
+\end{equation*}
+From this partition, we create two child nodes, assigning the left child node data set $D_{1}$, and right child node data set $D_{2}$.
 
 \begin{problem}
 Write a function that computes the optimal split of a data set. You may need to separate this into two tasks: finding the optimal split for each attribute $p$, and then choosing the optimal split over all the attributes.

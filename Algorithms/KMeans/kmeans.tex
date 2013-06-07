@@ -1,44 +1,64 @@
 \lab{Algorithms}{K-Means Clustering}{K-Means Clustering}
-
 \objective{Understand the basics of k-means clustering}
 
 Recall the iris dataset transformed under PCA, where we only kept the first two principal components.
 
-\begin{center}
-\includegraphics[width=7.5cm]{irispca.jpg}
-\end{center}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{irispca.jpg}
+\end{figure}
 
 A human can easily see that there are two very distinct groups of irises, but how can we create an algorithm to do this without human supervision? This task is called \emph{unsupervised learning} or \emph{clustering}. The objective is to seek a partition of the data, where points in the same subset will be ``close'' according to some metric. The metric used will likely depend on the data, but some obvious ones include euclidean distance and angular distance. Throughout this lab we will use the metric $d(x,y)$, the euclidean distance between $x$ and $y$.
 
-More fomrally, let $$\mathbf{X} = \left( \mathbf{x_{1}}, \mathbf{x_{2}}, \cdots, \mathbf{\x_{n}}\right)$$ be a set of observations, each having $K$ features. We would like to partition $\mathbf{X}$ into $N$ \emph{clusters} $$\mathbf{S} = \left( S_{1}, S_{2}, \cdots, S_{N}\right)$$ such that for each $S_{i}$, the observations in $S_{i}$ are all ``close''. More formally, we would like to find the partition $\mathbf{S}$ such that the within-cluster sum of squares is minimized, i.e. $$\mathbf{S^{*}} = \text{argmin}_{\mathbf{S}} \sum_{i=1}^{N} \sum_{\mathbf{x_{j}} \in S_{i}} \| \mathbf{x_{j}} - \mathbf{\mu_{i}}\|$$ where $\mathbf{\mu_{i}}$ is the mean of the observations in $S_{i}$.
+More formally, let 
+\begin{equation*}
+\mathbf{X} = \left( \mathbf{x_{1}}, \mathbf{x_{2}}, \cdots, \mathbf{\x_{n}}\right)
+\end{equation*}
+be a set of observations, each having $K$ features. We would like to partition $\mathbf{X}$ into $N$ \emph{clusters}
+\begin{equation*}
+\mathbf{S} = \left( S_{1}, S_{2}, \cdots, S_{N}\right)
+\end{equation*}
+such that for each $S_{i}$, the observations in $S_{i}$ are all ``close''. More formally, we would like to find the partition $\mathbf{S}$ such that the within-cluster sum of squares is minimized, i.e. 
+\begin{equation*}
+\mathbf{S^{*}} = \text{argmin}_{\mathbf{S}} \sum_{i=1}^{N} \sum_{\mathbf{x_{j}} \in S_{i}} \norm{\mathbf{x_{j}} - \mathbf{\mu_{i}}}
+\end{equation*}
+where $\mathbf{\mu_{i}}$ is the mean of the observations in $S_{i}$.
 
 Finding this global minimizing partition $\mathbf{S}$ is generally intractable, but the \emph{k-means} algorithm is a heuristic approach that can often provide good results. K-means seems like a little brother to Gaussian Mixture Models, as it is a variation of the EM algorithm. We begin by specifying an initial cluster centroid $\mathbf{\mu_{i}}^{(1)}$ for each $i = 1, \cdots, N$.
 
 \begin{figure}[h]
-	\begin{center}
-	\includegraphics[width=7.5cm]{iteration1.jpg}
-	\end{center}
-	\caption{Clusters at iteration 1}
+\centering
+\includegraphics[width=\textwidth]{iteration1.jpg}
+\caption{Clusters at iteration 1}
 \end{figure}
 
-For each iteration, we adopt the following procedure. Given a current set of cluster centroids $\mathbf{\mu}^{(t)}$, we find a partition $\mathbf{S}^{(t)}$ of the observations such that $$S_{i}^{(t)} = \{\mathbf{x} \; : \; \| \mathbf{x} - \mathbf{\mu}_{i}^{(t)}\| \leq \| \mathbf{x} - \mathbf{\mu}_{j}^{(t)}\| \forall j = 1, \cdots, N\}.$$ This is similar to the expectation step in EM for GMMs.
+For each iteration, we adopt the following procedure. Given a current set of cluster centroids $\mathbf{\mu}^{(t)}$, we find a partition $\mathbf{S}^{(t)}$ of the observations such that 
+\begin{equation*}
+S_{i}^{(t)} = \{\mathbf{x} \; : \; \norm{\mathbf{x} - \mathbf{\mu}_{i}^{(t)}} \leq \norm{\mathbf{x} - \mathbf{\mu}_{j}^{(t)}} \forall j = 1, \cdots, N\}
+\end{equation*}
+This is similar to the expectation step in EM for GMMs.
 
 \begin{figure}[h]
-	\begin{center}
-	\includegraphics[width=7.5cm]{iteration2.jpg}
-	\end{center}
-	\caption{Clusters at iteration 2}
+\centering
+\includegraphics[width=\textwidth]{iteration2.jpg}
+\caption{Clusters at iteration 2}
 \end{figure}
 
-We then update our cluster centroids by computing for each $i = 1, \cdots, N$, $$\mathbf{\mu}_{i}^{(t+1)} = \frac{\sum_{\mathbf{x} \in S_{i}^{(t)}} \mathbf{x}}{|S_{i}^{(t)}|}.$$ This is similar to the maximization step in EM for GMMs.
+We then update our cluster centroids by computing for each $i = 1, \cdots, N$,
+\begin{equation*}
+\mathbf{\mu}_{i}^{(t+1)} = \frac{\sum_{\mathbf{x} \in S_{i}^{(t)}} \mathbf{x}}{|S_{i}^{(t)}|}
+\end{equation*}
+This is similar to the maximization step in EM for GMMs.
 
 We continue to iterate in this manner until the partition ceases to change. Between the fifth and sixth iteration, the partition stays the same, so the process has converged. If we look closely and compare this with our results from the PCA lab, we will see that this heuristic algorithm has nearly clustered the iris observations by species!
 
-\begin{figure}
+\begin{figure}[h]
 	\centering
 	\begin{tabular}{cc}
-	\includegraphics[width=5cm]{iteration3.jpg} &  \includegraphics[width=5cm]{iteration4.jpg} \\
-	\includegraphics[width=5cm]{iteration5.jpg} & \includegraphics[width=5cm]{iteration6.jpg}
+	\includegraphics[width=.49\textwidth]{iteration3.jpg} & 
+	\includegraphics[width=.49\textwidth]{iteration4.jpg} \\
+	\includegraphics[width=.49\textwidth]{iteration5.jpg} & 
+	\includegraphics[width=.49\textwidth]{iteration6.jpg}
 	\end{tabular}
 	\caption{Clusters at iterations 3 through 6}
 \end{figure}
