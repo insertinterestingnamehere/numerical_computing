@@ -1,0 +1,59 @@
+\lab{Algorithms}{HMM Parameter Estimation}{HMM Parameter Estimation}
+
+\objective{Understand how to estimate HMM parameters via the Baum-Welch algorithm.}
+
+The most powerful use of HMMs is the ability to effectively estimate parameters given only an observation sequence and the number of states $N$. This uses the forward and backward passes previously and is a specific instance of the Expectation-Maximization algorithm. This algorithm is called the Baum-Welch algorithm.
+
+Given a set of HMM parameters $\lambda$ and an observation sequence $O$, we previously computed the matrices $\widehat{\alpha}$, $\widehat{\beta}$, and $\widehat{\gamma}$. We now define a $T-1 \times N \times N$ tensor $\delta$ as 
+\begin{equation*}
+\delta_{t}(i,j) = \mathbb{P}(\mathbf{x}_{t} = i, \mathbf{x}_{t+1} = j | O, \lambda)
+\end{equation*}
+i.e., the probability that the system transferred from state $i$ to state $j$ between time $t$ and $t+1$, given the observation sequence and the model parameters. This can be computed efficiently by the following:
+\begin{itemize}
+ \item $\tilde{\delta}_{t}(i,j) = \widehat{\alpha}_{t}(i)a_{ij} b_{jO_{t+1}} \widehat{\beta}_{t+1}(j)$ for each $i,j = 1, \cdots, N$ and $t = 1, \cdots, T-1$.
+ \item $\widehat{\delta}_{t}(i,j) = \frac{\tilde{\delta}_{t}(i,j)}{\sum_{i,j} \tilde{\delta}_{t}(i,j)}$.
+\end{itemize}
+
+\begin{problem}
+Write a function that computes $\widehat{\delta}$, given matrices $A, B, \widehat{\alpha},$ and $\widehat{\beta}$.
+\end{problem}
+
+Armed with the tensor $\widehat{\delta}$ and matrix $\widehat{\gamma}$, we can re-estimate the transition matrix $A$ as
+\begin{equation*}
+\widehat{a}_{ij} = \frac{\sum_{t=1}^{T-1}\widehat{\delta}_{t}(i,j)}{\sum_{t=1}^{T-1}\widehat{\gamma}_{t}(i)}
+\end{equation*}
+We re-estimate the observation matrix $B$ as 
+\begin{equation*}
+\widehat{b}_{ij} = 
+\frac{\sum_{t=1}^{T} \widehat{\gamma}_{t}(i) \indicator{O_{t} = j}} {\sum_{t=1}^{T} \widehat{\gamma}_{t}(i)}
+\end{equation*}
+where $\indicator{O_{t} = j}$ is an indicator function. We re-estimate the initial state distribution $\mathbf{\pi}$ as 
+\begin{equation*}
+\widehat{\pi}_{i} = \widehat{\gamma}_{1}(i)
+\end{equation*}
+
+\begin{problem}
+Write a function that computes the parameter re-estimations above, given the observation sequence, matrix $\widehat{\gamma}$, and tensor $\widehat{\delta}$.
+\end{problem}
+
+This provides us an iterative procedure by which we can try to find the HMM parameters \begin{equation*}
+\lambda^{*} = \argmax_{\lambda} \mathbb{P}(O | \lambda)
+\end{equation*}
+Given a current set of parameters $\lambda_{t}$, we can compute $\widehat{\alpha}, \widehat{\beta}, \widehat{\gamma},$ and $\widehat{\delta}$ efficiently, from which we can re-estimate $A, B,$ and $\mathbf{\pi}$ to get a new set of parameters, $\lambda_{t+1}$. We repeat this process until the difference in log-likelihood of our data given successive parameter estimates falls beneath some predetermined threshold, i.e. until
+\begin{equation*}
+\log \mathbb{P}(O | \lambda_{t+1}) - \log \mathbb{P}(O | \lambda_{t}) < \tau
+\end{equation*}
+where $\tau$ is some small, positive real number.
+Of course, this requires some initialization of the parameters. If we have no prior knowledge of the system, let 
+\begin{equation*}
+\lambda_{0} = \left( A_{0}, B_{0}, \mathbf{\pi}_{0} \right)
+\end{equation*}
+where each entry of $A_{0}$ and $\mathbf{\pi}_{0}$ is approximately $\frac{1}{N}$ and each entry of $B_{0}$ is approximately $\frac{1}{M}$, where $M$ is the cardinality of the observation space, while ensuring that each matrix and vector is appropriately stochastic.
+
+\begin{problem}
+Write a function that trains an HMM given an observation sequence and number of states $N$. Assume no prior knowledge of the system, so randomly initialize your parameters as described above. DO NOT let all your values equal $\frac{1}{N}$ and $\frac{1}{M}$, as this will not work.
+\end{problem}
+
+\begin{problem}
+Load observations from \texttt{data.npz}. Use these observations and $N = 2$ to estimate the parameters for the HMM that generated the observations, noting that the observation space should be considered in alphabetical order. Train several HMMs, retaining only the HMM with greatest log-likelihood. Compare your trained HMM also found in \texttt{data.npz}. They should be similar, allowing for permutation in the state labeling.
+\end{problem}
