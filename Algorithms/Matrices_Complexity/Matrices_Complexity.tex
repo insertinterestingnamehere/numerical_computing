@@ -47,6 +47,35 @@ $n^3$ steps to calculate its inverse,
 and thus inverting a matrix is $O(n^3)$.
 There is something inherently more difficult about inverting a matrix; 
 there is complexity that simply isn't there with the straightforward operation of addition.
+
+How do we determine the temporal complexity of a piece of code?
+Calculating the exact temporal complexity of a formula is fairly difficult.
+However, to asymptotically analyze a function is fairly straightforward.
+\begin{lstlisting}
+s = 0
+for i in xrange(100):
+    s = s + i
+\end{lstlisting}
+The code above is $O(n)$ because it takes approximately $n$ steps to complete its work.
+For-loops are a good indicator of the complexity is.  A double for-loop strongly suggests
+$O(n^2)$ or worse.  The reason that array addition is $O(n^2)$ is because we have to add
+$n^2$ elements in and $n \times n$ array.  Asymptotic analysis reveals that
+if we have an array of size $n \times n$ and it takes $x$ seconds to execute a $O(n^2)$ algorithm,
+then if we increase the size of the array to $2n \times 2n$, we should expect the same algorithm
+to terminate in about $(2)^2 x = 4x$ seconds.  Sometimes, when you don't have code to look at, 
+you can determine the asymptotic growth of a function by timing it on various sized inputs.
+
+\begin{problem}
+Determine the asymptotic growth of the following code that calculates all the partial sums
+up to 1000.
+\begin{lstlisting}
+t = 0
+for n in xrange(1000):
+    t += sum(xrange(n))
+\end{lstlisting}
+%the asymptotic growth is $O(n^2)$
+\end{problem}
+
 We can also classify an algorithm by the amount of memory it needs to execute.  We will use the term \emph{spatial complexity} to measure the amount of memory an algorithm uses.  The definition of spatial complexity is the same as the definition for temporal complexity with the obvious difference that $n$ refers to space rather than time.
 
 \section*{Sparse Matrices}
@@ -55,37 +84,21 @@ SciPy has several different ways of storing sparse matrices.
 Each way has it pros and cons (the reader is encouraged to read the help for each way).
 
 \begin{table}[h!]
-
-\begin{center}
-
-    \begin{tabular}{|l|l|}
-
-    \hline
-
-    Function & Description \\
-
-    \hline
-
-    \li{sparse.bsr()} & Compressed Block Sparse Row\\
-    
-    \li{sparse.coo()} & Coordinate\\
-    
-    \li{sparse.csc()} & Compressed Sparse Column\\
-    
-    \li{sparse.csr()} & Compress Sparse Row\\
-    
-    \li{sparse.dia()} & Sparse Diagonal\\
-    
-    \li{sparse.dok()} & Dictionary of Keys\\
-    
-    \li{sparse.lil()} & Linked List\\
-
-    
-    \hline
-
-    \end{tabular}
-        \caption{Sparse matrix representations in SciPy}
-\end{center}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+Function & Description \\
+\hline
+\li{sparse.bsr()} & Compressed Block Sparse Row\\
+\li{sparse.coo()} & Coordinate\\
+\li{sparse.csc()} & Compressed Sparse Column\\
+\li{sparse.csr()} & Compress Sparse Row\\
+\li{sparse.dia()} & Sparse Diagonal\\
+\li{sparse.dok()} & Dictionary of Keys\\
+\li{sparse.lil()} & Linked List\\
+\hline
+\end{tabular}
+\caption{Sparse matrix representations in SciPy}
 \end{table}
 Type the following into IPython.
 \begin{lstlisting}
@@ -99,9 +112,9 @@ In memory, an array stores a bit of data (be it an integer, float, or complex nu
 each entry, meaning that a $3 \times 3$ matrix requires a total 9 blocks of memory. 
 However, if we leverage the sparsity of $A$ we realize that we only need to store 3 numbers.
 The \li{sparse} methods do exactly this: they store only the non-zero entries and their locations in the matrix.
-No longer are we working with array.  SciPy has many methods for performing operations on sparse arrays.
+No longer are we working with an array.  SciPy has many methods for performing operations on sparse matrices.
 To convert back to a dense matrix, we use the \li{todense()} method of the sparse matrix. 
-We can also convert between the different types sparse arrays.
+We can also convert between the different types sparse matrices.
 
 We remark that if you want to make a sparse diagonal matrix, the
 best way to do it isn't to use \li{diagflat()} followed by \li{sparse},
@@ -109,7 +122,7 @@ it's actually better to use the \li{sparse.spdiags()} method:
 \begin{lstlisting}
 : sparse.spdiags([2,3,4],0,3,3)
 \end{lstlisting}
-This is because oftentimes when we are using sparse matrices we are dealing with matrices 
+Often, when we are using sparse matrices, we are dealing with matrices 
 that are too large to be handled efficiently when represented in full form.
 
 \section*{Banded Matrices}
@@ -160,7 +173,7 @@ The output of \li{plt.spy(A)} in this case is shown in Figure \ref{fig:mpl_spy}.
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{spy.pdf}
-\caption{The output of the \li{spy} command}
+\caption{The output of the \li{spy()} command}
 \label{fig:mpl_spy}
 \end{figure}
 
@@ -209,19 +222,20 @@ solve the system for random data:
 Write a function that returns a full $n\times n$
 tri-diagonal array with $2$'s along the diagonal and $-1$'s along
 the two sub-diagonals above and below the diagonal. 
-Hint: Use the \li{la.toeplitz()} method. 
-Note that this is the second derivative matrix that we discussed at the beginning of this lab.
+Hint: Use the \li{la.toeplitz()} method.
+\label{prob:full_tridiag}
 \end{problem}
 
 \begin{problem}
 Write another function that builds the same array as above, but as a sparse array. 
 You must build this as a sparse matrix from the beginning. 
 Hint: Use the \li{spar.spdiags()} method.
+\label{prob:sparse_tridiag}
 \end{problem}
 
 \begin{problem}
 Solve the linear system $Ax = b$ where $A$ is the $n\times n$
-tri-diagonal array from the above two problems and $b$ is randomly
+tri-diagonal array from Problem \ref{prob:full_tridiag} and Problem \ref{prob:sparse_tridiag} and $b$ is randomly
 generated.  How high can you go for each method?  Make a table for
 several different values of $n$ and the time it took to solve for
 each run.  What conclusions can you draw?
@@ -236,38 +250,37 @@ This is related to operator theory: the second derivative operator has this eige
 \end{problem}
 
 \section*{Other Sparse Commands}
-
-One important method of sparse array objects is the \li{nonzero()} method, 
-which is related to the number of nonzero entries in an array.  
+One important method of sparse matrix objects is the \li{nonzero()} method, 
+which is related to the number of nonzero entries in the matrix.  
 This number is important because it is an indicator of the amount of time and space
-that is required to operate on the sparse array. 
-You should be aware that there is some overhead to using and storing the sparse array data structure. 
-Sparsely represented arrays are very beneficial when the number of 
+that is required to operate on the sparse matrix. 
+You should be aware that there is some overhead to using and storing the sparse matrix data structure. 
+Sparsely represented matrices are very beneficial when the number of 
 nonzero entries is relatively small compared to the total number of entries. 
-When the array has many nonzero entries, a sparse representation becomes disadvantageous. 
+When the matrix has many nonzero entries, a sparse representation becomes disadvantageous. 
 To see this, create and execute a script with the following code:
 \begin{lstlisting}
-: A = sp.rand(600,600); B = spar.csc_matrix(A)
+: A = np.random.rand(600,600); B = spar.csc_matrix(A)
 : def square(A): return sp.power(A, 2)
 : with timer() as t:
 :     t.time(square, A)
 :     t.time(square, B)
 \end{lstlisting}
 Run the script and note the two different runtimes. 
-Notice that it takes much longer to square the sparse array.
-This is because the sparse array data structure is optimized for arrays that are actually sparse.
+Notice that it takes much longer to square the sparse matrix.
+This is because the sparse matrix data structure is optimized for matrices that are actually sparse.
 The array $A$ is entirely nonzero. 
 Thus, you incur the overhead of the sparse array representation without any 
 benefits since there are no entries you are not required to store or compute.
-To summarize, only use a sparse array when your array is in fact sparse. 
-Using sparse arrays for mostly nonzero arrays will negatively impact performance and memory requirements.
+To summarize, only use a sparse matrix when your matrix is in fact sparse. 
+Using sparse matrices for mostly nonzero arrays will negatively impact performance and memory requirements.
 
-Just as with dense arrays, we can pre-allocate sparse arrays.
+Just as with dense arrays, we can pre-allocate sparse matrices.
 Sometimes it is necessary to create sparse matrices that do not have a nice banded pattern. 
-We initialize a sparse array just like any other array.  
-The most efficient sparse array for pre-allocation is LIL.  
-Once you are done constructing you sparse array and wish to perform calculations, 
-you should convert to a more efficient sparse array (CSR or CSC).
+We initialize a sparse matrix just like any other array.  
+The most efficient sparse matrix for pre-allocation is LIL.  
+Once you are done constructing you sparse matrix and wish to perform calculations, 
+you should convert to a more efficient sparse matrix (CSR or CSC).
 \begin{lstlisting}
 : Z = spar.lil_matrix((400,300))
 <400x300 sparse matrix of type '<type 'numpy.float64'>'
@@ -276,6 +289,6 @@ you should convert to a more efficient sparse array (CSR or CSC).
 : Z[23,32] = 56
 : Z[2,:] = 13.2
 \end{lstlisting}
-This code snippet creates a $400 \times 300$ LIL sparse array. 
-We can then work with the sparse array as though it were a dense array. 
-When the array is initialized all of the entries are assumed to be zero.
+This code snippet creates a $400 \times 300$ LIL sparse matrix. 
+We can then work with the sparse matrix as though it were a dense array. 
+When the matrix is initialized all of the entries are assumed to be zero.
