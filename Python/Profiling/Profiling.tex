@@ -1,0 +1,246 @@
+\lab{Python}{Profiling Python Code}{Profiling}
+\objective{Learn how to identify and remove bottlenecks in code.}
+\label{lab:ProfilingCode}
+
+You have undoubtedly written code that had less than stellar performance.
+It would be really useful if we could see what parts of the code spent the most time executing.
+We will introduce you to a number of ways to identify bottlenecks in your code.
+A bottleneck is where the execution of a small part of the code slows down the overall execution speed.
+The practice of locating these slower portions of code is called \emph{profiling}.
+Before profiling, ensure that your code works as expected.
+After profiling, we can attempt to optimize that section of the code so that it runs more efficiently.
+
+\section*{When to optimize}
+Trivial optimizations are of course encouraged.  
+Examples of trivial optimizations are intelligent string concatenations, avoiding array and list copies when possible, etc.
+Trivial optimizations should never be made at the expense of code readability.
+If code readability is jeopardized, the optimization is not trivial.
+Any nontrivial optimizations should not be done until after the code has been tested and bottlenecks identified.
+Nontrivial optimizations, if performed incorrectly, may introduce errors into your program.
+Donald Knuth, often referred to as the father of the analysis of algorithms, has written:
+\begin{quote}
+There is no doubt that the grail of efficiency leads to abuse.
+Programmers waste enormous amounts of time thinking about, or worrying about, the speed of noncritical parts of their programs, and these attempts at efficiency actually have a strong negative impact when debugging and maintenance are considered.
+We \emph{should} forget about small efficiencies, say about 97\% of the time: premature optimization is the root of all evil.
+Yet we should not pass up our opportunities in that critical 3\%.
+A good programmer will not be lulled into complacency by such reasoning, he will be wise to look carefully at the critical code; but only \emph{after} that code has been identified.
+It is often a mistake to make a priori judgments about what parts of a program are really critical, since the universal experience of programmers who have been using measurement tools has been that their intuitive guesses fail.
+\footnote{Knuth, Donald. \emph{Structured Programming with go to Statements}. Computing Surveys \textbf{6}(4), 1974, 261.}
+\end{quote}
+In other words, don't waste time making nontrivial optimizations to code that doesn't matter.
+When your code runs acceptably fast, stop optimizing.
+
+\section*{Profiling Code}
+Python includes a code profiler in its standard library. 
+The \li{cProfile} module tracks function calls and their execution while your code runs.
+Understand that running your program with a profiler will slow down your program slightly, but times are still comparable since the profiler overhead is a constant factor.
+The simplest way to profile your code is directly from the command line.
+\begin{lstlisting}
+python -m cProfile myscript.py
+\end{lstlisting}
+This will print the profile results directly to the console, but these results can also be saved to a file for later viewing by adding \texttt{-o <filename>}.
+You can then analyze the results using the \li{pstats} module, also in the Python standard library.
+
+You can also import the \li{cProfile} module and use it directly.
+\begin{lstlisting}
+import cProfile
+def fac(n):
+    if n == 1:
+        return 1
+    else:
+        return fac(n-1)*fac(n-2)
+
+cProfile.run('fib(100)')
+\end{lstlisting}
+
+IPython provides a nice interface to \li{cProfile} via the \li{\%prun} magic function.
+\begin{lstlisting}
+: \%prun fib(100)
+\end{lstlisting}
+
+
+\section*{What to Optimize}
+There are several common optimization tricks that might help you determine where to start first.
+\begin{itemize}
+\item Avoid recomputing values unnecessarily
+    \subitem Move expensive computations out of loops
+    \subitem Avoid copying data structures
+    \subitem Cache results
+    \subitem Cache often used methods
+\item Avoid nested loops
+    \subitem Simplify inner loops
+    \subitem Consider using array operations instead of looping
+\item Use builtin functions or library functions implemented in C
+\item Avoid excessive function calls
+\item Use a more efficient algorithm
+\item Use generators when possible
+\item Simplify mathematical expressions where possible
+\end{itemize}
+
+Let's look at an example of optimizing a function that calculates the QR decomposition of a matrix.
+\begin{lstlisting}
+def qr(X):
+    Q = X.copy()
+    R = np.zeros((X.shape[0], X.shape[1]))
+    for i in range(X.shape[1]):
+        R[i,i] = la.norm(Q[:,i])
+        Q[:,i] = Q[:,i]/la.norm(Q[:,i])
+        for j in range(i+1, X.shape[1]):
+            R[i, j] = Q[:,j].dot(Q[:,i])
+            Q[:,j] = Q[:,j] - Q[:,j].dot(Q[:,i]) * Q[:,i]
+    return Q, R
+\end{lstlisting}
+We generate a random $100 \times 100$ 2D array for profiling.  The output of \li{cProfile} should look similar to below.
+{\scriptsize
+\begin{verbatim}
+      11806 function calls in 0.097 seconds
+
+Ordered by: internal time
+
+ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1    0.070    0.070    0.097    0.097 qropt.py:48(qr1)
+  9900    0.023    0.000    0.023    0.000 {method 'dot' of 'numpy.ndarray' objects}
+   200    0.001    0.000    0.004    0.000 misc.py:11(norm)
+   200    0.001    0.000    0.001    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   200    0.001    0.000    0.003    0.000 function_base.py:527(asarray_chkfinite)
+   200    0.000    0.000    0.000    0.000 {numpy.core.multiarray.array}
+   200    0.000    0.000    0.001    0.000 _methods.py:28(_all)
+   200    0.000    0.000    0.001    0.000 {method 'all' of 'numpy.ndarray' objects}
+   200    0.000    0.000    0.000    0.000 numeric.py:252(asarray)
+   101    0.000    0.000    0.000    0.000 {range}
+   200    0.000    0.000    0.000    0.000 {getattr}
+   200    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+     1    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
+     1    0.000    0.000    0.000    0.000 {method 'copy' of 'numpy.ndarray' objects}
+     1    0.000    0.000    0.097    0.097 <string>:1(<module>)
+     1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+\end{verbatim}
+}
+Executing \texttt{qr1(a)} results in almost 12000 function calls.  
+We then receive a listing of each function that was called.  In the far left column, we see how many times each function was called.
+Next we see the total time spent in a given function.
+The cumulative time, or \texttt{cumtime}, column measures how much time was spent in a given function including all calls to any other function.
+
+The most obvious, and trivial, optimizations might be 
+\begin{itemize}
+\item Avoid recomputing \li{R[i,i]} in the outer loop and \li{R[i,j]} in the inner loop
+\item Use \li{xrange} instead of \li{range}
+\item Cache the size of the array outside the loop
+\end{itemize}
+\begin{lstlisting}
+def qr2(X):
+    Q = X.copy()
+    R = np.zeros(X.shape)
+
+    ncols = X.shape[1]
+    for i in xrange(ncols):
+        R[i,i] = la.norm(Q[:,i])
+        Q[:,i] = Q[:,i]/R[i,i]
+        for j in xrange(i+1, ncols):
+            R[i,j] = Q[:,j].dot(Q[:,i])
+            Q[:,j] = Q[:,j] - R[i,j] * Q[:,i]
+
+    return Q, R
+\end{lstlisting}
+These small changes, especially the removing the recomputations, speed things up nicely.
+{\scriptsize
+\begin{verbatim}
+      5855 function calls in 0.080 seconds
+
+Ordered by: internal time
+
+ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1    0.064    0.064    0.080    0.080 qropt.py:73(qr2)
+  4950    0.013    0.000    0.013    0.000 {method 'dot' of 'numpy.ndarray' objects}
+   100    0.001    0.000    0.002    0.000 misc.py:11(norm)
+   100    0.001    0.000    0.001    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   100    0.001    0.000    0.001    0.000 function_base.py:527(asarray_chkfinite)
+   100    0.000    0.000    0.000    0.000 {numpy.core.multiarray.array}
+   100    0.000    0.000    0.001    0.000 _methods.py:28(_all)
+   100    0.000    0.000    0.000    0.000 numeric.py:252(asarray)
+   100    0.000    0.000    0.001    0.000 {method 'all' of 'numpy.ndarray' objects}
+   100    0.000    0.000    0.000    0.000 {getattr}
+     1    0.000    0.000    0.000    0.000 {method 'copy' of 'numpy.ndarray' objects}
+   100    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+     1    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
+     1    0.000    0.000    0.080    0.080 <string>:1(<module>)
+     1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+\end{verbatim}
+}
+Let's use a larger, $600 \times 600$, array to exaggerate the timing differences.
+{\scriptsize
+\begin{verbatim}
+      185105 function calls in 5.612 seconds
+
+Ordered by: internal time
+
+ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1    4.253    4.253    5.612    5.612 qropt.py:74(qr2)
+179700    1.335    0.000    1.335    0.000 {method 'dot' of 'numpy.ndarray' objects}
+   600    0.009    0.000    0.022    0.000 misc.py:11(norm)
+   600    0.006    0.000    0.013    0.000 function_base.py:527(asarray_chkfinite)
+   600    0.004    0.000    0.004    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   600    0.001    0.000    0.001    0.000 {numpy.core.multiarray.array}
+   600    0.001    0.000    0.005    0.000 _methods.py:28(_all)
+   600    0.001    0.000    0.002    0.000 numeric.py:252(asarray)
+     1    0.001    0.001    0.001    0.001 {method 'copy' of 'numpy.ndarray' objects}
+   600    0.001    0.000    0.005    0.000 {method 'all' of 'numpy.ndarray' objects}
+     1    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
+   600    0.000    0.000    0.000    0.000 {getattr}
+   600    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+     1    0.000    0.000    5.612    5.612 <string>:1(<module>)
+     1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+\end{verbatim}
+}
+This seems to about as fast as we can make it.  We cannot avoid the dot product or calculating the norm.
+Most of the other calls are not made directly by our function.  
+One option could be to try using \li{np.inner} instead of \li{np.dot}, but only makes it marginally faster.
+
+Let's look at a non-trivial optimization.  We can see that we are doing a lot of column slicing with Q.
+NumPy arrays are row major which means that the array is stored in memory by row.
+This makes column slicing cumbersome because a column has exactly one element in each row, thus requiring NumPy
+to jump to many different memory locations.  If we could formulate our algorithm to use rows instead of columns,
+we can avoid the jumping around in memory and instead read a larger contiguous block.
+We accomplish this by making \li{Q} a transposed copy of \li{X} and switching all of our column slices to row slices.
+Be careful when you make the switch.
+{\scriptsize
+\begin{verbatim}
+      185105 function calls in 1.402 seconds
+
+Ordered by: internal time
+
+ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1    1.086    1.086    1.402    1.402 qropt.py:5(QR)
+179700    0.298    0.000    0.298    0.000 {numpy.core.multiarray.inner}
+   600    0.005    0.000    0.015    0.000 misc.py:11(norm)
+   600    0.004    0.000    0.004    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+   600    0.004    0.000    0.010    0.000 function_base.py:527(asarray_chkfinite)
+     1    0.002    0.002    0.002    0.002 {method 'copy' of 'numpy.ndarray' objects}
+   600    0.001    0.000    0.001    0.000 {numpy.core.multiarray.array}
+   600    0.001    0.000    0.001    0.000 numeric.py:252(asarray)
+   600    0.001    0.000    0.004    0.000 _methods.py:28(_all)
+   600    0.000    0.000    0.005    0.000 {method 'all' of 'numpy.ndarray' objects}
+     1    0.000    0.000    0.000    0.000 {numpy.core.multiarray.zeros}
+   600    0.000    0.000    0.000    0.000 {getattr}
+   600    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+     1    0.000    0.000    1.402    1.402 <string>:1(<module>)
+     1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+\end{verbatim}
+}
+The difference is immediately noticeable.  Remember that all of our optimizations thus far have been
+to the way this QR algorithm is implemented.  Keep in mind that it is often far better to spend time optimizing the algorithm
+than to optimize its implementation.  Even algebraic simplification of an algorithm can yield huge increases in speed.
+One example of optimizing an algorithm is found in calculating Voronoi diagrams.  The algorithms that were commonly used were $O(n^2)$.
+The attempts to optimize the implementation only reduced computation time by a constant factor.
+Then in 1986, Steve Fortune published an algorithm that could calculate Voronoi diagrams on a plane in $O(n \log n)$.
+This vastly improved the time needed to compute large Voronoi diagrams that were, up to that point in time, prohibitive to compute.
+
+\begin{problem}
+Profile and optimize your solutions to the following labs
+\begin{itemize}
+\item Givens
+\item Householder
+\item Image Segmentation
+\end{itemize}
+Your solution should include a before and an after profiling showing the overall optimization in each of your solutions.  It should also include a list of changes, the reasoning behind the changes, and the effect of the changes on runtime.
+\end{problem}
