@@ -36,7 +36,7 @@ a_{31}&a_{32}&a_{33}&a_{34}
 E in this case is called a type I matrix.
 
 Now let's examine the next row operation.
-If we want to multiply, say, the second row of $A$ by the constant $b$, we can left multiply the matrix $A$ by the following matrix:
+If we want to multiply the second row of $A$ by the constant $b$, we can left multiply the matrix $A$ by the following matrix:
 \[
 \tilde{E} = \begin{pmatrix}
 1&0&0\\
@@ -75,14 +75,12 @@ a_{31}&a_{32}&a_{33}&a_{34}
 \]
 $\widehat{E}$ is called a type III matrix.
 
-Below, the elementary matrices corresponding to each row operation is implemented in Python.
-\lstinputlisting[style=python, style=fromfile, name=row_opers.py]{row_opers.py}
+The following is some Python code that generates elementary matrices to perform specific row operations.
+\lstinputlisting[style=python,name=]{row_opers.py}
 
 \section*{Programming Row Reduction}
 
-A fundamental problem in linear algebra is using matrix representations to solve systems of linear equations.
-In this section, we do this by using elementary matrices to reduce a matrix into ``row echelon form'' (REF), as opposed to ``reduced row echelon form'' (RREF).
-We remark that to solve a linear system, it is actually faster computationally to use REF and then finish with back-substitution, than it is to use RREF.
+Solving a linear system can be done most efficiently by using elementary row operations to reduce a matrix into ``row echelon form'' (REF), as opposed to ``reduced row echelon form'' (RREF).
 Consider the following matrix: 
 
 \[
@@ -93,10 +91,7 @@ Consider the following matrix:
 \end{pmatrix}
 \]
 
-By iteratively left multiplying by elementary matrices, we can reduce as follows:
-
-Remember that our functions returns the elementary array corresponding to the desired row operation.
-Also note that setting the type of our initial array is crucial.
+By left multiplying by elementary matrices, we can reduce as follows:
 \begin{lstlisting}
 : import scipy as sp
 : import row_opers as op
@@ -118,14 +113,13 @@ array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
 
-To complete REF we would need to divide each row by its leading coefficient.
-We can do that using Type II matrices.
-We leave it to you to carry this out.
+To finish finding the REF we would need to divide each row by its leading coefficient.
+That can be done using Type II matrices.
 
 \begin{problem}
 \label{prob:REF}
-Write a Python function, which takes as input an $n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) and performs the above naive row reduction to REF using elementary matrices.
-(You do not need to worry about underdetermined matrices or getting zeros on the main diagonal)
+Write a Python function, which takes an $n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) as input and performs the above naive row reduction to REF using elementary matrices.
+Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction.
 \end{problem}
 
 \section*{LU Decomposition}
@@ -186,10 +180,9 @@ Note that the minus signs are gone.
 Doing it this way, we don't have to actually invert anything to compute $L$.
 This makes the computation much faster.
 
-\section*{Why Should I Care?}
+\section*{Why This Matters}
 
-The LU Decomposition isn't very useful when doing matrix computation by hand.
-It is, however, very important in scientific computation for the following reasons:
+The LU decomposition is more efficient for solving linear systems than traditional row reduction.
 \begin{itemize}
 \item If you want to solve the matrix equation $A x = b$, for several different $b's$, you can replace $A$ with $L$ and $U$, giving $L U x = b$.
 Then solve the equations $L y = b$ and $U x = y$, using forward and backward substitution, respectively.
@@ -204,9 +197,8 @@ Note that since the diagonal of $L$ are all ones, they don't need to be stored, 
 \label{prob:LU}
 Write a Python function which takes as input a random $n\times n$ matrix, performs the LU decomposition and returns $L$ and $U$.
 To verify that it works, multiply $L$ and $U$ together and compare to $A$.
+Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction.
 Note: you should not use the \li{inv} function when you do this.
-You should only use the elementary matrices that we just created.
-Additionally, have your function count the number of operations needed to perform the LU decomposition.
 \end{problem}
 
 \begin{problem}
