@@ -75,12 +75,15 @@ a_{31}&a_{32}&a_{33}&a_{34}
 \]
 $\widehat{E}$ is called a type III matrix.
 
+These elementary matrices are useful when considering matrices in a theoretical context.
+In practice, matrix multiplication is much more expensive than directly performing row operations, so when implementing elementary row operations we will modify arrays directly.
+
 The following is some Python code that generates elementary matrices to perform specific row operations.
 \lstinputlisting[style=python,name=]{row_opers.py}
 
 \section*{Programming Row Reduction}
 
-Solving a linear system can be done most efficiently by using elementary row operations to reduce a matrix into ``row echelon form'' (REF), as opposed to ``reduced row echelon form'' (RREF).
+Solving a linear system can be done most efficiently by using elementary row operations to reduce a matrix to ``row echelon form'' (REF), as opposed to ``reduced row echelon form'' (RREF).
 Consider the following matrix: 
 
 \[
@@ -91,92 +94,51 @@ Consider the following matrix:
 \end{pmatrix}
 \]
 
-By left multiplying by elementary matrices, we can reduce as follows:
+Using elementary row operations, we can reduce as follows:
 \begin{lstlisting}
 : import scipy as sp
 : import row_opers as op
-: A = sp.array([[4, 5, 6, 3],[2, 4, 6, 4],[7, 8, 0, 5]], dtype='float32')
+: A = sp.array([[4., 5., 6., 3.],[2., 4., 6., 4.],[7., 8., 0., 5.]])
 array([[ 4.,  5.,  6.,  3.],
        [ 2.,  4.,  6.,  4.],
-       [ 7.,  8.,  0.,  5.]], dtype=float32)
-: A1 = sp.dot(op.cmultadd(3,1,0,-A[1,0]/A[0,0]), A); A1
-array([[ 4. ,  5. ,  6. ,  3. ],
-       [ 0. ,  1.5,  3. ,  2.5],
-       [ 7. ,  8. ,  0. ,  5. ]])
-: A2 = sp.dot(op.cmultadd(3,2,0,-A1[2,0]/A1[0,0]), A1); A2
-array([[  4.  ,   5.  ,   6.  ,   3.  ],
-       [  0.  ,   1.5 ,   3.  ,   2.5 ],
-       [  0.  ,  -0.75, -10.5 ,  -0.25]])
-: A3 = sp.dot(op.cmultadd(3,2,1,-A2[2,1]/A2[1,1]), A2); A3
+       [ 7.,  8.,  0.,  5.]])
+: cmultadd(A, 1, 0, -A[1,0]/A[0,0])
+: cmultadd(A, 2, 0, -A[2,0]/A[0,0])
+: cmultadd(A, 2, 1, -A[2,1]/A[1,1])
+: A
 array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  1.5,  3. ,  2.5],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
 
 To finish finding the REF we would need to divide each row by its leading coefficient.
-That can be done using Type II matrices.
 
 \begin{problem}
 \label{prob:REF}
-Write a Python function, which takes an $n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) as input and performs the above naive row reduction to REF using elementary matrices.
+Write a Python function, which takes an $n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) as input and reduces it to REF using naive row reduction.
 Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction.
 \end{problem}
 
 \section*{LU Decomposition}
 
-Again, consider the matrix $A$. By iteratively left multiplying by Type 3 elementary matrices, we reduce as follows:
-
-\begin{lstlisting}
-: E1 = op.cmultadd(3,1,0,-A[1,0]/A[0,0]); E1
-array([[ 1. ,  0. ,  0. ],
-       [-0.5,  1. ,  0. ],
-       [ 0. ,  0. ,  1. ]])
-: B1 = sp.dot(E1, A)
-array([[ 4. ,  5. ,  6. ,  3. ],
-       [ 0. ,  1.5,  3. ,  2.5],
-       [ 7. ,  8. ,  0. ,  5. ]])
-: E2 = op.cmultadd(3,2,0,-B1[2,0]/B1[0,0])
-: B2 = sp.dot(E2, B1)
-: E3 = op.cmultadd(3,2,1,-B2[2,1]/B2[1,1])
-: U = sp.dot(E3, B2); U
-array([[ 4. ,  5. ,  6. ,  3. ],
-       [ 0. ,  1.5,  3. ,  2.5],
-       [ 0. ,  0. , -9. ,  1. ]])
-\end{lstlisting}
-Note that we have reduced the above matrix into upper-triangular form, denoted as $U$.
+Using row reduction we can reduce an invertible matrix $A$ to upper triangular form.
+Let $U$ be the upper triangular form of $A$, so we have:
 Hence, we have
 \[
-U = E_3 E_2 E_1 A.
+U = E_1 E_2 \dots A.
 \]
 Since the elementary matrices are invertible, we also have
 \[
-(E_3 E_2 E_1)^{-1} U =  A.
-\]
-This can be re-written as
-\[
-E_1^{-1} E_2^{-1} E_3^{-1} U =  A.
+(E_1 E_2 \dots)^{-1} U =  A.
 \]
 Then we define $L$ to be
 \[
-L = E_1^{-1} E_2^{-1} E_3^{-1},
+L = (E_1 E_2 \dots)^{-1}
 \]
-which yields $L U = A$.  
-\begin{lstlisting}
-: from scipy import linalg as la
-: I = lambda x: la.inv(x)
-: L = sp.dot(sp.dot(I(E1), I(E2)), I(E3)); L
-array([[ 1.  ,  0.  ,  0.  ],
-       [ 0.5 ,  1.  ,  0.  ],
-       [ 1.75, -0.5 ,  1.  ]])
-: sp.dot(L, U)
-array([[ 4.,  5.,  6.,  3.],
-       [ 2.,  4.,  6.,  4.],
-       [ 7.,  8.,  0.,  5.]])
-\end{lstlisting}
-What makes $LU$ decomposition so easy is that the inverses of elementary matrices are elementary matrices.
+which yields $L U = A$.
+
+What makes $LU$ decomposition so nice to work with is that the inverses of elementary matrices are elementary matrices.
 For example, the inverse of a Type 3 elementary matrix is the same matrix with the opposite sign in the $(j,k)$ entry.
-In the above problem, we have:
-Note that the minus signs are gone.
 Doing it this way, we don't have to actually invert anything to compute $L$.
 This makes the computation much faster.
 
