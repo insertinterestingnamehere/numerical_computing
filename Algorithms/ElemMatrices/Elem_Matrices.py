@@ -18,5 +18,7 @@ def LU(A):
     return L, U
 
 def LU_det(A):
-    #extract diagonal of U and take the product
-    return np.prod(LU(A)[1].reshape(A.size)[::A.shape[1]+1])
+    B = A.copy()
+    ref(B)
+    #now extract diagonal and take product
+    return np.prod(B.reshape(B.size)[::B.shape[1]+1])
