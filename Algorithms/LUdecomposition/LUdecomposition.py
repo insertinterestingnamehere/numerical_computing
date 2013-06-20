@@ -17,6 +17,23 @@ def LU(A):
             U[j,i:] -= L[j,i] * U[i,i:]
     return L, U
 
+def LU_inplace(A):
+    for i in xrange(A.shape[0]-1):
+        for j in xrange(i+1,A.shape[0]):
+			#change to L
+            A[j,i] /= A[i,i]
+            #change to U
+            A[j,i+1:] -= A[j,i] * A[i,i+1:]
+
+def LU_solve(A,B):
+    for i in xrange(A.shape[0]-1):
+        for j in xrange(i+1,A.shape[0]):
+            B[j] -= A[j,i] * B[i]
+    for i in xrange(A.shape[0]-1,-1,-1):
+        B[i] /= A[i,i]
+        for j in xrange(i):
+            B[j] -= A[j,i] * B[i]
+
 def LU_det(A):
     B = A.copy()
     ref(B)
