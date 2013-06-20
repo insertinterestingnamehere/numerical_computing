@@ -3,80 +3,15 @@
 \objective{In this section we will find the REF and the LU decomposition.}
 
 In Linear algebra there are 3 elementary row operations: switching two rows, multiplying a row by a constant, and adding a multiple of one row to another row.
-We carry out each of these operations with a corresponding elementary matrix.
-These matrices are easy to construct.
-Suppose $A$ is an $m \times n$ matrix and you want to perform one of the three elementary operations on $A$.
-You can do this be constructing the $m \times m$ identity matrix, $I$, performing the elementary row operation on $I$ to obtain $E$ and then multiplying $EA$.
-For example, consider the matrix
-\[
-A = \begin{pmatrix}
-a_{11}&a_{12}&a_{13}&a_{14}\\
-a_{21}&a_{22}&a_{23}&a_{24}\\
-a_{31}&a_{32}&a_{33}&a_{34}
-\end{pmatrix}
-\]
-If we want to swap the first two rows, we can left multiply the
-matrix $A$ by:
-\[
-E = \begin{pmatrix}
-0&1&0\\
-1&0&0\\
-0&0&1
-\end{pmatrix},
-\]
-then
-\[
-E A =
-\begin{pmatrix}
-a_{21}&a_{22}&a_{23}&a_{24}\\
-a_{11}&a_{12}&a_{13}&a_{14}\\
-a_{31}&a_{32}&a_{33}&a_{34}
-\end{pmatrix}.
-\]
-E in this case is called a type I matrix.
+Each of these operations can, in theory, be done by left multiplication by a corresponding elementary matrix.
+This approach is \emph{extremely} slow in practice.
+In practice, it is much faster to perform these operations directly by modifying only the portions of an array that change as a result of the row operation.
 
-Now let's examine the next row operation.
-If we want to multiply the second row of $A$ by the constant $b$, we can left multiply the matrix $A$ by the following matrix:
-\[
-\tilde{E} = \begin{pmatrix}
-1&0&0\\
-0&b&0\\
-0&0&1
-\end{pmatrix}.
-\]
-Then
-\[
-\tilde{E} A =
-\begin{pmatrix}
-a_{11}&a_{12}&a_{13}&a_{14}\\
-b a_{21}&b a_{22}&b a_{23}&b a_{24}\\
-a_{31}&a_{32}&a_{33}&a_{34}
-\end{pmatrix}.
-\]
-$\tilde{E}$ is called a type II matrix.  
-
-Now let's examine the last row operation.
-If we want to multiply, say, the first row of $A$ by a constant $c$ and add it to the second row, we can left multiply the matrix $A$ by the following matrix:
-\[
-\widehat{E} = \begin{pmatrix}
-1&0&0\\
-c&1&0\\
-0&0&1
-\end{pmatrix}.
-\]
-Then
-\[
-\widehat{E} A =
-\begin{pmatrix}
-a_{11}&a_{12}&a_{13}&a_{14}\\
-c a_{11} + a_{21}&c a_{12} + a_{22}&c a_{13} + a_{23}&c a_{14} + a_{24}\\
-a_{31}&a_{32}&a_{33}&a_{34}
-\end{pmatrix}.
-\]
-$\widehat{E}$ is called a type III matrix.
-
-These elementary matrices are useful when considering matrices in a theoretical context.
-In practice, matrix multiplication is much more expensive than directly performing row operations, so when implementing elementary row operations we will modify arrays directly.
+These sorts of operations are relatively easy to apply.
+The first sort of operation is swapping rows.
+The second sort of operation is multiplying a row by a constant.
+The third sort of operation is adding a constant multiple of one row to another.
+Theoretically, each of these operations can be represented as multiplication by an elementary matrix.
 
 The following is some Python code that generates elementary matrices to perform specific row operations.
 \lstinputlisting[style=python,name=]{row_opers.py}
@@ -96,15 +31,14 @@ Consider the following matrix:
 
 Using elementary row operations, we can reduce as follows:
 \begin{lstlisting}
-: import scipy as sp
-: import row_opers as op
-: A = sp.array([[4., 5., 6., 3.],[2., 4., 6., 4.],[7., 8., 0., 5.]])
+: import numpy as np
+: A = np.array([[4., 5., 6., 3.],[2., 4., 6., 4.],[7., 8., 0., 5.]])
 array([[ 4.,  5.,  6.,  3.],
        [ 2.,  4.,  6.,  4.],
        [ 7.,  8.,  0.,  5.]])
-: cmultadd(A, 1, 0, -A[1,0]/A[0,0])
-: cmultadd(A, 2, 0, -A[2,0]/A[0,0])
-: cmultadd(A, 2, 1, -A[2,1]/A[1,1])
+: A[1] -= (A[1,0]/A[0,0]) * A[0]
+: A[2] -= (A[2,0]/A[0,0]) * A[0]
+: A[2,1:] -= (A[2,1]/A[1,1]) * A[1,1:]
 : A
 array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  1.5,  3. ,  2.5],
@@ -112,6 +46,8 @@ array([[ 4. ,  5. ,  6. ,  3. ],
 \end{lstlisting}
 
 To finish finding the REF we would need to divide each row by its leading coefficient.
+Notice that in our third row operation we were able to operate on only a portion of the third row because we knew that the first value would still be 0.
+In this case it made little difference, but it is a good idea to watch for things like this because they can save a great deal more time when we are working with larger matrices.
 
 \begin{problem}
 \label{prob:REF}
@@ -143,9 +79,23 @@ L = E_1^{-1} E_2^{-1} \dots E_k^{-1}
 In Either case, we have $L U = A$.
 
 What makes $LU$ decomposition so nice to work with is that the inverses of elementary matrices are elementary matrices.
-For example, the inverse of a Type 3 elementary matrix is the same matrix with the opposite sign in the $(j,k)$ entry.
-Doing it this way, we don't have to actually invert anything to compute $L$.
+This means that we can compute $L$ by performing a series of simple row operations on an identity matrix.
+As it turns out, when we are only doing type 3 row operations, each of the operations represented by right multiplication by these inverse matrices results in a change in a single entry of $L$.
 This makes the computation much faster.
+
+In practice, the LU decomposition of an array $A$ can be computed like this:
+\begin{itemize}
+\item Make a copy $U$ of $A$.
+\item Make an identity matrix $L$ of the same shape as $A$.
+\item Iterate through the entries below the diagonal of $U$ like you would when performing row reduction.
+For each entry below the main diagonal of $U$ do the following:
+	\begin{itemize}
+	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ lying above the current entry.
+	\item Perform the type three row operation to set the current entry of $U$ to 0.
+		Remember to avoid computation involving columns you have already finished processing.
+	\end{itemize}
+\item Return L and U.
+\end{itemize}
 
 \section*{Why This Matters}
 
@@ -168,5 +118,5 @@ Note: you should not use the \li{inv} function when you do this.
 \begin{problem}
 \label{prob:det}
 Write a Python function which uses the solution to problem \ref{prob:REF} to find the determinant of $A$.
-Notice that in problem \ref{prob:REF} you really found $U$.
+Notice that problem \ref{prob:REF} computes $U$ when applied to a square matrix.
 \end{problem}
