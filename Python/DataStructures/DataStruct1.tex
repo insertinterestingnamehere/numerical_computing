@@ -9,19 +9,82 @@ Most information that we care to store is in one of these forms.
 However, for storing large amounts information, these primitive types can quickly become unwieldy.
 We can create more natural ways to store data.  We use these primitive datatypes as building blocks along with arrays (or lists in Python).  The more complex data structures are called \emph{abstract data types}.
 Python has a couple of the more common abstract data types such as dictionaries, sets, and lists.
+All of the abstract data types slow down in performance as the size of the data structure increases.  
 
-\section{Dictionaries, Sets, and Lists}
-Dictionaries store (key, value) elements.  The keys must be unique and immutable.  Order is not important with dictionaries.  Any semblance of order is a result of traversing the underlying data structure.
+\section*{Linked Lists}
+Linked Lists are one of the most basic and common data structures.
+Linked lists use nodes to store data and are linked together.
+Nodes can be inserted or removed from either end in a constant amount of time, independent of the size of the list.
+To insert or delete nodes in the middle of the list, the correct node must first be located.  
+Finding this node requires traversing the list which will take longer as the list size grows.  Linked lists do not allow random access like arrays.  Linked lists always have a reference that points the head, or first node, of the list.  They may also have a tail reference that will point to the end, or last node, of the list.
 
-Sets store unique elements.  Like dictionaries, order is not preserved.  Sets are used for very fast membership testing.
-
-Lists are an ordered collection of elements.  Lists are a little more flexible than arrays.  Lists can be heterogeneous and have no gaps.  
-
+There are several ways we can link the nodes together.  The three most common ways are singly-linked, doubly-linked, and circularly-linked.  Singly-linked lists have nodes that store only a single reference that points to the next node in the list.  Doubly-linked list nodes have two references.  One reference points the next node and the other points to the previous node.  This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.  A circularly linked list is a singly or doubly-linked list where the tail node points to the head node as the next node.  Circularly-linked lists are common used as data buffers.
 
 \begin{problem}
-Write a stack.  Do not use Python lists in your implementation.
-You will need to create your own node class and stack class.
+Implement a singly-linked list with methods for inserting, removing, and finding nodes.  You should also implement a method that clears the list.
 \end{problem}
+
+\section*{Hash Tables}
+Hash tables are a very simple data structure that trades space for speed.
+Most operations of a hash table execute in constant time, independent of the size of the data structure.
+The heart of a hash table is a good hash function.  A hash function maps an input to a positive integer.  This positive integer is then used as an index to access the hash table.  Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
+An ideal hash function will map a unique inputs to unique outputs that are uniformly distributed over the hash space.  However, it is very difficult to make a perfect hash function.  Most hash functions will experience \emph{hash collisions}.  This is where two unique inputs yield the same hash output.
+There are ways of handling hash collisions.  The two methods that we will discuss are open addressing and chaining.
+
+\subsection*{Open Addressing}
+Open addressing means that the output of the hash function doesn't necessary identify the location of some data.
+A popular form of open addressing is probing. 
+We will discuss linear probing and quadratic probing.
+
+In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
+A linear probing hash function where $n$ is the size of the hash table, $h(x)$ is the hash function, and $i$ is a constant is of the form
+\begin{equation*}
+h(x, i) = h(x) + i \pmod{n}
+\end{equation*}
+We can do this by sequentially visiting each subsequent location and when we find an empty one, stuff our data in that location.  
+However, when we want to retrieve that information, when we hash it, we will be directed to the wrong location. 
+We then have to begin iterating through the table looking for our data.
+If our hash table is densely populated or our hash function has lots of collisions, then we lose the efficiency of a hash table because we are forced to resort to a linear search.
+With linear probing, elements in the table will cluster together.
+
+Quadratic probing seeks to mitigate the issues of linear probing by spreading out hash collisions more evenly.   A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
+\begin{equation*}
+h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}
+\end{equation*}
+
+\subsection*{Chaining}
+Chaining is a form of closed addressing.  The output of the hash function points the location of the data. 
+With chaining, each location of the hash table references a list.
+When one or more pieces of information hash to the same location, it is added to that location's list.  With a good hash function, the average size of hash location's list is relatively short, so searching the list doesn't affect the overall performance of the hash table.
+
+\subsection*{Hash Table Details}
+As a hash table fills up, its performance degrades.
+When using a hash table, a \emph{load factor} is often tracked.
+This load factor reveals how full the table is and is calculated as the ratio of the number of empty locations to total number of locations in the hash table.
+When the load factor exceeds a certain threshold, we must allocate more space for the table.
+To allocate more space, we must re-hash everything in the table (since most hash functions are computed modulo the size of the table).
+This can sometimes be a very expensive operation.
+It's important to avoid resizing the table when possible.
+
+\begin{problem}
+Implement a hash table that uses chaining for resolving hash collisions.
+When, the load factor exceeds $.75$, resize the hash table so that the load factor will be below $.33$.
+\end{problem}
+
+\section*{Trees}
+
+\begin{problem}
+Implement a binary search tree
+\end{problem}
+
+
+\section*{Graphs}
+
+\begin{problem}
+Write a function that can accept any valid adjacency matrix and convert it into an adjacency list.
+\end{problem}
+
+
 
 \begin{problem}
 Write a graph data structure using adjacency lists.
