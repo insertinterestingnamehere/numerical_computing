@@ -38,4 +38,4 @@ def LU_det(A):
     B = A.copy()
     ref(B)
     #now extract diagonal and take product
-    return np.prod(B.reshape(B.size)[::B.shape[1]+1])
+    return np.prod(B.diagonal())
