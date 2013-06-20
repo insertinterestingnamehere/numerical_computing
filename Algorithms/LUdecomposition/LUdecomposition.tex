@@ -29,7 +29,7 @@ Consider the following matrix:
 \end{pmatrix}
 \]
 
-Using elementary row operations, we can reduce as follows:
+Using elementary row operations, we can reduce $A$ to REF as follows:
 \begin{lstlisting}
 : import numpy as np
 : A = np.array([[4., 5., 6., 3.],[2., 4., 6., 4.],[7., 8., 0., 5.]])
@@ -45,13 +45,15 @@ array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
 
-To finish finding the REF we would need to divide each row by its leading coefficient.
+
+The additional requirement is often added that the first nonzero entry of each row be 1.
+Do not worry about that requirement here.
 Notice that in our third row operation we were able to operate on only a portion of the third row because we knew that the first value would still be 0.
-In this case it made little difference, but it is a good idea to watch for things like this because they can save a great deal more time when we are working with larger matrices.
+In this case it made little difference, but it is good to watch for things like this because they can save a great deal more time when working with larger matrices.
 
 \begin{problem}
 \label{prob:REF}
-Write a Python function, which takes an $n\times (n+1)$ matrix (in other words and \emph{augmented} matrix) as input and reduces it to REF using naive row reduction.
+Write a Python function, which takes a matrix and reduces it to REF.
 Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction.
 \end{problem}
 
@@ -78,10 +80,8 @@ L = E_1^{-1} E_2^{-1} \dots E_k^{-1}
 \]
 In Either case, we have $L U = A$.
 
-What makes $LU$ decomposition so nice to work with is that the inverses of elementary matrices are elementary matrices.
-This means that we can compute $L$ by performing a series of simple row operations on an identity matrix.
+The inverses of elementary matrices are elementary matrices, so $L$ can be computed by applying a series of simple operations to an identity matrix.
 As it turns out, when we are only doing type 3 row operations, each of the operations represented by right multiplication by these inverse matrices results in a change in a single entry of $L$.
-This makes the computation much faster.
 
 In practice, the LU decomposition of an array $A$ can be computed like this:
 \begin{itemize}
@@ -92,27 +92,28 @@ For each entry below the main diagonal of $U$ do the following:
 	\begin{itemize}
 	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ lying above the current entry.
 	\item Perform the type three row operation to set the current entry of $U$ to 0.
-		Remember to avoid computation involving columns you have already finished processing.
+		Remember to avoid computation involving columns that have already been processed.
 	\end{itemize}
 \item Return L and U.
 \end{itemize}
+
+In this case we have ignored the possibility that a 0 may appear along the main diagonal during computation.
+A full implementation of the LU decomposition would have to account for this possibility as well.
 
 \section*{Why This Matters}
 
 The LU decomposition is more efficient for solving linear systems than traditional row reduction.
 It also can be applied to matrices with more than one column.
-Say you want to solve the matrix equation $A x = b$, for several different $b's$, you can replace $A$ with $L$ and $U$, giving $L U x = b$.
-The $LU$ decomposition also allows quick computation of both inverses and determinants.
+The $LU$ decomposition also allows quick computation of inverses and determinants.
 For very large matrices, the LU decomposition can be performed without using any extra space.
-We can store L in the poriton of the array that lies below the main diagonal and U from the main diagonal up.
-We don't have to store the main diagonal of L since all its entries are ones.
+L can be stored in the poriton of the array that lies below the main diagonal and U from the main diagonal up.
+There is no need to store the main diagonal of L since all its entries are ones.
 
 \begin{problem}
 \label{prob:LU}
 Write a Python function which takes as input a random $n\times n$ matrix, performs the LU decomposition and returns $L$ and $U$.
 To verify that it works, multiply $L$ and $U$ together and compare to $A$.
 Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction.
-Note: you should not use the \li{inv} function when you do this.
 \end{problem}
 
 \begin{problem}
