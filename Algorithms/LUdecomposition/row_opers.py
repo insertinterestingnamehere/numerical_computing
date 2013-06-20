@@ -1,14 +1,14 @@
 import numpy as np
 
-def rowswap(A, j, k):
+def rowswap(A, i, j):
 	#swaps two rows
 	#modifies A in place
-	A[j], A[k] = A[k], A[j]
+	A[i], A[j] = A[j], A[i]
 
-def cmult(A, j, const):
+def cmult(A, i, const):
 	#multiplies row j of A by const in place
-	A[j] *= const
+	A[i] *= const
 
-def cmultadd(A, j, k, const):
+def cmultadd(A, i, j, const):
 	#adds a constant times row k to row j
-	A[j] += const*A[k]
+	A[i] += const*A[j]
