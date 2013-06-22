@@ -2,6 +2,7 @@
 This timer class is designed to mimic the functionality of IPython's timeit function.
 """
 
+from collections import defaultdict
 import timeit
 
 class timer(object):
@@ -19,7 +20,7 @@ class timer(object):
         self.repeats = repeats
         self.loops = loops
         self.gc = gc
-        self.results = {}
+        self.results = defaultdict(list)
 
     def __enter__(self):
         return self
@@ -29,12 +30,6 @@ class timer(object):
             return False
         else:
             return True
-
-    def results(self):
-        """
-        Return a dictionary of timing results
-        """
-        return self.results
 
     def time(self, func, *args, **kargs):
         """
@@ -58,7 +53,4 @@ class timer(object):
         elapsed = timeit.repeat(pfunc, self.gbcol, repeat=self.repeats, number=self.loops)
         runtime = min(elapsed)/self.loops
         print runtime
-        if funcname in self.results:
-            self.results[funcname].append(runtime)
-        else:
-            self.results[funcname] = [runtime]
+        self.results[funcname].append(runtime)
