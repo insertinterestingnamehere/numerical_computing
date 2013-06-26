@@ -26,7 +26,8 @@ Implement a singly-linked list with methods for inserting, removing, and finding
 
 \section*{Hash Tables}
 Hash tables are a very simple data structure that trades space for speed.
-Most operations of a hash table execute in constant time, independent of the size of the data structure.
+Most operations of a hash table execute in constant time, independent of the size of the data structure.  They have very fast lookup times.  They form the underlying data structure of Python's dictionaries.
+
 The heart of a hash table is a good hash function.  A hash function maps an input to a positive integer.  This positive integer is then used as an index to access the hash table.  Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
 An ideal hash function will map a unique inputs to unique outputs that are uniformly distributed over the hash space.  However, it is very difficult to make a perfect hash function.  Most hash functions will experience \emph{hash collisions}.  This is where two unique inputs yield the same hash output.
 There are ways of handling hash collisions.  The two methods that we will discuss are open addressing and chaining.
@@ -72,10 +73,80 @@ When, the load factor exceeds $.75$, resize the hash table so that the load fact
 \end{problem}
 
 \section*{Trees}
+Trees are a rooted group of linked nodes.  There are many types of trees, but we will only cover one of the most basic ones, the binary search tree.
+The binary search tree will show us the basics elements of the tree data structure.
+A binary tree is a tree that has a maximum of two children per node.
+A binary search tree has the added properties that all there are no duplicate elements
+and that the structure of the tree is ordered. 
+A very common ordering is the left half of the tree contains elements less than the root, and the right contain elements greater than the root.
+
+Searching a binary search tree is very fast.
+The structure of the binary search tree mimics the execution of a binary search.
+Due to the fact that locating a node in a binary search tree is very fast, inserting and removing nodes is also very fast.  Binary search trees are often used to represent the elements of a set.
+
+The node in a binary search tree holds a key, value pair and references to left and right subtrees.  This is a recursive data structure because each of the left and right subtrees are themselves binary search trees.
+\begin{lstlisting}
+class Node(object):
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+\end{lstlisting}
+Many of the algorithms for working with binary search trees are also recursive.
+A recursive function is a function that calls itself until it reaches a base case.
+In the search function below, the two base cases are either we have the correct
+node, or we don't have a node at all. 
+In both these cases, we just return what we have.
+We don't have to use recursive algorithms if we don't want to.  In fact, for large trees, a recursive algorithm will consume a lot of resources.
+\begin{lstlisting}
+def search(data, node):
+    if node is None or node.data == data:
+        return node
+    elif data < node.data:
+        search(data, node.left)
+    else:
+        search(data, node.right)
+\end{lstlisting}
+
+Inserting a node into a binary search tree is simple procedure.
+We recursively insert to the right if the element is greater than the current node
+or insert on the left is the element is less than the current node.
+We never insert a non-leaf node in a BST.
+
+Removing nodes is only slightly more complicated.
+We have three cases to consider.
+\begin{itemize}
+\item No child nodes.  This is the simplest case.  We simply remove the node.
+\item One child node.  In this case, we have to worry about children.
+The solution is simple enough. 
+We promote the child to take the place of the node we are deleting.
+\item Two child nodes.  We need to be a little careful with this case.
+We can't simply promote a child node.  How do we decide which child to promote.
+Fortunately, we can reduce this case down to one of the previous two cases.
+Suppose we are removing node, $n$, which has two children.
+We first locate node, $c$, which is the smallest node of the right subtree or the greatest node of the left subtree.  We swap the data of nodes $c$ and $n$ (so node $c$ now has the same data that $n$ had and vice versa).
+Due to the properties of $c$, we know that it has no children and we can now simply remove $c$, which also removes $n$.
+\end{itemize}
 
 \begin{problem}
-Implement a binary search tree
+Implement a binary search tree with methods for inserting, removing, and finding nodes.
+Use the \li{Node} class given in the text above for your node objects.
 \end{problem}
+
+\subsection*{Balancing Trees}
+Binary search trees often perform very well in search for data.
+However, The order of insertion into a binary search tree determines, to a very large degree, how well the tree performs.
+Binary search trees work best when elements are added in a random order.
+If the elements are sorted before adding to a BST, the efficiency of a BST is completely mitigated.  The resulting degenerate tree is essentially a linked list.
+The performance of a BST also degrades the more levels a tree has. 
+
+One method for solving these problems is to keep the tree balanced.
+On each insert and remove operation, the tree is rebalanced to maintain optimal performance.
+ 
+% \begin{problem}
+% Subclass your binary search tree and include methods to handle the four balance cases.
+% To implement balancing properly, you might need to modify the \li{Node} class.
+% \end{problem}
 
 
 \section*{Graphs}
