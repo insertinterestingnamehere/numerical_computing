@@ -2,25 +2,16 @@
 \label{lab:LUdecomp}
 \objective{In this section we will find the REF and the LU decomposition.}
 
-In Linear algebra there are 3 elementary row operations: switching two rows, multiplying a row by a constant, and adding a multiple of one row to another row.
+In linear algebra there are three elementary row operations: switching two rows, multiplying a row by a constant, and adding a multiple of one row to another row.
 Each of these operations can, in theory, be done by left multiplication by a corresponding elementary matrix.
 This approach is \emph{extremely} slow in practice.
 In practice, it is much faster to perform these operations directly by modifying only the portions of an array that change as a result of the row operation.
-
-These sorts of operations are relatively easy to apply.
-The first sort of operation is swapping rows.
-The second sort of operation is multiplying a row by a constant.
-The third sort of operation is adding a constant multiple of one row to another.
-Theoretically, each of these operations can be represented as multiplication by an elementary matrix.
-
-The following is some Python code that generates elementary matrices to perform specific row operations.
-\lstinputlisting[style=python,name=]{row_opers.py}
+The follow code shows how these modifications can be made in-place to an array.
+\lstinputlisting[style=fromfile]{row_opers.py}
 
 \section*{Programming Row Reduction}
-
-Solving a linear system can be done most efficiently by using elementary row operations to reduce a matrix to ``row echelon form'' (REF), as opposed to ``reduced row echelon form'' (RREF).
+Solving a linear system can be done most efficiently by using elementary row operations to reduce a matrix to \emph{row echelon form} (REF), as opposed to \emph{reduced row echelon form} (RREF).
 Consider the following matrix: 
-
 \[
 \begin{pmatrix}
 4&5&6&3 \\
@@ -28,7 +19,6 @@ Consider the following matrix:
 7&8&0&5
 \end{pmatrix}
 \]
-
 Using elementary row operations, we can reduce $A$ to REF as follows:
 \begin{lstlisting}
 : import numpy as np
@@ -44,11 +34,8 @@ array([[ 4. ,  5. ,  6. ,  3. ],
        [ 0. ,  1.5,  3. ,  2.5],
        [ 0. ,  0. , -9. ,  1. ]])
 \end{lstlisting}
-
-
 The additional requirement is often added that the first nonzero entry of each row be 1.
 Do not worry about that requirement here.
-
 Notice that in our third row operation we were able to operate on only a portion of the third row because we knew that the first value would still be 0.
 In this case it made little difference, but it is good to watch for things like this because they can save a great deal more time when working with larger matrices.
 
@@ -59,7 +46,6 @@ Assume that the matrix is invertible and ignore the possibility that a zero may 
 \end{problem}
 
 \section*{LU Decomposition}
-
 Using row reduction we can reduce an invertible matrix $A$ to upper triangular form.
 Say this can be done in $k$ row operations.
 Let $U$ be the upper triangular form of $A$, so we have:
@@ -79,36 +65,34 @@ which is the same as
 \[
 L = E_1^{-1} E_2^{-1} \dots E_k^{-1}
 \]
-In Either case, we have $L U = A$.
+In either case, we have $L U = A$.
 
-The inverses of elementary matrices are elementary matrices, so $L$ can be computed by applying a series of simple operations to an identity matrix.
+The inverses of elementary matrices are also elementary matrices. $L$ can be computed by applying a series of simple operations to an identity matrix.
 As it turns out, when we are only doing type 3 row operations, each of the operations represented by right multiplication by these inverse matrices results in a change in a single entry of $L$.
 
 In practice, the LU decomposition of an array $A$ can be computed like this:
 \begin{itemize}
-\item Make a copy $U$ of $A$.
-\item Make an identity matrix $L$ of the same shape as $A$.
-\item Iterate through the entries below the diagonal of $U$ like you would when performing row reduction.
+\item Make a copy $U$ of $A$
+\item Make an identity matrix $L$ of the same shape as $A$
+\item Iterate through the entries below the diagonal of $U$
 For each entry below the main diagonal of $U$ do the following:
 	\begin{itemize}
-	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ lying above the current entry.
-	\item Perform the type three row operation to set the current entry of $U$ to 0.
+	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ located above the current entry
+	\item Perform the type 3 row operation to set the current entry of $U$ to 0.
 		Remember to avoid computation involving columns that have already been processed.
 	\end{itemize}
-\item Return L and U.
+\item Return $L$ and $U$
 \end{itemize}
-
-In this case we have ignored the possibility that a 0 may appear along the main diagonal during computation.
+In this case, we have ignored the possibility that a 0 may appear along the main diagonal during computation.
 A full implementation of the LU decomposition would have to account for this possibility as well.
 
 \section*{Why This Matters}
-
 The LU decomposition is more efficient for solving linear systems than traditional row reduction.
 It also can be applied to matrices with more than one column.
 The $LU$ decomposition also allows quick computation of inverses and determinants.
 For very large matrices, the LU decomposition can be performed without using any extra space.
-L can be stored in the poriton of the array that lies below the main diagonal and U from the main diagonal up.
-There is no need to store the main diagonal of L since all its entries are ones.
+$L$ can be stored in the lower triangle of the array and $U$ in the upper triangle.
+There is no need to store the main diagonal of $L$ since all its entries are ones.
 
 \begin{problem}
 \label{prob:LU}
@@ -120,23 +104,19 @@ Write another version of the function that modifies its input in place, storing 
 \end{problem}
 
 \begin{problem}
-Write a function that takes the LU decomposition computed by the second function you made in the last problem and another array representing the right hand side of a linear system and modifies the second array in place so that it represents the solution to the linear system.
+Write a function that takes the LU decomposition computed by the second function you made in Problem \ref{prob:LU} and another array representing the right hand side of a linear system and modifies the second array in place so that it represents the solution to the linear system.
 No changes to the array storing the LU decomposition are necessary.
 \end{problem}
 
 \begin{problem}
 \label{prob:det}
-Write a Python function which uses the solution to problem \ref{prob:REF} to find the determinant of $A$.
-Notice that problem \ref{prob:REF} computes $U$ when applied to a square matrix.
+Write a function which uses the solution to Problem \ref{prob:REF} to find the determinant of $A$.
+Notice that Problem \ref{prob:REF} computes $U$ when applied to a square matrix.
 \end{problem}
 
-SciPy includes more complete implementations of the LU decomposition in the \li{linalg} module.
-\li{lu} computes the LU decomposition.
-It returns an additional matrix representing any row swaps that were made during computation.
-
-\li{lu_factor} calculates the LU decomposition and stores it in a single array.
+SciPy includes more complete implementations of the LU decomposition in the \li{linalg} module.  This LU implementation returns an additional array that shows any row swaps that were made during the decomposition.
+The LU decomposition is calculated with \li{linalg.lu}.
+\li{linalg.lu_factor} calculates the LU decomposition and stores it in a single array.
 It returns a tuple of arrays, one which is the LU decomposition and the other of which represents the necessary permutation of the rows.
-
-\li{lu_solve} uses the output from \li{lu_factor} and uses it to solve a linear system.
-
-Using \li{lu_factor} and \li{lu_solve} provide a good alternative for inverting large matrices since it is much faster to compute the LU decomposition than it is to invert a matrix.
+\li{linalg.lu_solve} uses the output from \li{lu_factor} and uses it to solve a linear system.
+Using \li{linalg.lu_factor} and \li{linalg.lu_solve} provide a good alternative for inverting large matrices since it is much faster to compute the LU decomposition than it is to invert a matrix.
