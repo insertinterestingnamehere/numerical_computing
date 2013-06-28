@@ -3,7 +3,7 @@
 \objective{This section explains the basic ideas of Wavelet Analysis
 using the Haar wavelet as a prototypical example.}
 
-Recall that in the context of Fourier analysis, we often seek to represent a
+Recall that in the context of Fourier analysis, one seeks to represent a
 function in the frequency domain, and this is accomplished via the Fourier
 transform. The Fourier transform allows us to analyze and process functions
 in many useful ways, as you have seen in previous labs. There are, however,
@@ -28,72 +28,133 @@ function, known as the \emph{Haar wavelet}:
  \begin{cases}
   1 & \text{if } 0 \leq x < \frac{1}{2} \\
   -1 & \text{if } \frac{1}{2} \leq x < 1 \\
-  0 & \text{otherwise}
+  0 & \text{otherwise.}
  \end{cases}
 \end{equation*}
 
 % It might be nice to plot this function and include the image in the lab.
 
-Along with this wavelet, we introduce the associated \emph{scaling function} 
+Along with this wavelet, we introduce the associated \emph{scaling function}:
 \begin{equation*}
-\phi(x) = 
+\phi(x) =
  \begin{cases}
  1 & \text{if } 0 \leq x < 1 \\
  0 & \text{otherwise.}
  \end{cases}
 \end{equation*}
 
-From the wavelet and scaling function, we can generate two countable families 
-of dyadic dilates and translates given by 
+From the wavelet and scaling function, we can generate two countable families
+of dyadic dilates and translates given by
 \begin{equation*}
 \psi_{m,k}(x) = \psi(2^mx - k)
 \end{equation*}
 \begin{equation*}
 \phi_{m,k}(x) = \phi(2^mx - k),
 \end{equation*}
-where $m,k \in \mathbb{Z}$. Notice that at a given dilation level $m$ (with $2^m$ 
-being the dilation factor), we can approximate a given function $f$ using the 
-translations of the scaling function:
+where $m,k \in \mathbb{Z}$. These functions are all pairwise orthogonal and can be used
+to represent $L_2$ functions in a manner very similar to the Fourier basis.
+Notice that at a given dilation level $m$, we can 
+approximate a given function $f$ using the translations of the scaling function:
 \begin{equation*}
 f(x) \approx f_m(x) := \displaystyle\sum_{k \in \mathbb{Z}}\alpha_{m,k}\phi_{m,k}(x),
 \end{equation*}
-where 
+where
 \begin{equation*}
-\alpha_{m,k} := 2^m \displaystyle \int_{k2^{-m}}^{(k+1)2^{-m}}f(x) dx    
+\alpha_{m,k} := 2^m \displaystyle \int_{k2^{-m}}^{(k+1)2^{-m}}f(x) dx
 \end{equation*}
 (this is simply the average value of $f$ on $[k2^{-m},(k+1)2^{-m}]$). As you would probably
-expect, the point-wise error between $f$ and $f_m$ (called a \emph{frame}) goes to zero as $m \to \infty$. 
+expect, the point-wise error between $f$ and its approximation $f_m$ (called a \emph{frame}) 
+goes to zero as
+$m \to \infty$.
 \begin{problem}
-Calculate and plot the approximation frames for $f(x) = \sin(x)$ on the interval $[0,2\pi]$ for $m = 
-4, 6, 8$. 
+Calculate and plot the approximation frames for $f(x) = \sin(x)$ on the interval $[0,2\pi]$
+for $m = 4, 6, 8$.
 \end{problem}
-It turns out that there is a very nice relationship between the wavelet $\psi$ and its scaling 
-function $\phi$, and we have the identity
+It turns out that there is a very nice relationship between the wavelet $\psi$ and its scaling
+function $\phi$, expressed in the following identity
 \begin{equation*}
 f_m(x) = f_{m-1}(x) + d_{m-1}(x),
 \end{equation*}
-where 
+where
 \begin{equation*}
 d_m(x) := \displaystyle\sum_{k \in \mathbb{Z}}\beta_{m,k}\psi_{m,k}(x)
 \end{equation*}
 and
-\begin{equation*} 
+\begin{equation*}
 \beta_{m,k} := 2^m \displaystyle \int_{-\infty}^{-\infty}f(x) \psi_{m,k}(x) dx
 \end{equation*}
 (the $d_m$ function is called a \emph{detail}).
 \begin{problem}
-Now calculate the details for $f(x) = \sin(x)$ on the same interval and for the same $m$ values given
-above. Use previous results to compute $f_5$, $f_7$, and $f_9$.
-\end{problem}  
+Now calculate the details for $f(x) = \sin(x)$ on the same interval and for the
+same $m$ values given above. Use previous results to compute $f_5$, $f_7$, and $f_9$.
+\end{problem}
 
-In the spirit of Fourier analysis, for a given function $f$
-we hope to obtain the representation 
+Notice that the largest detail coefficients occur where the function changes
+most rapidly. The Haar wavelet is very sensitive to rapid changes and discontinuities
+in the signal. 
+
+\section*{The Discrete Wavelet Transform}
+
+What purpose do these details and approximation frames serve? According to the
+properties discussed above, we can approximate suitably regular functions as follows:
 \begin{equation*}
-f(x) = \displaystyle\sum_{m,k \in \mathbb{Z}} F(m,k)\psi_{m,k}(x),
+f \approx f_{J+1} = f_{I} + d_{I} + d_{I+1} + \cdots + d_J,
 \end{equation*}
-where $F$ is a suitably defined function called the \emph{discrete wavelet transform} of $f$.
-Analogous to Fourier series, $F(m,k)$ can be viewed as the contribution of $\psi_{m,k}$
-to $f$. Because the function $\psi_{m,k}$ has compact support $[k2^{-m},(k+1)2^{-m}]$, 
-the value $F(m,k)$ reflects the local behavior of $f$ around the point $x = k2^{-m}$ at the scale
-$2^{-m}$. We see already that wavelet analysis sidesteps the nonlocality of fourier analysis!
+where $1 \leq I \leq J$. If $f$ has compact support (as in the case of a finite-time signal,
+for example), only finitely many of the coefficients in the frame and the details are
+nonzero, thus enabling us to represent $f$ to a reasonable degree of accuracy in a very 
+efficient manner. The calculation of these detail coefficients is called the \emph{discrete
+wavelet transform}. In the context of signals processing, one can imagine calculating these
+coefficients, transmitting them, and then reproducing the approximated signal on the
+receiving end. Furthermore, the coefficients of the details reflect the local properties
+of the original function $f$ at the particular level of dilation and translation! This means
+that we can discard many of the coefficients if we are only interested in reproducing a certain
+part of the signal, or in recovering the entire signal to only a limited resolution. These 
+properties make the discrete wavelet transform an attractive alternative to the Fourier
+transform in many applications. 
 
+In practice, we are often interested in analyzing discrete signals with compact support (that is,
+finite-time signals that we have sampled at a finite number of points). If wavelet analysis is
+to be of any use, we first need an efficient way to calculate the discrete wavelet transform.
+The process described above, while intuitive and illustrative of the mathematical principles
+behind wavelet analysis, is not the best approach to calculating the wavelet coefficients. It 
+turns out that the discrete wavelet transform can be implemented as an iterated low-pass/high-
+pass filter bank, one iteration of which is shown graphically in the figure. We present the 
+algorithm without getting into the details of why it works.
+%INSERT THE PICTURE OF THE 1D WAVELET DECOMPOSITION ALGORITHM!
+The input, $A_j$, represents the level-$j$ approximation frame, and we initialize $A_0$ to 
+simply be the original signal. Lo and Hi are the low-pass and high-pass filters, respectively. 
+(By \emph{filter} we mean a vector that serves the purpose of extracting or suppressing a 
+particular feature of the signal. The Lo and Hi filters are obtained from the wavelet at hand; 
+for the Haar wavelet, Lo $= (\sqrt{2}^{-1}, \sqrt{2}^{-1})$ and Hi $= (-\sqrt{2}^{-1}, \sqrt{2}
+^{-1})$.) The box means convolve the input with the filter, and the circle means downsample by
+a factor of two, i.e. remove either the even or odd-indexed entries of the input. The outputs, 
+$A_{j+1}$ and $D_{j+1}$, are the level-$(j+1)$ approximation frame and detail coefficients, 
+respectively. Note that the length of the input array is twice that of the output arrays. The
+detail coefficients $D_{j+1}$ are stored, and $A_{j+1}$ is then fed back into the loop. Continue
+this process until the length of the output is less than the length of the filters, and 
+return all of the stored detail coefficients as well as the final approximation frame. 
+\begin{problem}
+Write a function that calculates the discrete wavelet transform as described above.
+The inputs should be three one-dimensional NumPy arrays (the signal, low-pass filter, and
+high-pass filter). The output should be a list of one-dimensional NumPy arrays in the 
+following form: $[A_n, D_n, D_{n-1},\ldots,D_1]$. (Note: for the convolution, you may use 
+the \li{fftconvolve} function from the \li{scipy.signal} package using the default 
+\li{mode = 'full'} parameter, but note that the output array is one entry too large, and so
+you need to omit either the first or last entry.) 
+\end{problem}
+We also need to know how to reconstruct the signal from the detail coefficients and 
+approximation frame. Fortunately, the algorithm described above is entirely reversible,
+and so given $A_{j+1}$ and $D_{j+1}$, simply upsample both arrays (by inserting zeros between
+each entry to obtain arrays that are twice as long as the originals), convolve the results
+with the Lo and Hi filters, respectively, and add the outputs to obtain $A_j$. Continue the 
+process until you recover $A_0$, the original signal. 
+\begin{problem}
+Write a function that calculates the inverse wavelet transform as described above. 
+The inputs should be a list of arrays (of the same form as the output of your discrete
+wavelet transform function), the low-pass filter, and the high-pass filter. The output 
+should be a single array, the recovered signal. In order to check your work, compute
+the discrete wavelet transform of a random array of length 64, then compute the inverse
+transform, and compare the original signal with the recovered signal. The difference
+should be very small.
+\end{problem}
