@@ -8,19 +8,7 @@ In this demonstration, we will try squaring a matrix.
 The matrix will be represented as a two dimensional list (i.e. a list of lists).
 
 The following is a function that will accept two matrices (two dimensional list), $A$ and $B$, and return $AB$ following the usual rules of matrix multiplication.
-\begin{lstlisting}
-: def arrmul(A,B):
-:     new = []
-:     for i in range(len(A)):
-:         newrow = []
-:         for k in range(len(B[0])):
-:             tot = 0
-:             for j in range(len(B)):
-:                 tot += A[i][j] * B[j][k]
-:             newrow.append(tot)
-:         new.append(newrow)
-:     return new
-\end{lstlisting}
+\lstinputlisting[style=fromfile]{arr_mult.py}
 We can initialize a $k \times k$ ``array" of integers like this:
 \begin{lstlisting}
 : k = 10
@@ -32,18 +20,15 @@ Time how long this function takes to square matrices for increasing values of \l
 In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}, as in \li{\%timeit range(100)}.
 
 Now import NumPy and create a NumPy array, \li{A}, and square it.
-This is done like this:
 \li{A*A} does \emph{not} square the array, but rather multiplies \li{A} with itself element by element.
-To get matrix multiplication for NumPy arrays, you must use \li{np.dot} like this:
+To get matrix multiplication for NumPy arrays, you must use \li{np.dot} or the \li{dot()} method of an array like this:
 \begin{lstlisting}
 import numpy as np
 A = np.array([range(i, i+k) for i in range(0, k**2, k)])
 np.dot(A, A)
 \end{lstlisting}
 Time how long NumPy takes to square arrays for increasing sizes of \li{k}.
-
 What do you notice about the time needed to square a two dimensional list vs. a two dimensional NumPy array?
-
 \end{problem}
 
 % Below is a comparison of runtimes needed to square a matrix
@@ -77,7 +62,8 @@ It provides an efficient $n$-dimensional (arbitrary dimensional) array object fo
 These arrays are commonly known as \emph{ndarrays}.
 This lab will focus on how to use these powerful objects.
 NumPy is commonly imported as shown below.
-
+NumPy also provides a matrix object which is designed to behave like matrices in MATLAB.
+It is strongly encouraged to use NumPy arrays instead of NumPy matrices, despite their convenience.
 \begin{lstlisting}
 : import numpy as np
 \end{lstlisting}
@@ -91,17 +77,13 @@ A one dimensional array consists of only elements.
 A two dimensional array is really just an array containing arrays which contain elements.
 Extending this metaphor, a three dimensional array is an array of arrays of arrays.
 Can you guess what a five dimensional array is?
-Let's define a three dimensional array.
-
+Let's define a random three dimensional array.
 \begin{lstlisting}
 : arr = np.random.randint(50, size=(5, 4, 3))
 \end{lstlisting}
-
 Arrays are objects in Python.
 For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss here are also implemented as methods of \li{ndarray} objects.
-These methods and other attributes are accessible using the \li{.} operator.
-Two simple attributes of arrays are \li{shape} and \li{size}
-\li{shape} and \li{size} both describe how big an array is.
+Two simple attributes of arrays that describe the number of elements in an array are \li{shape} and \li{size}
 \li{shape} gives information about the size of the array in each dimension.
 \li{Size} gives the total number of elements in every dimension of the array.
 \begin{lstlisting}
@@ -520,3 +502,98 @@ arrs = np.load('test_multi.npz')
 \end{lstlisting}
 The variable \li{arrs} points to a dictionary object with the keys \li{a} and \li{new_a} which reference the arrays that have been saved.
 The \li{.npz} file extension is the file type used to store multiple arrays.
+
+\section*{SciPy}
+SciPy is a Python library that provides many easy-to-use, efficient algorithms for all types of scientific computing.
+It is designed to work with NumPy arrays.
+It is therefore important to master the use of NumPy arrays.
+Many of the algorithms needed to solve problems in these lab manuals are implemented in SciPy.
+Scipy is organized into packages grouped by problem type.
+There are packages for statistics, optimization, signal processing, linear algebra, etc.
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+cluster & Clustering package \\
+constants & Physical and mathematical constants and units \\
+fftpack & Fast Fourier transforms \\
+integrate & Integration package \\
+interpolate & Interpolation package \\
+io & Data input/output from various formats \\
+linalg & Linear algebra functions \\
+misc & Various utilities that can't be classified elsewhere \\
+ndimage & Multi-dimensional image processing \\ 
+odr & Orthogonal distance regression \\
+optimize & Optimization and root finding \\
+signal & Signal processing package \\
+sparse & Two dimensional sparse matrices \\
+sparse.linalg & Sparse matrix linear algebra functions \\
+sparse.csgraph & Fast graph algorithms based on sparse matrices \\
+spatial & Spatial algorithms and data structures \\ 
+special & Special functions \\ 
+stats & Statistical functions \\
+mstats & Statistical functions for masked arrays \\
+\hline
+\end{tabular}
+\caption{SciPy subpackages}
+\end{table}
+
+One of the primary packages that we will be using is \li{scipy.linalg}.
+Even though NumPy also has \li{numpy.linalg}, using \li{scipy.linalg} is preferred.  
+Reasons for this include the fact that \li{scipy.linalg} is more fully featured and is always compiled with BLAS/LAPACK support (this support is optional in NumPy).
+NumPy's linear algebra library should only be used to avoid adding scipy as a dependency.
+Let's look at a few of the routines in SciPy's linear algebra module.
+\begin{lstlisting}
+: import numpy as np
+: from scipy import linalg as la
+: arr = np.array([[2, 3], [5, 7]])
+: la.det(arr) #find the determinant of arr
+-1.0000000000000018
+: la.inv(arr) #find the inverse of arr
+array([[-7.,  3.],
+       [ 5., -2.]])
+: la.eig(arr) #return eigenvalues and corresponding eigenvectors
+(array([-0.10977223+0.j,  9.10977223+0.j]),
+ array([[-0.81797819, -0.38876264],
+       [ 0.57524923, -0.92133794]]))
+\end{lstlisting}
+
+There are also many extension packages for more specialized problems such as machine learning and natural language processing.
+These packages are called \emph{SciKits}.
+These kits augment the functionality of SciPy.
+They are designed to work efficiently with NumPy arrays.
+Some portions of these packages may someday be included in SciPy itself, but many of these packages are still incomplete or in development.
+However, they can still be useful.
+The following are some of the packages currently included as scikits.
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+scikit-aero & Aeronautical engineering routines \\
+scikit-commpy & Digital communications in Python \\
+scikit-fmm & Fast marching method implementation \\
+scikit-image & Image processing functions \\
+scikit-learn & Machine learning and data mining routines \\
+scikit-rf & RF/Microwave engineering routines \\
+ann & Approximate nearest neighbor search using KDTrees \\
+audiolab & Make noise from NumPy arrays \\
+bootstrap & Bootstrap confidence interval estimation \\
+bvp1lg & Multi-point boundary value problem solver \\
+bvp\_solver & Two-point boundary value problem solver \\
+cuda & Python interface to CUDA libraries \\
+datasmooth & Data smoothing routines \\
+eartho & Earth observation functions \\
+fitting & Data fitting framework \\
+hydroclimpy & Environmental time series for Python \\
+odes & Ordinary differential equation solver for Python \\
+samplerate & High quality audio resampling \\
+scattpy & Light scattering methods for Python \\
+sparse & Sparse matrix package \\
+statsmodels & Statistical computations and models \\
+talkbox & Set of routines for speech/signal processing \\
+timeseries & Time series manipulation \\
+vectorplot & Vector fields plotting algorithms \\
+\hline
+\end{tabular}
+\caption{SciKits extend the functionality of SciPy.}
+\end{table}
