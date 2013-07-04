@@ -1,0 +1,264 @@
+\lab{Algorithms}{Optimization}{Optimization Package 2}
+\label{lab:Optimization 2}
+\objective{Introduce some of the basic optimization functions available in the cvxopt package}
+
+
+You can learn about more about cvxopt at  
+
+\url{http://abel.ee.ucla.edu/cvxopt/documentation/}.
+
+
+
+\section*{Linear Programs}
+
+Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
+
+
+
+
+Consider the following transportation problem:
+A piano company needs to transport thirteen pianos from their three  supply centers (1,2, and 3) to two demand centers (4 and 5). Transporting a piano from a supply center to a demand center incurs a cost, listed in the table below. The company want to minimize shipping costs for the pianos. How many pianos should each supply center send each demand center?
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+Supply Center & Number of pianos available\\
+\hline
+1 & 7\\
+2 & 2\\
+3 & 4\\
+\end{tabular}
+
+\caption{Number of pianos available at each supply center}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+Demand Center & Number of pianos needed\\
+\hline
+4 & 5\\
+5 & 8\\
+\end{tabular}
+
+\caption{Number of pianos needed at each demand center}
+\end{table}
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+Supply Center & Demand Center & Cost of transportation & Number of pianos\\
+\hline
+1 & 4 & 4 & p\\
+1 & 5 & 7 & q\\
+2 & 4 & 6 & r\\
+2 & 5 & 8 & s\\
+3 & 4 & 8 & t\\
+3 & 5 & 9 & u\\
+\end{tabular}
+\caption{Cost of transporting one piano from supply center to demand center}
+\end{table}
+
+The variables $p,q,r,s,t,$ and $u$ must be nonnegative and satisfy the following three supply and two demand constraints:
+
+\begin{align}
+p +& q  &    &    &    &   &=& 7\\
+   &    & r +& s  &    &   &=& 2\\
+   &    &    &    & t +& u &=& 4\\
+p +&    & r +&    & t  &   &=& 5\\
+   & q +&    & s +&    & u &=& 8\\
+\end{align}
+
+The objective function is the number of pianos shipped from each location multiplied by the cost.
+
+\begin{center}
+$4p + 7q + 6r + 8s + 8t + 9u$
+\end{center}
+
+We can solve this program using cvxopt, which uses the notation
+
+\begin{lstlisting}[mathescape]
+min $c^Tx$
+subject to $Gx +s = h$
+	   $Ax    = b$
+	   $s     \geq 0$
+\end{lstlisting}
+
+Cvxopt also solves the dual problem
+
+\begin{lstlisting}[mathescape]
+min $-h^Tz - b^Ty$
+subject to $G^Tz +A^Ty + c = 0$
+	   $z     \geq 0$
+\end{lstlisting}
+
+All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt. Numpy arrays can be converted to matrix by
+
+\begin{lstlisting}
+>>> a = numpy.array([[11,2],[2,5]])
+>>> A = matrix(a)
+\end{lstlisting}
+
+There a several ways to solve the linear program. 
+
+
+
+\section*{Example}
+Here, $G$ and $h$ constrain the variables to be non-negative. The entries are negative because cvxopt uses the format $Gx \leq h$. $A$ and $b$ represent the supply and demand constraints. Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information. All we really care about right now are the values of $x$ and the objective value.
+
+\begin{lstlisting}
+: from cvxopt import matrix, solvers
+: c = matrix([4., 7., 6., 8., 8., 9])
+: G = matrix([ [-1., 0., 0., 0., 0., 0.],
+             [0., -1., 0., 0., 0., 0.],
+             [0., 0., -1., 0., 0., 0.],
+             [0., 0., 0., -1., 0., 0.],
+             [0., 0., 0., 0., -1., 0.],
+             [0., 0., 0., 0., 0., -1.] ])
+        
+: h = matrix([ 0., 0., 0., 0., 0., 0.,])
+: A = matrix([ [1., 0., 0., 1., 0.],
+             [1., 0., 0., 0., 1.],
+             [0., 1., 0., 1., 0.],
+             [0., 1., 0., 0., 1.],
+             [0., 0., 1., 1., 0.],
+             [0., 0., 1., 0., 1.] ])
+: b = matrix([7., 2., 4., 5., 8]) 
+: sol = solvers.lp(c,G,h,A,b)  
+: print sol['x']
+: print sol['primal objective']
+\end{lstlisting}
+
+\textbf{Problem 1}
+
+Run the example. What happens?
+
+
+We can fix the problem by including the supply demand constraints in the $G$ matrix.
+
+\section*{Example}
+Why are all of the terms in $G$ and $h$ non-positive?
+
+\begin{lstlisting}
+: from cvxopt import matrix, solvers
+: G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
+             [-1., 0., 0., 0., -1.,  0., -1., 0., 0., 0., 0.],
+             [0., -1., 0., -1., 0.,  0., 0., -1., 0., 0., 0.],
+             [0., -1., 0., 0., -1.,  0., 0., 0., -1., 0., 0.],
+             [0., 0., -1., -1., 0.,  0., 0., 0., 0., -1., 0.],
+             [0., 0., -1., 0., -1.,  0., 0., 0., 0., 0., -1.] ])
+
+: h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
+: c = matrix([4., 7., 6., 8., 8., 9])
+: sol = solvers.lp(c,G,h)
+: print sol['x']
+: print sol['primal objective']
+\end{lstlisting}
+
+Another method is to use an integer linear program. Cvxopt is configured to work with  Gnu, which does have an integer linear program. It will work with either of the methods above. 
+
+\textbf{Example}
+
+glpk.ilp returns a tuple. The first entry describes the optimality of the result, while the second gives the $x$ values.
+
+\begin{lstlisting}
+: from cvxopt import matrix, solvers, glpk
+: G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
+             [-1., 0., 0., 0., -1.,  0., -1., 0., 0., 0., 0.],
+             [0., -1., 0., -1., 0.,  0., 0., -1., 0., 0., 0.],
+             [0., -1., 0., 0., -1.,  0., 0., 0., -1., 0., 0.],
+             [0., 0., -1., -1., 0.,  0., 0., 0., 0., -1., 0.],
+             [0., 0., -1., 0., -1.,  0., 0., 0., 0., 0., -1.] ])
+
+: h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
+: o = matrix([4., 7., 6., 8., 8., 9])
+: sol = glpk.ilp(o,G,h)
+: print sol[1]
+\end{lstlisting} 
+
+or 
+\begin{lstlisting}
+: from cvxopt import matrix, solvers, glpk
+: G = matrix([ [-1., 0., 0., 0., 0., 0.],
+             [0., -1., 0., 0., 0., 0.],
+             [0., 0., -1., 0., 0., 0.],
+             [0., 0., 0., -1., 0., 0.],
+             [0., 0., 0., 0., -1., 0.],
+             [0., 0., 0., 0., 0., -1.] ])
+
+: h = matrix([ 0., 0., 0., 0., 0., 0.,])
+: o = matrix([4., 7., 6., 8., 8., 9])
+: A = matrix([ [1., 0., 0., 1., 0.],
+             [1., 0., 0., 0., 1.],
+             [0., 1., 0., 1., 0.],
+             [0., 1., 0., 0., 1.],
+             [0., 0., 1., 1., 0.],
+             [0., 0., 1., 0., 1.] ])
+: b = matrix([7., 2., 4., 5., 8])
+: sol = glpk.ilp(o,G,h,A,b)
+: print sol[1]
+\end{lstlisting} 
+
+
+\textbf{Problem 2}
+Choose one of these methods and compare the optimal values for the integer linear program to the result you received above. 
+
+
+\textbf{Problem 3}
+Create the dual problem for the linear program and solve. 
+Compare your answer to the dual value cvxopt returned. 
+
+\section*{Programmming}
+
+The quadratic programming setup is similar to the linear programming. However, it does not have to be constrained. $G, h, A$, and $b$ are optional
+
+
+\begin{lstlisting}[mathescape]
+minimize $\frac{1}{2}x^TQx + p^Tx$
+subject to $Gx\leq h$
+	$Ax = b$.
+\end{lstlisting}
+
+
+\section*{Example}
+Find the minimum of 
+\begin{equation}
+f(x,y) = 2x^2 +2xy + y^2 +x -y
+\end{equation}
+\begin{lstlisting}
+: Q = matrix([ [4., 2.], [2., 2.] ])
+: p = matrix([1., -1.])
+: G = matrix([[1., 0.], [0., -1.]])
+: h = matrix([0.,0.])
+: sol=solvers.qp(Q, p, G, h)
+: print(sol['x'])
+: print sol['primal objective']
+\end{lstlisting}
+
+
+
+\textbf{Problem 4}
+Find the minimizer and minimum of 
+\begin{equation}
+f(x) = \frac{1}{2}x^tQx - x^Tp
+\end{equation}
+where 
+
+\begin{center}
+$Q =
+\begin{bmatrix}
+3 & 0 & 1\\
+0 & 4 & 2\\
+1 & 2 & 3\\
+\end{bmatrix}
+$
+and $p = 
+\begin{bmatrix}
+3\\
+0\\
+1\\
+\end{bmatrix}
+$
+\end{center}
