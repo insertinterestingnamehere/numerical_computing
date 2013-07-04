@@ -104,6 +104,7 @@ Write another version of the function that modifies its input in place, storing 
 \end{problem}
 
 \begin{problem}
+\label{prob:lusolve}
 Write a function that takes the LU decomposition computed by the second function you made in Problem \ref{prob:LU} and another array representing the right hand side of a linear system and modifies the second array in place so that it represents the solution to the linear system.
 No changes to the array storing the LU decomposition are necessary.
 \end{problem}
@@ -121,3 +122,50 @@ The LU decomposition is calculated with \li{lu}.
 It returns a tuple of arrays, one which is the LU decomposition and the other of which represents the necessary permutation of the rows.
 \li{lu_solve} takes the output from \li{lu_factor} and uses it to solve a linear system.
 Using \li{lu_factor} and \li{lu_solve} is a good alternative to inverting large matrices since it is faster to compute an LU decomposition than it is to invert a matrix.
+
+\section*{The Cholesky Decomposition (Optional)}
+
+For certain circumstances, we have a more efficient alternative to the LU decomposition.
+The Cholesky decomposition requires half the number of calculations and half the memory that the standard LU decomposition needs.
+Furthermore, it is a numerically stable decomposition, which makes it all the more useful.
+Because of the efficiency and numerical stability, Cholesky decomposition is used in solving least squares, optimization, and state estimation problems.
+The Cholesky decomposition, however, is only applicable to Hermitian (for real matrices, Hermitian is equivalent to symmetric) positive definite matrices.
+In fact, the Cholesky decomposition is an efficient way to test if a matrix is positive definite.
+The Cholesky decomposition of a positive definite matrix is unique.
+Think of the Cholesky decomposition as the matrix equivalent taking the square root of a positive real number.
+
+The Cholesky decomposition of a $A$ is an lower-triangular matrix, $L$, such that
+\begin{equation*}
+ A = LL^*
+\end{equation*}
+Where $L^*$ is the conjugate transpose of $L$.
+For real valued matrices, this is equivalent to $L^T$.
+
+The entries of $L$ are calculated as follows.
+\begin{align*}
+&L_{i,j} = \frac{1}{L_{j,j}}\left(A_{i,j} -\sum_{k=1}^{j-1}{L_{i,k}L_{j,k}^*}\right) \mbox{ for $i>j$} \\ \\
+&L_{i,i} = \sqrt{A_{i,i} - \sum_{k=1}^{i-1}{L_{i,k}L_{i,k}^*}}
+\end{align*}
+where $L^*$ denotes the conjugate transpose of $L$.
+
+Notice that in this computation, current calculation will depend on previous calculations.
+To calculate $L$ properly, you must start in the upper left corner and iterate down.
+
+Note: when testing positive definite systems, an easy way to generate a random symmetric positive definite matrix is by generating a random array \li{A} and then computing \li{A.dot(A.T)}.
+
+\begin{problem}
+Write your own implementation of the Cholesky decomposition.
+Test it using a random symmetric matrix (build a random square matrix $A$, then $A^TA$ will be positive definite).
+Check the output of your function to ensure that it is functioning properly.
+\end{problem}
+
+\begin{problem}
+Modify your previous answer so that it computes the Cholesky decomposition by modifying the array in place.
+Make sure you set the portion of the array above the main diagonal to 0.
+Then write a function that takes this reduced form of the array and uses it to solve a linear system by back substitution.
+This should be nearly the same as Problem \ref{prob:lusolve}.
+\end{problem}
+
+the linalg module of SciPy also includes a cholesky decomposition that should be much faster than the one you just computed.
+It works much like the LU decomposition.
+\li{cho_factor} returns the cholesky decomposition of the array that can then be used in solving a linear system with \li{cho_solve}.
