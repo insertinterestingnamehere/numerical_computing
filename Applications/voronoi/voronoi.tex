@@ -122,29 +122,79 @@ For more details, see \url{http://docs.scipy.org/doc/scipy-dev/reference/spatial
 \label{voronoi_attributes}
 \end{table}
 
-\begin{problem}
-Using the Voronoi diagram object included in SciPy, write a function which, given an array of points and a window, finds the point furthest 
-\end{problem}
-
 Unfortunately, the \li{Voronoi} objects do not allow us to find out, given the coordinates of a new point, which of our original input points lies the closest to it.
-To do something like that 
-
-%intro scipy.spatial implementation. teach the different methods available.
-%Be sure to mention KDTrees so they can try a few different implementations of the problems.
+To do something like that we would need to use a different algorithm or data structure.
+One possible way of solving such a problem is to us a KD tree.
+KD trees will be discussed in further detail in Volume II.
+Scipy includes built in KD trees in both Python and C.
+The version in C is generally faster.
+You can make a KD tree like this
+\begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+import scipy.spatial as st
+A = rand(1000,2)
+kd = st.cKDTree(A)
+\end{lstlisting}
+In this case we used the \li{cKDTree} object.
+That is a KDTree implemented in C.
+\li{KDTree} is a Python-based version that is also included in scipy.
 
 \section*{Applications of Voronoi Diagrams}
 
-%Tell the John snow cholera story
+Though the computation of a Voronoi Diagram does not provide a quick way to run nearest neighbor queries, there are still several applications for Voronoi Diagrams.
+The first, and probably most obvious, is the representation of data.
+If you want to look for visual patterns in data, a Voronoi Diagram can be very useful.
+One historically significant example was the containment of the London Cholera outbreak of 1854.
+The English Mathematician John Snow plotted where the cholera outbreaks had all happened and after some consideration, noticed that they were all relatively close to a certain water pump in that portion of the city.
+Upon noticing this, he plotted the voronoi cell of that particular water pump and proposed that the cholera outbreak was linked to contaminated water.
+He recommended that the pump handle be removed so that people would have to use other pumps in the city.
+Once the contaminated pump was shut down, the cholera outbreak was stopped.
 
-%problem using voronoi diagrams as a basis for nearest neighbor queries
+Voronoi diagrams can also be used to solve problems involving the points furthest from those already on the graph.
+Examples include determining where to drill next when searching for oil, or where to put a new branch of a major company.
 
-%Taxi service problem, Lifelight example
+\begin{problem}
+For Problems \ref{FurthestPoints} and \ref{AverageRainfall} it will be useful to be able to restrict a voronoi diagram to a given square region.
+Write a function that, given a Voronoi Diagram and the constraints for a rectangular region, returns modified versions of the \li{vertices}, \li{regions}, and \li{point_region} representing the cells formed by the intersection of the Voronoi diagram with the rectangle.
 
-%Retail store placement problem
+%% give more detail here because this could be very hard without help.
 
-%Estimate ore deposits and rainfall
+\end{problem}
+
+\begin{problem}
+\label{FurthestPoints}
+Write a function that, given a list of points and a rectangular region of the plain and an integer $n$, finds the $n$ points in the region that lie farthest from all the points already given.
+\end{problem}
+
+Another possible application is navegation through a field of obstacles.
+
+\begin{problem}
+Given a list of points, form the adjacency matrix corresponding to the connections between each node of the Voronoi diagram.
+Use your solution to Lab \ref{lab:MarkovGraph} Problem \ref{maze_prob} to find a path from any given node to any other node.
+
+Note: if you have worked the lab on Djikstra's Algorithm in Volume 2, you may use your solution to that lab and give the graph weights corresponding to the distance between nodes instead.
+\end{problem}
+
+Another possible application of voronoi diagrams is in the estimation of total rainfall, size of ore deposits, or other similar problems.
+One simple way to do this is to take a weighted average of all known measurements where each measurement is given the weight corresponding to the size of its voronoi cell.
+
+\begin{problem}
+\label{AverageRainfall}
+Write a function that, given a square region and measurement values at different nodes, computes the weighted average of the measurements over the region.
+Weight each measurement according to the area of the voronoi cell of each node.
+
+Hint: You can find the area of each voroni cell by considering the triangles formed between its vertices and its center point. One way to compute the area of a triangle given the coordinates of its vertices is $A = \sqrt{s\left(s-a\right) \left(s-b\right) \left(s-c\right)}$ where $s = \frac{a+b+c}{2}$ and $a$, $b$, and $c$ are the vertices of the triangle.
+This is known as Herron's Formula.
+\end{problem}
 
 \section*{Delaunay Triangulation}
+
+A concept related to Voronoi diagrams is that of the Delaunay Triangulation.
+Delaunay Triangulations also have a wide variety of applications.
+One such application is the division of a region into triangles for use in finite element analysis for the numerical solution of partial differential equations.
+
+
 
 %Mention FEM triangulation and have them write some basic code for it.
 
