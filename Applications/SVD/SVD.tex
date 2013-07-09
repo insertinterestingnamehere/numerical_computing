@@ -2,7 +2,8 @@
 
 \objective{Explore the SVD as a method of image compression}
 
-The singular value decomposition is very useful.  In this lab, we are going to explore how the SVD can be used to compress image data.  Recall that the SVD is a decomposition of an $m \times n$ matrix $A$
+The singular value decomposition is very useful.  In this lab, we are going to explore how the SVD can be used to compress image data.  
+Recall that the SVD is a decomposition of an $m \times n$ matrix $A$
 of rank $r$ into the product $A = U \Sigma V^H$, where $U$ and $V$
 are unitary matrices having dimensions $m \times m$ and $n \times n$,
 respectively, and $\Sigma$ is an $m \times n$ diagonal matrix
@@ -53,68 +54,51 @@ and then multiplying the matrix back together again.  The more singular values w
   The number of singular values we decide to preserve depends on how close of an approximation we need and what our size requirements are for $U_1$, $\Sigma_{\widehat A}$, and $V_1$.
 Try plotting the the singular values.  We have plotted the singular values to the image below.  Matrix rank is on the x-axis and the eigenvalues are the y-axis.  Note that SVD orders the singular values from greatest to least.  The greatest eigenvalues contribute most to the image while the smallest eigenvalues hardly contribute anything to the final approximation.  By looking at the graph we can have a rough idea of how many singular values we need to preserve to have a good approximation of $A$.  The matrix rank of the image below is $670$.  However, as the plot shows, we could easily approximate the image using only the first half of the singular values.
 
-\begin{center}
+\begin{figure}
+\centering
 \includegraphics[scale=.2]{hubble_red.png}
-
 \includegraphics[scale=.4]{hubble_svals.pdf}
-\end{center}
+\end{figure}
 
-\begin{lstlisting}[style=python]
-: import scipy as sp
-: import numpy.linalg as nla
-: A = sp.array([[1,1,3,4],[5,4,3,7],[9,10,10,12],[13,14,15,16],[17,18,19,20]])
-: nla.matrix_rank(A)
-: U,s,Vt = nla.svd(A)
-: S = sp.diag(s)
-: Ahat = sp.dot(sp.dot(U[:,0:3], S[0:3,0:3]), Vt[0:3,:])
-: nla.matrix_rank(Ahat)
-: nla.norm(A)-nla.norm(Ahat)
+\begin{lstlisting}
+: import numpy as np
+: from scipy.linalg import svd, norm
+: A = np.array([[1,1,3,4], [5,4,3,7], [9,10,10,12], [13,14,15,16], [17,18,19,20]])
+: U,s,Vt = svd(A)
+: S = np.diag(s)
+: Ahat = U[:,0:3].dot(S[0:3,0:3]).dot(Vt[0:3,:])
+: norm(A-Ahat)
 \end{lstlisting}
-
-% We can compute the rank of a matrix by looking at the number of nonzero singular values in the SVD decomposition.  The following function will compute the rank of a matrix.  The \li{sp.finfo(float).eps} gives us the smallest representable positive number such that $1.0+\mbox{eps} \neq 1.0$  Anything smaller than the eps value is numerically zero to the computer.
-% \begin{lstlisting}[style=python]
-% : def matrix_rank(X):
-% :.... S = nla.svd(X, compute_uv=False)
-% :.... tol = S.max()*sp.finfo(S.dtype).eps
-% :.... return sum(S>tol)
-% : matrix_rank(Ahat)
-% \end{lstlisting}
-
 Note that $\widehat A$ is ``close'' to the original matrix $A$, but
 that its rank is 3 instead of 4.
 
 \subsection*{Application to Imaging}
-
-
 Enter the following into IPython (note that any image you might have will work):
 \begin{lstlisting}
 : import matplotlib.pyplot as plt
-: X = sp.misc.imread('fingerprint.png')[:,:,0].astype(float)
+: X = plt.imread('fingerprint.png')[:,:,0].astype(float)
 : X.nbytes      #number of bytes needed to store X
-: sp.misc.imshow(X)
+: plt.imshow(X)
+: plt.show()
 \end{lstlisting}
 Computing the SVD of your image is simple.  Remember to make the singular values a diagonal matrix before multiplying.
 \begin{lstlisting}
-: U,s,Vt = la.svd(X)
+: U,s,Vt = svd(X)
 : S = sp.diag(s)
 \end{lstlisting}
 In the next code block, $n$ represents the desired rank of the output.
 \begin{lstlisting}
-: n=50
+: n = 50
 : u1, s1, vt1 = U[:,0:n], S[0:n,0:n], Vt[0:n,:]
-: Xhat = sp.dot(sp.dot(u1, s1), vt1)
-: (u1.nbytes+sp.diag(s1).nbytes+vt1.nbytes) - X.nbytes   #should be negative
-: sp.misc.imshow(Xhat)
+: Xhat = u1.dot(s1).dot(vt1)
+: (u1.nbytes + np.diag(s1).nbytes + vt1.nbytes) - X.nbytes   #should be negative
+: plt.imshow(Xhat)
+: plt.show()
 \end{lstlisting}
 
-%write code that will calculate final image column by column in rank 1 approximations.  It is actually smaller to transmit the matrix col by col than chunks of cols.  We only send 70% of the data if we send col by col than entire matrices.  1017856bytes vs 1445888 bytes.
 \begin{problem}
-A law enforcement agency has been needing to efficiently store over 50,000 fingerprints.  They have decided to use an SVD based compression algorithm.  Your job is to try several parameters for the SVD algorithm and recommend those parameters that retain the highest quality but compress the most.  There should be no smearing or blocking in reconstructed final image and fingerprint detail must be retained (otherwise the fingerprint is worthless).  As part of your recommendation, calculate how much memory would be needed on average to store each compressed fingerprint.  Expand your results to say how much space could be saved if the entire database of fingerprints were compressed using your algorithm.
+Sometimes there is not enough available bandwidth to transmit a full resolution photograph.
+You aim to reduce the amount of data that needs to be transmitted from a remote location such that loss of image detail is minimal, 
+but the amount of data that needs to be sent has reduced as much as possible.  In other words, find the minimum rank needed to accurately represent a variety of images.
+Record your results and comment on them.
 \end{problem}
-% \begin{problem}
-% Explore the clown picture for several different values of rank.
-% Conduct the experiments described above.  Note that the original
-% image takes 64,000 integers to store.  Compare this with the storage
-% needs for various lower-rank SVD approximations. What conclusions
-% can you draw? Experiment with other images we've used in this book.
-% \end{problem}
