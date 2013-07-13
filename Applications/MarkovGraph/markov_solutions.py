@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg as la
 
+# This file is also used in the voronoi lab.
+
 def prob_1():
 	#problem 1
 	#part 1
