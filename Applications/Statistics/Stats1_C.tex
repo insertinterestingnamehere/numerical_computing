@@ -1,7 +1,7 @@
-\lab{Applications}{Correlation and Covariance (Stats1)}{Correlation and Covariance}
+\lab{Applications}{Correlation and Covariance}{Correlation and Covariance}
 \label{Stats1}
 
-\objective{This section will teach about using Python to solve problems in statistics. This will include finding means, correlation matrices, and solving least squares problems. Also understand and implement the Cholesky Decomposition.}
+\objective{This section will teach about using Python to solve problems in statistics. This will include finding means, correlation matrices, and solving least squares problems.}
 
 \section*{Shifting Data by the Mean}
 
@@ -98,6 +98,8 @@ Y^T Y =
 \]
 Note that the $(j,k)$ entry of $Y^T Y$ corresponds to the cosine of the angle between the $j^{th}$ and $k^{th}$ columns.  We remark that the diagonals are always equal to one because the angle between a vector and itself is zero and the cosine of zero is one.
 
+It is also worth noting that the matrix resulting from the operation $A \cdot A^T$ is symmetric and positive definite, so it can be solved with the cholesky decomposition that was discussed at the end of Lab \ref{lab:LUdecomp}.
+
 \section*{Correlation}
 
 We remark that the cosine of the angle between two vectors is sometimes called the correlation coefficient.  Two columns are said to be 
@@ -118,168 +120,3 @@ You can load this datafile by typing
 \li{lab8 = sp.genfromtxt("lab8.txt")}
 The data is now available in the array \li{lab8} (also, make sure Python is working in the directory of lab8.txt).  \li{lab8} consists of two columns.  Find the correlation coefficient of the two columns.  Then plot the original data and see if the value that you got is reasonable.
 \end{problem}
-
-\section*{Least Squares}
-
-It is well known that the displacement of a spring is proportional to the force acting upon it, that is, $F = k x$.  The proportionality constant $k$ is called Hooke's spring constant.  Consider a laboratory experiment where different loads are placed on a spring and the displacement is measured and recorded in the table below:
-\vspace{5mm}\\
-\begin{center}
-\begin{tabular}{|c|c|}
-	\hline
-x & F \\
-(cm) & (dyne)\\
-\hline
-1.04  & 3.11 \\
-2.03  &  6.01\\
-2.95  &  9.07\\
-3.92  &  11.99\\
-5.06  &  15.02\\
-6.00  &  17.91\\
-7.07  &  21.12\\
-\hline
-\end{tabular}
-\end{center}
-\vspace{5mm}
-To find the spring constant $k$, we simply need to solve the following linear system
-\[
-\begin{pmatrix}
-1.04\\
-2.03\\
-2.95\\
-3.92\\
-5.06\\
-6.00\\
-7.07\\
-\end{pmatrix}
-\begin{pmatrix}k\end{pmatrix} = 
-\begin{pmatrix}
-3.11 \\
-6.01\\
-9.07\\
-11.99\\
-15.02\\
-17.91\\
-21.12\\
-\end{pmatrix}.
-\]
-However, there is no solution to this system because it is overdetermined.  Instead, we seek the ``best'' $k$ that fits the data.  Least squares (which we mentioned in a previous exercise) allows us to find that ``best'' solution. We can find the least squares solution by computing the following in Python:
-\begin{lstlisting}[style=python]
-: A = sp.vstack([1.04,2.03,2.95,3.92,5.06,6.00,7.07])
-: b = sp.vstack([3.11,6.01,9.07,11.99,15.02,17.91,21.12])
-: k = sp.dot(sp.dot(la.inv(sp.dot(A.T,A)),A.T),b);k
-: # Using the built in least squares function this is just: k=la.lstsq(A,b);k
-array([[ 2.99568294]])
-\end{lstlisting}
-Hence, we find the spring constant to be $k = 2.9957$.  We plot the data against the best fit as follows:
-\begin{figure}[h!]
-\label{fig1}
-\begin{center}
-\includegraphics[scale = .6]{lab9_line_py}
-\caption{The graph of the spring data together with its linear fit}
-\label{Fig:SpringFit}
-\end{center}
-\end{figure}
-
-\begin{lstlisting}[style=python]
-: x0 = sp.linspace(0,8,100)
-: y0 = k[0]*x0
-: from matplotlib import pyplot as plt
-: plt.plot(A,b,'*',x0,y0)
-: plt.show()
-\end{lstlisting}
-See Figure \ref{Fig:SpringFit} to see how well the line fits the data.
-
-
-\section*{General Line Fitting}
-
-Suppose that we wish to fit a general line, that is $y=m x+b$, to the data set $\{(x_k,y_k)\}^n_{k=1}$.  Assume that the line does not cross through the origin, as in the previous example.  Then we seek both a slope and a $y$-intercept.  In this case, we set up the following linear system $A x = b$, or more precisely
-\[
-\begin{pmatrix}
-x_1 & 1\\
-x_2 & 1\\
-x_3 & 1\\
-\vdots & \vdots\\
-x_n & 1
-\end{pmatrix}
-\begin{pmatrix}
-m\\
-b
-\end{pmatrix}=
-\begin{pmatrix}
-y_1\\
-y_2\\
-y_3\\
-\vdots\\
-y_n
-\end{pmatrix}.
-\]
-Note that $A$ has rank $2$ as long as not all of the $x_k$ values are the same.  Hence, the least squares solution will fit the best line for this data.
-
-
-\begin{problem}
-Download the file lab9.txt from the following link:
-\url{http://www.math.byu.edu/~jeffh/teaching/m343h/lab9.txt}
-You can load this datafile by typing
-\li{lab9 = sp.genfromtxt("lab9.txt")}
-Now the data is available in the array \li{lab9}.
-This consists of two columns corresponding to the $x$ and $y$ values of a given data set.  Use least squares to find the slope and $y$-intercept that best fits the data.  Then plot the data points and the line on the same graph.  Finish off the problem with a discussion of what you've learned.
-\end{problem}
-
-\section*{The Cholesky Decomposition}
-
-For certain circumstances, we have a more efficient alternative to the LU decomposition.  The Cholesky decomposition requires half the number of calculations and half the memory that the standard LU decomposition needs.  Furthermore, it is a numerically stable decomposition, which makes it all the more useful.  Because of the efficiency and numerical stability, Cholesky decomposition is used in solving least squares, optimization, and state estimation problems.  The Cholesky decomposition, however, is only applicable for positive definite matrices (symmetric matrices with strictly positive eigenvalues).  In fact, the Cholesky decomposition is an efficient way to test if a matrix is positive definite.  The Cholesky decomposition of a positive definite matrix is unique.  Think of the Cholesky decomposition as the matrix equivalent taking the square root of a positive real number.
-
-The Cholesky decomposition of a $A$ is an lower-triangular matrix, $L$, such that
-\begin{equation*}
- A = LL^H
-\end{equation*}
-
-where the entries of $L$ are calculated as follows.
-\begin{align*}
-&L_{i,j} = \frac{1}{L_{j,j}}\left(A_{i,j} -\sum_{k=1}^{j-1}{L_{i,k}L_{j,k}^*}\right) \mbox{ for $i>j$} \\ \\
-&L_{i,i} = \sqrt{A_{i,i} - \sum_{k=1}^{i-1}{L_{i,k}L_{i,k}^*}}
-\end{align*}
-where $L^*$ denotes the conjugate transpose of $L$.
-
-This is an iterative process where the current calculation may depend on previous calculations.  To calculate $L$ properly, you must start in the upper left corner and iterate down.
-
-
-\begin{problem}
-Write your own implementation of the Cholesky decomposition. Test it using a random symmetric matrix (build a random square matrix $A$, then $A^TA$ will be positive definite). Check the output of your function to ensure that it is functioning properly.
-\end{problem}
-
-A classical way of solving the least squares problem is to use the Cholesky decomposition, thus reducing the problem to 
-\begin{equation*}
- L^HLx=A^Hb
-\end{equation*}
-where $L$ is the Cholesky decomposition of $A^HA$.\\
-The method to do this is as follows:
-\begin{enumerate}
-\item[1.] Form the matrix $A^HA$ and the vector $A^Hb$.
-\item[2.] Compute the Cholesky factorization $A^HA=L^HL$.
-\item[3.] Solve the lower-triangular system $L^Hw=A^Hb$ for $w$.
-\item[4.] Solve the upper-triangular system $Lx=w$ for $x$.
-\end{enumerate}
-
-
-
-\begin{comment}
-algorithm taken from Trefethen, Numerical Linear Algebra pg. 82
-\end{comment}
-
-
-\begin{problem}
-Use your implementation of Cholesky decomposition to solve problem 2.
-\end{problem}
-
-
-
-\begin{comment}
-\begin{problem}
-Compare how your Cholesky decomposition performs against your LU decomposition from Lab \ref{lab:LUdecomp}.  Perform the following comparisons by decomposing increasingly large positive definite matrices.  Plot the comparison results.
-\begin{itemize}
- \item Runtime: Time how long each decomposition needs to decompose the input matrix.
- \item Operations: Count the number of operations needed to compute each decomposition.  This can be done by adding a line in the loop to count each time an operation occurs.
-\end{itemize}
-\end{problem}
-\end{comment}

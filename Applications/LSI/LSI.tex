@@ -1,0 +1,125 @@
+\lab{Applications}{Latent Semantic Indexing}{Latent Semantic Indexing}
+
+\objective{Understand the basics of latent semantic indexing}
+
+Suppose we have a large collection of documents, one of which is an article known by us to be
+about PCA. We think we understand PCA, but we would like to find a different article that 
+provides the details of PCA from a slightly different perspective 
+(maybe written by a different author). 
+How do we find this article from our entire collection of documents? 
+We might consider simply choosing the article that contains the acronym \emph{PCA} 
+the greatest number of times, though it is possible that it is an article about 
+a specific data set, in which they frequently refer to the results obtained from PCA without 
+actually explaining how the method works.
+
+A better way is to use a form of PCA itself on the collection of the documents! 
+The idea is that we define the unique set of words occurring in the entire collection 
+of documents as a vocabulary, and represent each document as a vector of count sums. 
+In this case, the $i^{th}$ entry of a document's vector is $t\!f_{i}$, 
+where $t\!f_{i}$ is defined to be the number of times term $i$ occurs in the document. 
+We then represent the entire collection of documents as an $m \times n$ matrix $t\!f$, 
+where $m$ is the length of the vocabulary and $n$ is the number of 
+documents in our collection, each column being a document vector. 
+As expected, we let $t\!f_{ij}$ be the number of times term $i$ occurs in document $j$.
+
+We perform PCA on $t\!f$ without centering the data so that we may 
+retain the sparsity of $tf$. We now have $t\!f = T\Sigma D^{H}$. 
+The $i^{th}$ row of $D$ is a vector corresponding to the $i^{th}$ document. 
+We typically truncate these vectors, similar to identifying the important 
+principal components of $t\!f$. We let $D_{i}$ denote the $i^{th}$ truncated row of $D$. 
+Given a document $i$, we would like to find the document $j$ most similar to $i$, 
+given that $i \neq j$. What we really need to compare are the vectors 
+$D_{i}\Sigma$ and $D_{j}\Sigma$. Our metric of choice is the angle between 
+two vectors, which is easily computable by considering the identity 
+\begin{equation*}
+\cos \theta_{ij} = \frac{D_{i}\Sigma \cdot D_{j}\Sigma}{\|D_{i}\Sigma\| \|D_{j}\Sigma\|}
+\end{equation*}
+where $\theta_{ij}$ is the angle between $D_{i}\Sigma$ and $D_{j}\Sigma$. 
+If two document vectors have a small angle between them, then they are similar; 
+a large angle signifies that they are quite different. 
+Since $\cos \theta_{ij}$ is large whenever $\theta_{ij}$ is small, we seek to find 
+\begin{equation*}
+\argmax_{j} \frac{D_{i}\Sigma \cdot D_{j}\Sigma}{\|D_{i}\Sigma\| \|D_{j}\Sigma\|}
+\end{equation*}
+While this is the idea, in practice there are a few other steps we must take prior 
+to the matrix decomposition. In any language, some words are so common that they 
+provide no important information. We call these \emph{stop words}. 
+Examples in English include \emph{the, a, an, and, I, we, you, it, there}, etc. 
+Before processing any set of documents, we must remove all occurrences of stop words. 
+We are going to consider the collection of all State of the Union addresses 
+from 1945 to 2013, but these speeches are in an uncleaned format in the folder 
+\emph{Addresses}, so we must first process them.
+
+\begin{problem}
+Using the function \li{loadStopwords} and the file 
+\texttt{stopwords.txt} provided, read in the stop word list in Python. 
+Use the functions \li{termlist}, \li{removeStopwords}, \li{uniq}, 
+and \li{parseDocument} provided to create an array containing all of the unique 
+terms encountered in the corpus that are not included in the stop word list. 
+This is called the \emph{term list}.
+\end{problem}
+
+\begin{problem}
+Write a function that accepts a file name, a list of stop words, and the term list 
+found above, that will return a vector whose $i^{th}$ entry is the number of 
+times the $i^{th}$ word from the term list occurs in the .txt file. 
+Note that no word in the stop word list should ever contribute to any entry of this vector.
+\end{problem}
+
+\begin{problem}
+Write a function that accepts a directory, a list of stop words, and the term list, 
+that will make the term frequency matrix $t\!f$ as described above. 
+Each column in $t\!f$ should be the value returned by the function written in the 
+previous problem for a particular file. In particular, $t\!f$ should be a 
+$m \times n$ matrix, where $m$ is the length of the term list and 
+$n$ is the number of .txt files in the given directory.
+\end{problem}
+
+Not only is removing a predetermined set of stop words a good idea, 
+but it's also important to consider that words appearing in few documents tend 
+to provide more information than words occurring in every document. 
+For example, while the word \emph{war} might not be considered a stop word, 
+it is likely to appear in quite a few addresses, while \emph{Afghanistan} will not. 
+Thus two speeches sharing the word \emph{Afghanistan} ought to be considered more 
+related than two speeches sharing the word \emph{war}. 
+So while $t\!f_{ij}$ is a good measure of the importance of term $i$ in document $j$, 
+we also need to consider some kind of global weight for each term $i$, 
+indicating how important the term is over the entire collection. 
+There are a number of different weights we could choose, but we choose to employ 
+the following particular approach.
+
+Let $g\!f_{i}$ be the total number of times term $i$ appears in the entire 
+collection of documents. 
+Define 
+\begin{equation*}
+p_{ij} = \frac{t\!f_{ij}}{g\!f_{i}}
+\end{equation*}
+We then let 
+\begin{equation*}
+g_{i} = 1 + \sum_{j=1}^{n} \frac{p_{ij} \log (p_{ij} + 1)}{\log n}
+\end{equation*}
+where $n$ is the number of documents in the collection. 
+We call $g_{i}$ the global weight of term $i$. 
+We replace each term frequency in the matrix $tf$ by weighting it globally. 
+Specifically, we define 
+\begin{equation*}
+a_{ij} = g_{i} \log (t\!f_{ij} + 1)
+\end{equation*}
+so we can consider these values to be a matrix $A$, which will take the place of 
+$tf$ as a matrix whose entries are both locally and globally weighted.
+
+\begin{problem}
+Write a function that accepts the term frequency matrix returned by your previous 
+function, and which returns the matrix $A$ as described above. 
+Perform PCA on $A$ as described above, remembering to \emph{not} center the data. 
+Truncate the document vectors to retain the first $80\%$ of the variance in the data.
+\end{problem}
+
+\begin{problem}
+Write a function that accepts the truncated document matrix, the list of file names 
+for the documents, and an index $i$, and which returns the file name of the document 
+most similar to the $i^{th}$ document. Find the speeches most similar to each of 
+President George W. Bush's speeches, as well as the speeches most similar to 
+each of President Obama's speeches. What conclusions about their speeches can you draw?
+\end{problem}
+
