@@ -3,13 +3,12 @@
 
 Object oriented programming is used in a variety of situations.
 Expressing some problems in an objected oriented context yield very nice, elegant solutions.
-One problem that is very nicely expressed in the paradigm of object oriented programming is
-creating a graphical user interface.
+One problem that is very nicely expressed in the paradigm of object oriented programming is creating a graphical user interface.
 
-In this lab, we will be using Python and Qt (via PySide or PyQt) to create a web navigator.
+In this lab, we will be using Python and Qt4 (with bindings provided by PySide or PyQt) to create a web navigator.
 It will be able to load and render webpages and have basic navigation functionality such as
 back, forward, stop, and reload.  This project is designed to be used for demonstration purposes only and no effort is made to make this program secure.
-We need to import the libraries we will need for this project.
+We need to import the libraries we will need for this project.  Qt, the framework we will leverage, is a cross-platform application framework.  It is very comprehensive and powerful and supports a number of platforms including Linux, OS X, Windows, etc.  At the time of writing, PyQt and PySide support Qt version 4.8.
 \begin{lstlisting}
 import sys
 from PyQt4 import QtCore, QtGui
@@ -43,7 +42,6 @@ class WebNavigator(QtGui.QWidget):
         self.wkctl.urlChanged.connect(self.changedURL)
 \end{lstlisting}
 We need a reference pointing to our newly created \li{QWebView} widget so we can access it outside of \li{\_initUI()}.  We set the URL of our web view widget to be a predefined home page.  
-
 The last line illustrates the power of object oriented design.  How to you handle user interaction with widgets?  How do you know if a certain events have occurred?  Qt uses a system of \emph{signals} and \emph{slots}.  Signals are emitted by objects when a particular event occurs.  Slots receive signals perform some action based on the signal received.  In our code above, \li{urlChanged()} is a signal sent by \li{self.wbctl} to the method \li{self.changedURL} (the slot).  The slot can be any callable function in Python.  So we should define \li{changedURL()}.
 \begin{lstlisting}
 def changedURL(self, url):
@@ -64,7 +62,6 @@ def goURL(self):
     self.wkctl.load(new_addr)
 \end{lstlisting}
 Our address bar is a \li{QLineEdit} widget that will send a signal to \li{goURL()} whenever return is pressed inside the widget.  This event will trigger the web view to load the contents of the address bar parsed as a URL.
-
 Let's finish creating and connecting the rest of the widgets we need.
 \begin{lstlisting}
 def _initUI(self):
@@ -102,13 +99,13 @@ def reload_action(self):
     self.stop_reload.setText("Reload")
     self.stop_reload.clicked.connect(self.wkctl.reload)
 \end{lstlisting}
-
-Here is the result of our program.  Notice how the widgets are just stacked on top of each other.  Qt defines various layout widgets that allow us to control the placement of widgets. 
-\begin{figure}[H]
+We can see the result of our program in Figure \ref{fig:nolayout}.  Notice how the widgets are just stacked on top of each other.  Qt defines various layout widgets that allow us to control the placement of widgets. 
+\begin{figure}[h]
 \centering
 \includegraphics[scale=.5]{nolayout.png}
+\caption{Application with no layout specified.}
+\label{fig:nolayout}
 \end{figure}
-
 We are going to use two layouts in our web navigator widget: \li{QHBoxLayout} and \li{QVBoxLayout}.  There are also layouts for grids and forms.  In the \li{\_initUI()} method we need to append before \li{self.show()}
 \begin{lstlisting}
 navbar = QtGui.QHBoxLayout()
@@ -125,15 +122,24 @@ vbox.addWidget(prob_bar)
 
 self.setLayout(vbox)
 \end{lstlisting}
-Adding the layouts yields the following
-\begin{figure}[H]
+Adding the layouts yields results in Figure \ref{fig:withlayout}.
+\begin{figure}[h]
 \centering
 \includegraphics[scale=.5]{layout.png}
+\caption{Application using a nested layout.  The controls in the navigation bar
+have their own layout which is nested into the first spot of the application-wide layout.}
+\label{fig:withlayout}
 \end{figure}
 
-The completed program:
+Structuring our program as a class allows us to very cleanly initialize a new application.
+\begin{lstlisting}
+def main():
+    app = QtGui.QApplication(sys.argv)
+    web = WebNavigator()
+    sys.exit(app.exec_())
+\end{lstlisting}
+We first define a \li{QApplication} instance.  There can only a single \li{QApplication} object in existence at any time.  It initializes the context for all QWidget based applications.  It also manages the windows of the application and handles user input.  Next we instantiate our \li{WebNavigator} widget.  The last line starts the event handling loop and will exit Python when the application is terminated.  The completed program is listed below.
 \lstinputlisting[style=fromfile]{webby.py}
-
 
 \begin{problem}
 Create a simple graphical user interface that will function as inputs to the quadratic function.
@@ -147,5 +153,5 @@ Make the GUI look as below.
 \includegraphics[width=\textwidth]{quadratic_view2.png}
 \end{subfigure}
 \end{figure}
-
+The widgets that you will need are: \li{QDoubleSpinBox}, \li{QLabel}, \li{QGridLayout}, and \li{QVBoxLayout}.  You can view the documentation for these classes including all methods and signals at \url{http://qt-project.org/doc/qt-4.8/classes.html}
 \end{problem}
