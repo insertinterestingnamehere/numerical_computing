@@ -2,13 +2,20 @@
 
 \objective{Understand some basic applications of Eigenvalues to graph theory}
 
-A graph is a mathematical construct used to encode how things are connected.  They are defined as a collection of vertices, which can be thought of as different destinations, and edges, which can be thought of as roads connecting destinations together.  The following is an example of a graph:
+A graph is a mathematical construct used to encode how things are connected.
+They are defined as a collection of vertices, which can be thought of as different destinations, and edges, which can be thought of as roads connecting destinations together.
+Figure \ref{segmentation:graph} is a simple example of a graph.
 
-\begin{center}
+\begin{figure}
 \includegraphics[scale=0.75]{graphExample}
-\end{center}
+\caption{A simple graph.}
+\label{segmentation:graph}
+\end{figure}
 
-Here we have a collection of six vertices and seven edges.  We denote the number of nodes in a graph by $|V|$, and the number of edges by $|E|$.  The edges can carry direction information (directed graphs) or they can be bidirectional (undirected graphs, like the example).  One way to encode all the information in this picture is to use what is called an adjacency matrix.
+Here we have a collection of six vertices and seven edges.
+We denote the number of nodes in a graph by $|V|$, and the number of edges by $|E|$.
+The edges can carry direction information (directed graphs) or they can be bidirectional (undirected graphs, like the example).
+One way to encode all the information in this picture is to use what is called an adjacency matrix.
 
 \begin{definition} An adjacency matrix is a $|V| \times |V|$ matrix where:
 \begin{center}
@@ -29,32 +36,56 @@ So for the graph above, we would have the following adjacency matrix:
 \end{pmatrix}
 \]
 
-Note that this matrix will be symmetric for undirected graphs.  We may also define weighted graphs so that each edge has a weight or cost attached to it.  In this case the adjacency matrix will have the cost in each entry, rather than just a 1 or 0.  An example of a weighted may be a collection of cities as vertices, roads connecting them as edges, and the distance of the connecting roads as the cost attached to each edge.
+Note that this matrix will be symmetric for undirected graphs.
+We may also define weighted graphs so that each edge has a weight or cost attached to it.
+In this case the adjacency matrix will have the cost in each entry, rather than just a 1 or 0.
+An example of a weighted may be a collection of cities as vertices, roads connecting them as edges, and the distance of the connecting roads as the cost attached to each edge.
 
-In this lab we will be investigating the sorts of things that we can discover about a graph by examining the spectrum of its  adjacency matrix.  While the formulation of the adjacency matrix seems to be very simple, its structure allows us to learn surprising things by examining its eigenvalues.  
+In this lab we will be investigating the sorts of things that we can discover about a graph by examining the spectrum of its  adjacency matrix.
+While the formulation of the adjacency matrix seems to be very simple, its structure allows us to learn surprising things by examining its eigenvalues.  
 
 We begin by first looking at the definition of the Laplacian of a graph:
 
-\begin{definition}  The degree of a vertex in a graph is the sum of the weights connected to that vertex.  In undirected graphs, which is what we will be dealing with, this is the sum of all the weights moving into that vertex.  This definition varies slightly for undirected graphs. Let $D$ be a diagonal matrix with
+\begin{definition}  The degree of a vertex in a graph is the sum of the weights connected to that vertex.
+In undirected graphs, which is what we will be dealing with, this is the sum of all the weights moving into that vertex.
+This definition varies slightly for undirected graphs.
+Let $D$ be a diagonal matrix with
 \[
 D_{ii} = \mbox{ Degree of vertex $i$}
 \]
-and let $A$ be the adjacency matrix of the graph.  Then the graph Laplacian $Q$ is given by
+and let $A$ be the adjacency matrix of the graph.
+The graph Laplacian $Q$ is given by
 \[
 Q = D-A
 \]
 \end{definition}
 
-The Laplacian matrix of a graph will typically be very sparse.  We will be examining the spectrum of the Laplacian matrix of a graph and the surprising things we can find out about a graph by simply examining it.    
+The Laplacian matrix of a graph will typically be very sparse.
+We will be examining the spectrum of the Laplacian matrix of a graph and the surprising things we can find out about a graph by simply examining it.    
 
-A connected graph is a graph where every vertex is connected to every other vertex by at least one path.  An important question one might ask about a graph is whether or not it is connected.  What is the best way to do this?  A naive approach would be to exhaustively map every possible path from each vertex.  While this would be feasible for very small graphs, interesting graphs (for example, the internet) will have thousands of vertices and such an approach becomes essentially impossible to execute.
+A connected graph is a graph where every vertex is connected to every other vertex by at least one path.
+An important question one might ask about a graph is whether or not it is connected.
+What is the best way to do this?
+A naive approach would be to exhaustively map every possible path from each vertex.
+While this would be feasible for very small graphs, interesting graphs (for example, the internet) will have thousands of vertices and such an approach becomes essentially impossible to execute.
 
-It turns out there is a better way.  If the second smallest eigenvalue of the Laplacian matrix associated with a graph is positive, then this graph is connected.  The mathematics behind this is quite involved, so we omit a proof for now.  In many applications the Laplacian matrix will be very sparse, and thus with very little space and optimizations made for sparsity, we can discover the connectivity of a graph relatively cheaply.
+It turns out there is a better way.
+If the second smallest eigenvalue of the Laplacian matrix associated with a graph is positive, then this graph is connected.
+The mathematics behind this is quite involved, so we omit a proof for now.
+In many applications the Laplacian matrix will be very sparse, and thus with very little space and optimizations made for sparsity, we can discover the connectivity of a graph relatively cheaply.
 
-\begin{problem}Write a python program that accepts an adjacency matrix as an argument and returns the Laplacian matrix and its second smallest eigenvalue.  Using {\tt scipy.rand(n,n)}, generate several random matrices of various sizes.  Use masking to change the sparsity of said matrices, i.e. {\tt scipy.rand(n,n) > c} for {\tt c = 0.25,0.5,0.75}.  Try different distributions and $c$ values.  What can we expect about the connectivity of random matrices?
+\begin{problem}Write a python program that accepts an adjacency matrix as an argument and returns the Laplacian matrix and its second smallest eigenvalue.
+Using {\tt scipy.rand(n,n)}, generate several random matrices of various sizes.
+Use masking to change the sparsity of said matrices, i.e. {\tt scipy.rand(n,n) > c} for {\tt c = 0.25,0.5,0.75}.
+Try different distributions and $c$ values.
+What can we expect about the connectivity of random matrices?
 \end{problem}
 
-A related problem is found in image processing.  An image is a collection of coordinates and light intensities.  We call each coordinate and associated brightness a pixel. We let every pixel in an image be a vertex in a graph that is connected to its neighbors within a certain radius.  For an $N \times N$ image, we define an adjacency matrix as follows:
+A related problem is found in image processing.
+An image is a collection of coordinates and light intensities.
+We call each coordinate and associated brightness a pixel.
+We let every pixel in an image be a vertex in a graph that is connected to its neighbors within a certain radius.
+For an $N \times N$ image, we define an adjacency matrix as follows:
 
 \begin{equation}
 \label{eq:adjacency}
@@ -66,20 +97,43 @@ for $i = 1 \hdots N^2$ and $j = 1 \hdots N^2$ (traveling through each pixel in t
 	\item $|I(i) - I(j)|$ is the difference in brightness of pixels $i$ and $j$
 	\item $\sigma_I$ and $\sigma_d$ are constants
 \end{itemize} 
-Thus, given a $N\times N$ image, we will produce an adjacency matrix of size $N^2\times N^2$.  Even for smaller images, this will become very large, but we have sparsity on our side. Even so only do this for images smaller than 50 by 50.  Since each pixel is only connected to the pixels within radius $r$ around it, relatively few entries will be non-zero.
+Thus, given a $N\times N$ image, we will produce an adjacency matrix of size $N^2\times N^2$.
+Even for smaller images, this will become very large, but we have sparsity on our side.
+Even so only do this for images smaller than 50 by 50.
+Since each pixel is only connected to the pixels within radius $r$ around it, relatively few entries will be non-zero.
 
-\begin{problem}  Use the following code to write a program in python takes as inputs an $N \times N$ image, radius $r$, and constants $\sigma_I^2$ and $\sigma_d^2$, and returns the adjacency matrix defined in \eqref{eq:adjacency}.  Notice that for each pixel you can save time by only checking the pixels r rows and columns way. For that you'll have to handle the pixels on the edges and corners of the image carefully. Make use of sparsity in order to feasibly store such a large matrix. We have provided code to help out with this problem.
+\begin{problem}  Use the following code to write a program in python takes as inputs an $N \times N$ image, radius $r$, and constants $\sigma_I^2$ and $\sigma_d^2$, and returns the adjacency matrix defined in \eqref{eq:adjacency}.
+Notice that for each pixel you can save time by only checking the pixels r rows and columns way.
+For that you'll have to handle the pixels on the edges and corners of the image carefully.
+Make use of sparsity in order to feasibly store such a large matrix.
+We have provided code to help out with this problem.
 \end{problem}
 
-An important problem in image processing is that of image segmentation.  When humans observe an image, they can easily pick out portions of an image that ``belong together.''  For example, if we saw the picture of a person against a black background, the pixels making up the background would make up one segment of an image, and the person would make up the other part.  While this seems simple for a human, how can we program a computer to do so?
+An important problem in image processing is that of image segmentation.
+When humans observe an image, they can easily pick out portions of an image that ``belong together.''
+For example, if we saw the picture of a person against a black background, the pixels making up the background would make up one segment of an image, and the person would make up the other part.
+While this seems simple for a human, how can we program a computer to do so?
 
-Once again, we turn to the eigenvalues of the Laplacian matrix.  We examine the second smallest eigenvalue of $D^{-\frac{1}{2}}QD^{-\frac{1}{2}}$, where $D$ is the degree matrix and $Q$ is the Laplacian matrix of the adjacency matrix defined in \eqref{eq:adjacency}.  The associated $N^2 \times 1$ eigenvector will have positive and negative entries, splitting the image into two parts.  Thanks to some very fancy mathematics and the way we have defined the weights between nodes, this does a pretty good job of breaking an image into two segments.  Recursively executing this function, we can find segments within segments.  Here is the result from a simple image:
+Once again, we turn to the eigenvalues of the Laplacian matrix.
+We examine the second smallest eigenvalue of $D^{-\frac{1}{2}}QD^{-\frac{1}{2}}$, where $D$ is the degree matrix and $Q$ is the Laplacian matrix of the adjacency matrix defined in \eqref{eq:adjacency}.
+The associated $N^2 \times 1$ eigenvector will have positive and negative entries, splitting the image into two parts.
+Thanks to some very fancy mathematics and the way we have defined the weights between nodes, this does a pretty good job of breaking an image into two segments.
+Recursively executing this function, we can find segments within segments.
+Figure \ref{segmentation:example} shows a simple example of an image and its segments.
 
-\begin{center}
+\begin{figure}
 \includegraphics[scale=0.2]{monument}
 \includegraphics[scale=0.2]{segment1}
 \includegraphics[scale=0.2]{segment2}
-\end{center}
+\caption{An image and it's segments.}
+\label{segmentation:example}
+\end{figure}
 
-\begin{problem}  Write a program that solves the segmentation problem for small images.  Accept an image as an argument and return the partitions. Use $r = 5, \sigma_I^2 = 0.02,$ and $\sigma_d^2 = 3.0$. Remember that the Laplacian matrix will be very large but also very sparse.  Adjust your algorithm from problem 1 to handle sparse matrices (use the eigs(matrix, k=2, which="SR") function in the linalg library of scipy.sparse to find the eigenvalues and eigenvectors). Because of the way we defined $\sigma_I^2$ the image matrix intensity values need to be between $0.0$ and $1.0$.  This may be a slow algorithm, but what improvement do we have over a naive approach to solving this problem?
+\begin{problem}  Write a program that solves the segmentation problem for small images.
+Accept an image as an argument and return the partitions.
+Use $r = 5, \sigma_I^2 = 0.02,$ and $\sigma_d^2 = 3.0$.
+Remember that the Laplacian matrix will be very large but also very sparse.
+Adjust your algorithm from problem 1 to handle sparse matrices (use the eigs(matrix, k=2, which="SR") function in the linalg library of scipy.sparse to find the eigenvalues and eigenvectors).
+Because of the way we defined $\sigma_I^2$ the image matrix intensity values need to be between $0.0$ and $1.0$.
+This may be a slow algorithm, but what improvement do we have over a naive approach to solving this problem?
 \end{problem}
