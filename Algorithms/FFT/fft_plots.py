@@ -55,12 +55,11 @@ def plot_tada_spec_left():
 #TODO NEG    
 def plot_noise():
     plt.close('all')
-#    rate, sig = wavfile.read('Noisysignal1.wav')
-    sig = [-1 -2]
+    rate, sig = wavfile.read('Noisysignal1.wav')
     plt.figure()
     plt.plot(sig)
-#    plt.show()
-    plt.savefig('noise.pdf')
+    plt.show()
+#    plt.savefig('noise.pdf')
     
 #plots lect half of spectrum of 
 #Noisysignal1.wav    
