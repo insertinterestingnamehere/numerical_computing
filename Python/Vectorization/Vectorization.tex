@@ -4,25 +4,24 @@
 NumPy allows Python to behave like an array programming language.
 It does this by allowing operations that normally apply only to scalars to also work seamlessly with NumPy arrays.
 Some of the benefits of allowing these types of operations are concise code and fast execution.
-Array programming encourages operations on entire arrays without explicitly looping through them.
-In Python this is desirable because explicit for-loops are generally slow.
+Array programming allows operations on entire arrays without explicit \li{for} loops.
+In Python this is desirable because explicit \li{for} loops are generally slow.
 This lab is some fun exercises using array programming!
 
 \section*{Shuffle}
-This exercise is to write a program that shuffles a deck of a cards how a human 
-would shuffle them opposed to have a random number generator put them in a random arrangement. 
-In order to this, first you cut the deck in half. 
-For the first card in each half the either the card in the first half goes down then 
-the card in the second half or vice-versa. Which one happens is random. 
-Then you follow the procedure for the rest of the cards in the two halves. 
-The following is the code implemented using a loop. 
+This exercise is to write a program that shuffles a deck of a cards how a human would shuffle them, as opposed to having a random number generator put them in a random arrangement. 
+In order to this, first, cut the deck in half. 
+Say that either the top card in the first half goes down then the top card in the second half or vice-versa.
+Which one comes first should be random.
+Follow the same procedure for the rest of the cards in the two halves. 
+The following is the code implemented using a loop.
 \begin{lstlisting}
 from random import randint
 def shuffle(deck):
     size = deck.size
-    newdeck=np.empty_like(deck)
+    newdeck = np.empty_like(deck)
     for i in xrange(size/2):
-         if randint(0,1) == 0:In Python you can open images
+         if randint(0,1) == 0:
             newdeck[i*2] = deck[i]
             newdeck[i*2+1] = deck[size/2+i]
          else:
@@ -32,12 +31,11 @@ def shuffle(deck):
 \end{lstlisting}
 
 \begin{problem}
-Write a function that shuffles a deck similar to the function above using only array operations.
+Write a function that shuffles a deck the same way as the function above using only array operations.
 \end{problem}
 
 \section*{Image Editor}
-An image is a 3D array where the first and second dimensions are the height and width respectively 
-and the third dimension represents the intensity of each of three color channels: red, green, and blue.
+An image is often represented as a 3D array where the first and second dimensions are the height and width respectively and the third dimension represents the intensity of each of three color channels: red, green, and blue.
 The code below can be used to read and display images in Python.
 \begin{lstlisting}
 import matplotlib.pyplot as plt
@@ -46,59 +44,37 @@ plt.imshow(img)
 plt.show()
 \end{lstlisting}
 
+Matplotlib can read in \li{.png} images on its own, otherwise it will read in images using the Python Image Library.
+Depending on the format of the image, it may be read as an array of floating point values between 0 and 1 or it may be read as an array of integer values between 0 and 255.
+In this lab we will assume the latter.
+
 \begin{problem}
-Write a function that is an image editor that inverts an image, changes it to grayscale, 
-or adds a motion blur (definitions below). 
-The function should take in a image, a parameter that tells how to modify the image 
-and a optional parameter for the motion blur. It should then plot the image. 
+Write a function that edits an array representing an image.
+Include options that allow you to  invert the image, change it to grayscale, or add a motion blur (definitions below). 
+The function should take in a image, a parameter that tells how to modify the image, and a optional parameter for the motion blur.
+It should then plot the image. 
 \end{problem}
 
-Invert
-Every color value for every pixel is changed to its inverse value. For example, 0 
-becomes 255, 230 becomes 25, and 127 becomes 128. Remember that the minimum 
-color value is 0 and the maximum is 255.
+\begin{itemize}
+\item Invert:
+Every color value for every pixel is changed to its inverse value. For example, 0 becomes 255, 230 becomes 25, and 127 becomes 128.
+Remember that the minimum color value is 0 and the maximum is 255.
 
-Grayscale
+\item Grayscale:
 To convert an image to grayscale, each pixel’s color value is changed to the average of 
-the pixel’s red, green, and blue value. For example:
+the pixel’s red, green, and blue value. For example, if the pixel values are:
+Red: 225 Green: 30 Blue: 131, we convert the 
 
-Original pixel color values:
-Red: 225 Green: 30 Blue: 131
-Grayscale coversion: (225 + 30 + 131) / 3 = 128 (using integer division)
+Grayscale coversion: $\frac{225 + 30 + 131}{3} = 128$ (using integer division)
 Red: 128 Green: 128 Blue: 128
 
-Motion blur
-An additional parameter will be used if we use motion blur. We will call this number n. n must be greater than 0.
-The value of each color of each pixel is the average of that color value for n pixels (from 
-the current pixel to n-1) horizontally. So pixel [x,y,0] would turn in to the average of
-pixel[ x, y,0 ] to pixel[ x,y+n-1,0] 
-Example: if we store the pixels in a 2d array, the motion blur would average each color 
-from Note: You will need to use a for loop here.
-Be sure to account for the situations where one or more of the values used in the 
-computing the average do not exist. For example, if an image has width w and we are 
-considering the pixel on row r, column c, if c + n >= w, then we only average the pixels 
-up to w. (For this problem do not worry too much about this case)
+\item Motion Blur:
+An additional parameter $n>0$ will be used for motion blur.
+The value of each color of each pixel is the average of that color value for $n$ pixels (from 
+the current pixel to $n-1$) horizontally. So pixel \li{[x,y,0]} would turn in to the average of
+pixel \li{[ x, y,0 ]} to pixel \li{[ x,y+n-1,0]}.
+Note: You will need to use one \li{for} loop here.
+Be sure to account for the situations where one or more of the values used in the computing the average do not exist. For example, if an image has width w and we are considering the pixel on row r, column c, if c + n >= w, then we only average the pixels up to w. (Proper array slicing should take care of this case without any extra code.)
 
-\section*{Using \texttt{numpy.where}}
-The \li{numpy.where} function takes in a condition and changes the elements in the 
-vector that fits the condition to one thing and the elements that do not to another. 
-For example:
-\begin{lstlisting}
-x = np.array([-2, -1, 0, 1, 2])
-a = np.where(x < .5, -1, 4)
-\end{lstlisting}
-is the same as
-\begin{lstlisting}
-x = np.array([-2, -1, 0, 1, 2])
-size = len(x)
-a = np.zeros(size)
-for i in xrange(size):
-    if x[i] < .5:
-        a[i] = -1
-    else:
-        a[i] = 4
-\end{lstlisting}
+\end{itemize}
 
-\begin{problem}
-Use the \li{np.where} to change any intensity value on an image below 128 to 0 and 128 and above to 255 then plot it.
-\end{problem}
