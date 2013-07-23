@@ -11,14 +11,12 @@ from scipy import fft
 import anfft
 
 #plots Noisysignal1.wav
-#TODO NEG    
 def plot_noise():
     plt.close('all')
     rate, sig = wavfile.read('Noisysignal1.wav')
     plt.figure()
     plt.plot(sig)
-    plt.show()
-#    plt.savefig('noise.pdf')
+    plt.savefig('noisy.pdf')
     
 #plots lect half of spectrum of 
 #Noisysignal1.wav    
@@ -33,7 +31,6 @@ def plot_noise_spec():
     plt.savefig('noisyspec.pdf')
     
 #plots cleaned noisy signal
-#TODO NEG    
 def plot_cleaned_signal():
     plt.close('all')
     rate,data = wavfile.read('Noisysignal1.wav')
