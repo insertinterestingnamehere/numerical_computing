@@ -29,9 +29,7 @@ def prob1():
     tm = ti("np.dot(A,A)", setup="import numpy as np; from __main__ import A", number=number)
     print "np.dot(A,A) executed ", number, " times in ", tm, " seconds."
     
-    #problem 2
 def prob2():
-    print "problem 2"
     A = rand(1000,1000)
     B = np.empty_like(A)
     for i in xrange(100):
@@ -41,8 +39,6 @@ def prob2():
     print np.average(np.max(A, axis=1))
     
 def prob3():
-    #problem 3
-    print "problem 3"
     A = rand(1000,1000)
     number = 100
     tm = ti("A.reshape(A.size)", setup="from __main__ import A", number=number)
@@ -65,32 +61,14 @@ def prob3():
     tm = ti("A.T", setup="from __main__ import A", number=number)
     print "A.T executed ", number, " times in ", tm, " seconds."
     
-def laplace(U,tol):
+def laplace(U, tol):
     new = U.copy()
     dif = tol
-    while tol<= dif:
+    while tol <= dif:
         new[1:-1,1:-1] = (U[:-2,1:-1] + U[2:,1:-1] + U[1:-1,:-2] + U[1:-1,2:]) / 4.
         dif = np.max(np.absolute(U-new))
         U[:] = new
 
-def prob4():
-    n = 100
-    tol=.0001
-    U=np.ones((n,n))
-    U[:,0] = 100
-    U[:,-1] = 100
-    U[0] = 0
-    U[-1] = 0
-    laplace(U, tol)
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    X = np.linspace(0,1,n)
-    Y = np.linspace(0,1,n)
-    X, Y = np.meshgrid(X, Y)
-    ax.plot_surface(X, Y, U, rstride=5)
-    plt.show()
-
-#problem 5
 
 def broadcast_1():
     """All input arrays have exactly the same shape"""
@@ -117,8 +95,3 @@ def broadcast_3():
     r = a * b
     print "Case 3: {} * {} = {}".format(a.shape, b.shape, r.shape)
 
-def prob_broadcasting():
-    #problem 5
-    broadcast_1()
-    broadcast_2()
-    broadcast_3()
