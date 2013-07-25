@@ -23,6 +23,15 @@ The Cython code is not run in Python itself, but is instead imported as a module
 Many of the NumPy functions are written using a similar approach to interface with C and Fortran instead of doing heavy computation in Python.
 Cython does not just translate modified Python code to C, it is designed to make C code that interfaces nicely with Python and runs within Python's memory management system.
 Many of the same builtin features, datatypes, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython based program.
+Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
+Regardless of what method you use to compile a Cython file, this is more or less what is done.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{compilation.pdf}
+\caption{A diagram of how Cython compilation and calls to Cython functions work.
+The path from using a Cython function in a Python file to the actual evaluation is shown in red.}
+\label{cython:compilation}
+\end{figure}
 
 There are a variety of ways to import Cython functions and classes to Python.
 The standard way is to make a python file that builds the C extension module in a given directory.
@@ -72,7 +81,7 @@ cdef int i
 for i in range(1000000):
 	pass
 \end{lstlisting}
-Doing our for-loop in this way is roughly 50 times faster than using the generator in Python.
+Doing our for-loop in this way is roughly 50 times faster than using \li{xrange} in Python.
 This is because every time Python does the comparison operation to see if it needs to continue with the loop, it must check what data types are being compared.
 Cython gets around this by using purely integer variables the whole way through and skipping all the extra checking.
 Similar ideas also apply to repeated operations with other types of variables, for example, if you have an array of double precision floating point values and you want to take the sum of all of them, your code will run faster if you declare the types of all the variables you use before you do any computation.
@@ -113,7 +122,8 @@ Memoryviews support the same fast indexing as the NumPy arrays, and allow creati
 The main improvement is that slices of memoryviews continue to support the optimized buffer access, while slices of NumPy arrays do not.
 %% I'll demostrate this in the solutions
 Memoryviews are good for when you need to pass array slices between functions in your module.
-Memoryviews work especially well when used in inline functions, and the corresponding syntax is relatively simpler.
+They work especially well when used with inline functions.
+The corresponding syntax is also simpler than the syntax needet to pass around NumPy arrays.
 %%will demonstrate benefits of inlining as well
 The catch is that memoryviews are slower when passed to NumPy functions since they must first be converted to NumPy arrays.
 %%also shown in solutions
@@ -209,10 +219,118 @@ The other will be a Python wrapper for the C function.
 The Python-accessible function will accept all the same arguments and return the same value, but it will be callable from Python.
 Really what this is doing is making a simple Python function that calls the C function that has already been defined.
 
-\begin{problem}
-Write a function in Python which takes the sum of the elements of a one dimensional array.
+\section*{Some Examples}
 
-Write three Cython versions as well, one which types the for loop to iterate over the array, one which uses the typed for loop and optimized array access, and one which uses the typed for loop, optimized array access, and the special compiler directives to further speed up array access
+To illustrate how to use Cython we will take the dot product of two one-dimensional arrays.
+this would be done in Python like this:
+\begin{lstlisting}
+def pydot(A, B):
+    tot = 0.
+    for i in xrange(A.size):
+        tot += A[i] * b[i]
+    return tot
+\end{lstlisting}
+Assuming we are using the IPython notebook we can define and compile a cython function to do this by evaluating the following cells:
+
+\begin{lstlisting}
+%load_ext cythonmagic
+\end{lstlisting}
+
+\begin{lstlisting}
+%%cython
+from numpy cimport ndarray as ar
+cimport cython
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cydot(ar[double] A, ar[double] B):
+    cdef double tot=0.
+    cdef int i
+    for i in xrange(A.size):
+        tot += A[i] * B[i]
+    return tot
+\end{listlisting}
+We can then time our function by evaluating the following cell
+\begin{lstlisting}
+from numpy.random import rand
+n = 10000000
+A = rand(n)
+B = rand(n)
+%timeit cydot(A, B)
+\end{lstlisting}
+
+Figure \ref{cython:dot} compares the timings of our new dot-product function with other possible implementations.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{dot.pdf}
+\caption{The times of the pure Python dot-product, the Cython based dot-product, and the dot-product built into NumPy. As you can see, the Cython version can run just as fast as the version built into NumPy.}
+\label{cython:dot}
+\end{figure}
+
+Now we will do a more advanced example using memoryviews.
+We will write functions which, given a two-dimensional array \li{A}, make a new array \li{B} for which, \li{B[i,j] = dot(A[i],A[j])}.
+
+Here's a purely iteration-based solution in Python.
+\begin{lstlisting}
+def pyrowdot(A):
+    B = np.empty((A.shape[0], A.shape[0]))
+    for i in xrange(A.shape[0]):
+        for j in xrange(i):
+            temp = pydot(A[i], A[j])
+            B[i,j] = temp
+        B[i,i] = pydot(A[i],A[i])
+    for i in xrange(A.shape[0]):
+        for j in xrange(i+1,A.shape[0]):
+            B[i,j] = B[j,i]
+    return B
+\end{lstlisting}
+
+To do this same sort of thing in Cython we can compile the following file:
+
+\begin{lstlisting}
+import numpy as np
+from numpy cimport ndarray as ar
+cimport cython
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef inline cydot(double[:] A, double[:] B, int n):
+    cdef double tot=0.
+    cdef int i
+    for i in xrange(n):
+        tot += A[i] * B[i]
+    return tot
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cyrowdot(ar[double, ndim=2] A):
+    cdef ar[double, ndim=2] B = np.empty((A.shape[0], A.shape[0]))
+    cdef double[:,:] Aview = A
+    cdef double temp
+    cdef int i, j, n=A.shape[0]
+    for i in xrange(n):
+        for j in xrange(i):
+            temp = cydot(Aview[i], Aview[j], n)
+            B[i,j] = temp
+        B[i,i] = cydot(Aview[i], Aview[i], n)
+    for i in xrange(n):
+        for j in xrange(i+1,n):
+            B[i,j] = B[j,i]
+    return B
+\end{lstlisting}
+
+The timings of the Python and Cython versions of this function are shown in Figure \ref{cython:rowdot}.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{rowdot.pdf}
+\caption{The times of the Python and Cython versions of the \li{rowdot} function that we used as an example.}
+\label{cython:rowdot}
+\end{figure}
+
+\begin{problem}
+Write a function in Python which takes the sum of a one-dimensional array by iterating over it.
+
+Write three Cython versions as well, one which uses a typed for-loop to iterate over the array, one which uses a typed for-loop and optimized array access, and one which uses a typed for-loop, optimized array access, and the special compiler directives to further speed up array access.
 
 Compare the speed of the functions you just wrote, the built in \li{sum} function and NumPy's built in \li{sum} function.
 What do you see?
