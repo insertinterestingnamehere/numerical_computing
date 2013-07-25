@@ -56,19 +56,33 @@ for n, times in zip(rowdot_sizes, rowdot_times):
     times[1] = ti("cyrowdot(A)", setup="from __main__ import A, cyrowdot", number=10) / 10.
     times[2] = ti("A.dot(A.T)", setup="from __main__ import A", number=10) / 10.
 
+# plot dot product results
 ax = plt.subplot(1,1,1)
 p1, = plt.plot(dot_sizes, np.log(dot_times[:,0]), label="Python times")
 p2, = plt.plot(dot_sizes, np.log(dot_times[:,1]), label="Cython times")
 p3, = plt.plot(dot_sizes, np.log(dot_times[:,2]), label="Numpy with MKL times")
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, loc="center right")
+ax.legend(handles, labels, loc="lower right")
 plt.savefig("dot.pdf")
 ax.cla()
 
+# plot rowdot results
 p1, = plt.plot(rowdot_sizes, np.log(rowdot_times[:,0]), label="Python times")
 p2, = plt.plot(rowdot_sizes, np.log(rowdot_times[:,1]), label="Cython times")
 p3, = plt.plot(rowdot_sizes, np.log(rowdot_times[:,2]), label="Numpy with MKL times")
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, loc="center right")
+ax.legend(handles, labels, loc="lower right")
 plt.savefig("rowdot.pdf")
 ax.cla()
+
+#save data for dot
+dot_results = np.empty((dot_sizes.size, 4))
+dot_results[:,0] = dot_sizes
+dot_results[:,1:] = dot_times
+np.save("dot_results.npy", dot_results)
+
+#save data for rowdot
+rowdot_results = np.empty((rowdot_sizes.size, 4))
+rowdot_results[:,0] = rowdot_sizes
+rowdot_results[:,1:] = rowdot_times
+np.save("rowdot_results.npy", rowdot_results)
