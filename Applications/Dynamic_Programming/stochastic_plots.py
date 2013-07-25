@@ -36,6 +36,8 @@ def plot_disc_norm():
     labels[1] = r"$\varepsilon_k$"
     labels[2] = r"$v_{k+1}$"
     ax.set_xticklabels(labels)
+    plt.ylim([0, .45])
+
     
     plt.savefig('discnorm.pdf')
     
