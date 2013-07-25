@@ -1,5 +1,5 @@
-\lab{Essentials}{NumPy}{NumPy}
-\label{lab:Essentials_NumPy}
+\lab{Python}{NumPy and SciPy}{NumPy and SciPy}
+%\label{lab:NumPySciPy}
 
 \section*{Why Arrays?}
 Let's begin with a simple demonstration of why arrays are important for numerical computation.
@@ -367,16 +367,18 @@ For example:
 \end{lstlisting}
 
 \begin{problem}
-Operations that create completely new arrays are generally slower than operations that create views because they have to copy all of the data from the original array.
+Operations that create completely new arrays are often slower than operations that create views because allocating an array can be time consuming.
 Create a $1000 \times 1000$ array \li{A} of floating point values.
 Compare the speed of the operations \li{A.reshape(A.size)} and \li{A.flatten()} (here we are calling the methods of the arrays, these are the same as \li{np.reshape(A, A.size)}, and \li{np.flatten(A)} respectively).
 Why is there such a difference in speed?
 What is the difference between their output?
 What about \li{A.reshape((1,A.size))}?
+The reason \li{A.flatten()} takes longer is that it is allocating a new array in memory and copying all of the values from the input array into this new array.  In contrast, \li{A.reshape()} simply changes they way the array is read from memory by changing the shape of the array.  It doesn't touch any of the data of the array.  There are times, though, when creating a copy is desired behavior.
 
 Now let \li{A} be the an array with shape \li{(1,1000000)}.
 What is the difference in the output between \li{np.vstack(A)} and \li{A.T}?
 Which of the two is faster?
+In this case, \li{A.T} doesn't create a new array.  It simply changes the way array is read from memory while \li{np.vstack()} creates a new array and copies the values.
 \end{problem}
 
 \begin{problem}
@@ -384,19 +386,19 @@ One good application of array slicing is the Jacobi method for solving Laplace's
 This is an example of a simple iterative method.
 In this case we will modify our array in place.
 Make a function that accepts an array and a tolerance as input and does the following:
-\begin{itemize}
+\begin{enumerate}
 \item Copy the array
-\item Make a variable representing the difference between the arrays.
+\item Create a variable to track the difference between the arrays.
 Initialize it as the tolerance.
 \item While the difference is less than or equal to the tolerance
-\begin{itemize}
+\begin{enumerate}
 	\item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors.
 Use the values from the old array for this computation.
 This should only take one line and should be based entirely on array slicing.
 	\item update the difference to be the maximum of the absolute value of the new array minus the old one.
 	\item copy the values from the new array into the old one (without creating a new array).
-\end{itemize}
-\end{itemize}
+\end{enumerate}
+\end{enumerate}
 
 Now use the following code to generate a plot of your results
 \begin{lstlisting}
@@ -423,18 +425,18 @@ Now use the following code to generate a plot of your results
 \section*{Array Broadcasting}
 Array broadcasting allows NumPy to work effectively with arrays of sizes that don't match exactly.
 There are four basic rules to determine the behavior of broadcasted arrays.
-\begin{remunerate}
+\begin{enumerate}
 \item All input arrays of lesser dimension than the input array with largest dimension have 1's prepended to their shapes.
 \item The size in each dimension of the output shape is the maximum of all the input sizes in that dimension.
 \item An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has a value exactly 1.
 \item If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
-\end{remunerate}
+\end{enumerate}
 To broadcast arrays, at least one of the following must be true.
-\begin{remunerate}
+\begin{enumerate}
 \item All input arrays have exactly the same shape.
 \item All input arrays are of the same dimension and the length of corresponding dimensions match or is 1.
 \item All input arrays of fewer dimension can have 1 prepended to their shapes to satisfy the second criterion.
-\end{remunerate}
+\end{enumerate}
 
 One simple example is multiplying a two dimensional array by a set of numbers along its rows or columns.
 Run the following lines of code and consider their output:
