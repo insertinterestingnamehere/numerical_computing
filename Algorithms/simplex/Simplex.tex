@@ -5,7 +5,7 @@
 \section*{Simplex}
 In this lab you will write your own implementation of the Simplex method for solving linear optimization problems.
 Your function should have the following signature
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : x,fval,exit = linprog(c, A, b)
 \end{lstlisting}
 The function should solve the linear program
@@ -35,7 +35,7 @@ Below is a list of possible functions.
 Here are some of the functions you might want to use.
 \emph{Tableau} will refer to the Simplex tableau in this lab to avoid confusion with a Python dictionary and will be represented by {\tt T}  in the code.
 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : T = createtableau(c,A,b)
 : exit = isfeasible(T)
 : exit = simplex(T)
@@ -48,7 +48,7 @@ The {\tt simplex} function is just a few lines:
 
 TODO: put elsewhere?
 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : def simplex(T):
 :    # choose the first pivot: this sets exit to 1 if finished or 3 if unbounded
 :    i, j, exit = choosepivot(T)
@@ -121,7 +121,7 @@ The general form of the $T$ matrix is
 where $I_n$ is an $n \times n$ identity matrix.
 Therefore, your {\tt createtableau} function might include code like the following
 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : m,n = A.shape
 : s = m + n + 1;    % number of variables + number of constraints + 1
 : T = numpy.zeros((s,s))
@@ -201,7 +201,7 @@ Since we also need write $x_0$ in terms of itself ($x_0 = x_0$), this is equival
 We also need to change the objective function to $-x_0$.
 Let's let $N$ be the matrix for the auxiliary problem.
 Then we can construct it from $T$ using the code 
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 : N = zeros((s+1,s+1))
 : N[0:s,0:s] = T
 : N[n:s+1,s] = 1
@@ -212,14 +212,14 @@ Before you run simplex on this auxiliary tableau, make sure you do a pivot on th
 Check that the objective function value is 0 when simplex finishes running.
 If not, your initial problem is infeasible.
 If the problem is feasible, get the system of equations from $N$ and put them back into $T$, leaving off the last row and column of $N$ (for $x_0$) and the first row (corresponding to the objective function).
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 T[1:s,0:s] = N[1:s,0:s]
 \end{lstlisting}
 The last thing you need to do is insert your previous objective function.
 However, you need to re-write it in terms of the current nonbasic variables.
 Fortunately, $T$ currently contains all of your variables written in terms of the nonbasic variables.
 You can check (mathematically, or however you want to satisfy yourself) that
-\begin{lstlisting}[style=python]
+\begin{lstlisting}
 T[0,0:s] = T[0,0:s]*T
 \end{lstlisting}
 will put the objective function into the first row, now written in terms of the new nonbasic variables.
