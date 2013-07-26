@@ -1,0 +1,231 @@
+\lab{Algorithms}{Simplex Method}{Simplex Method}
+\label{lab:Simplex}
+\objective{In this lab, you will write your own implementation of the Simplex method for solving linear optimization problems.}
+
+\section*{Simplex}
+In this lab you will write your own implementation of the Simplex method for solving linear optimization problems.
+Your function should have the following signature
+\begin{lstlisting}[style=python]
+: x,fval,exit = linprog(c, A, b)
+\end{lstlisting}
+The function should solve the linear program
+
+\begin{align*}
+\mbox{maximize}\qquad & c^T x \\
+\mbox{subject to}\qquad & A x \leq b \\
+ & x \geq 0
+\end{align*}
+where $c \in \R^n$ is a column vector, $b \in \R^m$ is a row vector, and $A \in \R^{m \times n}$.
+The output $x$ is the optimal point and the optimal value is {\tt fval}.
+The output {\tt exit} is one of the following values:
+\begin{itemize}
+	\item 1: Successful execution--you found a solution.
+	\item 2: The problem is infeasible.
+	\item 3: The problem is unbounded.
+\end{itemize}
+If either of the two error events occur, you should return {\tt None} for the values of {\tt x} and {\tt fval}.
+
+You are free to implement {\tt linprog} any way you see fit, provided it satisfies the above requirements (you cannot just call an existing lp solver however, and you must use the Simplex method!).
+
+\section*{Code Organization}
+TODO: Clean
+
+This is a relatively large program, so you'll want to break it up into function.
+Below is a list of possible functions.
+Here are some of the functions you might want to use.
+\emph{Tableau} will refer to the Simplex tableau in this lab to avoid confusion with a Python dictionary and will be represented by {\tt T}  in the code.
+
+\begin{lstlisting}[style=python]
+: T = createtableau(c,A,b)
+: exit = isfeasible(T)
+: exit = simplex(T)
+: i,j,exit = choosepivot(T)
+: pivot(T,i,j)
+\end{lstlisting}
+
+By breaking the program into so many functions, the entire program is only about 150 lines, including comments.
+The {\tt simplex} function is just a few lines:
+
+TODO: put elsewhere?
+
+\begin{lstlisting}[style=python]
+: def simplex(T):
+:    # choose the first pivot: this sets exit to 1 if finished or 3 if unbounded
+:    i, j, exit = choosepivot(T)
+:    while exit == 0:
+:        pivot(T,i,j)
+:        i, j, exit = choosepivot(T)
+\end{lstlisting}
+The {\tt linprog} function is also pretty short, since it just calls other functions and then gets the return value.
+
+\section*{Tableau Representation}
+
+The first problem you need to address is how to represent the tableau.
+We're going to use an approach that might be a little confusing at first but greatly simplifies the pivot operations.
+We recommend creating an $m + n + 1$ square NumPy matrix, where $m$ is the number of constraints and $n$ is the number of decision variables.
+The first row represents the objective function and the first column is for the constants.
+The remaining columns are the coefficients of the variables.
+The remaining rows express the value of the variables in terms of a constant and the nonbasic variables.
+To illustrate this approach, let's consider the following example problem:
+
+\begin{align*}
+	\mbox{maximize}\qquad
+        &    3x_1 + 2x_2 \\
+	\mbox{subject to}\qquad
+        &     x_1 - x_2 \leq 2 \\
+		&	 3x_1 + x_2 \leq 5 \\
+		&	 4x_1 + 3x_2 \leq 7 \\
+		&     x_1, x_2 \geq 0.
+\end{align*}
+
+There is no need to distinguish the slack variables from the decision variables, so we will call our slack variables $x_3, x_4,$ and $x_5$.
+Then our problem becomes
+\begin{align*}
+	\mbox{maximize}\qquad
+        &    3x_1 + 2x_2 \\
+	\mbox{subject to}\qquad
+        &     x_1 - x_2 + x_3 = 2 \\
+		&	 3x_1 + x_2 + x_4 = 5 \\
+		&	 4x_1 + 3x_2 + x_5 = 7 \\
+		&     x_1, x_2, x_3, x_4, x_5 \geq 0.
+\end{align*}
+
+We initialize simplex by making the decision variables $x_1, x_2$ nonbasic and the slack variables basic (assuming the origin is feasible, but we will deal with initially infeasible problems shortly).
+The objective function is already written in terms of the nonbasic variables: $\zeta = 0 + 3x_1 + 2x_2$.
+We want to write all the variables in terms of the nonbasic variables. This information we get from the constraints:
+\[ x_3 = 2 - x_1 + x_2, \qquad x_4 = 5 - 3x_1 - x_2, \qquad x_5 = 7 - 4x_1 - 3x_2. \]
+For consistency, and simplicity that will be demonstrated later on, we want to express ALL the variables in terms of the nonbasic variables, not just the basic variables, so we add the expressions
+\[ x_1 = x_1, \qquad x_2 = x_2 \]
+to the tableau.
+This may seem silly, but it makes pivot operations very simple, as we will see.
+In matrix form, we then have the following initial tableau.
+
+\[
+	T = \begin{bmatrix}
+		0 & 3 & 2 & 0 & 0 & 0 \\
+		0 & 1 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 1 & 0 & 0 & 0 \\
+		2 &-1 & 1 & 0 & 0 & 0 \\
+		5 &-3 &-1 & 0 & 0 & 0 \\
+		7 &-4 &-3 & 0 & 0 & 0
+	\end{bmatrix}.
+\]
+The first row is the objective function written as a constant plus a linear combination of the nonbasic variables.
+The remaining rows are all the variables written as a constant plus a linear combination of the nonbasic variables.
+The general form of the $T$ matrix is
+\[ T = \begin{bmatrix}
+    0 & c^T   & 0 \\
+    0 & I_n & 0 \\
+    b & -A  & 0
+\end{bmatrix}, \]
+where $I_n$ is an $n \times n$ identity matrix.
+Therefore, your {\tt createtableau} function might include code like the following
+
+\begin{lstlisting}[style=python]
+: m,n = A.shape
+: s = m + n + 1;    % number of variables + number of constraints + 1
+: T = numpy.zeros((s,s))
+: T[0, 1:n+1] = c.T
+: T[s-n-1:s, 0] = b.squeeze()
+...
+\end{lstlisting}
+
+Note that you need the squeeze function, built into numpy, to remove single-dimensional entries from the shape of a numpy array. 
+
+\section*{Pivot Operations}
+
+One of the nice features of the proposed tableau representation is the simplicity of pivot operations.
+In our example problem, the first pivot should occur with $x_1$ leaving and $x_4$ entering.
+In other words, we want to pivot at row $i = 4$ and column $j = 1$ in the tableau (the indices are offset by one because of the objective function and the row of constants).
+The row corresponding to $x_4$ is
+\[
+\begin{bmatrix} 5 &-3 &-1 & 0 & 0 & 0\end{bmatrix}.
+\]
+This represents the equation
+\[
+	x_4 = 5 - 3x_1 - x_2.
+\]
+Our eventual goal is to solve for $x_1$ and substitute into the remaining rows of the tableau.
+A simple method to accomplish this is to rewrite the equation so that we have zero on the left-hand side:
+\[
+	0 = 5 - 3x_1 - x_2 - x_4.
+\]
+Now, we can normalize this equation so that the coefficient of $x_1$ is -1.
+This is always accomplished by dividing the equation by the negative of the coefficient of $x_1$:
+\begin{equation}\label{eq:zero-equation}
+	0 = \frac{5}{3} - x_1 - \frac{1}{3}x_2 - \frac{1}{3}x_4.
+\end{equation}
+This is represented by the vector
+\[
+	\begin{bmatrix} 5/3 & -1 & -1/3 & 0 & -1/3 & 0\end{bmatrix}.
+\]
+Since this left-hand side is zero, I can add any scalar multiple of this equation to any of the equations for $x_i$ and still have an equation for $x_i$.
+For example, the equation for $x_5$ is
+\[
+	x_5 = 7 - 4x_1 - 3x_2.
+\]
+Thus, I can add $-4$ times \eqref{eq:zero-equation} to this equation without changing the left-hand side:
+\[ x_5 = 7 - 4x_1 - 3x_2 = 7 - 4x_1 - 3x_2 + -4\left(\frac{5}{3} - x_1 - \frac{1}{3}x_2 - \frac{1}{3}x_4\right) = \frac{1}{3} - \frac{5}{3}x_2 + \frac{4}{3} x_4.
+\]
+Notice that we end up with an equation that does not include $x_1$ and now has $x_4$, just like we wanted.
+In fact, this works in all of our equations, including those for the objective function and even for $x_1$!
+Since the coefficient of $x_1$ in \eqref{eq:zero-equation} is -1, when we scale it by the coefficient of $x_1$ in any particular row, the $x_1$ cancels out.
+If we want to do this in a single operation, we use the outer product.
+We set our new tableau to
+\[
+	T = T + \begin{bmatrix}3 \\ 1 \\ 0 \\ -1 \\ -3 \\ -4\end{bmatrix}\begin{bmatrix} 5/3 & -1 & -1/3 & 0 & -1/3 & 0\end{bmatrix}.
+\]
+The column vector is just the second column of $T$, which is the column containing the coefficients of $x_1$ in each row.
+When we compute this sum, we obtain the tableau.
+\[
+	T = \begin{bmatrix}
+		5 &  0 & 1 & 0 & -1 & 0 \\
+		5/3 & 0 &-1/3 & 0 &-1/3 & 0 \\
+		0 & 0 & 1 & 0 & 0 & 0 \\
+		1/3 & 0 & 4/3 & 0 & 1/3 & 0 \\
+		0 & 0 & 0 & 0 & 1 & 0 \\
+		1/3 & 0 & -5/3 & 0 & 4/3 & 0
+	\end{bmatrix}.
+\]
+
+You can check that these are all the correct pivots.
+Most importantly, $x_2$ and $x_4$ are now our nonbasic variables.
+
+\section*{Auxiliary Problems}
+
+When one of the entries of $b$ is negative, we need to run an auxiliary problem to find a feasible point.
+Try adding $x_0$ as the last variable.
+That way you just need to add a single row and column to your current tableau $T$.
+You can check that subtracting $x_0$ from each of the constraints is the same as adding $x_0$ to each of the expressions for the slack variables.
+Since we also need write $x_0$ in terms of itself ($x_0 = x_0$), this is equivalent to setting the last column equal to 1 for all the rows corresponding to slack variables, plus one new row.
+We also need to change the objective function to $-x_0$.
+Let's let $N$ be the matrix for the auxiliary problem.
+Then we can construct it from $T$ using the code 
+\begin{lstlisting}[style=python]
+: N = zeros((s+1,s+1))
+: N[0:s,0:s] = T
+: N[n:s+1,s] = 1
+: N[0,s] = -1
+\end{lstlisting}
+
+Before you run simplex on this auxiliary tableau, make sure you do a pivot on the last column and the row corresponding to the smallest entry of $b$.
+Check that the objective function value is 0 when simplex finishes running.
+If not, your initial problem is infeasible.
+If the problem is feasible, get the system of equations from $N$ and put them back into $T$, leaving off the last row and column of $N$ (for $x_0$) and the first row (corresponding to the objective function).
+\begin{lstlisting}[style=python]
+T[1:s,0:s] = N[1:s,0:s]
+\end{lstlisting}
+The last thing you need to do is insert your previous objective function.
+However, you need to re-write it in terms of the current nonbasic variables.
+Fortunately, $T$ currently contains all of your variables written in terms of the nonbasic variables.
+You can check (mathematically, or however you want to satisfy yourself) that
+\begin{lstlisting}[style=python]
+T[0,0:s] = T[0,0:s]*T
+\end{lstlisting}
+will put the objective function into the first row, now written in terms of the new nonbasic variables.
+
+\section*{Getting Return Values}
+
+When you reach a stopping point (all the coefficients in the objective function are nonpositive), all you have to do to get the return values is to set $x = T[0,1:n+1]$, since these contain the current values of each $x_i$ and set $\mathtt{fval} = T[0,0]$.
+This is of course assuming you didn't have any error situations (infeasibility or unboundedness), which you should handle separately.
+
