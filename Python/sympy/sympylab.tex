@@ -24,6 +24,41 @@ As you may have guessed, such packages generally have a wide variety of features
 If you want to know how to do something, consider checking the documentation  at the SymPy website (\url{http://sympy.org/en/index.html}).
 This lab should teach you to do some basic symbolic manipulations in SymPy, but keep in mind that this introduction is not comprehensive.
 
+\section*{Some Convenient Tools}
+
+Sympy includes a simplified plotting wrapper around Matplotlib.
+A simple example is:
+\begin{lstlisting}
+x = sy.symbols(`x')
+expr = sy.sin(x)*sy.exp(x)
+sy.plot(expr, (x, -3, 3))
+\end{lstlisting}
+which will plots $\sin\left(x\right) e^x$ for values of $x$ from -3 to 3.
+
+SymPy also has several nice options for printing equations.
+If you want to get a rough idea of what the equation looks like, you can use \li{sy.pprint()}.
+It can interface with the IPython Notebook to display the formula more clearly as well.
+If you are using the IPython Notebook, you can enable pretty printing by loading the extension that comes with SymPy.
+In SymPy 7.2 this is done like this:
+\begin{lstlisting}
+%load_ext sympy.interactive.ipythonprinting
+\end{lstlisting}
+In SymPy 7.3 it is:
+\begin{lstlisting}
+import sympy as sy
+sy.init_printing()
+\end{lstlisting}
+SymPy has many more useful features.
+When in doubt, take a look at the SymPy documentation.
+Figure \ref{sympy:pretty_printing} shows a screenshot of SymPy's special printing in the IPython notebook.
+If at some point you need to write a formula in \LaTeX, the function \li{sy.latex()} can convert a SymPy symbolic expression to \LaTeX{} for you.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{pretty_printing.png}
+\caption{A screenshot showing how SymPy can interface with the IPython Notebook to display equations nicely.}
+\label{sympy:pretty_printing}
+\end{figure}
+
 \section*{Basic Number Types}
 SymPy has some good built in datatypes which can be used to represent rational numbers and arbitrary precision floating point numbers.
 Arbitrary precision floating point operations are supported through the package \li{mpmath}.
@@ -287,7 +322,8 @@ SymPy also allows you to do simple separation of variables on PDEs, Taylor Serie
 
 \section*{Interfacing With Numerical Software}
 SymPy also has a variety of built in ways to take an expression and turn it into a python function that can be evaluated quickly.
-The simplest way to do this is the \li{lambdify} function in \li{sympy.utilities.lambdify}.
+You can numerically evaluate expressions using \li{subs} to substitute in values like you would symbols, but this can be slow for large arrays.
+A simple way to evaluate an expression more quickly is the \li{lambdify} function in \li{sympy.utilities.lambdify}.
 It takes an expression and makes it into a callable python function. 
 It allows you to specify which library to use to compute the function, so if you would like to operate on arrays, you can use NumPy functions for $\sin$, $\cos$, etc.
 It also allows you to tell it to use functions from the math library, SymPy itself, and mpmath.
@@ -304,31 +340,12 @@ This interoperability allows us to move quickly between symbolic calculations in
 
 SymPy also has built in ways that allow you to make functions that iterate over arrays using F2PY, Cython, or Theano.
 Using these other libraries can result in very fast numerical evaluation of symbolic expressions with relatively little effort.
-These automatic wrapping features depend on these other libraries and may require some setup, but they can be extremely useful.
+These automatic wrapping features depend on other libraries and may require some setup.
 
 \begin{problem}
-Use the \li{lambdify} function to make a NumPy-dependent function for your solution to the previous problem. Set all the constants that would come from the initial conditions equal to 1.
+Use the \li{lambdify} function to make a NumPy-dependent function for your solution to the previous problem.
+Set all the constants that would come from the initial conditions equal to 1.
 The solution to the differential equation is an equality, but you can get the right hand side of the equality using \li{expr.rhs}.
-Use the function you have just defined to plot the solution from -3 to 3. 
+Use the function you have just defined to plot the solution from -3 to 3.
 It should be very large, and should look kind of like a sine curve.
 \end{problem}
-
-Sympy also includes a simplified plotting wrapper around Matplotlib.
-A simple example is:
-\begin{lstlisting}
-x = sy.symbols(`x')
-expr = sy.sin(x)*sy.exp(x)
-sy.plot(expr, (x, -3, 3))
-\end{lstlisting}
-which will plots $\sin\left(x\right) e^x$ for values of $x$ from -3 to 3.
-
-It is also worth noting that SymPy has several nice options for printing equations.
-If you want to get a rough idea of what the equation looks like, you can use \li{sy.pprint()}.
-It can interface with IPython to display the formula more clearly as well.
-If you are using IPython, you can enable pretty printing by loading the extension that comes with SymPy, as follows:
-\begin{lstlisting}
-%load_ext sympy.interactive.ipythonprinting
-\end{lstlisting}
-If you need to write the formula in \LaTeX, the function \li{sy.latex()} will convert it to \LaTeX{} for you.
-SymPy has many more useful features.
-When in doubt, take a look at the SymPy documentation.

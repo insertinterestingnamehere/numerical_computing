@@ -1,65 +1,30 @@
-import scipy as sp
-from scipy import sparse as spar
-from scipy . sparse import linalg as sparla
-from scipy import linalg as la
 import numpy as np
-from scipy import eye
-from math import sqrt
-import matplotlib . pyplot as plt
+from operator import itemgetter
 
-def kruskal(A):
-    size=A.shape
-    minSpanTree=sp.zeros(size)
-    nodesTree=sp.arange(size[0])
-    D=sp.ones(size)*sp.arange(size[0])
-    C=la.triu(A)
-    Q=sp.concatenate([[C.flatten()],[D.T.flatten()],[D.flatten()]])
-    W=Q[:,sp.nonzero(C.flatten())[0]]
-    edges=W[:,W[0,:].argsort()]
+def kruskal(nodes,A):
+    group=createDict(nodes)
+    sortedEdges=A.take(A[:,2].astype(int).argsort(),axis=0)
+    s=len(nodes)
     i=0
     j=0
-    #while np.sum(nodesTree!=nodesTree[0])>0:
-    while (j<(size[0]-1)):
-        now=edges[:,i]
-        i=i+1
-        if nodesTree[now[1]]!=nodesTree[now[2]]:
-            minSpanTree[now[1],now[2]]=now[0]
-            nodesTree[nodesTree==nodesTree[now[2]]]=nodesTree[now[1]]
+    edges=np.empty((s-1,3),dtype='|S2')
+    while j<s-1:
+        if group.find(sortedEdges[i,0])!=group.find(sortedEdges[i,1]):
+            edges[j,:]=sortedEdges[i]
+            group.union(group.find(sortedEdges[i,0]),group.find(sortedEdges[i,1]))
             j=j+1
-    return minSpanTree+minSpanTree.T
+        i=i+1
+    return edges
+            
 
-def prims(A,start):
-    size=A.shape
-    minSpanTree=sp.zeros(size)
-    nodesTree=sp.arange(size[0])
-    D=sp.ones(size)*sp.arange(size[0])
-    Q=sp.concatenate([[A.flatten()],[D.T.flatten()],[D.flatten()]])
-    edges=Q[:,sp.nonzero(A.flatten())[0]]
-    Set=[start]
-    for iter in range(size[0]-1):
-        yes=sp.array([False]*edges.shape[1])
-        no=sp.array([False]*edges.shape[1])
-        for x in Set:
-            yes=yes+(edges[1,:]==x)
-            no=no+(edges[2,:]==x)
-        candates=yes*(no==False)
-        tempEdges=edges[:,candates]
-        now=tempEdges[:,tempEdges[0,:].argmin()]
-        minSpanTree[now[1],now[2]]=now[0]
-        Set=Set+[now[2]]
-    return minSpanTree+minSpanTree.T
+def createDict(nodes):
+    group=DisjointSet()
+    s=len(nodes)
+    for i in nodes:
+        group.add(i)
+    return group
 
-
-A=sp.array([[0,7,4,1,2],[7,0,7,6,0],[4,7,0,2,0],[1,6,2,0,3],[2,0,0,3,0]])
-
-kruskal(A)
-prims(A)
-
-pickle.load(open("MSTdata.txt"))
-
-
-
-from operator import itemgetter
+#This is a solution to problem about disjoint sets that comes from http://programmingpraxis.com/
 
 class DisjointSet(dict):
     def add(self, item):
@@ -76,24 +41,61 @@ class DisjointSet(dict):
     
     def union(self, item1, item2):
         self[item2] = self[item1]
-        
-def kruskalInt( nodes, edges ):
-    forest = DisjointSet()
-    mst = []
-    for n in nodes:
-        forest.add( n )
-    sz = len(nodes) - 1
-    for e in sorted( edges, key=itemgetter( 2 ) ):
-        n1, n2, _ = e
-        t1 = forest.find(n1)
-        t2 = forest.find(n2)
-        if t1 != t2:
-            mst.append(e)
-            sz -= 1
-            #forest.union(t1, t2)
-            if sz == 0:
-                return mst
 
-            forest.union(t1, t2)
+nodes = list( "ABCDEFG" )
+edges = [ ("A", "B", 7), ("A", "D", 5),
+          ("B", "C", 8), ("B", "D", 9), ("B", "E", 7),
+      ("C", "E", 5),
+      ("D", "E", 15), ("D", "F", 6),
+      ("E", "F", 8), ("E", "G", 9),
+      ("F", "G", 11)]
+
+kruskal(nodes,np.array(edges))
+
+def prims(nodes,edges):
+    def change(t):
+        for q in list(canid):
+            if q[0]==t or q[1]==t:
+                canid.remove(q)
             
-kruskalInt(['0','1','2','3','4'],S)
+        for q in list(m):
+            if q[0]==t or q[1]==t:
+                m.remove(q)
+                canid.append(q)
+        return
+    m=list(edges)
+    sol=[]
+    canid=[]
+    nadded=[]
+    temp=min(m,key=itemgetter( 2 ))
+    sol.append(temp)
+    change(temp[0])
+    change(temp[1])
+    nadded.append(temp[0])
+    nadded.append(temp[1])
+    sz = len(nodes) - 2
+    for i in xrange(sz):
+        temp=min(canid,key=itemgetter( 2 ))
+        sol.append(temp)
+        if nadded.count(temp[0])==0:
+            change(temp[0])
+            nadded.append(temp[0])
+        else:
+            change(temp[1])
+            nadded.append(temp[1])
+    return sol
+
+prims(nodes,edges)
+
+def formChanger(oldData):
+    newData=[]
+    for i in oldData:
+        newData.append((i[0],i[1],int(i[2])))
+    return newData
+
+q=np.load("MSTdata.npy")
+edges=formChanger(q)
+nodes = list( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcd")
+
+kruskal(nodes,np.array(edges))
+prims(nodes,edges)
