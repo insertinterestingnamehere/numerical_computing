@@ -1,70 +1,114 @@
 \lab{Application}{Nearest Neighbor Search}{Nearest Neighbor Search}
 \label{Ch:NNS}
 
-\objective{This section teaches about branch and bound and the curse of dimensionality using the nearest neighbor search problem.}
+\objective{Teach about branch and bound and the curse of dimensionality using the nearest neighbor search problem.}
 
 \section*{The Nearest Neighbor Search Problem}
 
-You move into a city that has several post offices. You want to know which one is the closest. This problem is  known as the nearest neighbor search problem or the post-office problem. The general case is you have data and then you a new point and you want to know which of the data the new point is closest to.
+You move into a city that has several post offices.
+You want to know which one is the closest.
+This problem is  known as the nearest neighbor search problem or the post-office problem.
+The general problem is to find the closest of a set of points to any new point.
 
-This has many applications. Some include computer vision, pattern recognition, internet marketing and data compression.
+This has many applications which include computer vision, pattern recognition, internet marketing and data compression.
 
 The naive way to solve this problem is to check the distance of all the data against the point.
 
 \begin{problem}
-Write a function that solves the nearest neighbor search problem by exhaustively checking all the distances. The function should take in the set of points that is the data and a single point. The output should be the distance to the closest data point and the index of that point. Your function should be able to take in data in an arbitrary dimension.
+Write a function that solves the nearest neighbor search problem by exhaustively checking all the distances.
+The function should take in the set of points that is the data and a single point.
+The output should be the distance to the closest data point and the index of that point.
+Your function should be able to take in data in an arbitrary dimension.
 \end{problem}
 
-The complexity of this algorithm is $O(kn)$. Where  is the $k$ number of dimensions and $n$ is the number of data points.
+The complexity of this algorithm is $O(kn)$.
+Where  is the $k$ number of dimensions and $n$ is the number of data points.
 
 \section*{K-D Trees}
 
 A faster way to solve this problem is to build a k-d tree and search the k-d tree for the nearest neighbor. 
 
-A k-d tree is a binary tree where the nodes to the left of parent node have a lower value in the i-th dimension and the nodes to the right of the parent node have a greater value in the i-th dimension. Which dimension you split the nodes alternates at different levels. In the $3$ dimensional case the root node is divided in the $x$ dimension, children in the $y$ dimension, grandchildren in the $z$ dimension, and the great-grandchildren in the $x$ dimension and so on. Each node stores its location, left child and right child. This requires sorting at each level so the complexity is $O(nlog^2(n))$ But we only need to build the k-d tree once and after that we can query it as many times as we want.
+A k-d tree is a binary tree where the nodes to the left of parent node have a lower value in the i-th dimension and the nodes to the right of the parent node have a greater value in the i-th dimension.
+Which dimension you split the nodes alternates at different levels.
+In the $3$ dimensional case the root node is divided in the $x$ dimension, children in the $y$ dimension, grandchildren in the $z$ dimension, and the great-grandchildren in the $x$ dimension and so on.
+Each node stores its location, left child and right child.
+This requires sorting at each level so the complexity is $O(n log^2(n))$, but we only need to build the k-d tree once and after that we can query it as many times as we want.
 
-Included is a function that takes in a set of data and builds k-d tree. The leaf nodes' children are  python's ``None" object.
+Included is a function that takes in a set of data and builds k-d tree.
+The leaf nodes' children are  python's ``None" object.
 
-The search of the tree is done recursively. We will call the node that we are on the parent node. We first see if the distance between the parent node at the less is current best. If so, we update it. We then compare the values in the i-th dimension of the point and the parent. If it is point's value is less than the parent we recursively go down the left child, greater, the right child. Then we have to check if the hypersphere around the point with radius being the current best distance crosses the dividing hyperplane created by the parent. If the point's value is less than the parent, we do this by checking to see if the value in the i-th dimension plus the current best distance is greater than the parent's value in the i-th dimension. If the point's value is greater than the parent, we do this by checking to see if the value n the i-th dimension minus the current best distance is less than the parent's value in the i-th dimension. If this be the case, we recursively go down the other child as well.
+TODO: revise algorithm description
+
+The search of the tree is done recursively.
+We will call the node that we are on the parent node.
+We first see if the distance between the parent node at the less is current best.
+If so, we update it.
+We then compare the values in the i-th dimension of the point and the parent.
+If it is point's value is less than the parent we recursively go down the left child, greater, the right child.
+Then we have to check if the hypersphere around the point with radius being the current best distance crosses the dividing hyperplane created by the parent.
+If the point's value is less than the parent, we do this by checking to see if the value in the i-th dimension plus the current best distance is greater than the parent's value in the i-th dimension.
+If the point's value is greater than the parent, we do this by checking to see if the value n the i-th dimension minus the current best distance is less than the parent's value in the i-th dimension.
+If this be the case, we recursively go down the other child as well.
 
 \begin{problem}
-Write a function that solves the nearest neighbor search problem by searching through a k-d tree. The function should take in k-d tree and a single point. The output should be the distance to the closest data point and the coordinates of that point. 
+Write a function that solves the nearest neighbor search problem by searching through a k-d tree.
+The function should take in k-d tree and a single point.
+The output should be the distance to the closest data point and the coordinates of that point. 
 \end{problem}
 
 \begin{problem}
-Time both algorithms you have created with the number of data points being $10,000-100,000$ every multiple of $10,000$ with $4$ dimensions. Time only the searching of the k-d tree not the building of it. Plot both times on the same plot. How do the two algorithms compare?
+Time both the functions you have created with the number of data points being $10,000-100,000$ every multiple of $10,000$ with $4$ dimensions.
+Time only the searching of the k-d tree not the building of it.
+Plot both times on the same plot.
+How do the two algorithms compare?
 \end{problem}
 
 \begin{figure}[H]
-%\begin{center}
 \includegraphics[scale = .5]{4dTime.pdf}
-\caption{Your graph should look like this. The green line is the naive version and blue line is using a kd-tree. As you can see the kd-tree is much faster.}
-%\end{center}
+\caption{Your graph should look like this.
+The green line is the naive version and blue line is using a kd-tree.
+As you can see the kd-tree is much faster.}
 \end{figure}
 
-The complexity of this algorithm is $O(klog(n))$ in optimal time. Its worst case is $O(k*n^{1-\frac{1}{k}})$ for reasons we will discuss in the next section.
+The complexity of this algorithm is $O(klog(n))$ in optimal time.
+Its worst case is $O(k*n^{1-\frac{1}{k}})$ where $k$ is the number of dimensions and $n$ is the number of points in the tree.
+The reasons for this are discussed in the next section.
+
 \section*{Curse of Dimensionality}
 
-As you increase the number of dimensions the number of times that you have to go down both branches increases. You get to the point where you eliminate very few points by using a k-d tree.
+As you increase the number of dimensions the number of times that you have to go down both branches increases.
+You get to the point where you eliminate very few points by using a k-d tree.
 
 \begin{problem}
-Time both algorithms for the number of data points being $10,000-100,000$ every multiple of $10,000$ with $20$ dimension. Plot both times on the same plot. Now how do the two algorithms compare?
+Time both algorithms for the number of data points being $10,000-100,000$ every multiple of $10,000$ with $20$ dimensions.
+Plot both times on the same plot. Now how do the two algorithms compare?
 \end{problem}
 
 \begin{figure}[H]
-%\begin{center}
 \includegraphics[scale = .5]{20dTime.pdf}
-\caption{Your graph should look like this. The green line is the naive version and blue line is using a kd-tree. As you can see the kd-tree is slightly slower than the naive version.}
-%\end{center}
+\caption{
+Your graph should look like this.
+The green line is the naive version and blue line is using a kd-tree.
+As you can see the kd-tree is slightly slower than the naive version.}
 \end{figure}
+
 \begin{problem}
-Time scipy built function for searching a k-d tree (do not time the building of the kd-tree) for the number of dimensions points being $2-50$ with $20,000$ data points. Plot the time. What do you notice? ``from scipy.spatial import KDTree" will import the built in k-d tree. Create the tree by ``tree = KDTree(data)" and search it by ``tree.query(point)".
+Time the SciPy built in function for searching a k-d tree (do not time the building of the kd-tree) for the number of dimensions points being $2-50$ with $20,000$ data points.
+Plot the time.
+What do you notice?
+``from scipy.spatial import KDTree" will import the built in k-d tree.
+Create the tree by ``tree = KDTree(data)" and search it by ``tree.query(point)".
+
+\li{scipy.spatial} includes a \li{cKDTree} object which is implemented in C.
+Is it any better?
+
 \end{problem}
 \begin{figure}[h!]
-%\begin{center}
 \includegraphics[scale = .5]{curseD.pdf}
-\caption{Your graph should look similar to this. Around 15 dimensions the time jumps. At that point using a kd-tree is not more effective than checking all the combinations.}
-%\end{center}
+\caption{
+Your graph should look similar to this.
+Around 15 dimensions the time jumps.
+At that point using a kd-tree is not more effective than checking all the combinations.}
 \end{figure}
 
 
