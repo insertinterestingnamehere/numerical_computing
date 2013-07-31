@@ -2,13 +2,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-void l1_l2cache(int *arr, int lenMod, int steps, int cache_line) {
-    int i;
-    for(i=0; i < steps; ++i) {
-        arr[(i*cache_line) & lenMod]++;
-    }
-}
-
 int main(int argc, char *argv[])
 {
     clock_t t1, t2;
@@ -22,11 +15,13 @@ int main(int argc, char *argv[])
     int lenMod = (arr_size*1024)/(sizeof *arr) - 1;
     
     if (arr != NULL) {
-        int steps = 64*1024*1024;
-        int i;
+        int steps = 128*1024*1024;
+        int i, j;
         t1 = clock();
         for(i=0; i < loops; ++i) {
-            l1_l2cache(arr, lenMod, steps, cache_line);
+            for(j=0; j < steps; ++j) {
+                arr[(j*cache_line) & lenMod]++;
+            }
         }
         t2 = clock();
 
