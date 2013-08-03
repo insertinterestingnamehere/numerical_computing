@@ -34,8 +34,8 @@ def cache_sizes():
                  xy=(np.log2(times[0,8]), times[1,8]),
                  xytext=(4, .45), arrowprops=arrowprops)
     plt.annotate("L3 cache limit",
-                 xy=(np.log2(times[0,13]), times[1,13]),
-                 xytext=(8, .6), arrowprops=arrowprops)
+                 xy=(np.log2(times[0,12]), times[1,12]),
+                 xytext=(6, .6), arrowprops=arrowprops)
     plt.annotate("RAM",
                  xy=(np.log2(times[0,-1]), times[1,-1]),
                  xytext=(10, .9), arrowprops=arrowprops)
