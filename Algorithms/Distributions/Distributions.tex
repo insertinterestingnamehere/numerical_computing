@@ -1,0 +1,136 @@
+\lab{Algorithms}{Statistical Distributions}{Statistical Distributions}
+\label{lab:distributions}
+\objective{This section will review the most common distributions and thus assumes prior exposure to basic terms and concepts.}
+
+Here we look at distributions for real random variables, meaning that they have values on the real number line. 
+
+\section*{Discrete Distributions}
+\emph{Discrete distributions} are distributions whose support is finite or countable at most. 
+The \emph{support} of a distribution refers to the points in R that have non-zero probability. 
+In other words, discrete distributions are a collection of point masses. 
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{|c|l|r|r|r|r|l|}
+	\hline
+Name & Support &  PMF & Parameters & Mean & Variance & Description\\
+\hline
+Uniform  & $x \in \{a,...,b\}$ &$\frac{1}{b-a+1}$ & $b>a$, $a,b \in \mathbb{Z}$ & $\frac{a+b}{2}$ & FILL IN & models a single occurrence of one of several events of equal probability \\
+Binomial  & $x \in \{0,...,n\}$ &$\dbinom{n}{x}p^x(1-p)^{n-x}$ & $n \in \mathbb{N}$, $p \in [0,1]$ & $np$ & $np(1-p)$ & models $n$ events with binary outcomes, where $p$ is the probability of a success ($x=1$). Note, when $n=1$, this is referred to as the Bernoulli distribution, or a Bernoulli trial.\\
+Poisson  & $x \in \{0,1,2,...\}$ & $\frac{e^\lambda \lambda^x}{x!}$ & $\lambda>0$ & $\lambda$ & $\lambda$ & \\
+\hline
+\end{tabular}
+\end{center}
+\end{figure}
+
+\section*{Continuous Distributions}
+\emph{Continuous distributions} are distributions whose support is uncountable, i.e. some subset of $\mathbb{R}$. 
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{|c|l|l|c|c|c|l|}
+	\hline
+Name & Support &  PDF & Parameters & Mean & Variance & Description\\
+\hline \hline
+Normal  & $x \in \mathbb{R}$ &$\frac{1}{\sqrt{2\pi \sigma^2}} e^{-\frac{1}{2\sigma^2}(x-\mu)^2}$ & $\mu \in \mathbb{R}$, $\sigma^2 > 0$ & $\mu$ & $\sigma^2$ & The bell curve\\ \hline
+Gamma  & $x>0$ &$\frac{\beta^\alpha}{\Gamma(\alpha)} x^{\alpha -1} e^{-\beta x}$ & $\alpha,\beta>0$ & $\frac{\alpha}{\beta}$ & $\frac{\alpha}{\beta^2}$ & When $\alpha=1$, this is called the exponential distribution. $\alpha$ is called the shape, $\beta$ is called the rate.\\ \hline
+Beta  & $x \in [0,1]$ & $\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1}$ & $\alpha,\beta>0$ & $\frac{\alpha}{\alpha + \beta}$ & $\frac{\alpha \beta}{(\alpha + \beta)^2(\alpha + \beta +1)}$ & models probabilities or proportions. When $\alpha = \beta =1$, this is called the continuous uniform distribution\\ 
+\hline
+\end{tabular}
+\end{center}
+\end{figure}
+
+\section*{Normal Distribution}
+The SAT is a standardized test common for college admissions in the United States. 
+It is comprised of three sections, critical reading, writing and mathematics. 
+Each section is graded out of 800 possible points, with a minimum score of 200.
+Each section is intended to have a mean score of 500 with a standard deviation of 100.  
+The distribution of SAT section scores is well approximated by the normal distribution 
+(though these scores are discrete and to the nearest 10, i.e. score $\in \{200,210,220,...,790,800\}$, we are only approximating it). 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{normaldist.pdf}
+\end{figure}
+
+The scores of the three sections are added together to produce the test score. 
+Thus the test in aggregate has 2400 possible points and a minimum score of 600.  
+As each of the three sections has a mean score of 500 and a standard deviation of 100, it seems logical that the test score would also has a normal distribution, 
+but with mean of 1500 points and a standard deviation of 300 points. 
+But is that true? One method of evaluating this is to simulate the test scores and then find the mean and standard deviation of our simulated data. 
+Numpy provides a tool to generate random data from the normal distribution, numpy.random.normal.
+
+\begin{problem}
+Generate 10,000 random test scores by adding together three vectors of 10,000 random draws from the $N(\mu=500,\sigma=100)$ distribution. 
+Find the mean and standard deviation of the 10,000 test scores. 
+Are they close to 1500 and 300, respectively? 
+Also, make a histogram of the test scores to visually inspect for whether or not the test scores are also normally distributed.
+\end{problem}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{scorehist.pdf}
+\caption{Histogram of the simulated test scores.}
+\end{figure}
+
+In the plot above, we see that the the 10,000 randomly generated test scores appear to be fairly bell-shaped, i.e. normally distributed. 
+The mean of these test scores should, in fact, be about 1500. 
+However, the standard deviation is not $3(100) = 300$, but around 173.2, or $\sqrt{3*100^2}=\sqrt{3}(100) \approx 173.205081$. 
+This is because, for independent normal random variables $X_1 \sim N(\mu_1,\sigma^2_1), X_2 \sim N(\mu_2,\sigma^2_2),X_3 \sim N(\mu_3,\sigma^2_3),$
+ $$ (X_1 +X_2 +X_3) \sim N(\mu_1+\mu_2+\mu_3, \sigma^2_1+\sigma^2_2+\sigma^2_3).$$
+Said succinctly, the mean of the sum is the sum of the means, and the variance of the sum is the sum of the variances. 
+But as the standard deviation is the square root of the variance, this same idea doesn't work. 
+Yet we do see that the standard deviation of the sum is the square root of the sum of the variances (the new variance):
+ $$\sqrt{100^2+100^2+100^2} = \sqrt{30000} \approx 173.205081$$
+
+\section*{Multivariate Normal Distribution}
+Note that in the above problem, we assumed that the scores of all three tests were independent. 
+This should seem like an unreasonable assumption, because we expect there to be at least a little correlation in the test scores, 
+i.e. a student with a high reading score is more likely to score high on the other sections compared to a student with a low reading score. 
+To employ correlations in these draws, we turn to the multivariate normal distribution. 
+ 
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{|c|l|r|r|}
+	\hline
+Name & Support &  PDF & Parameters \\
+\hline
+Multivariate Normal distribution  & $\mathbf{x} \in \mathbb{R}^k$ & $(2\pi)^{-k/2}|\Sigma|^{-1/2}e^{-\frac{1}{2}(\mathbf{x} - \mathbf\mathbf{\mu})^T \Sigma^{-1} (\mathbf{x}-\mathbf{\mu})}$ & $\mathbf{\mu}\in \mathbb{R}^k, \Sigma \in \mathbb{R}^{k\times k}$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{figure}
+Note that there is no mean and variance included above. 
+Similar to the normal distribution, they are simply $\mu$ and $\Sigma$ respectively. Also note that for $k=1$, this is the normal distribution.  
+Furthermore, this distribution can be viewed as having $k$ components, each of which is normally distributed. 
+Thus, $\mathbf{\mu}$ is a vector of the means of each of these normal distributions. 
+Similarly, the diagonal of the matrix $\Sigma$ are the variances of the $k$ components. 
+The off-diagonal elements of $\Sigma$ are covariances, or in other words, $\Sigma_{i,j} = Cov(x_i,x_j) = \sigma_i \sigma_j \rho_{ij}$, where $\rho_{ij}$ is the correlation between $x_i$ and $x_j$. 
+Hence, for $i=j$, $\Sigma_{i,j} = \sigma^2_i$ as the correlation between an object and itself is 1. 
+
+Returning to our SAT example, we can use the multivariate normal distribution with $k=3$. 
+Because each distribution of section scores has a mean of 500 and a variance of 10,000, $\mathbf{\mu} = (500,500,500)$ and $\Sigma_{1,1} = \Sigma_{2,2} = \Sigma_{3,3} = 10,000$. 
+Now let's assume the correlation between the reading and writing sections is $.7$, and the others are $.5$. 
+This means for $\mathbf{x} = (x_{\text{math}},x_{\text{read}},x_{\text{write}})$
+\[ \Sigma =  \begin{bmatrix*}
+10000 & 5000 & 5000 \\
+5000 & 10000 & 7000 \\
+5000 & 7000 & 10000 \end{bmatrix*} \]  
+
+\begin{problem}
+Using the above $\mathbf{\mu}$ and $\Sigma$, generate 10,000 random test scores by adding together the vectors created by 10,000 random draws from the 
+\li{numpy.random.multivariate_normal} function. 
+Find the mean and standard deviation of the 10,000 test scores and make a histogram of the test scores to visually 
+inspect for whether or not the test scores are also normally distributed. 
+Which of the models discussed appears to be more appropriate?
+\end{problem}
+
+Note that the mean of the generated scores should be around 1500 and the standard deviation $\sqrt{64000} \approx 253$. 
+Note that 64,000 is the sum of all elements in $\Sigma$, however the explanation is beyond the scope of this lab. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{scorehist-mvn.pdf}
+\caption{Histogram of the simulated test scores, generated via the multivariate normal distribution.}
+\end{figure}
+
