@@ -49,11 +49,15 @@ def main(args):
         labname = os.path.splitext(lab_name)[0]+'.pdf'
         stdout = ret.communicate()[0]
 
+    copydest = os.path.join(cwd, lab_path, labname)
     if ret.returncode == 0:
-        shutil.copy2(filename, os.path.join(cwd, lab_path, labname))
+        shutil.copy2(filename, copydest)
         print "{} -> {}".format(os.path.join(tmp_lab_path, labname), lab_path)
     else:
         print stdout
+
+        #copy template.log to copydest
+        shutil.copy2("template.log", copydest)
         print "{} could not be generated".format(labname)    
 
 if __name__ == "__main__":
