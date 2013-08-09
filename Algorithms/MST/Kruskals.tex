@@ -93,29 +93,118 @@ Figure \ref{mst:graph2} shows a minimum spanning tree of the graph shown in \ref
 Given a weighted directed graph G with $n$ nodes, Kruskal's algorithm finds the minimum by: first sorting the edges from smallest to largest.
 Then, starting from the smallest, the algorithm adds the edge to the tree as long as the addition of the new edge does not create a cycle.
 When $n-1$ edges have been added, the algorithm stops.
-% (put in an example)
-In other words, given a weighted undirected graph G with $n$ nodes, Kruskal's algorithm finds the minimum spanning tree by sorting the edges from smallest to largest.
-The fastest way to do this is as follows:
+
+In order to avoid creating cycles while building the tree, it is necessary to keep track of which portions of the tree currently lie in connected groups.
+This can be done by creating a dictionary, where, at the beginning, each node points to itself ans the "root" of its own tree.
+As you add  edges into the tree you will change the "root" nodes of the nodes to show which nodes are currently connected.
+Doing it in this way lets you run the algorithm by iterating over the edges by weight in ascending order, adding them to the tree if they connect nodes that are not already connected by the current tree.
+As you build the tree, you could iterate over the nodes each time you add in a new edge.
+That should be avoided.
+It  is better to just change the "root" values of the previous roots as you go.
+
+Consider the graph in Figure \ref{mst:graph4}.
+Applying Kruskal's algorithm, the first step to finding a minimum spanning tree is to sort the edges by weight.
+The result is something like the list \li{[(C,D,1),(C,E,1),(D,E,2),(A,B,3),(B,F,4),(E,F,4),(B,C,5),(C,F,5),(A,F,6)]}.
+We initialize our tree to be an empty list \li{[]}.
+To track the root nodes of each tree, we will also initialize a dictionary where each node points to itself.
+It will look like this: \li{\{A:A,B:B,C:C,D:D,E:E,F:F\}}.
+Since there are 6 nodes in the graph, we will continue until we have 5 edges in the tree.
+
+Now we begin iterating through the edges to build the tree.
+The first edge in the list is \li{(C,D,1)}.
+The root for \li{C} is \li{C} and the root for \li{D} is \li{D}, so we add this edge into the tree, so the tree is \li{[(C,D,1)]}.
+We then change the root node of \li{D} to be \li{C}.
+The dictionary of root nodes now looks like \li{\{A:A,B:B,C:C,D:C,E:E,F:F\}}.
+
+Now we process the next edge, \li{(C,E,1)}.
+The root node of \li{C} is \li{C}, and the root node of \li{E} is \li{E}, so adding this edge does not create a cycle.
+We add this edge into the tree, so the tree is now \li{[(C,D,1),(C,E,1)]}.
+Then we change the root of \li{E} so that it is \li{C}, so the dictionary is \li{\{A:A,B:B,C:C,D:C,E:C,F:F\}}.
+
+The next edge is \li{(D,E,2)}.
+The root node of the tree containing \li{D} is \li{C} and the root node of the tree containing \li{E} is \li{C}, so these nodes are already connected, so we do not add this edge into the graph.
+
+The next ege is \li{(A,B,3)}.
+The root node for \li{A} is A, and the root node for \li{B} is \li{B}, so we add the edge in and update the dictionary.
+The dictionary becomes \li{\{A:A,B:A,C:C,D:C,E:C,F:F\}}
+
+The next edge is \li{(B,F,4)}.
+The root node for \li{B} is \li{A} and the root node for \li{F} is \li{F}, so we add the edge in and change the root node of \li{F} to be \li{A}.
+The dictionary becomes \li{\{A:A,B:A,C:C,D:C,E:C,F:A\}}
+
+The next edge is \li{(E,F,4)}.
+The root node for \li{E} is \li{C} and the root node for \li{F} is \li{A}.
+We add in the edge and end the algorithm since there are now 5 edges.
+If we were to continue the algorithm, we would update the root node of \li{A} to be \li{C}.
+
+Notice how we just updated the root of the root node for one of the nodes in the edge we just added.
+In order to find the root node of \li{F} we must trace back through the dictionary until we find a node that points to itself.
+For example, the way we would now find the root node of \li{F} is to get the value for \li{F} from the dictionary, which is \li{A}, then get the value for \li{A} from the dictionary, which is \li{C}.
+The value of \li{C} in the dictionary is itself, so it is the root node of the graph containing \li{F}.
+It is necessary to trace through the dictionary in this manner each time to find the root nodes we need at each iteration because it lets us avoid iterating over all of the nodes and updating their root values each time.
+
+Here is the pseudocode for the algorithm as we have described it above:
 
 \begin{itemize}
 
-% Revise the algorithm description. Especially the bit about pointers.
+\item Initialize an empty list of edges for the minimum spanning tree.
 
-\item Sort the edges by weight in descending order.
+\item Make a dictionary that points each node toward its root (not always directly to it).
+Start with each node pointing to itself.
 
-\item Initialize pointers to trees
+\item Initialize the number of nodes that still need to be processed to the number of nodes minus 1.
 
-\item For each edge $e=\{x, y\}$, until $n-1$ edges added  
+\item Define a helper function that traces through the dictionary to find the root of its tree.
+This can be done like this:
 
-\begin{itemize}
+	\begin{itemize}
 
-\item if $x$ and $y$ are not in the same tree (i.e. don’t have the same root), add $e$
+	\item Initialize a temporary variable to be the node for which we are finding the root.
 
-\item merge smaller tree (of $x$ or $y$) into larger tree 
+	\item While the temporary node does not point to itself in the dictionary:
+
+		\begin{itemize}
+
+		\item Update the temporary node to be the node it currently points to in the dictionary.
+
+		\end{itemize}
+
+	\item return the temporary node
+
+	\end{itemize}
+
+\item Iterate over the edges by ascending weight (Use a \li{for} loop for this and just return the tree when it is big enough. That will break the loop for you.)
+
+	\begin{itemize}
+
+	\item Trace through the dictionary to find the root node of each of the nodes in the edge you are processing.
+
+	\item If the roots are not the same:
+
+		\begin{itemize}
+
+		\item Add the edge to the tree
+
+		\item Lower the number of edges remaining by one
+
+		\item If the number of edges remaining is 0, return the tree (which also breaks the loop).
+
+		\item Update the root of the root of the second node in the edge to be the root of the first node in the edge.
+
+		\end{itemize}
+
+	\end{itemize}
 
 \end{itemize}
-
-\end{itemize}
+Note on implementation: You can iterate over a sorted copy of a list using the built in \li{sorted} function.
+You can sort by the third value in each tuple using the \li{itemgetter} function that is part of the \li{operator} library included with Python.
+For example:
+\begin{lstlisting}
+from operator import itemgetter
+...
+for n1, n2, weight in sorted(edges, key=itemgetter(2)):
+    ...
+\end{lstlisting}
 
 \begin{problem}
 Write Kruskal's algorithm.
