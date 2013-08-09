@@ -5,8 +5,43 @@ import scipy as sp
 import matplotlib.pyplot as plt
 
 
+def Problem1():
+    def f(x):
+        return sp.exp(x)-2
+    
+    ans, errors = secant(f, 0, 1, real=sp.log(2))
+    
+    #calculate the exponent of convergence
+    
+    
+    
+def secant(func, x1, x2, tol=1e-7, real=None, iters=30):
+    _x1 = func(x1)
+    _x2 = func(x2)
+    if abs(_x1) < tol:
+        return x1
+    elif abs(_x2) < tol:
+        return x2
+    
+    x1, x2 = float(x1), float(x2)
+    xnew = x1 - _x1 * (x1-x2)/(_x1-_x2)
+    maxiters = iters
+    real = sp.nan if real is None else real
+    errors = []
+    while abs(func(xnew)) > tol and iters >= 0:
+        xnew = x1 - func(x1) * (x1 - x2)/(func(x1)-func(x2))
+        x1 = x2
+        x2 = xnew
+        
+        errors.append(real-xnew)
+        if iters > 0:
+            iters -= 1
+        else:
+            raise StopIteration("Failed to find root in {} iterations.  Stopped at {}".format(maxiters, xnew))
+    
+    return (xnew, errors) if real is not sp.nan else xnew
 
-def broyden1d(func, xpts, tol=1e-7, iter=30):
+def broyden1d(func, xpts, tol=1e-7, iters=30):
     """Find the zero of a function between two points (accepted as a list)
 
     When f(pt2) < tol, we are close enough to a zero and stop"""
@@ -35,7 +70,7 @@ def broyden1d(func, xpts, tol=1e-7, iter=30):
             x_1 = x_2
             x_2 = x_new
             errors.append(abs(l-x_new))
-    return ValueError("No Zeros found in %d iterations" % iter)
+    return StopIteration("No Zeros found in {} iterations".format(iter))
         
 
 def regula_falsi(func, xpts, tol=0.00005, iter=30):
@@ -75,7 +110,7 @@ def regula_falsi(func, xpts, tol=0.00005, iter=30):
                 x_1 = x_new
             else:
                 x_2 = x_new
-    return ValueError("No Zeros found in %d iterations" % iter)
+    return StopIteration("No Zeros found in {} iterations".format(iter))
 
 
 def broyden(func, x1, x2, tol=1e-5, maxiter=50):
@@ -129,7 +164,7 @@ def broyden(func, x1, x2, tol=1e-5, maxiter=50):
         mi -= 1
     
     if mi==0:
-        raise ValueError("Did not converge in %d iterations" % maxiter)
+        raise StopIteration("Did not converge in {} iterations".format(maxiter))
     else:
         return x2, maxiter-mi
         
@@ -192,6 +227,6 @@ def broydeninv(func, x1, x2, tol=1e-5, maxiter=50):
         mi -= 1
     
     if mi==0:
-        raise ValueError("Did not converge in %d iterations" % maxiter)
+        raise StopIteration("Did not converge in {} iterations".format(maxiter))
     else:
         return x2, maxiter-mi
