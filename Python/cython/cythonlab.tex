@@ -1,18 +1,18 @@
 \lab{Python}{Computing with Cython}{Cython}
 \label{lab:Cython}
-\objective{Learn the basics of using Cython to speed up heavy computation}
+\objective{Learn the basics of using Cython to speed up heavy computation.}
 
 Python is an interpreted language where everything is an object.
 There are objects that represent integers, floats, string, etc.
-This abstraction helps Python run a multitude of different platforms.
+This abstraction helps Python run on a multitude of different platforms.
 These objects are generally fast and incur little overhead for small computations.
-When we are doing lots of heavy computation, removing the overhead of these Python objects can speed up programs significantly.
+However, when we are doing lots of heavy computation, removing the overhead of these Python objects can speed up programs significantly.
 There are a variety of ways to do this.
-Writing and wrapping C that are designed to work with Python objects is one good way of speeding up heavy computation.
+Writing and wrapping C code that is designed to work with Python objects is one good way of speeding up heavy computation.
 It is often easier to use Cython.
 
 Cython is an optimizing static compiler for Python.  It removes the need to write and wrap your own C code in Python.
-It is a superset of the Python language that allows you to call C functions and declare C types.
+It is a superset of the Python language that allows you to call C and Python functions and declare types.
 Cython then produces highly optimized C code from the Python source code and additional type declarations.
 Cython is especially useful for doing large amounts of repetitive calculation, especially when that calculation involves the same data types each time.
 Since Cython outputs C code, you can easily call any C function from any point in your Python program.
@@ -20,7 +20,7 @@ Since Cython outputs C code, you can easily call any C function from any point i
 Cython has a more complex compilation process than Python and is not usually run interactively.
 Cython code is usually written in a \texttt{.pyx} file that Cython then translates to C.
 The generated C code can then be compiled by all major C/C++ compilers.
-The resulting executable is a Python C extension that can be imported from the Python interpreter.
+The resulting executable is a Python extension that can be imported from the Python interpreter.
 Many of the same builtin features, datatypes, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython based program.
 Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
 Regardless of what method you use to compile a Cython file, this is more or less what is done.
@@ -41,14 +41,14 @@ In Sage, the cell magic is just \li{\%cython}.
 In the IPython notebook, you must first load the extension with \li{\%load_ext cythonmagic}.
 Then the first line of any cell containing Cython code should be \li{\%\%cython}.
 More instructions on how to use IPython's Cython magic and other related magic functions can be found in the IPython documentation.
-Cython also comes with a Python module \li{pyximport} that will automatically generate, compile, and import most Cython files.
+Cython also comes with a Python module, \li{pyximport}, that will automatically generate, compile, and import most Cython files.
 \begin{lstlisting}
 import pyximport
 pyximport.install()
 \end{lstlisting}
 You can now import most Cython files as though they were Python files.
 
-\section*{Typed For Loops}
+\section*{Typed for-loops}
 Typed for-loops are one of the simplest and most useful features in Cython.
 In Python, you can iterate over a list, or use a generator object.
 In C, for-loops are managed by indexing an integer and checking to see if it is within a range of allowed values.
@@ -66,7 +66,7 @@ We can improve on this by using the \li{xrange} function as follows:
 for i in xrange(1000000):
     pass
 \end{lstlisting}
-This skips making the list and makes a generator object which returns the values of i as we need them.
+This skips making the list and makes a generator object which returns the values as we need them.
 For large lists, this can give us a speedup of a factor of 3 or 4 times.
 Because of this, the \li{range} function in Python 3 was changed to behave as the \li{xrange} function of Python 2.
 However, \li{xrange} still generates a sequence of Python integers.
@@ -89,7 +89,7 @@ Adding types unnecessarily may not actually result in an increase in performance
 Statements using \li{cdef} are also not allowed inside loops, so you will have to declare all the variables you need before you use them.
 
 \section*{Optimized Array Access}
-Often we want to iterate over large arrays very quickly.
+Often, we want to iterate over large arrays very quickly.
 In Python, the \li{__getitem__} method (i.e. array access using \li{[ ]}) of NumPy arrays is written for Python and includes the corresponding overhead.
 As before, we would like to get around the extra cost involved with Python objects.
 There are several ways this can be done.
@@ -100,23 +100,23 @@ A typed NumPy array can be declared like this:
 \begin{lstlisting}
 cimport numpy as np
 ...
-cdef np.ndarray[dtype=np.double, ndim=2] X = ...
+cdef np.ndarray[dtype=double, ndim=2] X = ...
 \end{lstlisting}
-You can also specify more about the memory layout of the array using the additional argument \li{mode} to specify whether the array is C-contiguous, Fortran-contiguous, full, or strided (some of what this means will be explained later).
-The corresponding options are `c', `fortran', `full', or `strided'.
+You can also specify more about the memory layout of the array using the additional argument \li{mode} to specify whether the array is C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
+Some of these modes will be explained later.
 The syntax to declare arrays like this is:
 \begin{lstlisting}
 cimport numpy as np
 ...
 #C-contiguous
-cdef np.ndarray[dtype=np.double, ndim=2, mode='c'] X = ...
+cdef np.ndarray[dtype=double, ndim=2, mode=`c'] X = ...
 \end{lstlisting}
 Declaring our arrays like this allows us to access individual items in a NumPy array at roughly the same speed we could access items in a C array.
 We get all the convenience of using a NumPy array and can still use the different array operations, but we also get to access single items in the array more quickly.
 The catch is that this fast array access only works when we are accessing the array \textit{one item at a time}.
 Generally we can get around the slicing, but if we need to pass around NumPy array slices between the functions in the module, there can be a significant speed loss (these array slices are Python objects).
 Cython has a \li{memoryview} object designed for this.
-Memory views support the same fast indexing as the NumPy arrays, and allow creating array slices at roughly the same speed as NumPy arrays.
+Memory views support the same fast indexing as the NumPy arrays, and allow creating optimized array slices.
 The main improvement is that slices of memory views continue to support the optimized buffer access, while slices of NumPy arrays do not.
 %% I'll demostrate this in the solutions
 Memory views are good for when you need to pass array slices between functions in your module.
@@ -128,16 +128,16 @@ If you need to use NumPy array functions and pass memory views between functions
 If for some reason you need to convert a memory view to a NumPy array, you can use the \li{np.asarray} function, but that, as always, comes at a cost.
 The syntax to use when declaring a memory view of an array \li{X} is:
 \begin{lstlisting}
-cdef np.double[:,:] Xview = X
+cdef double[:,:] Xview = X
 \end{lstlisting}
 If we know more about the memory layout of \li{X} we can also add that to the type declaration.
-If we know that \li{X} is C-contiguous (which is normal for a newly initialized NumPy array) the following works:
+If we know that \li{X} is C-contiguous (which is normally true for a newly initialized NumPy array) the following works:
 \begin{lstlisting}
-cdef np.double[:,::1] Xview = X
+cdef double[:,::1] Xview = X
 \end{lstlisting}
 If the array is Fortran-contiguous we would use the following:
 \begin{lstlisting}
-cdef np.double[::1,:] Xview = X
+cdef double[::1,:] Xview = X
 \end{lstlisting}
 An array is said to be C contiguous if rows are stored in contiguous blocks of memory.
 This means that, in memory, a value is adjacent to adjacent values in the row of the array.
@@ -170,7 +170,7 @@ cimport cython
 @cython.wraparound(False)
 \end{lstlisting}
 When using these compiler directives, you must be \emph{absolutely certain} that you are \emph{not} using negative indices or accessing any array out of bounds.
-Doing so could acces and possibly modify some portion of memory that has not been allocated as part of an array.
+Doing so could access and possibly modify some portion of memory that has not been allocated as part of an array.
 That can cause all kinds of trouble.
 It is usually best to only include these directives after you have finished debugging your program.
 
@@ -214,9 +214,8 @@ The other will be a Python wrapper for the C function.
 The Python-accessible function will accept all the same arguments and return the same value, but it will be callable from Python.
 
 \section*{Some Examples}
-
 To illustrate how to use Cython we will take the dot product of two one-dimensional arrays.
-this would be done in Python like this:
+This would be done in Python like this:
 \begin{lstlisting}
 def pydot(A, B):
     tot = 0.
