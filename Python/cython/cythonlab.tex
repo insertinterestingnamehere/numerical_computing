@@ -1,31 +1,41 @@
 \lab{Python}{Computing with Cython}{Cython}
 \label{lab:Cython}
-\objective{Learn the basics of using Cython to speed up heavy computation.}
+\objective{Use Cython when needed to avoid the overhead of some parts of the Python language.
+Cython allows for large, time-consuming calculations to be done quickly and near effortlessly in Python.}
 
-Python is an interpreted language where everything is an object.
-There are objects that represent integers, floats, string, etc.
-This abstraction helps Python run on a multitude of different platforms.
-These objects are generally fast and incur little overhead for small computations.
-However, when we are doing lots of heavy computation, removing the overhead of these Python objects can speed up programs significantly.
-There are a variety of ways to do this.
-Writing and wrapping C code that is designed to work with Python objects is one good way of speeding up heavy computation.
-It is often easier to use Cython.
+For small computations, Python is reasonably fast for computing the solutions to problems.
+However, for large computations, Python quickly becomes unable to solve anything in a reasonable amount of time.
+You might ask, why use Python at all if it's so slow?
+The answer lies in the amount of time to write the code.
+Low-level languages like C are renowned for their speed.  These languages are compiled to machine code that can run directly on a computer's processor.
+When a C program adds two numbers together, we have to be very specific about what two numbers are added together.
+The computer can understand basic data types such as integers, floats, and arrays.
+Python represents each of these data types using its own objects.
+These are objects are generally fast and we don't notice much the incurred overhead.
+Over large calculations, the overhead of these objects is compounded and can slow things down tremendously.
+In these cases, we need to be able to access the machine-level data types for integers, floats, and strings for maximum efficiency.
+A common way of doing this is to write slower portions of the code in a lower-level, compiled language.
+This is usually accomplished by writing a C-extension for Python.
+A C-extension is a module that can be used like a Python module, but is written in C.
+This enables performance critical code to be executed as fast as possible in a Python environment.
+Writing these C-extensions can often be tedious work.
 
-Cython is an optimizing static compiler for Python.  It removes the need to write and wrap your own C code in Python.
-It is a superset of the Python language that allows you to call C and Python functions and declare types.
-Cython then produces highly optimized C code from the Python source code and additional type declarations.
+Cython is an optimizing static compiler that accepts both Python and Cython (an extended syntax of Python).
+It automates the process of writing a Python C-extension and simplifies to the difficulty of writing Python code.
+Cython is a superset of the Python language that enables you to call C functions and declare C types on Python variables.
+The additional type declarations of Cython allow it to generate highly optmized C code that will compile with all major C/C++ compilers.
 Cython is especially useful for doing large amounts of repetitive calculation, especially when that calculation involves the same data types each time.
 Since Cython outputs C code, you can easily call any C function from any point in your Python program.
 
 Cython has a more complex compilation process than Python and is not usually run interactively.
-Cython code is usually written in a \texttt{.pyx} file that Cython then translates to C.
-The generated C code can then be compiled by all major C/C++ compilers.
+Cython code is usually written in a \texttt{.pyx} file that Cython then translates to a Python C-extension.
 The resulting executable is a Python extension that can be imported from the Python interpreter.
-Many of the same builtin features, datatypes, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython based program.
+Many of the same built in features, data types, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython program.
 Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
-Regardless of what method you use to compile a Cython file, this is more or less what is done.
+Regardless of what method you use to compile a Cython file, this is more or less how it works.
 
 \begin{figure}
+\centering
 \includegraphics[width=\textwidth]{compilation.pdf}
 \caption{A diagram of how Cython compilation and calls to Cython functions work.
 The path from using a Cython function in a Python file to the actual evaluation is shown in red.}
@@ -37,7 +47,7 @@ The standard way is to make a Python file that builds the C extension module in 
 If your module needs some sort of a complex compilation step, you will need to do it this way.
 Instructions on how to do this can be found \url{http://docs.cython.org/src/reference/compilation.html}.
 The Sage and IPython notebooks have seamless integrations with Cython via cell magic extensions.
-In Sage, the cell magic is just \li{\%cython}.
+In Sage, the cell magic is \li{\%cython}.
 In the IPython notebook, you must first load the extension with \li{\%load_ext cythonmagic}.
 Then the first line of any cell containing Cython code should be \li{\%\%cython}.
 More instructions on how to use IPython's Cython magic and other related magic functions can be found in the IPython documentation.
@@ -46,7 +56,6 @@ Cython also comes with a Python module, \li{pyximport}, that will automatically 
 import pyximport
 pyximport.install()
 \end{lstlisting}
-You can now import most Cython files as though they were Python files.
 
 \section*{Typed for-loops}
 Typed for-loops are one of the simplest and most useful features in Cython.
@@ -102,7 +111,7 @@ cimport numpy as np
 ...
 cdef np.ndarray[dtype=double, ndim=2] X = ...
 \end{lstlisting}
-You can also specify more about the memory layout of the array using the additional argument \li{mode} to specify whether the array is C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
+You can also use an additional argument, \li{mode}, to specify if the array is to be C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
 Some of these modes will be explained later.
 The syntax to declare arrays like this is:
 \begin{lstlisting}
