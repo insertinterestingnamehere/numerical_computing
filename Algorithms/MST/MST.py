@@ -2,6 +2,9 @@ import numpy as np
 from operator import itemgetter
 
 def kruskal(edges):
+	# Note: the comments here match the pseudocode in the lab.
+	# Please keep this in mind when making any changes.
+	#
     # Initialize an empty list of edges for the MST.
     tree = []
     # Make a dictionary that points each node
@@ -48,6 +51,9 @@ def kruskal(edges):
             nodes[remove] = root
 
 def prim(edges):
+	# Note: the comments here match the pseudocode in the lab.
+	# Please keep this in mind when making any changes.
+	#
     # Initialize a dictionary to track which nodes have been processed.
     nodes = {node:True for node in {edge[0] for edge in edges} | {edge[1] for edge in edges}}
     # Initialize an empty dictionary of lists to track the edges containing each node.
