@@ -108,10 +108,10 @@ Function & Description \\
 \end{table}
 Type the following into IPython.
 \begin{lstlisting}
-: from scipy import sparse
-: A = np.diagflat([2,3,4])
-: B = sparse.csc_matrix(A)
-: C = B.todense()
+>>> from scipy import sparse
+>>> A = np.diagflat([2,3,4])
+>>> B = sparse.csc_matrix(A)
+>>> C = B.todense()
 \end{lstlisting}
 Notice that the matrix $A$ has only three non-zero entries, and so we can consider it sparse. 
 In memory, an array stores a bit of data (be it an integer, float, or complex number)
@@ -126,7 +126,7 @@ We remark that if you want to make a sparse diagonal matrix, the
 best way to do it isn't to use \li{diagflat()} followed by \li{sparse},
 it's actually better to use the \li{sparse.spdiags()} method:
 \begin{lstlisting}
-: sparse.spdiags([2,3,4],0,3,3)
+>>> sparse.spdiags([2,3,4],0,3,3)
 \end{lstlisting}
 Often, when we are using sparse matrices, we are dealing with matrices 
 that are too large to be handled efficiently when represented in full form.
@@ -148,27 +148,27 @@ particular type of banded matrix is called a tri-diagonal matrix.
 You can easily create banded matrices using the \li{diagflat()} method.
 For example, the matrix $A$ above can be created by entering
 \begin{lstlisting}
-: np.diagflat([3, 6, 9], -1) + np.diagflat([1, 4, 7, 10], 0) + np.diagflat([2, 5, 8], 1)
+>>> np.diagflat([3, 6, 9], -1) + np.diagflat([1, 4, 7, 10], 0) + np.diagflat([2, 5, 8], 1)
 \end{lstlisting}
 
 Often a better way to create a tri-diagonal is it use the \li{sparse.spdiags()} method. 
 This is because many diagonal matrices are sparse. 
 For example, we create the same matrix in Python (while designating that it is sparse) using the command:
 \begin{lstlisting}
-: Z = np.array([[3, 1, 0], [6, 4, 2], [9, 7, 5], [0, 10, 8]]).T
-: sparse.spdiags(Z, [-1, 0, 1], 4, 4)
+>>> Z = np.array([[3, 1, 0], [6, 4, 2], [9, 7, 5], [0, 10, 8]]).T
+>>> sparse.spdiags(Z, [-1, 0, 1], 4, 4)
 \end{lstlisting}
 
 For more information, check the documentation by typing \li{spar.spdiags?}. 
 For example we create a tri-diagonal array with uniformly distributed random entries. 
 This example also demonstrates the efficiency of using sparse arrays.
 \begin{lstlisting}
-: B = np.rand(3,10000)
-: A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
-: denseA = A.todense()  #only do this step if you have _lots_ of memory!
-: A.data.nbytes
+>>> B = np.rand(3,10000)
+>>> A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
+>>> denseA = A.todense()  #only do this step if you have _lots_ of memory!
+>>> A.data.nbytes
 240000          #about 0.24MB of memory
-: denseA.nbytes
+>>> denseA.nbytes
 800000000       #about 762.9MB of memory!
 \end{lstlisting}
 We can't use the \li{full} command in this case because the computer will almost 
@@ -215,13 +215,13 @@ fit into the computer's RAM.  Furthermore, the temporal complexity for solving
 a tri-diagonal matrix is $O(n)$. Let's see how long it takes to
 solve the system for random data:
 \begin{lstlisting}
-: from scipy.sparse import linalg as sparla
-: D = sp.rand(3, 100000)
-: b = sp.rand(1, 100000)
-: A = spar.spdiags(D,[-1,0,1],100000,100000)
-: def solSys():
-:     return sparla.spsolve(A,b)
-: %timeit solSys()
+>>> from scipy.sparse import linalg as sparla
+>>> D = sp.rand(3, 100000)
+>>> b = sp.rand(1, 100000)
+>>> A = spar.spdiags(D,[-1,0,1],100000,100000)
+>>> def solSys():
+>>>     return sparla.spsolve(A,b)
+>>> %timeit solSys()
 \end{lstlisting}
 
 \begin{problem}
@@ -266,11 +266,11 @@ nonzero entries is relatively small compared to the total number of entries.
 When the matrix has many nonzero entries, a sparse representation becomes disadvantageous. 
 To see this, create and execute a script with the following code:
 \begin{lstlisting}
-: A = np.random.rand(600,600); B = spar.csc_matrix(A)
-: def square(A): return sp.power(A, 2)
-: with timer() as t:
-:     t.time(square, A)
-:     t.time(square, B)
+>>> A = np.random.rand(600,600); B = spar.csc_matrix(A)
+>>> def square(A): return sp.power(A, 2)
+>>> with timer() as t:
+>>>     t.time(square, A)
+>>>     t.time(square, B)
 \end{lstlisting}
 Run the script and note the two different runtimes. 
 Notice that it takes much longer to square the sparse matrix.
@@ -288,12 +288,12 @@ The most efficient sparse matrix for pre-allocation is LIL.
 Once you are done constructing you sparse matrix and wish to perform calculations, 
 you should convert to a more efficient sparse matrix (CSR or CSC).
 \begin{lstlisting}
-: Z = spar.lil_matrix((400,300))
+>>> Z = spar.lil_matrix((400,300))
 <400x300 sparse matrix of type '<type 'numpy.float64'>'
         with 0 stored elements in LInked List format>
-: Z[1,34] = 23
-: Z[23,32] = 56
-: Z[2,:] = 13.2
+>>> Z[1,34] = 23
+>>> Z[23,32] = 56
+>>> Z[2,:] = 13.2
 \end{lstlisting}
 This code snippet creates a $400 \times 300$ LIL sparse matrix. 
 We can then work with the sparse matrix as though it were a dense array. 
