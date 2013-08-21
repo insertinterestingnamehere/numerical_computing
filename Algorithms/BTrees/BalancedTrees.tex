@@ -122,10 +122,56 @@ Doing splits like this can affect the insertion performance of the tree.
 One alternative method is to split any node close to full as traverse the tree on insertion.  This causes many unnecessary splits, but avoids some costly re-balancing after insertion.
 
 We can also remove a key from a leaf trivially as long as number of keys is more than then minimum allowed per node.
-If the value we remove is not in a leaf node, we cannot simply remove it since it serves as the median for two child nodes.
-We have to choose a new median key from either the right subnode or the left subnode of the median key.  We move the new median to replace the removed key.  If the child node that the new median came from underflows (has less than the minimum keys per node), we 
+There are many different cases for removing a key.
+They can all, however, be reduced to a single case (case \ref{enum:case1}).
+The cases to consider are:
+\begin{enumerate}
+\item \label{enum:case1} Remove from a leaf node
+\item \label{enum:case2} Remove from internal node
+\begin{enumerate}
+\item \label{enum:case2a} Remove with key re-ordering
+\item \label{enum:case2b} Remove with node joining
+\end{enumerate}
+\end{enumerate}
+
+Case \ref{enum:case2a} reduces to removing from an internal leaf node
+when a key can be promoted from a leaf node to replace the key we are removing.
+If we remove a key and the node underflows (has fewer than the minimum allowed keys), we have to do one of two things.  If possible, we borrow a key from an adjacent sibling node.
+This is done by bringing down the median key and promoting the first key of the adjacent node to be the new median key.
+We can do this only if the sibling node will not underflow as a result.  If underflow will happen, we have to join nodes.
+To join nodes, we combine the keys of one node with that of another, adjacent, node and also demote the median key separating the two nodes in the parent.  The new node will contain the keys of child node $a$, the median key, and the keys from child node $b$.
 
 \begin{problem}
-% TODO: we should probably have ready made trees for them to insert, remove, and find keys.
 Illustrate the insert, remove, and find methods for a B-Tree.  You do not have to implement them in Python.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.5\textwidth]{3.png} \\
+Insert 12
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{8.png}
+Insert 18
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{10.png}
+Remove 19
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{11.png}
+Remove 17
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{12.png}
+Remove 4
+\end{figure}
+
 \end{problem}
