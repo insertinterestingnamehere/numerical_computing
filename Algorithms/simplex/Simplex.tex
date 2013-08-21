@@ -6,7 +6,7 @@
 In this lab you will write your own implementation of the Simplex method for solving linear optimization problems.
 Your function should have the following signature
 \begin{lstlisting}
-: x,fval,exit = linprog(c, A, b)
+>>> x,fval,exit = linprog(c, A, b)
 \end{lstlisting}
 The function should solve the linear program
 
@@ -36,11 +36,11 @@ Here are some of the functions you might want to use.
 \emph{Tableau} will refer to the Simplex tableau in this lab to avoid confusion with a Python dictionary and will be represented by {\tt T}  in the code.
 
 \begin{lstlisting}
-: T = createtableau(c,A,b)
-: exit = isfeasible(T)
-: exit = simplex(T)
-: i,j,exit = choosepivot(T)
-: pivot(T,i,j)
+>>> T = createtableau(c,A,b)
+>>> exit = isfeasible(T)
+>>> exit = simplex(T)
+>>> i,j,exit = choosepivot(T)
+>>> pivot(T,i,j)
 \end{lstlisting}
 
 By breaking the program into so many functions, the entire program is only about 150 lines, including comments.
@@ -49,12 +49,12 @@ The {\tt simplex} function is just a few lines:
 TODO: put elsewhere?
 
 \begin{lstlisting}
-: def simplex(T):
-:    # choose the first pivot: this sets exit to 1 if finished or 3 if unbounded
-:    i, j, exit = choosepivot(T)
-:    while exit == 0:
-:        pivot(T,i,j)
-:        i, j, exit = choosepivot(T)
+>>> def simplex(T):
+>>>    # choose the first pivot: this sets exit to 1 if finished or 3 if unbounded
+>>>    i, j, exit = choosepivot(T)
+>>>    while exit == 0:
+>>>        pivot(T,i,j)
+>>>        i, j, exit = choosepivot(T)
 \end{lstlisting}
 The {\tt linprog} function is also pretty short, since it just calls other functions and then gets the return value.
 
@@ -122,11 +122,11 @@ where $I_n$ is an $n \times n$ identity matrix.
 Therefore, your {\tt createtableau} function might include code like the following
 
 \begin{lstlisting}
-: m,n = A.shape
-: s = m + n + 1;    % number of variables + number of constraints + 1
-: T = numpy.zeros((s,s))
-: T[0, 1:n+1] = c.T
-: T[s-n-1:s, 0] = b.squeeze()
+>>> m,n = A.shape
+>>> s = m + n + 1;    % number of variables + number of constraints + 1
+>>> T = numpy.zeros((s,s))
+>>> T[0, 1:n+1] = c.T
+>>> T[s-n-1:s, 0] = b.squeeze()
 ...
 \end{lstlisting}
 
@@ -202,10 +202,10 @@ We also need to change the objective function to $-x_0$.
 Let's let $N$ be the matrix for the auxiliary problem.
 Then we can construct it from $T$ using the code 
 \begin{lstlisting}
-: N = zeros((s+1,s+1))
-: N[0:s,0:s] = T
-: N[n:s+1,s] = 1
-: N[0,s] = -1
+>>> N = zeros((s+1,s+1))
+>>> N[0:s,0:s] = T
+>>> N[n:s+1,s] = 1
+>>> N[0,s] = -1
 \end{lstlisting}
 
 Before you run simplex on this auxiliary tableau, make sure you do a pivot on the last column and the row corresponding to the smallest entry of $b$.

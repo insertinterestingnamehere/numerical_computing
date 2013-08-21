@@ -107,26 +107,26 @@ Cvxopt.solvers returns a dictionary with a lot of information, including slack, 
 All we really care about right now are the values of $x$ and the objective value.
 
 \begin{lstlisting}
-: from cvxopt import matrix, solvers
-: c = matrix([4., 7., 6., 8., 8., 9])
-: G = matrix([ [-1., 0., 0., 0., 0., 0.],
+>>> from cvxopt import matrix, solvers
+>>> c = matrix([4., 7., 6., 8., 8., 9])
+>>> G = matrix([ [-1., 0., 0., 0., 0., 0.],
              [0., -1., 0., 0., 0., 0.],
              [0., 0., -1., 0., 0., 0.],
              [0., 0., 0., -1., 0., 0.],
              [0., 0., 0., 0., -1., 0.],
              [0., 0., 0., 0., 0., -1.] ])
         
-: h = matrix([ 0., 0., 0., 0., 0., 0.,])
-: A = matrix([ [1., 0., 0., 1., 0.],
+>>> h = matrix([ 0., 0., 0., 0., 0., 0.,])
+>>> A = matrix([ [1., 0., 0., 1., 0.],
              [1., 0., 0., 0., 1.],
              [0., 1., 0., 1., 0.],
              [0., 1., 0., 0., 1.],
              [0., 0., 1., 1., 0.],
              [0., 0., 1., 0., 1.] ])
-: b = matrix([7., 2., 4., 5., 8]) 
-: sol = solvers.lp(c,G,h,A,b)  
-: print sol['x']
-: print sol['primal objective']
+>>> b = matrix([7., 2., 4., 5., 8]) 
+>>> sol = solvers.lp(c,G,h,A,b)  
+>>> print sol['x']
+>>> print sol['primal objective']
 \end{lstlisting}
 
 \textbf{Problem 1}
@@ -140,19 +140,19 @@ We can fix the problem by including the supply demand constraints in the $G$ mat
 Why are all of the terms in $G$ and $h$ non-positive?
 
 \begin{lstlisting}
-: from cvxopt import matrix, solvers
-: G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
+>>> from cvxopt import matrix, solvers
+>>> G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
              [-1., 0., 0., 0., -1.,  0., -1., 0., 0., 0., 0.],
              [0., -1., 0., -1., 0.,  0., 0., -1., 0., 0., 0.],
              [0., -1., 0., 0., -1.,  0., 0., 0., -1., 0., 0.],
              [0., 0., -1., -1., 0.,  0., 0., 0., 0., -1., 0.],
              [0., 0., -1., 0., -1.,  0., 0., 0., 0., 0., -1.] ])
 
-: h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
-: c = matrix([4., 7., 6., 8., 8., 9])
-: sol = solvers.lp(c,G,h)
-: print sol['x']
-: print sol['primal objective']
+>>> h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
+>>> c = matrix([4., 7., 6., 8., 8., 9])
+>>> sol = solvers.lp(c,G,h)
+>>> print sol['x']
+>>> print sol['primal objective']
 \end{lstlisting}
 
 Another method is to use an integer linear program.
@@ -165,41 +165,41 @@ glpk.ilp returns a tuple.
 The first entry describes the optimality of the result, while the second gives the $x$ values.
 
 \begin{lstlisting}
-: from cvxopt import matrix, solvers, glpk
-: G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
+>>> from cvxopt import matrix, solvers, glpk
+>>> G = matrix([ [-1., 0., 0., -1., 0.,  -1., 0., 0., 0., 0., 0.],
              [-1., 0., 0., 0., -1.,  0., -1., 0., 0., 0., 0.],
              [0., -1., 0., -1., 0.,  0., 0., -1., 0., 0., 0.],
              [0., -1., 0., 0., -1.,  0., 0., 0., -1., 0., 0.],
              [0., 0., -1., -1., 0.,  0., 0., 0., 0., -1., 0.],
              [0., 0., -1., 0., -1.,  0., 0., 0., 0., 0., -1.] ])
 
-: h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
-: o = matrix([4., 7., 6., 8., 8., 9])
-: sol = glpk.ilp(o,G,h)
-: print sol[1]
+>>> h = matrix([-7., -2., -4., -5., -8.,  0., 0., 0., 0., 0., 0.,])
+>>> o = matrix([4., 7., 6., 8., 8., 9])
+>>> sol = glpk.ilp(o,G,h)
+>>> print sol[1]
 \end{lstlisting} 
 
 or 
 \begin{lstlisting}
-: from cvxopt import matrix, solvers, glpk
-: G = matrix([ [-1., 0., 0., 0., 0., 0.],
+>>> from cvxopt import matrix, solvers, glpk
+>>> G = matrix([ [-1., 0., 0., 0., 0., 0.],
              [0., -1., 0., 0., 0., 0.],
              [0., 0., -1., 0., 0., 0.],
              [0., 0., 0., -1., 0., 0.],
              [0., 0., 0., 0., -1., 0.],
              [0., 0., 0., 0., 0., -1.] ])
 
-: h = matrix([ 0., 0., 0., 0., 0., 0.,])
-: o = matrix([4., 7., 6., 8., 8., 9])
-: A = matrix([ [1., 0., 0., 1., 0.],
+>>> h = matrix([ 0., 0., 0., 0., 0., 0.,])
+>>> o = matrix([4., 7., 6., 8., 8., 9])
+>>> A = matrix([ [1., 0., 0., 1., 0.],
              [1., 0., 0., 0., 1.],
              [0., 1., 0., 1., 0.],
              [0., 1., 0., 0., 1.],
              [0., 0., 1., 1., 0.],
              [0., 0., 1., 0., 1.] ])
-: b = matrix([7., 2., 4., 5., 8])
-: sol = glpk.ilp(o,G,h,A,b)
-: print sol[1]
+>>> b = matrix([7., 2., 4., 5., 8])
+>>> sol = glpk.ilp(o,G,h,A,b)
+>>> print sol[1]
 \end{lstlisting} 
 
 \textbf{Problem 2}
@@ -227,13 +227,13 @@ Find the minimum of
 f(x,y) = 2x^2 +2xy + y^2 +x -y
 \end{equation}
 \begin{lstlisting}
-: Q = matrix([ [4., 2.], [2., 2.] ])
-: p = matrix([1., -1.])
-: G = matrix([[1., 0.], [0., -1.]])
-: h = matrix([0.,0.])
-: sol=solvers.qp(Q, p, G, h)
-: print(sol['x'])
-: print sol['primal objective']
+>>> Q = matrix([ [4., 2.], [2., 2.] ])
+>>> p = matrix([1., -1.])
+>>> G = matrix([[1., 0.], [0., -1.]])
+>>> h = matrix([0.,0.])
+>>> sol=solvers.qp(Q, p, G, h)
+>>> print(sol['x'])
+>>> print sol['primal objective']
 \end{lstlisting}
 
 \textbf{Problem 4}

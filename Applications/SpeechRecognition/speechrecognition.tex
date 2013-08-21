@@ -13,9 +13,9 @@ To record audio from the command line and save it as \texttt{test.wav} in your c
 \texttt{arecord -f S16\_LE --rate=44100 -D hw:1,0 -d 2 test.wav}
 This will record the audio from your USB microphone for $2$ seconds, sampling at a rate of $44100$ samples per second, saving the samples as signed $16$-bit numbers at the file name \texttt{test.wav}. We can read the wav file into python with the \li{scipy.io.wavfile} module:
 \begin{lstlisting}
-: import numpy as np
-: import scipy.io.wavfile as wavfile
-: sample = wavfile.read("test.wav")[1]
+>>> import numpy as np
+>>> import scipy.io.wavfile as wavfile
+>>> sample = wavfile.read("test.wav")[1]
 \end{lstlisting}
 
 The object \li{sample} will be a vector of integers of length $88200 = 44100*2$. This in and of itself is not very useful. We must transform the data in a series of steps before it will be useful. We must first break the sample into \emph{frames}, each of some small length ($30$ ms). We will overlap these frames to smooth out these cutoff areas. In short, each frame will overlap with the previous by $20$ ms. Doing so with a $2$ second sample yields $198$ frames, each frame containing $1323$ values from the original sample, overlapping $882$ values with each sample immediately preceding and following it. We let $f_{n}$ denote the $n^{\text{th}}$ entry of the frame $f$.
@@ -46,8 +46,8 @@ If we want $40$ bins where the length of our padded frames is $2048$, then we ca
 
 Normally we do this for all desired frames, storing each vector of MFCCs as a row in an array, after which we normalize by subtracting the mean of the MFCC rows, and divide by the standard deviations. We have provided you with code that allows you to compute these MFCCs quickly:
 \begin{lstlisting}
-: import MFCC
-: mfccs = MFCC.extract(sample)
+>>> import MFCC
+>>> mfccs = MFCC.extract(sample)
 \end{lstlisting}
 
 \begin{problem}
@@ -62,12 +62,12 @@ Write a function that initializes the initial state distribution and transition 
 
 Let \li{samples} be a list of arrays, where each row in each array is a set of MFCCs corresponding to a frame in a sample for a given word. Using a function \li{initialize()} that returns a random initial state distribution and transition matrix, we will show how to train a GMMHMM with $5$ states, each having an output distribution as a GMM with $3$ mixture components. We also look at the log-likelihood of the data, given the trained model.
 \begin{lstlisting}
-: import gmmhmm
-: startprob, transmat = initialize(5)
-: model = gmmhmm.GMMHMM(n_components=5, n_mix=3, transmat=transmat, startprob=startprob, cvtype='diag')
-: model.covars_prior = 0.01
-: model.fit(samples, init_params='mc', var=0.1)
-: print model.logprob
+>>> import gmmhmm
+>>> startprob, transmat = initialize(5)
+>>> model = gmmhmm.GMMHMM(n_components=5, n_mix=3, transmat=transmat, startprob=startprob, cvtype='diag')
+>>> model.covars_prior = 0.01
+>>> model.fit(samples, init_params='mc', var=0.1)
+>>> print model.logprob
 \end{lstlisting}
 
 \begin{problem}
@@ -76,7 +76,7 @@ Train a GMMHMM on each of the words you previously recorded with at least $10$ r
 
 Given a trained model, we would like to compute the log-likelihood of a new sample. Letting \li{obs} be an array, each row of which is a set of MFCCs for a frame in a sample, we do this as follows:
 \begin{lstlisting}
-: score = model.score(obs)
+>>> score = model.score(obs)
 \end{lstlisting}
 
 \begin{problem}
