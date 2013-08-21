@@ -6,7 +6,7 @@ Their worst case complexity of $O(\log n)$ for inserting, deleting, and searchin
 In most cases, a simple binary search tree is sufficient.
 However, there are cases when we lose all the benefits of a binary search tree.
 One example is adding already sorted or nearly sorted data to a binary search tree.
-This results in a degnerate BST that performs no better than a linked list!
+This results in a degenerate BST that performs no better than a linked list!
 Another problem is adding more levels to the tree than is necessary.
 The more levels a tree has, the less performant it becomes.  If we could somehow fill a level or make it as close to full as possible, we can minimize the number of levels a a search tree has.
 
@@ -76,9 +76,56 @@ Node C becomes a child of node B and the the right subtree of B becomes the left
 \end{figure}
 
 \begin{problem}
-% TODO: Update with references to Datastructures lab.
-Subclass the BST from the Data Structures lab and add methods for balancing the BST.
-You will also need to override the insert and remove methods from the BST because an AVL tree must be rebalanced on each insert or removal.
+Subclass the BST from lab \ref{lab:Python_DataStructures} and add methods for balancing the BST.
+You will also need to override the insert and remove methods from the BST because an AVL tree must be re-balanced on each insert or removal.
 \end{problem}
 
 \section*{Balanced Trees}
+An AVL tree is an improvement over the ordinary BST because the tree is kept in an optimal shape.
+There is, however, an even better improvement that can be made.
+B-Trees are a very efficient form of balanced tree.
+What makes them efficient?  B-Trees relax the requirement of only two children per node.
+Balancing a B-Tree is also much simpler than balancing an AVL tree.
+Balance is achieved when all leaf nodes are at the same depth.
+Instead of using rotations to balance the tree, the B-Tree uses splitting and joining of nodes to maintain balance.
+
+\subsection*{Structure of a B-Tree}
+B-Trees are efficient due to their extreme branching.  It is common for B-Trees to hundreds, maybe even thousands of branches.
+This extreme branching per node reduces the overall height of the tree considerably.
+The number of keys that a single B-Tree can hold grows exponentially with each new level of the tree.  A B-Tree of depth, $d$, and order $n$ (meaning each node can have at most $n$ keys) can store a maximum of $n^{d} - 1$ keys.  For example, a B-Tree of order 100 and depth 3 can store 999999 keys.  Adding a new level increases the total capacity one hundred fold, or 99999999 keys!
+In a B+Tree, the actual data of the tree is stored only in the bottom most nodes, or leaf nodes.  All other nodes in the tree are index nodes.
+
+Unlike binary tree, B-Trees are built from the bottom up (starting with a single leaf node).  As more leaves are added, the root changes from a leaf node to an index node.  
+
+\begin{problem}
+Verify that the maximum number of keys that a B-Tree of order $n$ and depth $d$ is $n^{d}-1$.
+What is the maximum number of keys an AVL tree of depth $d$ can store?
+
+Suppose a disk seek time is $.15$ms and we have an AVL tree and B-Tree stored on disk.  The B-Tree is order 50.
+Predict the time required to access a leaf of the AVL tree.  The B-Tree?
+It is for this reason that B-Trees are great for on-disk storage.  B-Trees are used in a variety of settings including databases and filesystems.
+\end{problem}
+
+\subsection*{Insertion and Deletion Methods of a B-Tree}
+A B-Tree is balanced when all leaf nodes are on the same level.
+The AVL rotations do work in balancing a B-Tree.
+Instead balance is achieved and maintained by splitting and joining nodes during the insertion and removal of keys.
+If the node is not full, inserting a new key is trivial.
+We insert the key in sorted order into a leaf node.
+Splitting is done when a node is full.  To make room for more keys, we have to split the full node into two nodes, each of which is only half full.
+To split a node, we find a median key. 
+All keys less than the median are moved a node and all keys greater than the median are moved to the other node.  
+The median key is moved to the parent node and the node pointers in the parent node are updated with the newly created nodes.
+However, moving the median to the parent node could cause the parent node to be split.  This process is repeated all the way to the root node.
+If the root node needs to be split, a new root node is created and the old root node becomes a child node.  This is how the tree grows.
+Doing splits like this can affect the insertion performance of the tree.
+One alternative method is to split any node close to full as traverse the tree on insertion.  This causes many unnecessary splits, but avoids some costly re-balancing after insertion.
+
+We can also remove a key from a leaf trivially as long as number of keys is more than then minimum allowed per node.
+If the value we remove is not in a leaf node, we cannot simply remove it since it serves as the median for two child nodes.
+We have to choose a new median key from either the right subnode or the left subnode of the median key.  We move the new median to replace the removed key.  If the child node that the new median came from underflows (has less than the minimum keys per node), we 
+
+\begin{problem}
+% TODO: we should probably have ready made trees for them to insert, remove, and find keys.
+Illustrate the insert, remove, and find methods for a B-Tree.  You do not have to implement them in Python.
+\end{problem}
