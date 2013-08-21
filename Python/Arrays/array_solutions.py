@@ -70,6 +70,11 @@ def laplace(U, tol):
         U[:] = new
 
 
+def prob5():
+    im = np.random.randint(1,256,(100,100,3))
+    b = np.array([0.5,0.5,1])
+    im_bluer = (im * b).astype(int)
+
 def broadcast_1():
     """All input arrays have exactly the same shape"""
     a = np.random.rand(4, 5)
