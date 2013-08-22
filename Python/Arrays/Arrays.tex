@@ -45,7 +45,7 @@ What do you notice about the time needed to square a two dimensional list vs. a 
 %       & $100\times100$ & 0.0009210110 \\ \cline{2-3}
 %       & $1000\times1000$ & 2.1682999134 \\ \hline
 % \end{tabular}
-% 
+%
 % \end{center}
 
 The reason for the drastic speed difference is that Python, as a high level interpreted language, tends to be slower than lower level compiled languages.
@@ -74,13 +74,12 @@ NumPy arrays are best thought of as arrays within arrays.
 A one dimensional array consists of only elements.
 A two dimensional array is really just an array containing arrays which contain elements.
 Extending this metaphor, a three dimensional array is an array of arrays of arrays.
-Can you guess what a five dimensional array is?
 Let's define a random three dimensional array.
 \begin{lstlisting}
 >>> arr = np.random.randint(50, size=(5, 4, 3))
 \end{lstlisting}
-Arrays are objects in Python.
-For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss here are also implemented as methods of \li{ndarray} objects.
+% Arrays are objects in Python.
+% For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss here are also implemented as methods of \li{ndarray} objects.
 Two simple attributes of arrays that describe the number of elements in an array are \li{shape} and \li{size}
 \li{shape} gives information about the size of the array in each dimension.
 \li{Size} gives the total number of elements in every dimension of the array.
@@ -90,27 +89,6 @@ Two simple attributes of arrays that describe the number of elements in an array
 >>> arr.size
 60
 \end{lstlisting}
-
-If we want to know how much memory an array uses to store its elements, we can use \li{arr.nbytes}.
-The number of bytes is dependent on the data type or \emph{dtype} of the array.
-The data types that NumPy uses are different from Python data types.
-An integer in NumPy is not the same as an integer Python.
-Remembering this is vital.
-NumPy uses low level data types to speed up calculations.
-However, these data types are susceptible to a problem called \emph{overflow}.
-A 64 bit integer has enough bits to represent integers between $-2^{63}$ (that's $-9,223,372,036,854,775,808$) and $2^{63} - 1$.
-If we have an array with $-2^{63}$ and we decide to subtract 1, the integer wraps around and becomes $2^{63} - 1$!  If we wish to reduce memory usage, we can use smaller integer types.
-NumPy has support for 8, 16, 32, and 64 bit integers. 
-\begin{lstlisting}
->>> arr.dtype
-dtype('int64')
->>> arr.nbytes
-480
->>> arr.astype('int32').nbytes
-240
-\end{lstlisting}
-
-Each element of the array has a unique address that describes its location.
 Indexing always starts at $0$.
 Also, like Python lists, negative indices are valid and count backwards from the end of the array.
 We will discuss indexing in more detail later in this lab.
@@ -121,16 +99,10 @@ We will discuss indexing in more detail later in this lab.
 
 \section*{Creating Arrays}
 NumPy has several functions for creating and initializing arrays.
-When creating an array, we can, optionally, specify the data type that is stored in the array.
-NumPy arrays are homogeneous, meaning that all elements in an array must have the same datatype.
-The array order dictates how the array is laid out in memory.
-Two common layouts are C order and Fortran order.
-C ordered arrays are also known as row-major arrays.
-This means that the fastest changing index corresponds to the rows of the array.
-This is because rows are stored in contiguous blocks in memory.
-Fortran ordered arrays are column-major.
-Another common way of saying this is that an array is C contiguous or Fortran contiguous.
-Not all arrays are C contiguous or Fortran contiguous, but it is useful to understand the distinction.
+When creating an array, we can, optionally, specify the data type that is stored in the 
+array.
+NumPy arrays are homogeneous, meaning that all elements in an array must have the same 
+datatype.
 Let's look at a few of the ways we can create arrays in NumPy.
 \begin{itemize}
 \item \li{np.array}: Makes an array from a Python list or tuple.
@@ -146,8 +118,15 @@ Can also be used to make a new array based on an old one, possibly with a change
 \end{itemize}
 
 \subsection*{Universal Functions (ufuncs)}
-NumPy and SciPy include a wide variety of functions that are designed to operate on arrays.
-There are simple examples like \li{sin}, \li{cos}, \li{sqrt}, \li{exp}, and \li{log} all the way to special functions like \li{polygamma} in the \li{scipy.misc} submodule.
+NumPy and SciPy include a wide variety of functions that are designed to operate on 
+arrays.
+Such functions, which take in an array and return an array of the same size and
+datatype, are called \emph{universal functions}. To illustrate this point, consider 
+the universal function \li{numpy.sin} and the standard function \li{math.sin}. If $A$ 
+is an array of floats (of any size), \li{math.sin(A)} throws an error, whereas 
+\li{numpy.sin(A)} returns an array of floats containing the sines of the entries of $A$. 
+Other simple examples from NumPy include \li{cos}, \li{sqrt}, \li{exp}, and 
+\li{log} all the way to special functions like \li{polygamma} in the \li{scipy.misc} submodule.
 There are far more functions available in NumPy than could possibly be included here, so you will want to become familiar with the NumPy and SciPy documentation at \url{docs.scipy.org/doc/}.
 If you need to do any sort of simple operation on an array, there is very often a function there to do it.
 These functions are almost always faster and more convenient than iterating through the whole array.
@@ -172,7 +151,8 @@ If, for purposes of broadcasting (discussed later) you need the output of one of
 
 \subsection*{Indexing Arrays}
 \subsubsection*{Array Views and Copies}
-Before we begin accessing arrays, it is important to understand that NumPy has two ways of slicing an array.
+Before we begin accessing arrays, it is important to understand that NumPy has two 
+ways of slicing an array.
 Slice operations always return a \emph{view} and fancy indexing always returns a \emph{copy}.
 Understand that even though they may look the same, views and copies are very different.
 
@@ -211,8 +191,11 @@ array([[  0,   1,   2,   3,   4],
        [ 15,  16,  17,  18,  19],
        [ 20,  21,  22,  23,  24]])
 \end{lstlisting}
-The reason that changing the array \li{c} also changed the array \li{b} is because \li{c} and \li{b} share the same memory, even though they are different Python objects.
-Views reduce the overhead of making copies of arrays and are useful when we want to change certain parts of the array.
+The reason that changing the array \li{c} also changed the array \li{b} is because \li{c} 
+and \li{b} contain references to the same data in memory, even though they are different 
+Python objects.
+Views reduce the overhead of making copies of arrays and are useful when we want to change 
+certain parts of the array.
 
 A copy of an array is a separate array that is allocated separately.
 An array can be copied using the \li{copy()} function.
@@ -241,12 +224,13 @@ array([[ 0,  1,  2,  3,  4],
        [15, 16, 17, 18, 19],
        [20, 21, 22, 23, 24]])
 \end{lstlisting}
-Changing the data in a copy of an array, doesn't change the data in the original array.
+Changing the data in a copy of an array does not affect the data in the original array.
 The two arrays address different locations in memory.
 
 \subsubsection*{Slices}
 Each element of an array has a unique address that we can use to retrieve that element.
-Indexing and slicing of NumPy arrays follows syntax that is similar to the syntax used with Python lists.
+Indexing and slicing of NumPy arrays follows syntax that is similar to the syntax used 
+with Python lists.
 We will demonstrate on a simple 2D array.
 Remember that slicing arrays always return a view of an array.
 \begin{lstlisting}
@@ -283,14 +267,17 @@ array([ 1,  6, 11, 16, 21])
 \end{lstlisting}
 Operations like those above are called array slicing.
 Array slices are views of portions of the data of the original array.
-They do not copy any data.
+They do not copy any data. It is vital to keep this in mind when making changes 
+to the data in array slices.
 
 \subsubsection*{Fancy Indexing}
-When the indexing object is a list or an array, NumPy behaves a little differently.
+It is possible to index an array with an object such as a list or an array, 
+but in this case NumPy behaves a little differently.
 This feature is commonly referred to as fancy indexing.
 One difference is that fancy indices always return a copy of an array instead of a view.
 There are two types of fancy indexing: boolean and integer.
-Boolean indexing returns an array of \li{True} or \li{False} values depending on some evaluating condition.
+Boolean indexing returns an array of \li{True} or \li{False} values depending on some 
+evaluating condition.
 \begin{lstlisting}
 >>> bmask = (arr > 15) & (arr < 23)
 >>> bmask
@@ -345,15 +332,23 @@ The final number should be very close to $e$.
 You may have noticed that we already used the \li{reshape()} function.
 It allows us to make a new view of our array with a desired shape.
 The new shape must make an array of the same size as the original array.
-If we need to take the transpose of an array \li{A}, we can use the transpose attribute of the array, \li{A.T}, which will give us a new view of the same array with the order of the dimensions reversed.
+If we need to take the transpose of an array \li{A}, we can use the transpose attribute 
+of the array, \li{A.T}, which will give us a new view of the same array with the order 
+of the dimensions reversed.
 The NumPy \li{transpose()} function will also do this.
-Remember that both of these methods will return views of the original array and not new arrays.
+Remember that both of these methods will return views of the original array and not new 
+arrays.
 
-The functions \li{flatten}, \li{vstack}, \li{hstack}, and \li{copy} are examples of functions that will return new arrays.
-Given a $3 \times 3$ array, \li{flatten} will return a new copy of the array with shape \li{(9,)}, \li{vstack} will return a new copy of the array with shape \li{(9,1)}, \li{hstack} will return a new copy of the array  with shape \li{(1,9)}, and \li{copy} will return an exact copy of the array.
+The functions \li{flatten}, \li{vstack}, \li{hstack}, and \li{copy} are examples of 
+functions that will return new arrays.
+Given a $3 \times 3$ array, \li{flatten} will return a new copy of the array with 
+shape \li{(9,)}. The functions \li{vstack} and \li{hstack} will return new copies of the 
+input array with possibly different shapes. See the documentation for the details. The 
+function \li{copy} simply returns an exact copy of the array. 
 
 The syntax \li{A[:]} will return a new view of \li{A} that is identical to \li{A}.
-This doesn't sound all that useful, but if you want to override the values in an array this syntax can be extremely useful.
+This doesn't sound all that useful, but if you want to override the values in an array, 
+this syntax can be extremely handy.
 For example:
 \begin{lstlisting}
 >>> import numpy as np
@@ -372,27 +367,27 @@ Why is there such a difference in speed?
 What is the difference between their output?
 What about \li{A.reshape((1,A.size))}?
 The reason \li{A.flatten()} takes longer is that it is allocating a new array in memory and copying all of the values from the input array into this new array.  In contrast, \li{A.reshape()} simply changes they way the array is read from memory by changing the shape of the array.  It doesn't touch any of the data of the array.  There are times, though, when creating a copy is desired behavior.
-
-Now let \li{A} be the an array with shape \li{(1,1000000)}.
-What is the difference in the output between \li{np.vstack(A)} and \li{A.T}?
-Which of the two is faster?
-In this case, \li{A.T} doesn't create a new array.  It simply changes the way array is read from memory while \li{np.vstack()} creates a new array and copies the values.
 \end{problem}
 
 \begin{problem}
-One good application of array slicing is the Jacobi method for solving Laplace's equation on a square.
+One good application of array slicing is the Jacobi method for solving Laplace's 
+equation, which is used to model steady-state heat flow, on a square.
 This is an example of a simple iterative method.
 In this case we will modify our array in place.
 Make a function that accepts an array and a tolerance as input and does the following:
 \begin{enumerate}
-\item Copy the array
+\item Copy the array into a new array
 \item Create a variable to track the difference between the arrays.
 Initialize it as the tolerance.
-\item While the difference is less than or equal to the tolerance
+\item While the difference is greater than or equal to the tolerance
 \begin{enumerate}
-	\item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors.
-Use the values from the old array for this computation.
-This should only take one line and should be based entirely on array slicing.
+	\item set all points that are not on an edge of the new array equal to the average of 
+    their 4 immediate neighbors.
+    Use the values from the old array for this computation.
+    This should only take one line and should be based entirely on array slicing.
+    (Hint: given a 2D array \li{A}, the slice \li{A[1:-1,1:-1]} references all non-edge 
+    entries, \li{A[:-2,1:-1]} references the left neighbors, and \li{A[1:-1,2:]} 
+    references the bottom neighbors.)
 	\item update the difference to be the maximum of the absolute value of the new array minus the old one.
 	\item copy the values from the new array into the old one (without creating a new array).
 \end{enumerate}
@@ -405,11 +400,11 @@ Now use the following code to generate a plot of your results
 >>> n = 100
 >>> tol = .0001
 >>> U = np.ones((n, n))
->>> U[:,0] = 100
->>> U[:,-1] = 100
->>> U[0] = 0
->>> U[-1] = 0
->>> laplace(U, tol)
+>>> U[:,0] = 100                        # set north boundary condition
+>>> U[:,-1] = 100                       # set south boundary condition
+>>> U[0] = 0                            # set west boundary condition
+>>> U[-1] = 0                           # set east boundary condition
+>>> laplace(U, tol)                     # U has been changed in place
 >>> X = np.linspace(0, 1, n)
 >>> Y = np.linspace(0, 1, n)
 >>> X, Y = np.meshgrid(X, Y)
@@ -426,19 +421,19 @@ Now use the following code to generate a plot of your results
 \end{problem}
 
 \section*{Array Broadcasting}
-Array broadcasting allows NumPy to work effectively with arrays of sizes that don't match exactly.
+Array broadcasting allows NumPy to work effectively with arrays of sizes that don't match 
+exactly. This can be useful in a host of different situations, and often saves both the 
+amount of typing that is necessary and the amount of memory required for computations. 
 There are four basic rules to determine the behavior of broadcasted arrays.
 \begin{enumerate}
-\item All input arrays of lesser dimension than the input array with largest dimension have 1's prepended to their shapes.
-\item The size in each dimension of the output shape is the maximum of all the input sizes in that dimension.
-\item An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has a value exactly 1.
-\item If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
-\end{enumerate}
-To broadcast arrays, at least one of the following must be true.
-\begin{enumerate}
-\item All input arrays have exactly the same shape.
-\item All input arrays are of the same dimension and the length of corresponding dimensions match or is 1.
-\item All input arrays of fewer dimension can have 1 prepended to their shapes to satisfy the second criterion.
+\item All input arrays of lesser dimension than the input array with largest dimension 
+    have 1's prepended to their shapes.
+\item The size in each dimension of the output shape is the maximum of all the input sizes 
+    in that dimension.
+\item An input can be used in the calculation if its size in a particular dimension either 
+    matches the output size in that dimension, or has a size exactly 1.
+\item If an input has a dimension size of 1 in its shape, the first data entry in that 
+    dimension will be used for all calculations along that dimension.
 \end{enumerate}
 
 One simple example is multiplying a two dimensional array by a set of numbers along its rows or columns.
@@ -469,10 +464,53 @@ Note that all three of these options create views of the previous array.
 There is no copying of data involved.
 
 \begin{problem}
-Explore array broadcasting.
-Create an example for each of the three cases where arrays are broadcasted.
-Don't use the example already given.
+Create a $100\times100\times3$ array of integers taking values in the range [0, 256] 
+(using the function \li{numpy.random.randint} with appropriate arguments). 
+Such an array can represent a RGB image of $100\times100$ pixels, where each pixel 
+is associated with an array of three integers indicating the amounts of red, green, and 
+blue color present in that pixel, respectively. Using array broadcasting, multiply the 
+red and green values by $.5$. Such an operation will tone down the red and green colors 
+and make the image appear bluer. 
 \end{problem}
+
+\section*{Arrays and Memory}
+When working with large arrays, we need to be aware of memory and performance issues that 
+arise from how the arrays are stored in memory.
+If we want to know how much memory an array uses to store its elements, we can use 
+\li{arr.nbytes}.
+The number of bytes is dependent on the data type or \emph{dtype} of the array.
+The data types that NumPy uses are different from Python data types.
+An integer in NumPy is not the same as an integer Python.
+Remembering this is vital.
+NumPy uses low level data types to speed up calculations.
+However, these data types are susceptible to a problem called \emph{overflow}.
+A 64 bit integer has enough bits to represent integers between $-2^{63}$ (that's 
+$-9,223,372,036,854,775,808$) and $2^{63} - 1$.
+If we have an array with $-2^{63}$ and we decide to subtract 1, the integer wraps around 
+and becomes $2^{63} - 1$!  If we wish to reduce memory usage, we can use smaller integer 
+types.
+NumPy has support for 8, 16, 32, and 64 bit integers.
+\begin{lstlisting}
+>>> arr.dtype
+dtype('int64')
+>>> arr.nbytes
+480
+>>> arr.astype('int32').nbytes
+240
+\end{lstlisting}
+
+Arrays can be stored in various \emph{orders} in memory, which dictate how 
+the array is laid out in memory.
+Two common layouts are C order and Fortran order.
+C ordered arrays are also known as row-major arrays.
+This means that the fastest changing index corresponds to the rows of the array.
+This is because rows are stored in contiguous blocks in memory.
+Fortran ordered arrays are column-major.
+Another common way of saying this is that an array is C contiguous or Fortran contiguous.
+Not all arrays are C contiguous or Fortran contiguous, but it is useful to understand the 
+distinction. These issues become important when you need to optimize your code to run as 
+fast as possible. 
+% we need more discussion here, with some examples as well. Why is it important to know?
 
 \section*{Saving Arrays}
 It is often useful to save an array as a file.
@@ -513,40 +551,43 @@ SciPy is a Python library that provides many easy-to-use, efficient algorithms f
 It is designed to work with NumPy arrays.
 It is therefore important to master the use of NumPy arrays.
 Many of the algorithms needed to solve problems in these lab manuals are implemented in SciPy.
-Scipy is organized into packages grouped by problem type.
+SciPy is organized into packages grouped by problem type.
 There are packages for statistics, optimization, signal processing, linear algebra, etc.
-\begin{table}[h]
-\centering
-\begin{tabular}{|l|l|}
-\hline
-cluster & Clustering package \\
-constants & Physical and mathematical constants and units \\
-fftpack & Fast Fourier transforms \\
-integrate & Integration package \\
-interpolate & Interpolation package \\
-io & Data input/output from various formats \\
-linalg & Linear algebra functions \\
-misc & Various utilities that can't be classified elsewhere \\
-ndimage & Multi-dimensional image processing \\ 
-odr & Orthogonal distance regression \\
-optimize & Optimization and root finding \\
-signal & Signal processing package \\
-sparse & Two dimensional sparse matrices \\
-sparse.linalg & Sparse matrix linear algebra functions \\
-sparse.csgraph & Fast graph algorithms based on sparse matrices \\
-spatial & Spatial algorithms and data structures \\ 
-special & Special functions \\ 
-stats & Statistical functions \\
-mstats & Statistical functions for masked arrays \\
-\hline
-\end{tabular}
-\caption{SciPy subpackages}
-\end{table}
+You can find a SciPy tutorial as well as a reference list to its various packages at 
+\url{http://docs.scipy.org/doc/scipy/reference/}. 
+% \begin{table}[h]
+% \centering
+% \begin{tabular}{|l|l|}
+% \hline
+% cluster & Clustering package \\
+% constants & Physical and mathematical constants and units \\
+% fftpack & Fast Fourier transforms \\
+% integrate & Integration package \\
+% interpolate & Interpolation package \\
+% io & Data input/output from various formats \\
+% linalg & Linear algebra functions \\
+% misc & Various utilities that can't be classified elsewhere \\
+% ndimage & Multi-dimensional image processing \\
+% odr & Orthogonal distance regression \\
+% optimize & Optimization and root finding \\
+% signal & Signal processing package \\
+% sparse & Two dimensional sparse matrices \\
+% sparse.linalg & Sparse matrix linear algebra functions \\
+% sparse.csgraph & Fast graph algorithms based on sparse matrices \\
+% spatial & Spatial algorithms and data structures \\
+% special & Special functions \\
+% stats & Statistical functions \\
+% mstats & Statistical functions for masked arrays \\
+% \hline
+% \end{tabular}
+% \caption{SciPy subpackages}
+% \end{table}
 
 One of the primary packages that we will be using is \li{scipy.linalg}.
-Even though NumPy also has \li{numpy.linalg}, using \li{scipy.linalg} is preferred.  
-Reasons for this include the fact that \li{scipy.linalg} is more fully featured and is always compiled with BLAS/LAPACK support (this support is optional in NumPy).
-NumPy's linear algebra library should only be used to avoid adding scipy as a dependency.
+Even though NumPy also has \li{numpy.linalg}, using \li{scipy.linalg} is preferred.
+% Reasons for this include the fact that \li{scipy.linalg} is more fully featured and is 
+% always compiled with BLAS/LAPACK support (this support is optional in NumPy).
+% NumPy's linear algebra library should only be used to avoid adding scipy as a dependency.
 Let's look at a few of the routines in SciPy's linear algebra module.
 \begin{lstlisting}
 >>> import numpy as np
@@ -568,37 +609,38 @@ These packages are called \emph{SciKits}.
 These kits augment the functionality of SciPy.
 They are designed to work efficiently with NumPy arrays.
 Some portions of these packages may someday be included in SciPy itself, but many of these packages are still incomplete or in development.
-However, they can still be useful.
-The following are some of the packages currently included as scikits.
-\begin{table}[h]
-\centering
-\begin{tabular}{|l|l|}
-\hline
-scikit-aero & Aeronautical engineering routines \\
-scikit-commpy & Digital communications in Python \\
-scikit-fmm & Fast marching method implementation \\
-scikit-image & Image processing functions \\
-scikit-learn & Machine learning and data mining routines \\
-scikit-rf & RF/Microwave engineering routines \\
-ann & Approximate nearest neighbor search using KDTrees \\
-audiolab & Make noise from NumPy arrays \\
-bootstrap & Bootstrap confidence interval estimation \\
-bvp1lg & Multi-point boundary value problem solver \\
-bvp\_solver & Two-point boundary value problem solver \\
-cuda & Python interface to CUDA libraries \\
-datasmooth & Data smoothing routines \\
-eartho & Earth observation functions \\
-fitting & Data fitting framework \\
-hydroclimpy & Environmental time series for Python \\
-odes & Ordinary differential equation solver for Python \\
-samplerate & High quality audio resampling \\
-scattpy & Light scattering methods for Python \\
-sparse & Sparse matrix package \\
-statsmodels & Statistical computations and models \\
-talkbox & Set of routines for speech/signal processing \\
-timeseries & Time series manipulation \\
-vectorplot & Vector fields plotting algorithms \\
-\hline
-\end{tabular}
-\caption{SciKits extend the functionality of SciPy.}
-\end{table}
+However, they can still be useful. You can find a list of these extension packages as well 
+as links to the documentation at \url{http://scikits.appspot.com/scikits}.
+
+% \begin{table}[h]
+% \centering
+% \begin{tabular}{|l|l|}
+% \hline
+% scikit-aero & Aeronautical engineering routines \\
+% scikit-commpy & Digital communications in Python \\
+% scikit-fmm & Fast marching method implementation \\
+% scikit-image & Image processing functions \\
+% scikit-learn & Machine learning and data mining routines \\
+% scikit-rf & RF/Microwave engineering routines \\
+% ann & Approximate nearest neighbor search using KDTrees \\
+% audiolab & Make noise from NumPy arrays \\
+% bootstrap & Bootstrap confidence interval estimation \\
+% bvp1lg & Multi-point boundary value problem solver \\
+% bvp\_solver & Two-point boundary value problem solver \\
+% cuda & Python interface to CUDA libraries \\
+% datasmooth & Data smoothing routines \\
+% eartho & Earth observation functions \\
+% fitting & Data fitting framework \\
+% hydroclimpy & Environmental time series for Python \\
+% odes & Ordinary differential equation solver for Python \\
+% samplerate & High quality audio resampling \\
+% scattpy & Light scattering methods for Python \\
+% sparse & Sparse matrix package \\
+% statsmodels & Statistical computations and models \\
+% talkbox & Set of routines for speech/signal processing \\
+% timeseries & Time series manipulation \\
+% vectorplot & Vector fields plotting algorithms \\
+% \hline
+% \end{tabular}
+% \caption{SciKits extend the functionality of SciPy.}
+% \end{table}
