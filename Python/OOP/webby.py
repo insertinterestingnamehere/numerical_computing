@@ -1,5 +1,5 @@
 import sys
-from PyQt4 import QtGui, QtCore, QtWebKit
+from PySide import QtGui, QtCore, QtWebKit
 
 
 class WebNavigator(QtGui.QWidget):
