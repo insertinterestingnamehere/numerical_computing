@@ -21,18 +21,17 @@ AVL trees use the strictest definition of balance.
 Another commonly used balanced binary tree is a red-black tree.  AVL trees optimize frequent lookups while red-black trees optimize insertion/deletion performance.
 Red-black trees color nodes red or black and check for imbalance based on colors.  For example, a subtree is unbalanced if a red node has a red child.
 AVL trees determine balance by comparing the height of right and  left subtrees.
-The height of a node is a measure of how far up the tree the node is from the base.
-There are four ways a binary tree can be unbalanced in an AVL tree.
+The height of a node is the length of the path from a node to its deepest leaf node (the nodes at the base of the tree).
+The height of a subtree is length of the path from a node to the deepest leaf node of that subtree.
+For every node in an AVL tree, if the difference of height between the left and right subtrees is more than $\pm 1$ levels, then the tree is said to be \emph{out of balance}.  We can restore balance to the entire tree by balancing the nodes where the subtrees are out of balance.
+There are four ways a tree can be unbalanced in an AVL tree.
 
 \subsection*{Left-Left and Right-Right}
 \begin{figure}[h]
-\centering
 \begin{subfigure}[b]{.49\textwidth}
-    \centering
     \includegraphics[width=.75\textwidth]{left_left.pdf}
 \end{subfigure}
 \begin{subfigure}[b]{.49\textwidth}
-    \centering
     \includegraphics[width=.75\textwidth]{balanced.pdf}
 \end{subfigure}
 \end{figure}
@@ -43,20 +42,16 @@ Node C becomes a child node of B and the right subtree of node becomes a left su
 This preserves the ordered property of the tree.
 
 \begin{figure}[h]
-\centering
 \includegraphics[width=.33\textwidth]{right_right.pdf}
 \caption{The mirror image of the Left-Left case.}
 \end{figure}
 
 \subsection*{Left-Right and Right-Left}
 \begin{figure}[h]
-\centering
 \begin{subfigure}[b]{.49\textwidth}
-    \centering
     \includegraphics[width=.75\textwidth]{left_right.pdf}
 \end{subfigure}
 \begin{subfigure}[b]{.49\textwidth}
-    \centering
     \includegraphics[width=.75\textwidth]{balanced.pdf}
 \end{subfigure}
 \end{figure}
@@ -70,7 +65,6 @@ Now we have to do a right rotate, moving node B to be the new root.
 Node C becomes a child of node B and the the right subtree of B becomes the left subtree of node C.
 
 \begin{figure}[h]
-\centering
 \includegraphics[width=.33\textwidth]{right_left.pdf}
 \caption{The mirror image of the Left-Right case.}
 \end{figure}
@@ -92,7 +86,18 @@ Instead of using rotations to balance the tree, the B-Tree uses splitting and jo
 \subsection*{Structure of a B-Tree}
 B-Trees are efficient due to their extreme branching.  It is common for B-Trees to hundreds, maybe even thousands of branches.
 This extreme branching per node reduces the overall height of the tree considerably.
-The number of keys that a single B-Tree can hold grows exponentially with each new level of the tree.  A B-Tree of depth, $d$, and order $n$ (meaning each node can have at most $n$ keys) can store a maximum of $n^{d} - 1$ keys.  For example, a B-Tree of order 100 and depth 3 can store 999999 keys.  Adding a new level increases the total capacity one hundred fold, or 99999999 keys!
+B-Trees of order $n$ satisfies the following properties:
+\footnote{Knuth, Donald. \emph{The Art of Computer Programming: Sorting and Searching (Volume 3, $2^{nd}$ edition)}. New Jersey: Addison-Wesley, 1998. pp 483.}
+\begin{enumerate}
+\item Every node has at most $n$ children.
+\item Every node, except for the root and the leaves, has at least $n/2$ children.
+\item The root has at least 2 children (unless it is a leaf).
+\item \label{enum:infoleaf} All leaves appear on the same level, and carry no information.
+\item A nonleaf node with $n$ children contains $n-1$ keys.
+\end{enumerate}
+Some implementations modify requirement \ref{enum:infoleaf} so that all information is stored in only the leaf nodes.  In Knuth's original definition, the leaf nodes have references to the information we are storing rather than containing it directly.
+
+The number of keys that a single B-Tree can hold grows exponentially with each new level of the tree.  A B-Tree of depth, $d$, and order $n$ (meaning each node can have at most $n$ children) can store a maximum of $n^{d} - 1$ keys.  For example, a B-Tree of order 100 and depth 3 can store 999999 keys.  Adding a new level increases the total capacity one hundred fold, or 99999999 keys!
 In a B+Tree, the actual data of the tree is stored only in the bottom most nodes, or leaf nodes.  All other nodes in the tree are index nodes.
 
 Unlike binary tree, B-Trees are built from the bottom up (starting with a single leaf node).  As more leaves are added, the root changes from a leaf node to an index node.  
@@ -145,31 +150,26 @@ To join nodes, we combine the keys of one node with that of another, adjacent, n
 Illustrate the insert, remove, and find methods for a B-Tree.  You do not have to implement them in Python.
 
 \begin{figure}[H]
-\centering
 \includegraphics[width=.5\textwidth]{3.png} \\
 Insert 12
 \end{figure}
 
 \begin{figure}[H]
-\centering
 \includegraphics[width=\textwidth]{8.png}
 Insert 18
 \end{figure}
 
 \begin{figure}[H]
-\centering
 \includegraphics[width=\textwidth]{10.png}
 Remove 19
 \end{figure}
 
 \begin{figure}[H]
-\centering
 \includegraphics[width=\textwidth]{11.png}
 Remove 17
 \end{figure}
 
 \begin{figure}[H]
-\centering
 \includegraphics[width=\textwidth]{12.png}
 Remove 4
 \end{figure}
