@@ -1,3 +1,11 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% REVISED 2012/8/27 for the Foundations of Applied Math Text
+%%                   added footprint
+%%                   removed .eps so that pdf pix would load
+%%                   added thepreface2 for the series preface.
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Revised 2012/04/26 to automatically load citeref package; class option [nociteref]
 %% Revised 2001/10/10 to correct algorithms: xreferencing,numbering
 %% Revised 2002/02/19 to correct optional title in algorithms
@@ -51,7 +59,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\Large \thepart} {\large \sc #1}}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -77,7 +85,7 @@
       \if@mainmatter     
 %
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
+\put(0,11){\includegraphics[height=120pt]{macroa-1-gray}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
@@ -91,7 +99,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -101,7 +109,7 @@
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
+\put(0,11){\includegraphics[height=120pt]{macroa-1-gray}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\parindent0pt\sffamily\Large\bfseries%
 \partname\space \thepart
@@ -121,7 +129,7 @@
       \if@mainmatter     
 %
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
+\put(0,0){\includegraphics[width=114pt]{footprint}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \vfill\@chapapp\space \thechapter
         \vskip3pt\par\nobreak
@@ -134,7 +142,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -144,7 +152,7 @@
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
+\put(0,0){\includegraphics[width=114pt]{footprint}}
 \put(118,16){\vbox to 99pt{\hsize247pt\parindent0pt\sffamily\Large\bfseries%
 \vfill\partname\space \thepart
         \vskip3pt\par\nobreak
@@ -162,7 +170,7 @@
       \if@mainmatter     
 %
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\vfill\nobreak
@@ -175,7 +183,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart} #1}%
+      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -185,7 +193,7 @@
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray}}
 \put(118,16){\vbox to 99pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vskip3pt\par\vfill\nobreak
@@ -204,7 +212,7 @@
       \if@mainmatter     
 %
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
+\put(0,-1){\includegraphics[height=102pt]{macroa-gray}}
 \put(118,0){\vbox to 100pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vfill\par\nobreak
@@ -217,7 +225,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\thepart\hspace{10em} #1}%
+      \addcontentsline{toc}{part}{\thepart\hspace{10em}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -227,7 +235,7 @@
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
 \noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
+\put(0,-1){\includegraphics[height=102pt]{macroa-gray}}
 \put(118,0){\vbox to 100pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vfill\par\nobreak
@@ -1153,6 +1161,8 @@
 \section*{\rule[6pt]{\textwidth}{1pt}\newline\nobreak Exercises}%
 \addcontentsline{toc}{section}{Exercises}%
 \markright{Exercises}
+\input{HW-Blurb}
+
 \begin{list}{{\hfill\upshape \arabic{chapter}.\arabic{prob}.}}{\usecounter{prob}
                 \setlength{\leftmargin}{28pt}\labelwidth28pt\labelsep.5em%
 		\itemsep2pt\parsep0pt
@@ -1164,6 +1174,14 @@
 \newenvironment{thepreface}{\if@openright\cleardoublepage\else\clearpage\fi
 \@makeschapterhead{Preface}%
 \addcontentsline{toc}{chapter}{Preface}%
+                \@mkboth{Preface}%
+                        {Preface}%
+                \thispagestyle{plain}}
+               {\clearpage}
+
+\newenvironment{thepreface2}{\if@openright\cleardoublepage\else\clearpage\fi
+\@makeschapterhead{Series Preface}%
+\addcontentsline{toc}{chapter}{Series Preface}%
                 \@mkboth{Preface}%
                         {Preface}%
                 \thispagestyle{plain}}
@@ -1199,6 +1217,5 @@
 \endinput
 %%
 %% End of file `book.cls'.
-
 
 
