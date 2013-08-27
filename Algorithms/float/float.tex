@@ -180,11 +180,11 @@ When all is said and done, some simple code to calculate the square root of a fu
 \begin{lstlisting}
 def pysqrt32(A, reps):
     Ac = A.copy()
-    I = Ac.view(dtype=np.int32)    # get an integer view of the array
-    I >>= 1                                     # divide by two using a binary bit flip
-    I += (1<<29) - (1<<22)          # scale by a constant value
+    I = Ac.view(dtype=np.int32) # get an integer view of the array
+    I >>= 1 # divide by two using a binary bit flip
+    I += (1<<29) - (1<<22) # scale by a constant value
     for i in xrange(reps):
-        Ac = .5 *(Ac + A / Ac)          # use an iterative method to increase accuracy, reps is the number of times.
+        Ac = .5 *(Ac + A / Ac) # use an iterative method to increase accuracy, reps is the number of times.
     return Ac
 \end{lstlisting}
 The iterative method mentioned here is Newton's method, it is discussed at length in Volume 1, this is one of its many applications.
@@ -209,61 +209,7 @@ Something similar can be done to find the reciprocal of the square root.
 The first two of the following Cython functions calculate the inverse square root for 32 and 64 bit floating point arrays respectively.
 The last two functions are equivalents that use the square root function built into C.
 
-\begin{lstlisting}
-from numpy cimport ndarray as ar
-import numpy as np
-cimport numpy as np
-cimport cython
-from libc.math cimport sqrt
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def cyinvsqrt32(ar[np.float32_t] A, int reps):
-    cdef ar[np.float32_t] Ac = A.copy()
-    cdef ar[np.int32_t] I = Ac.view(dtype=np.int32)
-    cdef int i, j
-    cdef np.int32_t c = 0x5f3759df
-    cdef np.float32_t temp, half=.5, threehalves=1.5
-    for i in xrange(A.size):
-        temp = A[i] * half
-        I[i]  = c - ((I[i]) >> 1)
-        for j in xrange(reps):
-            Ac[i] = Ac[i] * (threehalves - temp * Ac[i] * Ac[i])
-    return Ac
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def cyinvsqrt64(ar[double] A, int reps):
-    cdef ar[double] Ac = A.copy()
-    cdef ar[np.int64_t] I = Ac.view(dtype=np.int64)
-    cdef np.int64_t c = 0x5fe6ec85e7de30da
-    cdef int i, j
-    cdef double temp, half=.5, threehalves=1.5
-    for i in xrange(A.size):
-        temp = A[i] * half
-        I[i] = c - ((I[i]) >> 1)
-        for j in xrange(reps):
-            Ac[i] = Ac[i] * (threehalves - temp * Ac[i] * Ac[i])
-    return Ac
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def cinvsqrt32(ar[np.float32_t] A):
-    cdef int i
-    cdef ar[np.float32_t] res = np.empty_like(A)
-    for i in xrange(A.size):
-        res[i] = 1 / sqrt(A[i])
-    return res
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def cinvsqrt64(ar[double] A):
-    cdef int i
-    cdef ar[double] res = np.empty_like(A)
-    for i in xrange(A.size):
-        res[i] = 1 / sqrt(A[i])
-    return res
-\end{lstlisting}
+\lstinputlisting[name=]{sqrts.pyx}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{invsqrt0}
@@ -281,7 +227,7 @@ This fast inverse square root has been widely used in computer graphics to quick
 This is a key part of shading 3D surfaces.
 It has also been used in a variety of other applications.
 
-\begin{lstlisting}
+\begin{problem}
 Make a version of the square root function above that operates on 64 bit floating point arrays.
 Hint: you will have to change the type you use for the new view of \li{Ac} and you will have to change the constants $29$ and $22$.
 Notice that $29$ is $32-3$ and that $22$ is $29-(e-1)$ where $e$ is the number of bits used for the exponent.
@@ -290,6 +236,6 @@ Time the 64 bit square root against NumPy's square root.
 NumPy will probably be faster for full accuracy, but the initial guess should run faster than NumPy's square root.
 How do the implementations that take advantage of the format of floating point numbers compare with simply taking the reciprocal of the square root of a number using the square root function built in to C?
 Why do you think that is?
-\end{lstlisting}
+\end{problem}
 
 Note: It can be interesting to know about these sorts of bitwise operations but, unless you are desperate to optimize an algorithm a little further, it is probably easier and safer to use the built in implementations.
