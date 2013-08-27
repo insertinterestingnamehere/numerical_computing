@@ -1,5 +1,6 @@
 import numpy as np
-    
+from scipy import linalg as la
+
 def ref(A):
     for j in xrange(A.shape[0]-1):
         for i in xrange(j+1, A.shape[0]):
@@ -39,6 +40,25 @@ def LU_inplace(A):
             A[i,j] /= A[j,j]
             # change to U
             A[i,j+1:] -= A[i,j] * A[j,j+1:]
+
+def solveLoop(A,LU,B,f):
+    if f==True:
+        # the fast way
+        for i in xrange(B.shape[0]):
+            la.lu_solve(LU,B[i])
+    else:
+        # the slow way
+        for i in xrange(B.shape[0]):
+            la.solve(A,B[i])
+
+def timeProblem(f):
+    A = np.random.random((500,500))
+    while (la.det(A) == 0):
+        A = np.random.random((500,500))
+    B = np.random.random((500,500))
+    ALU = la.lu_factor(A)
+    # python doesn't let me run the timer inside of a function
+    # %timeit solveLoop(A,ALU,B,f)
 
 def LU_solve(A,B):
     for j in xrange(A.shape[0]-1):
@@ -81,3 +101,4 @@ def cholesky_solve(A, B):
         B[j] /= A[j,j]
         for i in xrange(j):
             B[i] -= A[j,i] * B[j]
+
