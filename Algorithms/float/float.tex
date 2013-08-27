@@ -29,6 +29,15 @@ The normal mathematical operations on real numbers apply in the theoretical cont
 In real applications, floating point numbers can be used to make an \textit{approximate} representation of \textit{a useful number} of real numbers.
 There are uncountably many real numbers, so it is impossible to create a computer system that can distinguish perfectly between all of them, but that is okay since measurements are imperfect and approximate computations are usually good enough.
 
+It is also worth noting that often, for brevity, hexadecimal numbers are used to represent integers and floating point nubmers.
+A hexadecimal number is a number base 16.
+Each digit of a hexadecimal number can be used to represent four binary digits.
+The letters a through f are used to represent the additional 6 values needed.
+For example a1f23 is the same as 10100001111100100011.
+Python has the built in functions \li{bin} and \li{hex} to convert integers to binary and hexadecimal values.
+A binary and hexadecimal numbers stored as strings can be converted to integers using the \li{base} argument of the built in \li{int} funciton.
+For example \li{int("a1f23", base=16)} will return 663331, the base 10 representation of the number.
+
 \begin{problem}
 \begin{itemize}
 
@@ -152,5 +161,135 @@ a == a
 
 % see how they measure it at http://software.intel.com/en-us/articles/estimating-flops-using-event-based-sampling-ebs
 
+\section*{Fast Approximation of the Square Root}
 
+% An amusing application, see http://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Approximations_that_depend_on_IEEE_representation
 
+There are a variety of flaws involved with floating point computations, but those will be discussed in a later lab.
+Here we will present an example of a clever manipulation of the IEEE floating point format.
+Around the end of the 90's an algorithm was discovered which can give a quick approximation of the square root of a number.
+It takes advantage of the layout of the bits in the IEEE floating point standard.
+The main idea of it is that the exponent of a binary floating point number $d$ can be used as a rough approximation of the number $\log_2\left(d\right)$.
+In performing this computation, we must account for the fact that the exponent has been scaled to allow representation of negative numbers.
+The smallest exponent for 32 bit floating point integers is $-2^7 - 1 = -127$.
+Since a floating point number has 23 bits in the significand, scaling the exponent can be represented in integer form as addition of $2^{30} - 2^{23}$.
+Once we have scaled the exponent, we can divide it by two.
+We then scale the exponent back to its original value.
+With some extra arithmetic, the two scaling values can be reduced into the addition of a single constant.
+When all is said and done, some simple code to calculate the square root of a function looks like this:
+\begin{lstlisting}
+def pysqrt32(A, reps):
+    Ac = A.copy()
+    I = Ac.view(dtype=np.int32)    # get an integer view of the array
+    I >>= 1                                     # divide by two using a binary bit flip
+    I += (1<<29) - (1<<22)          # scale by a constant value
+    for i in xrange(reps):
+        Ac = .5 *(Ac + A / Ac)          # use an iterative method to increase accuracy, reps is the number of times.
+    return Ac
+\end{lstlisting}
+The iterative method mentioned here is Newton's method, it is discussed at length in Volume 1, this is one of its many applications.
+Without using any additional iterations of Newton's method, the above code gives the approximation to the square root shown in Figure \ref{float:sqrtapprox0}.
+With one iteration of Newton's Method, the above code gives the approximation shown in Figure \ref{float:sqrtapprox1}.
+Notice that there is no visible difference between the square root and the approximation.
+The results should be the same for 64 bit floating point numbers.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{sqrt0}
+\caption{The initial approximation for the square root chosen using the binary representation of the floating point number}
+\label{float:sqrtapprox0}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{sqrt1}
+\caption{The approximation of the square root after one iteration of an iterative method to increase accuracy.}
+\label{float:sqrtapprox1}
+\end{figure}
+
+Something similar can be done to find the reciprocal of the square root.
+The first two of the following Cython functions calculate the inverse square root for 32 and 64 bit floating point arrays respectively.
+The last two functions are equivalents that use the square root function built into C.
+
+\begin{lstlisting}
+from numpy cimport ndarray as ar
+import numpy as np
+cimport numpy as np
+cimport cython
+from libc.math cimport sqrt
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cyinvsqrt32(ar[np.float32_t] A, int reps):
+    cdef ar[np.float32_t] Ac = A.copy()
+    cdef ar[np.int32_t] I = Ac.view(dtype=np.int32)
+    cdef int i, j
+    cdef np.int32_t c = 0x5f3759df
+    cdef np.float32_t temp, half=.5, threehalves=1.5
+    for i in xrange(A.size):
+        temp = A[i] * half
+        I[i]  = c - ((I[i]) >> 1)
+        for j in xrange(reps):
+            Ac[i] = Ac[i] * (threehalves - temp * Ac[i] * Ac[i])
+    return Ac
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cyinvsqrt64(ar[double] A, int reps):
+    cdef ar[double] Ac = A.copy()
+    cdef ar[np.int64_t] I = Ac.view(dtype=np.int64)
+    cdef np.int64_t c = 0x5fe6ec85e7de30da
+    cdef int i, j
+    cdef double temp, half=.5, threehalves=1.5
+    for i in xrange(A.size):
+        temp = A[i] * half
+        I[i] = c - ((I[i]) >> 1)
+        for j in xrange(reps):
+            Ac[i] = Ac[i] * (threehalves - temp * Ac[i] * Ac[i])
+    return Ac
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cinvsqrt32(ar[np.float32_t] A):
+    cdef int i
+    cdef ar[np.float32_t] res = np.empty_like(A)
+    for i in xrange(A.size):
+        res[i] = 1 / sqrt(A[i])
+    return res
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def cinvsqrt64(ar[double] A):
+    cdef int i
+    cdef ar[double] res = np.empty_like(A)
+    for i in xrange(A.size):
+        res[i] = 1 / sqrt(A[i])
+    return res
+\end{lstlisting}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{invsqrt0}
+\caption{An initial guess for the inverse square root of a number obtained using the floating point representation.}
+\label{float:invsqrt0}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{invsqrt1}
+\caption{An approximation for the inverse square root of a number after one iteration of Newton's Method.}
+\label{float:invsqrt1}
+\end{figure}
+
+This fast inverse square root has been widely used in computer graphics to quickly normalize vectors.
+This is a key part of shading 3D surfaces.
+It has also been used in a variety of other applications.
+
+\begin{lstlisting}
+Make a version of the square root function above that operates on 64 bit floating point arrays.
+Hint: you will have to change the type you use for the new view of \li{Ac} and you will have to change the constants $29$ and $22$.
+Notice that $29$ is $32-3$ and that $22$ is $29-(e-1)$ where $e$ is the number of bits used for the exponent.
+
+Time the 64 bit square root against NumPy's square root.
+NumPy will probably be faster for full accuracy, but the initial guess should run faster than NumPy's square root.
+How do the implementations that take advantage of the format of floating point numbers compare with simply taking the reciprocal of the square root of a number using the square root function built in to C?
+Why do you think that is?
+\end{lstlisting}
+
+Note: It can be interesting to know about these sorts of bitwise operations but, unless you are desperate to optimize an algorithm a little further, it is probably easier and safer to use the built in implementations.
