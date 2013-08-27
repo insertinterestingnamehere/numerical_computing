@@ -7,17 +7,22 @@ class precise(object):
         # note, I'm storing the power of the last significant digit.
         self.sig = exp - len(str(self.val)) +1
     def exp(self):
+		# get the exponent from the sig value.
         return len(str(self.val)) - 1 + self.sig
     def pyfloat(self):
+		# return a python float from the floating point object.
         return self.val * 10**(self.sig)
     def copy(self):
+		# make a copy of the floating point object.
         new = precise(val=self.val)
         new.sig = self.sig
         return new
     def __repr__(self):
+		# print method
         s = str(self.val)
         return s[0] + '.' + s[1:] + " x 10^" + str(self.exp())
     def __add__(self, other):
+		# addition
         if self.sig < other.sig:
             new = self.copy()
             new.val *= 10**(other.sig - self.sig)
@@ -33,22 +38,27 @@ class precise(object):
             new.val += self.val
         return new
     def __mul__(self, other):
+		# multiplication
         new = self.copy()
         new.sig += other.sig
         new.val *= other.val
         return new
     def __sub__(self, other):
+		# subtraction
         new = other.copy()
         new.val *= -1
         return self + new
     def truncate(self, newsig):
+		# truncation
         if self.sig < newsig:
             self.val = int(str(self.val)[:(self.sig-newsig)])
             self.sig = newsig
  
  class significant(object):
+	# most of these methods are based on the previous class
     def __init__(self, val=precise(), err=precise()):
         self.val = val
+        # note: error should ALWAYS be positive
         self.err = err
     def pyfloat(self):
         return self.val.pyfloat()
