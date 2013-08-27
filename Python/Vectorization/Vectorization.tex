@@ -1,4 +1,4 @@
-\lab{Python}{Vectorization}{Vectorization Two}
+\lab{Python}{Vectorization}{Vectorization}
 \label{lab:Python_Vectorization}
 
 In Python, the cost of looping over a sequence is sometimes prohibitive.
@@ -63,6 +63,24 @@ def fast_sqdist(A, B):
 Notice that often it is much easier to partially vectorize a calculation than it is to vectorize the entire calculation.
 In many cases, a partial vectorization will be more than sufficient.  Vectorizing the inner loop was clearly worth the effort.
 
+\section*{Vectorization Techniques}
+Some quick techniques to keep in mind when vectorizing are arithmetic operations take place over the whole array. For example \li{A=3+A} is the same as 
+\begin{lstlisting}
+for i in range(len(A)):
+	A[i]=3+A[i]
+\end{lstlisting}
+
+Numpy as some great predefined operations, for example \li{np.sum(A,n)} will take the sum of axis $n$ and output a array with one less dimension than $A$. For example \li{B=np.sum(A,1)} or \li{B=A.sum(1)} is the same as
+\begin{lstlisting}
+B=np.zeros(len(A),int)
+for i in range(len(A)):
+	for j in range(len(A[i])):
+		B[i]+=A[i,j]
+\end{lstlisting}
+Other operations similar to this include \li{np.prod}, \li{np.max}, and \li{np.min}.
+
+Additionally, Numpy defines a lot of functions that work over the whole array. for example \li{np.sin(A)} will output an array of size $A$ where each value is the sine of the corresponding value found in $A$. Functions like this include \li{np.exp}, \li{np.arcsin} and many more.
+
 \section*{Shuffle}
 This exercise is to write a program that shuffles a deck of a cards how a human would shuffle them, as opposed to having a random number generator put them in a random arrangement.
 In order to this, first, cut the deck in half.
@@ -71,6 +89,7 @@ Which one comes first should be random.
 Follow the same procedure for the rest of the cards in the two halves.
 The following is the code implemented using a loop.
 \begin{lstlisting}
+import numpy as np
 from random import randint
 def shuffle(deck):
     size = deck.size
@@ -85,8 +104,10 @@ def shuffle(deck):
     return newdeck
 \end{lstlisting}
 
+We can always vectorize when the operations on the vector are not dependent on the previous entries. In the case above we go through each pair of a cards one at a time where they are not dependent on each other, meaning that the order of the 2nd pair of cards is not dependent on the 1st, the order of the 3rd pair is not dependent on the 2nd or the 1st and so on for each pair. So instead of generating the random numbers one at a time we could generate them all at once with \li{np.random.randint(0,1,n)} where $n$ is the number of random numbers you would like to generate. The other inefficiency is we add the cards from deck to newdeck one at a time.  Once we have the random numbers know which cards are going where.  Letting the cards from deck go to \li{newdeck[::2]} and \li{newdeck[1::2]} will accomplish that without having to use a loop. We leave it to you which indexes from deck go to each of those.
+
 \begin{problem}
-Write a function that shuffles a deck the same way as the function above using only array operations.
+Write a function that shuffles a deck the same way as the function above using only array operations in order to eleminate the loop.
 \end{problem}
 
 \section*{Image Editor}
