@@ -59,7 +59,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
+      \addcontentsline{toc}{part}{\hbox {\Large \thepart} {\large \sc #1}}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
