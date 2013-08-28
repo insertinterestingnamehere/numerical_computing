@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+###Problem 1
+(180+5)/(600+5.)
+
+
+
 N=10000
 mathematics = np.random.normal(500,100,N)
 reading = np.random.normal(500,100,N)
