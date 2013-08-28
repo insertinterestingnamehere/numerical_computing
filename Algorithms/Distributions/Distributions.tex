@@ -2,22 +2,25 @@
 \label{lab:distributions}
 \objective{This section will review the most common distributions and thus assumes prior exposure to basic terms and concepts.}
 
-Here we look at distributions for real random variables, meaning that they have values on the real number line. 
-
 \section*{Discrete Distributions}
 \emph{Discrete distributions} are distributions whose support is finite or countable at most. 
-The \emph{support} of a distribution refers to the points in R that have non-zero probability. 
+The \emph{support} of a distribution refers to the points in $\mathbb{R}$ that have non-zero probability. 
 In other words, discrete distributions are a collection of point masses. 
 
 \begin{figure}[h]
 \begin{center}
-\begin{tabular}{|c|l|r|r|r|r|l|}
+\begin{tabular}{|c|c|c|c|}
 	\hline
-Name & Support &  PMF & Parameters & Mean & Variance & Description\\
+ & Uniform &  Binomial & Poisson \\
+\hline 
 \hline
-Uniform  & $x \in \{a,...,b\}$ &$\frac{1}{b-a+1}$ & $b>a$, $a,b \in \mathbb{Z}$ & $\frac{a+b}{2}$ & FILL IN & models a single occurrence of one of several events of equal probability \\
-Binomial  & $x \in \{0,...,n\}$ &$\dbinom{n}{x}p^x(1-p)^{n-x}$ & $n \in \mathbb{N}$, $p \in [0,1]$ & $np$ & $np(1-p)$ & models $n$ events with binary outcomes, where $p$ is the probability of a success ($x=1$). Note, when $n=1$, this is referred to as the Bernoulli distribution, or a Bernoulli trial.\\
-Poisson  & $x \in \{0,1,2,...\}$ & $\frac{e^\lambda \lambda^x}{x!}$ & $\lambda>0$ & $\lambda$ & $\lambda$ & \\
+Support&$x \in \{a,...,b\}$&$x \in \{0,...,n\}$&$x \in \{0,1,2,...\}$\\ \hline
+PMF&$\frac{1}{b-a+1}$&$\dbinom{n}{x}p^x(1-p)^{n-x}$&$\frac{e^\lambda \lambda^x}{x!}$\\ \hline
+Parameters&$b>a$, $a,b \in \mathbb{Z}$&$n \in \mathbb{N}$, $p \in [0,1]$& $\lambda>0$\\ \hline
+Mean $E(X)$&$\frac{a+b}{2}$&$np$& $\lambda$\\ \hline
+Variance&&$np(1-p)$& $\lambda$\\ \hline
+Description& 
+\parbox{1in}{models a single occurrence of one of several events of equal probability} & \parbox{1in}{models $n$ events with binary outcomes, where $p$ is the probability of a success ($x=1$). Note, when $n=1$, this is referred to as the Bernoulli distribution, or a Bernoulli trial.}&\\
 \hline
 \end{tabular}
 \end{center}
@@ -39,6 +42,31 @@ Beta  & $x \in [0,1]$ & $\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)
 \end{tabular}
 \end{center}
 \end{figure}
+
+\section*{The Beta Distribution and Conditional Expectation}
+Recall that for $X \sim F(X)$, the expectation of $X$, $E(X)$, is the mean of the distribution $F$. Now let's say $X$ is a Bernoulli distributed variable, like the outcome of a coin flip (also called a Bernoulli trial). Let $p$ be the probability of the trial being successful/getting a head on a coin flip. In Bayesian statistics, $p$ itself is an unknown, random variable. Thus $$X|p \sim Bern(p).$$ 
+We will see in Volume 3 that if we let $p \sim Beta(\alpha,\beta)$, then we can also say $$p|X=x \sim Beta(\alpha+x,\beta+(1-x)),$$ for a given value of $X$. Or, for several ($n$) $X_i$ that are independently and identically distributed, 
+\[
+(p|X=\x) \sim Beta(\alpha+\sum_{i=1}^n x_i,\beta+n-\sum_{i=1}^n x_i),
+\]
+where $\x$ is a vector of multiple realizations of $X$ (see joint density function). Here, $\sum_{i=1}^n x_i$ will be the total number of success, and thus $n-\sum_{i=1}^n x_i$ is the number of failures out of the $n$ trials. (Note, $\sum_{i=1}^n x_i$ can thusly be called a Binomial-distributed variable).
+
+Based on the tables above, we can now say that $E(p) = \frac{\alpha}{\alpha +\beta}$. What about $E(p|\x)$? As $p|\x$ is beta distributed, we simply plug in it's parameters to see that 
+\[
+E(p|\x)=\frac{(\alpha+\sum_{i=1}^n x_i)}{(\alpha+\sum_{i=1}^n x_i)+(\beta+n-\sum_{i=1}^n x_i)} =\frac{\alpha+\sum_{i=1}^n x_i}{\alpha+ \beta+n}
+\]
+
+\subsection*{Example}
+Your friend has a coin that she says is fair, i.e. $E(p)=.5$. You are not sure if you believe her, and thusly assume $p \sim Beta(1,1)$, which is the same as assuming the uniform distribution, that is that any value of $p \in [0,1]$ is equally likely. You get to flip the coin 5 times, and get 4 heads and 1 tail. With this new information, what do you expect the probability of heads to be? Or in other words, what is $E(p|\x)$?
+\[
+E(p|\x) = \frac{\alpha+\sum_{i=1}^n x_i}{\alpha+ \beta+n} = \frac{1+4}{1+ 1+5} =  \frac{5}{7} \approx 0.714
+\]
+
+Another common percentage that can be modeled by the beta distribution is batting average. Batting average is a baseball statistics that is simply counted as $\frac{\text{total number of hits}}{\text{total number of at bats}}$. An at bat is when a player goes to home plate to have a chance to hit the ball when pitched to him. Either hitting or not can be looked at as a Bernoulli trial. 
+
+\begin{problem}
+Let a baseball player have a $.300$ batting average, from 600 at bats that resulted in 180 hits. We interpret this as $p \sim Beta(180,420)$, where $p$ is the probability of hitting when at bat. Note this distribution has an expected value of 0.3. If his next five at bats all result in hits, and if we assume each event is independent, what is the probability that he hits at his next at bat? 
+\end{problem}
 
 \section*{Normal Distribution}
 The SAT is a standardized test common for college admissions in the United States. 
