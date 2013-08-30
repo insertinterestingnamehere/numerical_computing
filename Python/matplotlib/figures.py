@@ -67,6 +67,7 @@ def interact():
 	sfreq.on_changed(update)
 	samp.on_changed(update)
 	plt.savefig("interact.pdf")
+	plt.clf()
 
 if __name__ == "__main__":
 	exp_plot()
