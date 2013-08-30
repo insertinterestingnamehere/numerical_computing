@@ -53,20 +53,21 @@ def interact():
 	l = plt.plot(t, s)[0]
 
 	plt.axis([0, 1, -10, 10])
-	axfreq = plt.axes([.25, .1, .65, .03])
-	axamp = plt.axes([.25, .15, .65, .03])
+	axfreq = plt.axes([.25, .05, .65, .03])
+	axamp = plt.axes([.25, .1, .65, .03])
 	sfreq = wg.Slider(axfreq, 'Freq', 0.1, 30.0, valinit=f0)
 	samp = wg.Slider(axamp, 'Amp', 0.1, 10.0, valinit=a0)
 	
 	def update(val):
 		amp = samp.val
 		freq = sfreq.val
-		l.set_ydata(amp.np.sin(2*np.pi*freq*t))
+		l.set_ydata(amp*np.sin(2*np.pi*freq*t))
 		plt.draw()
 
 	sfreq.on_changed(update)
 	samp.on_changed(update)
 	plt.savefig("interact.pdf")
+	plt.clf()
 
 if __name__ == "__main__":
 	exp_plot()
