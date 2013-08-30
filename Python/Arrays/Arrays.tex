@@ -1,5 +1,6 @@
-\lab{Python}{NumPy and SciPy}{NumPy and SciPy}
-%\label{lab:NumPySciPy}
+\lab{Python}{NumPy Arrays}{NumPy Arrays}
+\objective{Create and manipulate powerful NumPy $n$-dimensional arrays.}
+\label{lab:NumPyArrays}
 
 \section*{Why Arrays?}
 Let's begin with a simple demonstration of why arrays are important for numerical computation.
@@ -57,97 +58,206 @@ Lists are still faster for anything that involves a varying lengths of data.
 If you are appending to your data or deleting items, consider using lists instead of arrays since both of these operations require the creation of a new array.
 
 \section*{NumPy}
-NumPy is a fundamental package for scientific computing with Python.
-It provides an efficient $n$-dimensional (arbitrary dimensional) array object for fast computations.
-These arrays are commonly known as \emph{ndarrays}.
-This lab will focus on how to use these powerful objects.
-NumPy is commonly imported as shown below.
-NumPy also provides a matrix object which is designed to behave like matrices in MATLAB.
-It is strongly encouraged to use NumPy arrays instead of NumPy matrices, despite their convenience.
-Numpy is typically imported with \li{import numpy as np}.
-First, it will be useful to explain certain concepts and terms used to describe NumPy arrays.
+NumPy is one of the fundamental packages for scientific computing with Python.
+At its heart lies an efficient $n$-dimensional array, or $ndarray$, object for fast computations.
+This lab will focus on how to create and manipulate this powerful object.
+These arrays form the foundation of all computations done in NumPy and SciPy (a higher-level scientific computing library built on top of NumPy).
+By convention, NumPy is typically imported as
+\begin{lstlisting}
+>>> import numpy as np
+\end{lstlisting}
+NumPy also provides a matrix object which is designed to behave like matrices do in MATLAB.
+It is strongly encouraged to use NumPy arrays instead of NumPy matrices, despite the latter's convenience.
 
-\subsection*{Arbitrary Dimensions}
+\section*{Creating Arrays}
+The most elementary way to create an array is to define explicitly using \li{np.array()}.
+\begin{lstlisting}
+>>> a = np.array([1, 3, 5, 7, 11])
+>>> a
+array([ 1,  3,  5,  7, 11])
+\end{lstlisting}
+NumPy provides a variety of ways to easily create different kinds of arrays.
+\li{np.arange()} creates a ranged array much the same way that Python's \li{range} statement creates a list.
+\begin{lstlisting}
+>>> b = np.arange(10)
+>>> b
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+\end{lstlisting}
+We can also create arrays that consist entirely of ones or zeros using \li{np.ones()} and \li{np.zeros()} respectively.
+\begin{lstlisting}
+>>> c = np.ones(5)
+>>> c
+array([ 1.,  1.,  1.,  1.,  1.])
+>>> d = np.zeros(5)
+>>> d
+array([ 0.,  0.,  0.,  0.,  0.])
+\end{lstlisting}
+We can even create an array that has evenly spaced numbers over a desired interval.
+The first and second arguments define the endpoints of this closed interval.
+\begin{lstlisting}
+>>> e = np.linspace(0, 32, num=4)
+>>> e
+array([  0.        ,  10.66666667,  21.33333333,  32.        ])
+\end{lstlisting}
+We can even create arrays using random values chosen from a variety of probability distributions.
+These functions are stored in a submodule of NumPy, \li{np.random}.
+\begin{lstlisting}
+>>> f = np.random.rand(5) #uniformly distributed values
+>>> f
+array([ 0.21845499,  0.73352537,  0.28064456,  0.66878454,  0.44138609])
+>>> f = np.random.poisson(1, size=10)
+>>> f
+array([0, 1, 3, 2, 0, 0, 0, 0, 2, 0])
+>>> f = np.random.randn(5) #normally distributed values
+array([-1.30752235, -0.60518647,  2.08529266, -0.43919065,  0.92830676])
+\end{lstlisting}
+We can even allocate an array without initializing its values to any value.
+These are useful for when the initial contents of the array are unimportant.
+\begin{lstlisting}
+>>> g = np.empty(5)
+>>> g
+array([  0.00000000e+000,   1.30586451e-316,   1.17126324e-316,
+         0.00000000e+000,   2.37151510e-322])
+\end{lstlisting}
+
+\section*{Array Objects}
+NumPy arrays are homogeneous objects.  Unlike Python containers, all of the elements of an array have to be same data type.
+Also, unlike Python integers and floats, the data types that NumPy uses in arrays are machine native types.
+The benefit of doing this is to avoid the overhead associated with Python's objects.
+The result is a tremendous speedup in numerical operations.
+NumPy support a variety of types and precision.
+\begin{table}
+\begin{tabular}{l|l}
+Data type & Description \\
+\hline
+\li{bool} & Boolean \\
+\li{int8} & 8-bit integer \\
+\li{int16} & 16-bit integer \\
+\li{int32} & 32-bit integer \\
+\li{int64} & 64-bit integer \\
+\li{int} & Platform integer (depends on platform) \\
+\li{uint8} & Unsigned 8-bit integer \\
+\li{uint16} & Unsigned 16-bit integer \\
+\li{uint32} & Unsigned 32-bit integer \\
+\li{uint64} & Unsigned 64-bit integer \\
+\li{float16} & Half precision float \\
+\li{float32} & Single precision float \\
+\li{float64} & Double precision float (also \li{float}) \\
+\li{complex64} & Complex number represented by two single precision floats \\
+\li{complex128} & Complex number represented by two double precision floats (also \li{complex})
+\end{tabular}
+\caption{Native numerical data types available in NumPy.}
+\end{table}
+Like any other object in Python, \li{ndarray} objects have methods and properties associated with them.
+We can derive information from arrays be looking at its various properties.
+The data type of the array can be inferred from the \li{dtype} property.
+Many of the array constructors accept an optional \li{dtype} keyword that allows you specify the array type at creation.
+\begin{lstlisting}
+>>> a.dtype
+dtype('float64')
+>>> a = np.array(range(5), dtype=np.uint8)
+>>> a.dtype
+dtype('uint8')
+>>> a_float = a.astype(float) #cast a copy of a to float
+\end{lstlisting}
+
+Every NumPy array can have an arbitrary number of dimensions.  
+Up to this point, we have only created arrays that have one dimension.
+We can check the number of dimensions an array looking at the value of the \li{ndim} property.
+\begin{lstlisting}
+>>> a.ndim
+1
+\end{lstlisting}
+We can see the sizes of each dimension by looking at the \li{shape} property.
+This will return a Python tuple of the size of each dimension.
+\begin{lstlisting}
+>>> a.shape
+(5,)
+>>> len(a) #simply returns the size of the first dimension
+5
+\end{lstlisting}
+To know the total number of elements in the array, we can use the \li{size} property
+\begin{lstlisting}
+>>> a.size
+5
+\end{lstlisting}
+For a single dimensional array, these properties are uninteresting.  
+These array properties are the most efficient way to understand the size and shape of a desired array.
+
+Let's look higher dimensional arrays.
 One, two, and three dimensional arrays are easy to visualize.
 But how do we visualize a four, ten, or fifteen dimensional array?
 NumPy arrays are best thought of as arrays within arrays.
 A one dimensional array consists of only elements.
 A two dimensional array is really just an array containing arrays which contain elements.
 Extending this metaphor, a three dimensional array is an array of arrays of arrays.
-Let's define a random three dimensional array.
+Most of the array constructors we have looked so far support creating arrays with an arbitrary number of dimensions.
+We can create an identity matrix easily with \li{np.eye}, \li{np.identity}, or \li{np.diag}.
+\li{np.eye} is the most versatile and allows for non-square outputs, in which case it puts ones on the diagonal and zeros everywhere else.
+\li{np.diag} is an interesting function.  If given an existing array, it will extract the diagonal elements.
+However, if given anything else, it will construct a diagonal array and return it.
 \begin{lstlisting}
->>> arr = np.random.randint(50, size=(5, 4, 3))
-\end{lstlisting}
-% Arrays are objects in Python.
-% For those who are familiar with object oriented programming, it is worth noting that many of the functions we discuss here are also implemented as methods of \li{ndarray} objects.
-Two simple attributes of arrays that describe the number of elements in an array are \li{shape} and \li{size}
-\li{shape} gives information about the size of the array in each dimension.
-\li{Size} gives the total number of elements in every dimension of the array.
-\begin{lstlisting}
->>> arr.shape
-(5, 4, 3)
->>> arr.size
-60
-\end{lstlisting}
-Indexing always starts at $0$.
-Also, like Python lists, negative indices are valid and count backwards from the end of the array.
-We will discuss indexing in more detail later in this lab.
-\begin{lstlisting}
->>> arr[0, 0, 0] #returns the first element of arr
->>> arr[-1, -1, -1] #returns the last element of arr
-\end{lstlisting}
-
-\section*{Creating Arrays}
-NumPy has several functions for creating and initializing arrays.
-When creating an array, we can, optionally, specify the data type that is stored in the 
-array.
-NumPy arrays are homogeneous, meaning that all elements in an array must have the same 
-datatype.
-Let's look at a few of the ways we can create arrays in NumPy.
-\begin{itemize}
-\item \li{np.array}: Makes an array from a Python list or tuple.
-Can also be used to make a new array based on an old one, possibly with a changed datatype.
-\item \li{np.empty}: Allocates an array of a specific size without initializing the elements.
-\item \li{np.empty_like}: Allocates a new uninitialized array with the same shape and type as the input array.
-\item \li{np.ones}: Allocates and array and initializes each element to $1$.
-\item \li{np.ones_like}: Allocates a new array of ones with the same shape and type as the input array.
-\item \li{np.zeros}: Allocates an array and initializes each element to $0$.
-\item \li{np.zeros_like}: Allocates a new array of zeros with the same shape and type as the input array.
-\item \li{np.identity}: Allocates a 2D array with ones along the main diagonal and zeros everywhere else.
-\item \li{np.random.rand}: Allocates an array of random floating point values between 0 and 1.
-\end{itemize}
-
-\subsection*{Universal Functions (ufuncs)}
-NumPy and SciPy include a wide variety of functions that are designed to operate on 
-arrays.
-Such functions, which take in an array and return an array of the same size and
-datatype, are called \emph{universal functions}. To illustrate this point, consider 
-the universal function \li{numpy.sin} and the standard function \li{math.sin}. If $A$ 
-is an array of floats (of any size), \li{math.sin(A)} throws an error, whereas 
-\li{numpy.sin(A)} returns an array of floats containing the sines of the entries of $A$. 
-Other simple examples from NumPy include \li{cos}, \li{sqrt}, \li{exp}, and 
-\li{log} all the way to special functions like \li{polygamma} in the \li{scipy.misc} submodule.
-There are far more functions available in NumPy than could possibly be included here, so you will want to become familiar with the NumPy and SciPy documentation at \url{docs.scipy.org/doc/}.
-If you need to do any sort of simple operation on an array, there is very often a function there to do it.
-These functions are almost always faster and more convenient than iterating through the whole array.
-
-Most of these functions also allow you to specify an array for the output.
-It is useful in cases where you would like to avoid unnecessary memory allocation.
-The output array does need to be the correct shape to store the output.
-For example:
-\begin{lstlisting}
->>> np.exp(A, out=A) #take exp(A) and store result in A
+>>> h = np.eye(5)
+>>> h
+array([[ 1.,  0.,  0.,  0.,  0.],
+       [ 0.,  1.,  0.,  0.,  0.],
+       [ 0.,  0.,  1.,  0.,  0.],
+       [ 0.,  0.,  0.,  1.,  0.],
+       [ 0.,  0.,  0.,  0.,  1.]])
+>>> np.eye(3, 5)
+array([[ 1.,  0.,  0.,  0.,  0.],
+       [ 0.,  1.,  0.,  0.,  0.],
+       [ 0.,  0.,  1.,  0.,  0.]])
+>>> np.identity(3)
+array([[ 1.,  0.,  0.],
+       [ 0.,  1.,  0.],
+       [ 0.,  0.,  1.]])
+>>> np.diag(h)
+array([ 1.,  1.,  1.,  1.,  1.])
+>>> i = np.diag(np.arange(5))
+>>> i
+array([[0, 0, 0, 0, 0],
+       [0, 1, 0, 0, 0],
+       [0, 0, 2, 0, 0],
+       [0, 0, 0, 3, 0],
+       [0, 0, 0, 0, 4]])
 \end{lstlisting}
 
-Other useful examples are \li{max}, \li{min}, \li{absolute}, and \li{average}.
-Each of these operations also allows you to specify whether you want to operate across a particular axis or over the whole array.
-For example:
+Every NumPy array has five flags that give important information about the array.
+We can check if an array is read-only by looking at its flags, or we can check how the array's contents are laid out in memory.
+Only the \texttt{WRITEABLE} and \texttt{ALIGNED} flags can be modified.  The other flags are read-only.
+
 \begin{lstlisting}
->>> np.max(A, axis=0) #max along axis 0
+>>> i.flags
+  C_CONTIGUOUS : True
+  F_CONTIGUOUS : False
+  OWNDATA : True
+  WRITEABLE : True
+  ALIGNED : True
+  UPDATEIFCOPY : False
 \end{lstlisting}
-The above example returns a row of A which represents the maximum of all the rows of A.
-If we had set \li{axis=1}, it would have taken the maximum of all the columns.
-If, for purposes of broadcasting (discussed later) you need the output of one of these functions to have the same number of dimensions as the original array, you can also include the argument \li{keepdims=True}.
+NumPy has two different memory orderings for an array.
+Many array constructors allow you to specify an \li{order} keyword that determines the memory layout of the array.
+\begin{description}
+\item[Row-major:] Arrays are stored by rows in continuous memory.
+Languages such as C and Python use row-major indexing.  NumPy arrays by default use this indexing convention.
+Slicing down columns is slow.  In NumPy, row-major arrays are identified as \emph{C contiguous} (\li{order=`C'}).
+\item[Column-major:] Arrays are stored by columns in contiguous memory.
+Languages like FORTRAN, MATLAB, and R use column-major indexing.  Slicing across rows is slow.
+In NumPy, column-major arrays are identified as \emph{FORTRAN contiguous} (\li{order=`F'}).
+\end{description}
+Paying attention to how your arrays are indexed will be beneficial to the performance of your algorithms.
+
+NumPy has support for \emph{array views}.  
+The \texttt{OWNDATA} flag lets us know if the array is a view or not.
+We will explain array views later in this lab.
+The \texttt{WRITEABLE} flag determines whether an array is read-only or not.
+If set to false, no changes can be made to the array.
+The \texttt{ALIGNED} flag is true when the array memory is aligned to the size of the data type of the array.
+Generally, it is a good idea to leave this setting alone.
+
+
+
 
 \subsection*{Indexing Arrays}
 \subsubsection*{Array Views and Copies}
