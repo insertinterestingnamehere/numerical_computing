@@ -1,11 +1,9 @@
 \lab{Algorithms}{Value Function Iteration}{Value Function Iteration}
-
 \objective{This section teaches the fundamentals of Dynamic Programming using value function iteration.}
 
 Often it is of interest to optimize decision making in some sequential process.  For example, an oil company may need to decide how much oil to excavate and sell each month as prices change, a person entering retirement may need to decide how much of their savings to spend each year, or a model of economic growth may require a decision about how much to invest in capital versus how much to spend each year.  In this lab we will formulate a general dynamic optimization problem.  We will explore techniques for solving such a problem with both finite and infinite time horizons.
 
 \section*{The Sequential Problem, Finite Horizon}
-\label{SecRecProbFinHor}
 Suppose there are time periods $t=0,1,\ldots, T$ and at each time period we take an action $c_t$. Furthermore, at the beginning of each time period $t$ we are in some state $W_t$.  In many cases $W_t$ might represent an available resource, such as money.  At each time we receive some reward, $u(W_t,c_t)$, for taking action $c_t$ given state $W_t$.  We assume that rewards are worth more now than later. We let $\beta\in (0,1)$ represent what is called the discount factor and gives the ratio of preference for rewards today versus rewards tomorrow.  For example, receiving a dollar today is preferable to receiving a dollar in a year because taking a dollar today and putting it in a  savings account results in having more than a dollar in a year.  Lastly, over time our state variable $W_t$ changes according to some rule depending on the previous state and our actions,
 \begin{equation}
 \label{motion}
@@ -18,7 +16,11 @@ Mathematically such a problem can be represented as follows:
 \end{equation*}
 where our initial state, $W_0$ is given.  There may also be restrictions on our choices $c_t$.  For example, in many applications the state $W_t$ represents the amount of some resource available, and $c_t$ represents the amount we use up in time period $t$.  In this case we would require $c_t \in [0,W_t]$.
 
-For simplicity, lets assume that $u$ is a function of $c_t$ only (this is often, though not always, the case in practice).  First let's consider the case that $T=0$.  So we maximize $u(c_0)$ over $c_0 \in [0,W_0]$.  In most cases $u$ is increasing, which we will assume here.  In this case it will be optimal to choose the largest value of $c_0$ possible, that is, $c_0 = W_0$.  Thinking of $W_0$ as our available resources, this simply means, that if we don't have future periods to consider, we will use all of it.
+For simplicity, lets assume that $u$ is a function of $c_t$ only (this is often, though not always, the case in practice).  First let's consider the case that $T=0$.  So we maximize
+\begin{equation}\label{1perprob}
+u(c_0)
+\end{equation}
+over $c_0 \in [0,W_0]$.  In most cases $u$ is increasing, which we will assume here.  In this case it will be optimal to choose the largest value of $c_0$ possible, that is, $c_0 = W_0$.  Thinking of $W_0$ as our available resources, this simply means, that if we don't have future periods to consider, we will use all of it.
 
 In fact this is always true in the last period.  In the problem with $T$-periods we know that we will use all of our resources remaining in period $T$.  Consider the two period problem:
 \begin{equation}
@@ -39,7 +41,6 @@ where $g_c$ is the partial derivative of $g$ with respect to $c$.
 Given a specific form for $u$ we could solve for $W_1$ and obtain the optimal solution.  In fact, we can solve a problem of any length $T$ in this manner by starting at the last time period and working backward.  We know that $W_{T+1} = 0$.  Working backward in time we obtain an equation at each time step $t<T$ by taking the derivative with respect to $c_t$ and setting equal to zero.  This process is called backward induction.  The equations at each time step, such as equation \eqref{FOC} are sometimes called the inter-temporal Euler equations.  These equations, along with $c_T = W_T$ make $T+1$ equations to go with our $T+1$ unknowns $c_0,c_1,c_2,\ldots,c_T$ where we can use the law of motion to relate the $c_t$ and $W_t$.
 
 \section*{The Recursive Problem, Finite Horizon}
-\label{SecRecProbFinHor}
 Approaching the problem sequentially like this can be somewhat messy.  The dynamic programming approach we consider now is more easily adaptable to many situations.  The key to the dynamic programming approach is to define our optimization problem in terms of subproblems.  Notice that if we are in time period $t$, we face a problem of exactly the same form as the problem at time $0$.  We are in some state $W_t$, and want to maximize the sum from $t$ to $T$.  With this idea in mind, we define a function $V_t(W_t)$ called the value function.  The function $V_t$ gives the value of entering time $t$ in state $W_t$ and making optimal decisions moving forward.  So
 \begin{equation*}
 V_{t-1}(W_{t-1}) = \max u(c_{t-1}) + \beta V_t(g(W_{t-1},c_{t-1})).
@@ -66,8 +67,8 @@ c_t = W_t - W_{t+1}.
 \end{equation*}
 Thus we can rewrite the value function as
 \begin{equation}
-\label{cake_valfn}
 V_{t-1}(W_{t-1}) = \max_{W_t} u(W_{t-1} - W_{t}) + \beta V_t(W_t).
+\label{cake_valfn}
 \end{equation}
 
 The solution to this problem is often called a policy function.  A policy function determines an action based on the current state.  Denoting the policy function by $\psi$, this can be written
@@ -129,8 +130,17 @@ You should also try plotting the value and policy functions for fixed time perio
 \end{enumerate}
 \end{problem}
 
-\section*{The Recursive Problem, Infinite Horizon}
-\label{SecRecProbInFHor}
+\begin{figure}
+\begin{subfigure}{.5\textwidth}
+    \includegraphics[width=\textwidth]{fixed_time.pdf}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+    \includegraphics[width=\textwidth]{fixed_w.pdf}
+\end{subfigure}
+\caption{Slices of the finite horizon value function for fixed values of $t$ and $W$.}
+\end{figure}
+
+\section*{The Recursive Problem, Infinite Horizon}\label{SecRecProbInFHor}
 Next we consider an infinite horizon problem.  For simplicity, we continue with the example from the previous section.  Suppose that rather than optimizing over $t = 0,1,\ldots,T$, we wish to optimize over an infinite time horizon:
 \begin{equation*}
 \max \sum_{t=0}^\infty \beta^t u(W_t,c_t) \quad \text{s.t.} \quad W_{t+1} = g(W_t,c_t).
@@ -200,3 +210,8 @@ and the accompanying policy function $W'=\psi_2\left(W\right)$. Calculate the ac
 \item Plot the policy function for the converged problem $W' = \psi\left(W\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x$-axis).
 \end{enumerate}
 \end{problem} 
+
+\begin{figure}
+\includegraphics[width=\textwidth]{convergence.pdf}
+\caption{Due to the contraction mapping principle, $\delta_k$ decreases as we perform iterations until it is small enough to meet our convergence tolerance.}
+\end{figure}
