@@ -1,0 +1,98 @@
+\lab{Python}{NumPy and SciPy}{NumPy and SciPy}
+\objective{Learn some other features available in NumPy and SciPy.}
+\label{lab:NumPySciPy}
+
+\section*{Broadcasting Array Dimensions}
+Most array operations require array sizes to be compatible.
+For example to add two arrays, they must be the same shape.
+Array broadcasting allows NumPy to work effectively with arrays of sizes that don't match exactly. 
+This can be useful in a host of different situations, and often saves both the 
+amount of typing that is necessary and the amount of memory required for computations. 
+There are four basic rules to determine the behavior of broadcasted arrays.
+\begin{enumerate}
+\item All input arrays of lesser dimension than the input array with largest dimension have 1's prepended to their shapes.
+\item The size in each dimension of the output shape is the maximum of all the input sizes in that dimension.
+\item An input can be used in the calculation if its size in a particular dimension either matches the output size in that dimension, or has a size exactly 1.
+\item If an input has a dimension size of 1 in its shape, the first data entry in that dimension will be used for all calculations along that dimension.
+\end{enumerate}
+
+One simple example is multiplying a two dimensional array by a set of numbers along its rows or columns.
+Run the following lines of code and consider their output:
+\begin{lstlisting}
+>>> import numpy as np
+>>> A = np.ones((3, 3))
+>>> B = np.vstack([1, 2, 3,])
+>>> A * B #multiplies the rows of A by each entry of B
+array([[ 1.,  1.,  1.],
+       [ 2.,  2.,  2.],
+       [ 3.,  3.,  3.]])
+>>> A * B.T #multiplies the columns of A by each entry of B
+array([[ 1.,  2.,  3.],
+       [ 1.,  2.,  3.],
+       [ 1.,  2.,  3.]])
+>>> A = np.array([1, 2, 3]).reshape((3,1))
+>>> B = np.array([1, 2])
+>>> A + B
+array([[2, 3],
+       [3, 4],
+       [4, 5]])
+>>> A = np.arange(3)
+>>> B = np.arange(3, 6)
+>>> A[np.newaxis,:] * B[:,np.newaxis] #np.newaxis can be used to add a new axis and affect broadcasting
+array([[ 0,  3,  6],
+       [ 0,  4,  8],
+       [ 0,  5, 10]])
+\end{lstlisting}
+It is important to note that broadcasting does not explicitly construct the larger array.
+In fact, internally, broadcasting uses no extra memory.
+For a more detailed description of array broadcasting rules, see \url{http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html}.
+
+\begin{problem}
+Create a $100\times100\times3$ array of integers taking values in the range [0, 256] 
+(using the function \li{numpy.random.randint} with appropriate arguments).
+Such an array can represent a RGB image of $100\times100$ pixels, where each pixel 
+is associated with an array of three integers indicating the amounts of red, green, and blue color present in that pixel, respectively. 
+Using array broadcasting, multiply the red and green values by $.5$. Such an operation will tone down the red and green colors 
+and make the image appear more blue. 
+\end{problem}
+
+\section*{Universal Functions}
+NumPy and SciPy include a wide variety of functions that are designed to operate on 
+arrays.
+Such functions, which take in an array and return an array of the same size and
+datatype, are called \emph{universal functions}. To illustrate this point, consider 
+the universal function \li{numpy.sin} and the standard function \li{math.sin}. If $A$ 
+is an array of floats (of any size), \li{math.sin(A)} throws an error, whereas 
+\li{numpy.sin(A).} returns an array of floats containing the sines of the entries of $A$. 
+Other simple examples from NumPy include \li{cos}, \li{sqrt}, \li{exp}, and 
+\li{log} all the way to special functions like \li{polygamma} in the \li{scipy.misc} submodule.
+There are far more functions available in NumPy than could possibly be included here, so you will want to become familiar with the NumPy and SciPy documentation at \url{docs.scipy.org/doc/}.
+If you need to do any sort of simple operation on an array, there is very often a function there to do it.
+These functions are almost always faster and more convenient than iterating through the whole array.
+
+Most of these functions also allow you to specify an array for the output.
+It is useful in cases where you would like to avoid unnecessary memory allocation.
+The output array does need to be the correct shape to store the output.
+For example:
+\begin{lstlisting}
+>>> np.exp(A, out=A) #take exp(A) and store result in A
+\end{lstlisting}
+
+Other useful examples are \li{max}, \li{min}, \li{absolute}, and \li{average}.
+Each of these operations also allows you to specify whether you want to operate across a particular axis or over the whole array.
+For example:
+\begin{lstlisting}
+>>> np.max(A, axis=0) #max along axis 0
+\end{lstlisting}
+The above example returns a row of A which represents the maximum of all the rows of A.
+If we had set \li{axis=1}, it would have taken the maximum of all the columns.
+If, for purposes of broadcasting (discussed later) you need the output of one of these functions to have the same number of dimensions as the original array, you can also include the argument \li{keepdims=True}.
+
+\section*{Linear Algebra}
+One of the most useful set of functions available in NumPy and SciPy are the linear algebra functions.
+Even though NumPy has linear algebra library, it is recommended to use the linear algebra library in SciPy.  The linear algebra library of SciPy is guaranteed to be optimized (compiled with support for BLAS/LAPACK).
+The linear algebra library is typically imported as
+\begin{lstlisting}
+from scipy import linalg
+\end{lstlisting}
+To shorten the amount of typing, it can be aliased as \li{from scipy import linalg as la}.
