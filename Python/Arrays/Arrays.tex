@@ -250,6 +250,28 @@ array([[[1, 9, 5, 2, 1, 9, 5, 2],
         [1, 9, 5, 2, 1, 9, 5, 2]]])
 \end{lstlisting}
 
+It is also often useful to create arrays that represent a two-dimensional grid of coordinates.
+This is done using the \li{meshgrid()} function, for example:
+\begin{lstlisting}
+>>> x = np.arange(4)
+>>> y = np.arange(5, 8)
+>>> X, Y = np.meshgrid(x, y)
+>>> X
+array([[0, 1, 2, 3],
+       [0, 1, 2, 3],
+       [0, 1, 2, 3],
+       [0, 1, 2, 3]])
+>>> Y
+array([[4, 4, 4, 4],
+       [5, 5, 5, 5],
+       [6, 6, 6, 6],
+       [7, 7, 7, 7]])
+\end{lstlisting}
+As you can see, \li{X} is an array representing the $x$ coordinates for a grid of points and \li{Y} is an array representing the $y$ coordinates of that same grid of points.
+When creating large grids of points this can use large amounts of RAM, so the meshgrid function includes the \li{copy} argument which, when set to false, returns arrays that are views of the original arrays instead of copies (views and copies are discussed later in this lab).
+For example, instead of running \li{np.meshgrid(x, y)} you could run \li{np.meshgrid(x, y, copy=False)}.
+This can be much faster, but should probably only be used if you do not intend to make any additional changes to the coordinates grid independent of the values stored in the original arrays.
+
 Every NumPy array has five flags that give important information about the array.
 We can check if an array is read-only by looking at its flags, or we can check how the array's contents are laid out in memory.
 Only the \texttt{WRITEABLE} and \texttt{ALIGNED} flags can be modified.  The other flags are read-only.  
@@ -557,7 +579,6 @@ The function \li{np.unique} will return the sorted unique elements of the input 
 There are also methods for constructing arrays from individual subarrays.
 While they may be useful, use them very carefully as they can have a very negative impact on performance.
 Functions like \li{np.hstack} and \li{np.vstack} will horizontally or vertically stack the input arrays into a new NumPy array.
-Flipping the arrays can be done with \li{np.fliplr} (left-right flip) or \li{np.flipud} (up-down flip).
 
 \begin{problem}
 Operations that create completely new arrays are often slower than operations that create views because allocating an array can be time consuming.
@@ -645,7 +666,9 @@ array([[ 0.46121936,  0.83080909,  0.5632045 ,  0.        ,  0.59581868],
 The comparison operators can all be used like this with arrays.
 We can quickly test if all elements of a given axis evaluate to true with \li{np.all}.  Likewise, we can test if any element evaluates to true with \li{np.any}.  
 Because of the nature of floating point numbers, it is next to impossible to accurately test the equality of elements of two arrays.
-NumPy provides a special function, \li{np.allclose}, to check if two arrays are \emph{almost} the same (or within some specified tolerances).  \emph{Please note that in some rare cases \li{np.allclose(a, b)} will not match \li{np.allclose(b, a)}.}  This is because the equation the function uses for checking closeness is not symmetric ($\abs{a-b} \leq \mbox{atol} + \mbox{rtol}*\abs{b}$).      
+NumPy provides a special function, \li{np.allclose}, to check if two arrays are \emph{almost} the same (or within some specified tolerances).
+\emph{Please note that in some rare cases} \li{np.allclose(a, b)} \emph{will not match} \li{np.allclose(b, a)}.
+This is because the equation the function uses for checking closeness is not symmetric ($\abs{a-b} \leq \mbox{atol} + \mbox{rtol}*\abs{b}$).      
 \begin{lstlisting}
 >>> a = np.ones((5, 5))
 >>> np.allclose(a, a+1e-5)
@@ -653,10 +676,10 @@ True
 >>> np.allclose(a, a+1e-4)
 False
 \end{lstlisting}
-NumPy also allows bitwise operations on arrays using the standard Python bitwise operators: \li{&}, \li{|}, and \li{^}.
-They are also available available as NumPy functions: \li{np.bitwise_and}, \li{np.bitwise_or}, and \li{np.bitwise_xor} respectively.
-The makes available logical opertators as well: \li{np.logical_and}, \li{np.logical_or}, and \li{np.logical_xor}.
+NumPy also allows bitwise operations on arrays using the standard Python bitwise operators: \li{&}, \li{|}, and \li{^}, as well as \li{&=}, \li{|=}, and \li{^=}.
 
+You must keep in mind that the features, operations, and functions discussed in these labs are \emph{most certainly not} an exhaustive list of the things that are included as part of NumPy.
+Whenever you need more information you can visit the documentation at \url{http://docs.scipy.org/doc/}
 
 \section*{Saving Arrays}
 It is often useful to save an array as a file.
