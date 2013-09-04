@@ -1,5 +1,7 @@
 from operator import itemgetter
 
+#makes a list of the form (node,node, weight) where each pixel is a node and has about four edges.
+#weight is defined as the sum of the absolute difference of each color value. For color pictures
 def ImgToGraphCol(A):
 
     isize=A.shape[0]
@@ -18,12 +20,14 @@ def ImgToGraphCol(A):
                 nodes.append((int(i+j*isize),int(i+(j-1)*A.shape[0]),diff(A[i,j,:],A[i,j-1,:]))) 
     return nodes
 
+#helper function
 def diff(A,B):
     thesum=0
     for i in xrange(len(A)):
         thesum = thesum + abs(A[i]-B[i])
     return thesum
 
+#Smae as above except weight is defined as difference between pixel values. For B&W pictures
 def ImgToGraph(A):
 
     isize=A.shape[0]
@@ -64,6 +68,9 @@ def kruskalInt(edges, nodelist, div):
                 return {node:track(node) for node in nodes}
             nodes[remove] = root
 
+#segments as image and plots it. n is the size of the image (you cann do up to 500 rather where)
+#it does not have to be square
+#div is the number of divisions and I have to guess and check to find out what a good number is
 n=200
 div=7000
 #X = sp.misc.imread('test.jpg').astype(float)
@@ -79,9 +86,11 @@ for x in xrange(n**2):
     nodes.append(x)
 forest=kruskalInt(edges, nodes, div)
 edge=sp.array(forest.values())
+#the next 2 lines find the 5 trees with the most nodes
 data = Counter(edge)
 ed=data.most_common(5)
 edge.resize(n,n)
+#graphs the 3 bigest segments.
 plt.subplot(221)
 plt.gray()
 plt.imshow(Xr)
