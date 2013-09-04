@@ -60,7 +60,7 @@ and make the image appear more blue.
 NumPy and SciPy include a wide variety of functions that are designed to operate on 
 arrays.
 Such functions, which take in an array and return an array of the same size and
-datatype, are called \emph{universal functions}. To illustrate this point, consider 
+datatype, are called \emph{universal functions}, or \texttt{ufuncs}. To illustrate this point, consider 
 the universal function \li{numpy.sin} and the standard function \li{math.sin}. If $A$ 
 is an array of floats (of any size), \li{math.sin(A)} throws an error, whereas 
 \li{numpy.sin(A).} returns an array of floats containing the sines of the entries of $A$. 
@@ -88,6 +88,17 @@ The above example returns a row of A which represents the maximum of all the row
 If we had set \li{axis=1}, it would have taken the maximum of all the columns.
 If, for purposes of broadcasting (discussed later) you need the output of one of these functions to have the same number of dimensions as the original array, you can also include the argument \li{keepdims=True}.
 
+Universal functions are designed to apply elementwise operations on each element of an array.
+Because of this, there can be a significant overhead when using a \texttt{ufunc} on a single value.
+\begin{lstlisting}
+>>> timeit np.sin(.5)
+1000000 loops, best of 3: 1.37 µs per loop
+>>> timeit np.math.sin(.5)
+10000000 loops, best of 3: 144 ns per loop
+\end{lstlisting}
+We can see decent performance increases when we know how to use a \texttt{ufunc}.
+They were not designed to handle single values efficiently.
+
 \section*{Linear Algebra}
 One of the most useful set of functions available in NumPy and SciPy are the linear algebra functions.
 Even though NumPy has linear algebra library, SciPy contains all the functions that NumPy has plus a few more advanced functions.
@@ -107,12 +118,64 @@ All mentions of a matrix in these lab manuals either refer to the mathematical o
 The linear algebra functions available in SciPy are very feature rich.
 There are functions that will find inverses, determinants, norms, solutions to linear systems, solve least squares problems, and decompose matrices.
 
-The most basic function that will you probably use is matrix multiplication.  This operator is implemented as the \li{la.dot} function (also available as a method of arrays).
+We can use \li{linalg.solve} to solve linear systems.  A least squares solution can be found with \li{linalg.lstsq}.
+\li{linalg.det} will return the determinant of a matrix.
 
 \section*{Polynomials}
 Many other useful functions are available in NumPy.  One of particular interest is the polynomial array.
 This is a convenience object that represents the coefficients of a polynomial.
-NumPy also contains several objects that represent special polynomials like Chebyshev, Legendre, and Hermite polynomials.
+Polynomials can be represented in two ways in NumPy.  First, and probably most convenient, is the \li{np.poly1d}
+object which will represent a polynomial as a 1D array.  
+Second, and slightly faster, an array that represents the coefficients of the terms in descending order.
+\begin{lstlisting}
+>>> a = np.poly1d([3, 5, 1, 2, 0, 1])
+>>> print a
+   5     4     3     2
+3 x + 5 x + 1 x + 2 x + 1
+>>> b = np.array([3, 5, 1, 2, 0, 1])
+>>> print b
+[3 5 1 2 0 1]
+\end{lstlisting}
+Both objects represent the same polynomial, $3x^5+5x^4+x^3+2x^2+1$.
+When representing a polynomial as just an array of coefficients, NumPy provides special methods to treat them as polynomials
+\begin{table}[h]
+\centering
+\begin{tabular}{l|l}
+Function & Description \\
+\hline
+\li{np.polyadd} & Add two polynomial arrays \\
+\li{np.polyder} & Find the derivative of a polynomial array \\
+\li{np.polydiv} & Divide two polynomial arrays \\
+\li{np.polyfit} & Find a least squares polynomial fit \\ 
+\li{np.polyint} & Find the integral of a polynomial array \\
+\li{np.polymul} & Multiply two polynomial arrays \\
+\li{np.polysub} & Subtract two polynomial arrays \\
+\li{np.polyval} & Evaluate a polynomial at specific points
+\end{tabular}
+\end{table}
+
+\section*{Useful Functions}
+\begin{table}[h]
+\centering
+\begin{tabular}{l|l}
+Function & Description \\
+\hline
+\li{np.intersect1d} & Return the intersection of two flattened arrays. \\
+\li{np.union} & Return the union of two flattened arrays. \\
+\li{np.diff} & Calculates a discrete difference of order $n$. \\
+\li{np.absolute} & Return the elementwise absolute value of an array. \\
+\li{np.pad} & \\
+\li{np.nonzero} & \\
+\li{np.count_nonzero} & \\
+\li{np.select} & \\
+\li{np.nan} & Represent IEEE NAN (not-a-number). \\
+\li{np.inf} & Represent IEEE INF (infinity). \\
+\li{np.who} & Print information about defined NumPy arrays in a variable scope. \\
+\li{np.unique} & Return a sorted array of unique elements of an array. \\
+\end{tabular}
+\caption{Some useful NumPy functions.  For more information please refer to the NumPy documentation.}
+\end{table}
+
 
 
 
