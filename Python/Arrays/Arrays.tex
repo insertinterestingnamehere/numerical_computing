@@ -53,9 +53,7 @@ The reason for the drastic speed difference is that Python, as a high level inte
 The algorithms implemented in NumPy are heavily optimized and are usually implemented in C or Fortran.
 Instead of operating purely in Python, they use Python to run code that is written and optimized in other languages.
 NumPy interfaces with some of the best packages available for doing computational linear algebra and can be used to write relatively fast programs.
-
-%Lists are still faster for anything that involves varying lengths of data.
-%If you are appending to your data or deleting items, consider using lists instead of arrays since both of these operations require the creation of an entirely new array.
+Lists should still be used when a variable size is needed for the data.
 
 \section*{NumPy}
 NumPy is one of the fundamental packages for scientific computing with Python.
@@ -65,9 +63,6 @@ NumPy is typically imported like this:
 \begin{lstlisting}
 >>> import numpy as np
 \end{lstlisting}
-NumPy also provides a matrix object which is designed to behave like matrices do in MATLAB.
-NumPy matrices are there only for convenience (primarily for MATLAB users that are learning to use NumPy).
-Arrays are much more common and have a more flexible structure.
 
 \section*{Creating Arrays}
 The most elementary way to create an array is to define it explicitly using \li{np.array()}.
@@ -124,9 +119,8 @@ array([  0.00000000e+000,   1.30586451e-316,   1.17126324e-316,
 Three other functions that may be useful are \li{empty_like}, \li{ones_like}, and \li{zeros_like}, which create new arrays with the same shape and datatype as another array, for example, to initialize an empty array with the same shape and type as an array \li{A}, you could use \li{np.empty_like(A)}.
 
 \section*{Array Objects}
-NumPy arrays are homogeneous objects.
 Unlike Python containers, all of the elements of an array have to have the same data type.
-The benefit of doing this is, in part, that it helps avoid the overhead associated with Python's objects.
+Storing values like this allows numerical operations to be performed over the entire array without the overhead involved in interfacing with the Python interpreter.
 The datatypes supported by NumPy are shown in Table \ref{numpytypes}
 \begin{table}
 \begin{tabular}{l|l}
@@ -183,15 +177,11 @@ To know the total number of elements in the array, we can use the \li{size} prop
 For a single dimensional array, these properties are uninteresting.
 These array properties are the most efficient way to understand the size and shape of a desired array.
 
-\begin{comment}
-
 Let's look at higher dimensional arrays.
 One, two, and three dimensional arrays are easy to visualize.
-But how do we visualize a four, ten, or fifteen dimensional array?
 Higher dimensional NumPy arrays can be thought of as arrays within arrays.
-A one dimensional array consists of only elements.
-A two dimensional array is really just an array containing arrays which contain elements.
-Extending this metaphor, a three dimensional array is an array of arrays of arrays.
+A three dimensional array can just be thought of as an array of arrays of arrays.
+\begin{comment}
 Each dimension is called an \emph{axis} in NumPy.  Many of NumPy's functions can be restricted to an axis.
 Most of the array constructors we have looked so far support creating arrays with an arbitrary number of dimensions.
 We can create an identity matrix easily with \li{np.eye}, \li{np.identity}, or \li{np.diag}.
@@ -431,7 +421,7 @@ array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 23, 24])
 array([ 0, 12, 24])
 >>> b[range(0, 5, 2), range(0, 5, 2)] #same as above, but with ranges
 array([ 0, 12, 24])
->>> b[:, [0, -1]] #take the first and last columns, the : is just a placeholder
+>>> b[:, [0, -1]] #take the first and last columns, the : indicates a slice including all of that axis
 array([[ 0,  4],
        [ 5,  9],
        [10, 14],
@@ -463,7 +453,7 @@ array([[ 0,  1,  2,  3,  4],
 array([[ 0,  3],
        [10, 13],
        [20, 23]])
->>>k[:, ::-1] #reverse the order of the columns, the first ":" is just a placeholder
+>>>k[:, ::-1] #reverse the order of the columns, the : indicates a slice including all of that axis
 array([[ 4,  3,  2,  1,  0],
        [9,  8,  7,  6,  5],
        [14, 13, 12, 11, 10],
@@ -496,7 +486,8 @@ Array slices are views, not copies, of portions of the data of the original arra
 NumPy provides a variety of functions for working with already existing arrays.
 The shape of a NumPy array can be changed by using the \li{np.reshape()} function.
 It can also be used as a method of array objects.
-The reshape function gives an array a new shape without changing the data of the array (the new shape must be compatible with the size of the array).
+The reshape function gives an array a new shape without changing the data of the array.
+The new shape must be compatible with the size of the array.
 It returns a view whenever possible, otherwise it will return a copy of the reshaped array.
 \begin{lstlisting}
 >>> k = np.arange(36)
@@ -674,7 +665,7 @@ A more comprehensive list can be found at \url{http://docs.scipy.org/doc/numpy/r
 
 \begin{table}[h!]
 \begin{center}
-	\begin{tabular}{|l|p{7cm}|}
+	\begin{tabular}{|l|p{10cm}|}
 
     \hline
 
@@ -704,15 +695,11 @@ A more comprehensive list can be found at \url{http://docs.scipy.org/doc/numpy/r
 
     \li{dot} & matrix multiplication \\
 
-    \li{flatten} & return a flattened copy of the array \\
-
     \li{max} & max element of the array \\
 
     \li{mean} & average of the array \\
 
     \li{min} & minimum element of the array \\
-
-    \li{nonzero} & return indices of nonzero elements \\
 
     \li{prod} & product of elements of the array \\
 
@@ -728,7 +715,7 @@ A more comprehensive list can be found at \url{http://docs.scipy.org/doc/numpy/r
 
     \li{sum} & sum the elements of the array \\
 
-    \li{swapaxes} & swap given axes of an array \\
+    \li{swapaxes} & return a view with the given axes swapped \\
 
     \li{tolist} & return the array represented as a list or nested list \\
 
