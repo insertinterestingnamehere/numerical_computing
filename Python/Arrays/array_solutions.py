@@ -17,7 +17,7 @@ def arrmul(A,B):
         new.append(newrow)
     return new
 
-def prob1():
+def array_vs_list():
     k = 200
     A = [range(i, i+k) for i in range(0, k**2, k)]
     number = 5
@@ -28,8 +28,9 @@ def prob1():
     number = 5
     tm = ti("np.dot(A,A)", setup="import numpy as np; from __main__ import A", number=number)
     print "np.dot(A,A) executed ", number, " times in ", tm, " seconds."
-    
-def prob2():
+
+def fancy_indexing():
+	# no longer in lab
     A = rand(1000,1000)
     B = np.empty_like(A)
     for i in xrange(100):
@@ -38,7 +39,7 @@ def prob2():
     np.exp(A, out=A)
     print np.average(np.max(A, axis=1))
     
-def prob3():
+def time_copy_vs_view():
     A = rand(1000,1000)
     number = 100
     tm = ti("A.reshape(A.size)", setup="from __main__ import A", number=number)
@@ -69,7 +70,13 @@ def laplace(U, tol):
         dif = np.max(np.absolute(U-new))
         U[:] = new
 
+def large_numbers(n):
+	# demonstrates law of large numbers
+	# as n increases, variance goes to 0.
+    A = rand(n, n)
+    return A.mean(axis=1).var()
 
+# The problems from here on are no longer in the first lab.
 def prob5():
     im = np.random.randint(1,256,(100,100,3))
     b = np.array([0.5,0.5,1])
