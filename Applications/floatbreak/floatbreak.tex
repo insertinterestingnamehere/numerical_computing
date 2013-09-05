@@ -2,3 +2,53 @@
 \label{lab:breakfloat}
 \objective{Understand the limitations of floating point numbers and introduce numerical stability.}
 
+\section*{Introduction}
+
+In the last lab we discussed the structure and flexibility of floating point numbers.
+Floating point numbers are a remarkably versatile tool for performing computations that roughly approximate operations on real numbers.
+In this lab we will see how the imperfections of floating point numbers can lead to all kinds of trouble.
+There are a variety of common errors involved with floating point computations.
+In order to safely use floating point computations it is necessary to know what their limitations are.
+
+We will start by considering a simple example in Cython:
+
+\begin{lstlisting}
+cimport numpy as np
+def breakfloat(int n):
+    cdef np.float32_t a = 2<<26
+    cdef int i
+    actual = float(a) + n
+    for i in range(n):
+        a += 1
+    return a, actual
+\end{lstlisting}
+
+When we run this code for \li{n=2**26} we see that the actual answer is double the answer returned by adding 1 repeatedly.
+This is because the floating point number is large enough that adding 1 to it is, after rounding, equivalent to adding 0.
+This is effect is mitigated substantially by the use of double precision floating point numbers, but it is still a worry.
+
+\begin{problem}
+consider the cython function defined below
+\begin{lstliting}
+from numpy cimport ndarray as ar
+cimport numpy as np
+import numpy as np
+from numpy.random import rand
+def breakfloat2(int size, int number):
+    cdef np.float32_t tot=0.
+    cdef ar[np.float32_t] A = np.empty(size, dtype=np.float32)
+    cdef int i, j
+    for i in xrange(number):
+        A[:] = rand(size).astype(np.float32)
+        for j in xrange(size):
+            tot += A[j]
+    return tot
+\end{lstlisting}
+The function call \li{breakfloat2(10**6, 10**3)} returns approximately 16000000.
+The answer should obviously be around 500000000.
+Why is there such a large error?
+How could you fix the function so that it would give the right result?
+\end{problem}
+
+
+
