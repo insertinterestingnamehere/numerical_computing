@@ -46,8 +46,126 @@ def sumrand(int size, int number):
             tot += A[j]
     return tot
 \end{lstlisting}
-The function call \li{breakfloat2(10**6, 10**3)} returns approximately 16000000.
+The function call \li{breakfloat2(10**6, 10**3)} returns 16777216.0.
 The answer should obviously be around 500000000.
 Why is there such a large error?
 How could you fix the function so that it would give the right result?
 \end{problem}
+
+\section*{Various Computational Considerations}
+
+There are a wide variety of issues that must be considered when using floating point numbers.
+Here we will consider a few examples.
+
+The first thing to notice is that floating point numbers are not actually stored as decimal representations.
+When you define a decimal number, your computer does the best it can to \emph{approximate} the decimal number given.
+For example, when you give your computer a value of .1, the value it actually stores is 0.1000000000000000055511151231257827021181583404541015625 which is usually close enough to .1 that the difference goes unnoticed.
+This is, in a sense, a sort of round off error.
+These sort of errors can pop up in all kinds of places.
+You must also keep in mind that rounding occurs after each operation.
+These two effects can combine to give unexpected results, for example
+\begin{lstlisting}
+>>> 3. * .1 - .3
+5.551115123125783e-17
+>>> 3. * .1 == .3
+False
+\end{lstlisting}
+These sorts of effects can combine to give somewhat astonishing results, for example, all of the following should be equivalent.
+They should all evaluate to 0.
+\begin{lstlisting}
+>>> n = 19000001
+>>> (5*n)**2 - (4*n)**2 - (3*n)**2 # exact result using integers
+0
+>>> (5.*n)**2 - (4*n)**2 - (3*n)**2 # added a single decimal point
+1.0
+>>> (5*n)**2 - (4.*n)**2 - (3*n)**2 # added a single decimal point somewhere else
+-1.0
+>>> (5.*n)**2 - ((4*n)**2 + (3*n)**2) # added a decimal point and some parenthesis
+2.0
+\end{lstlisting}
+Notice how four expressions that should, in theory, be equivalent returned four \emph{different} answers.
+The change caused by the inclusion of parenthesis is particularly troublesome because it means that floating point operations are only \emph{approximately} associative.
+This is an example of what is called catastrophic cancellation.
+Catastrophic cancellation occurs when we perform an operation on two floating point numbers that are already subject to rounding error.
+it is especially noticeable when subtracting numbers that are approximately equal.
+Because different methods of computation may yield slightly different results it is imperative that equality tests and comparisons using floating point numbers be carried out with certain tolerances.
+It is all too tempting to do some floating point computation that you would expect to give a result of 0 and then to test your result with something like
+\begin{lstlisting}
+if result == expected:
+    print "it worked"
+\end{lstlisting}
+and then try to debug a perfectly good bit of code because the way it does its computations gives a result that is minutely different than what you expect.
+A test like this should be replaced with something roughly along the lines of
+\begin{lstlisting}
+tolerance = 1E-6
+if abs(result - expected) < tolerance:
+    print "it worked"
+\end{lstlisting}
+For a specific example, consider the square root function given in the previous lab for 32 bit floating point numbers.
+The square root given is not a perfect match to the square root given by the built in square root function, but it can compute the proper value so that all but the last bit is accurate.
+To test whether or not the algorithm converges for randomly generated numbers between 0 and 1 we may be tempted to do the following
+\begin{lstlisting}
+A = rand(10000)
+(pysqrtacc32(A, 2) == np.sqrt(A)).all()
+\end{lstlisting}
+Which would return \li{False} since some of the values returned by our \emph{algorithm} may differ from the built in square root by an extremely small amount regardless of how many iterations we run.
+We can test for accuracy properly using something like
+\begin{lstlisting}
+A = rand(10000)
+(np.absolute(pysqrtacc32(A, 2) - np.sqrt(A)) < 2E-7).all()
+\end{lstlisting}
+Which returns \li{True}.
+
+\begin{problem}
+One example where it is common to subtract numbers that are nearly equal is in the computation of numerical derivatives.
+Write a simple approximation to the derivative of a function $f$ using the formula $\frac{f(x+h) - f(x)}{h}$.
+Check how accurate it is for varying sizes of \li{h} by testing it on the \li{sin} function included in Python's math library with \li{x = 1}.
+Use Python's \li{cos} function as the exact value of the derivative.
+What do you notice about accuracy as \li{h} becomes smaller and smaller?
+\end{problem}
+
+\begin{comment}
+% this is another possibly useful problem, but I'm commenting it out in favor of the numerical derivative one.
+\begin{problem}
+Your friend writes the following Cython code to search for Pythagorean Triples.
+\begin{lstlisting}
+from libc.math cimport sqrt
+def cy_find_triple(double start, int num):
+    cdef int i, j
+    cdef double temp
+    for i in xrange(num):
+        for j in xrange(i, num):
+            temp = sqrt((start+i)**2 + (start+j)**2)
+            if temp == int(temp):
+                print int(start+i), int(start+j), int(temp)
+\end{lstlisting}
+By running \li{cy_find_triple(600000000, 10000)}, he claims to have found the triples
+
+600001807  600004043  848532274
+
+600001924  600004742  848532851
+
+600004561  600009787  848538283
+
+600004738  600007261  848536622
+
+{\setlength{\parindent}{0cm}
+What is wrong with his code and how should it be fixed?
+}
+\end{problem}
+\end{comment}
+
+Another limitation of floating point numbers is that they are subject to overflow.
+Floating point numbers do have restricted values set aside for values of $\infty$, $-\infty$, and \li{Nan}, so you can often tell when overflow has occured, but it is best to avoid extremely large or extremely small floating point values in either case.
+For a simple example of overflow, we will perform a computational demonstration that the $p$-norms approach the $\infty$-norm as $p \rightarrow \infty$.
+\begin{lstlisting}
+def pnorm(A, p):
+    return (A**p).sum()**(1./p)
+\end{lstlisting}
+If you haven't seen p-norms before, the main thing you need to understand here is that as $p \rightarrow \infty$, \li{pnorm(A, p)} should come arbitrarily close to \li{np.absolute(A).max()}.
+Testing this computationally, we see that, for a randomly generated array of values between 0 and 1, we get the plot shown in Figure \ref{pnorm_convergence} as $p \rightarrow \infty$.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{pnorm_convergence.pdf}
+\caption{The convergence of the $p$-norms to the $\infty$-norm.}
+\end{figure}
