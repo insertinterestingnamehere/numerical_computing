@@ -169,3 +169,67 @@ Testing this computationally, we see that, for a randomly generated array of val
 \includegraphics[width=\textwidth]{pnorm_convergence.pdf}
 \caption{The convergence of the $p$-norms to the $\infty$-norm.}
 \end{figure}
+
+For floating point numbers, overflow results in a value of $\infty$ or $-\infty$.
+Operations that cannot be well defined (like $\infty - \infty$) return a value of \li{NAN}, which stands for "Not A Number."
+When dealing with machine integers, for example integers that are stored in arrays or integers in programming languages other than Python, there are no specific values for things likt $\infty$.
+The operations can be performed, but the result will be incorrect.
+To understand this, first consider an unsigned integer.
+Unsigned integers are always considered to be positive.
+Unsigned integers have no sign, so each bit is considered a binary digit.
+In an eight bit unsigned integer there are 256 possible values.
+They are used to represent the numbers 0 through 255.
+When we pass 255, the numbers cycle back around to 0 again, so, for example:
+\begin{lstlisting}
+>>> np.arange(250, 260, dtype=np.uint8)
+array([250, 251, 252, 253, 254, 255,   0,   1,   2,   3], dtype=uint8)
+>>> np.arange(250, 260, dtype=np.uint8) * 2
+array([244, 246, 248, 250, 252, 254,   0,   2,   4,   6], dtype=uint8)
+>>> np.arange(250, 260, dtype=np.uint8)**2
+array([36, 25, 16,  9,  4,  1,  0,  1,  4,  9], dtype=uint8)
+\end{lstlisting}
+As you can see, the operations can be understood as operations in $\mathbb{Z} / 256 \mathbb{Z}$, which has operations equivalent to those in $\mathbb{Z}$ only some of the time.
+These sorts of issues can come up in computations involving integers or even typecasts to integers.
+
+\section*{Some Examples of Computation Error}
+
+There have been several historical examples where incorrect numerical computing has caused terrible disasters.
+
+Our first example involves the explosion of the Ariane 5 rocket in 1996.
+The Ariane 5 rocket was launched by the European Space Agency.
+Roughly 7 billion dollars were spent in its development.
+The rocket and its cargo were, in themselves, worth an estimated 500 million dollars.
+At an altitude of about 3700 meters the rocket veered off of its intended path and exploded.
+After some investigation it was discovered that the error was caused by the conversion of an excessively large 64 bit floating point number to a 16 bit signed integer.
+To see how this could cause problems, consider the following example:
+\begin{lstlisting}
+>>> from numpy.random import rand
+>>> A = rand(10) * 10**5
+>>> A.astype(np.int16) # incorrect cast, overflow has occured
+array([  6691,  24236, -28341,   4104,  18063, -19080,  -7500,  -4954,
+        25898,  11995], dtype=int16)
+>>> A.astype(np.int64) # what the values should be
+array([26802, 64425,  1339, 55901, 51665, 11992, 90368, 87717,    25, 38894], dtype=int64)
+\end{lstlisting}
+Keep in mind that a simple error like this caused hundreds of millions of dollars of damage.
+
+The Vancouver Stock Exchange is another example of a relatively simple propagation of error.
+When the exchange opened, the index to track its value was initialized at 1000 in January of 1982.
+Around 3000 times per day the index was updated and then truncated to three decimals of precision.
+After 22 months the computed value was 524.881 when the actual value should have been 1009.811.
+When it was discovered that the computation of the index was diminishing it's value, the index was reset to its actual value.
+
+Another example which we will not discuss here was the sinking of the Sleipner A offshore platform in 1991.
+That disaster was due to improper finite element analysis.
+The total loss was estimated at 700 million dollars.
+
+The final example we will consider here is the failure of the Patriot Missile Defense system at Dharan, Saudi Arabia during the gulf war.
+In this disaster the patriot missile system failed to fire on an incoming missile.
+The missile struck a barracks, killed 28 people, and injured around 100 others.
+This failure was due to improper use of floating point numbers!
+The system clock was incremented using every .1 seconds using a floating point value.
+After 100 hours of operation the roundoff error from each individual floating point addition had accumulated enough that the system clock was off enough that it was unable to target the incoming missile properly and failed to fire.
+
+\begin{problem}
+The patriot missile system was using a custom floating point register with 
+\end{problem}
