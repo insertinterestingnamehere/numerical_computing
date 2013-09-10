@@ -176,3 +176,17 @@ def formChanger(oldData):
 # edges=formChanger(q)
 # kruskal(edges)
 # prim(edges)
+
+
+#solution to problem 3.
+import networkx as nx
+def mstGraphnx(data,node):
+    G=nx.Graph()
+    G.add_nodes_from(node)
+    for i in data:
+        G.add_edge(i[0],i[1],weight=int(i[2]))
+    return nx.minimum_spanning_tree(G)
+
+nodes = list( "ABCDEFGHIJKLMNOPQRSTUVWXYZabcd")
+q=np.load("MSTdata.npy")
+mstGraphnx(q,nodes)
