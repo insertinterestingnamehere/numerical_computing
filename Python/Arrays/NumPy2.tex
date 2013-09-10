@@ -158,11 +158,80 @@ However, using the matrix class is generally discouraged.  They add no extra ben
 All of the other functions of NumPy and SciPy are written to take advantage of the features of the \li{ndarray}.  
 All mentions of a matrix in these lab manuals either refer to the mathematical object or an \li{ndarray}.
 
+The linear algebra library contains several functions to construct special matrices.
+These matrices are common in specific areas of interest.  
+The functions for constructing these special matrices are located in \li{linalg.special_matrices}.
+The other functions 
 The linear algebra functions available in SciPy are very feature rich.
 There are functions that will find inverses, determinants, norms, solutions to linear systems, solve least squares problems, and decompose matrices.
 
 We can use \li{linalg.solve} to solve linear systems.  A least squares solution can be found with \li{linalg.lstsq}.
 \li{linalg.det} will return the determinant of a matrix.
+
+\begin{problem}
+Block ciphers are ciphers that encode blocks of input symbols at a time instead of one symbol at a time.
+In the days before computers, the Hill cipher was the first cipher that allowed practical encoding of more than three symbols at a time.
+It was invented by Lester Hill in 1929.
+The Hill cipher is considered a classical substitution cipher.
+The entire cipher is based on linear algebra and uses a matrix key.
+All substitution ciphers work with the 26 letters.
+Thus, all our operations will be done $\pmod{26}$ (modulo 26).
+To do this, we introduce you to the \li{\%} operator in Python.
+This new operator allows us to do modular arithmetic.
+
+This problem has a number of parts.  You will write a function that accepts \emph{plaintext} and returns the encoded \emph{ciphertext}.
+You will also write a decoder that will accept ciphertext and return plaintext.
+
+The Encoder:
+\begin{enumerate}
+\item We must first gather the plaintext to encode and a block size, $n$.  
+We must split this plaintext into blocks removing any spaces.  We need to covert each character to a number.
+We use the index of \li{string.lowercase} (found in the \li{string} module of the Python standard library).
+We can easily build a lookup table that will let you easily find the index.
+With a lookup table, we map each letter to its index.
+\begin{lstlisting}
+>>> from string import lowercase
+>>> lut = {a:i for i, a in enumerate(lowercase)}
+>>> s = "this is a message"
+>>> s = "".join(s.split()) #removes all whitespace
+>>> map(lut.__getitem__, s) #returns a list of indices
+[19, 7, 8, 18, 8, 18, 0, 12, 4, 18, 18, 0, 6, 4]
+\end{lstlisting}
+Another way is to use \li{lowercase.index()} in a loop to find the index each time.
+\begin{lstlisting}
+>>> indices = []
+>>> for letter in s:
+        indices.append(lowercase.index(letter))
+\end{lstlisting}
+We need to split the list of indices into $n$-length arrays and store them in a list.
+If the input is not a multiple of $n$, you will need to pad the input until it is a multiple of $n$.
+Pick any character to pad the input (typically it is a rarely used letter).
+The \li{itertools} module is useful for this.  One of the common recipes for doing this task is available in the \li{itertools} documentation.  
+\begin{lstlisting}
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return itertools.izip_longest(fillvalue=fillvalue, *args)
+\end{lstlisting}
+It will be useful to wrap all of this step in a separate function as we will need to do the same thing when decoding (except for removing whitespace).
+
+\item Find a suitable cipher key.  The keys of a Hill cipher are square matrices.  Let $K$, be our key.
+$K$ must be invertible mod 26.  
+Remember from linear algebra, that the determinant of square matrix will tell you if that matrix is invertible.
+To find a matrix that is invertible mod 26, we need to find a matrix with a determinant that is relatively prime to 26 (they share no common factors).
+The Euclidean algorithm can be used to determine if two numbers are co-prime (i.e. $\gcd(d, 26) = 1$).
+Write a function that generate random integer matrices using NumPy, checking the determinant, and returns a suitable key, $K$.
+
+\item Write a function that will accept a message and a key matrix.  
+The message should already be broken into $n$ length blocks and the matrix should be $n \times n$.
+
+
+\end{enumerate}
+
+
+\end{problem}
+
 
 \section*{Polynomials}
 Many other useful functions are available in NumPy.  One of particular interest is the polynomial array.
