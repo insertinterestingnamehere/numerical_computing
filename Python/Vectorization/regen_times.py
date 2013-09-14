@@ -77,10 +77,6 @@ def time(sizes):
         t3.append(ti("dist3(A, B)", setup="from __main__ import dist3, A, B", number=10))
         t4.append(ti("dist4(A, B)", setup="from __main__ import dist4, A, B", number=10))
         print size
-    t1 = [log(t)/log(10) for t in t1]
-    t2 = [log(t)/log(10) for t in t2]
-    t3 = [log(t)/log(10) for t in t3]
-    t4 = [log(t)/log(10) for t in t4]
     times = np.empty((5, len(sizes)))
     times[0] = sizes
     times[1] = t1
