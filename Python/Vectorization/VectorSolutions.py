@@ -1,5 +1,34 @@
 import numpy as np
+from numpy.random import rand
 import matplotlib.pyplot as plt
+
+# Assorted vectorization problems
+def assortment():
+    # a
+    X = rand(100,10)
+    X.dot(X.T)
+    # b
+    (X*X).sum(axis=1)
+    # c
+    A = rand(10, 10)
+    V = rand(100, 10)
+    (V.dot(A)*V).sum(axis=1)
+    # d
+    A = rand(1000)
+    (A<.5).sum()
+    # e
+    A[A<.25] = 0.
+    # f
+    A = rand(10,2,2)
+    B = rand(20,2)
+    A.dot(B.T).swapaxes(1,2)
+    # g
+    A = rand(100, 100)
+    (A[:,0]<.5).dot(A).sum()
+    # h
+    P = rand(100)
+    D = (rand(100,100)<.5)
+    P*D.sum(axis=1)-D.dot(P)
 
 #naive way of suffling the deck
 def shuffle(deck):
@@ -25,6 +54,14 @@ def shuffleB(deck):
     deck[::2] = deck[range(s) + ra*s]
     deck[1::2] = tempdeck
     return deck
+
+# image vectorization problem
+def image_vect():
+	# a
+	I = rand(100,200,3)
+	I.mean(axis=2)
+	# b
+	return np.absolute(I-I.mean(axis=2, keepdims=True))
 
 #edit==1 inverts
 #edit==2 greyscales
