@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Assorted vectorization problems
 def assortment():
     # a
-    X = rand(100,10)
+    X = rand(100, 10)
     X.dot(X.T)
     # b
     (X*X).sum(axis=1)
@@ -23,16 +23,16 @@ def assortment():
     X = rand(100, 10)
     A.dot(X.T).T
     # g
-    A = rand(10,2,2)
-    B = rand(20,2)
-    A.dot(B.T).swapaxes(1,2)
+    A = rand(10, 2, 2)
+    B = rand(20, 2)
+    A.dot(B.T).swapaxes(1, 2)
     # h
     A = rand(100, 100)
-    (A[:,0]<.5).dot(A).sum()
+    (A[:,0] < .5).dot(A).sum()
     # i
     P = rand(100)
-    D = (rand(100,100)<.5)
-    P*D.sum(axis=1)-D.dot(P)
+    D = (rand(100, 100) < .5)
+    P * D.sum(axis=1) - D.dot(P)
 
 #naive way of suffling the deck
 def shuffle(deck):
