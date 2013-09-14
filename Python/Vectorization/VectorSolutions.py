@@ -19,13 +19,17 @@ def assortment():
     # e
     A[A<.25] = 0.
     # f
+    A = rand(10, 10)
+    X = rand(100, 10)
+    A.dot(X.T).T
+    # g
     A = rand(10,2,2)
     B = rand(20,2)
     A.dot(B.T).swapaxes(1,2)
-    # g
+    # h
     A = rand(100, 100)
     (A[:,0]<.5).dot(A).sum()
-    # h
+    # i
     P = rand(100)
     D = (rand(100,100)<.5)
     P*D.sum(axis=1)-D.dot(P)
