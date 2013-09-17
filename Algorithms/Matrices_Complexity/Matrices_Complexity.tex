@@ -8,7 +8,7 @@ One of the most important questions in scientific computing is:
 How long will this operation take?
 The concept of temporal complexity attempts to answer this question by determining
 how much time a function needs to operate on a given size of input.
-For example, suppose a particular algorithm operating on a matrix of size $n$ 
+For example, suppose a particular algorithm operating on a matrix of size $n$
 (that is, an $n \times n$ matrix)
 requires the following number of calculations:
 \begin{equation*}
@@ -35,15 +35,6 @@ $f(n) \leq cg(n)$.
 When this is satisfied, we say that $g(n)$ is an asymptotic upper bound for $f(n)$.
 The notation $f = O(g(n))$ is also common.
 \end{definition}
-
-\begin{problem}
-Verify the following relationships
-\begin{itemize}
-\item $O(\log{n}) \subset O(n) \subset O(n\log{n})$
-\item $O(n^k) \subset O(n^{k+1})$
-\item $O(n^p) \subset O(2^n)$ for all $p \in \mathbb{N}$
-\end{itemize}
-\end{problem}
 
 What does this have to do with computer programs?
 Every algorithm executed on a computer corresponds to a function
@@ -73,14 +64,18 @@ to terminate in about $(2)^2 x = 4x$ seconds.  Sometimes, when you don't have co
 you can approximate the asymptotic growth of a function by timing it on various sized inputs.
 
 \begin{problem}
-Determine the asymptotic growth of the following code that calculates all the partial sums
-up to 1000.
+Time the runtime of the following code for \li{n = 1000} (as shown in the code below) as well 
+as \li{n = 2000, 4000, 8000}.
 \begin{lstlisting}
 t = 0
-for n in xrange(1000):
-    t += sum(xrange(n))
+n = 1000
+for i in xrange(n):
+    t += sum(xrange(i))
 \end{lstlisting}
-%the asymptotic growth is $O(n^2)$
+Write a function that takes no arguments and does the following: plot the four runtimes 
+(use \li{[1000, 2000, 4000, 8000]} or an equivalent array object as your domain) and 
+then return the average ratio between successive runtimes (one such ratio would be 
+the runtime for $n = 2000$ divided by the runtime for $n = 1000$).
 \end{problem}
 
 We can also classify an algorithm by the amount of memory it needs to execute.  We will use the term \emph{spatial complexity} to measure the amount of memory an algorithm uses.  The definition of spatial complexity is the same as the definition for temporal complexity with the obvious difference that $n$ refers to space rather than time.
@@ -101,19 +96,20 @@ Each way has it pros and cons (the reader is encouraged to read the help for eac
 \hline
 Function & Description \\
 \hline
-\li{sparse.bsr()} & Compressed Block Sparse Row\\
-\li{sparse.coo()} & Coordinate\\
-\li{sparse.csc()} & Compressed Sparse Column\\
-\li{sparse.csr()} & Compress Sparse Row\\
-\li{sparse.dia()} & Sparse Diagonal\\
-\li{sparse.dok()} & Dictionary of Keys\\
-\li{sparse.lil()} & Linked List\\
+\li{sparse.bsr_matrix()} & Compressed Block Sparse Row\\
+\li{sparse.coo_matrix()} & Coordinate\\
+\li{sparse.csc_matrix()} & Compressed Sparse Column\\
+\li{sparse.csr_matrix()} & Compress Sparse Row\\
+\li{sparse.dia_matrix()} & Sparse Diagonal\\
+\li{sparse.dok_matrix()} & Dictionary of Keys\\
+\li{sparse.lil_matrix()} & Linked List\\
 \hline
 \end{tabular}
 \caption{Sparse matrix representations in SciPy}
 \end{table}
 Type the following into IPython.
 \begin{lstlisting}
+>>> import numpy as np
 >>> from scipy import sparse
 >>> A = np.diagflat([2,3,4])
 >>> B = sparse.csc_matrix(A)
@@ -163,7 +159,7 @@ Often a better way to create a tri-diagonal is it use the \li{sparse.spdiags()} 
 This is because many banded matrices are sparse.
 For example, we create the same matrix using the command:
 \begin{lstlisting}
->>> Z = np.array([[3, 1, 0], [6, 4, 2], [9, 7, 5], [0, 10, 8]]).T
+>>> Z = np.array([[3,6,9,0],[1,4,7,10],[0,2,5,8]])
 >>> sparse.spdiags(Z, [-1, 0, 1], 4, 4)
 \end{lstlisting}
 
@@ -171,7 +167,7 @@ For more information, check the documentation by typing \li{sparse.spdiags?}.
 For example we create a tri-diagonal array with uniformly distributed random entries.
 This example also demonstrates the efficiency of using sparse arrays.
 \begin{lstlisting}
->>> B = np.rand(3,10000)
+>>> B = np.random.rand(3,10000)
 >>> A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
 >>> denseA = A.todense()  #only do this step if you have _lots_ of memory!
 >>> A.data.nbytes
@@ -222,43 +218,52 @@ fit into the computer's RAM.  Furthermore, the temporal complexity for solving
 a tri-diagonal matrix is $O(n)$. Let's see how long it takes to
 solve the system for random data:
 \begin{lstlisting}
->>> import scipy as sp
->>> from scipy import sparse as spar
 >>> from scipy.sparse import linalg as sparla
->>> D = sp.rand(3, 100000)
->>> b = sp.rand(1, 100000)
->>> A = spar.spdiags(D,[-1,0,1],100000,100000)
+>>> D = np.random.rand(3, 100000)
+>>> b = np.random.rand(1, 100000)
+>>> A = sparse.spdiags(D,[-1,0,1],100000,100000, format='csr')
 >>> def solSys():
 >>>     return sparla.spsolve(A,b)
 >>> %timeit solSys()
 \end{lstlisting}
 
 \begin{problem}
-Write a function that returns a full $n\times n$
+Write a function that takes an integer argument \li{n} and returns a full $n\times n$
 tri-diagonal array with $2$'s along the diagonal and $-1$'s along
 the two sub-diagonals above and below the diagonal.
 \label{prob:full_tridiag}
 \end{problem}
 
 \begin{problem}
-Write another function that builds the same array as above, but as a sparse array.
+Write another function that accepts an integer argument \li{n} and returns the same 
+array as above, but as a sparse array.
 You must build this as a sparse matrix from the beginning.
-Hint: Use the \li{spar.spdiags()} method.
+Hint: Use the \li{spar.spdiags()} method with \li{format='csr'}.
 \label{prob:sparse_tridiag}
 \end{problem}
 
 \begin{problem}
-Solve the linear system $Ax = b$ where $A$ is the $n\times n$
-tri-diagonal array from Problem \ref{prob:full_tridiag} and Problem \ref{prob:sparse_tridiag} and $b$ is randomly
-generated.  How high can you go for each method?  Make a table for
-several different values of $n$ and the time it took to solve for
-each run.  What conclusions can you draw?
+Write a function that accepts an integer argument \li{n} as well as a keyword argument
+\li{sparse} whose value is either \li{True} or \li{False} (default to \li{False}). 
+Inside of the function, use your previous solutions to generate a $n \times n$ tri-diagonal
+array $A$, either sparse or full depending on the value of the \li{sparse} argument.
+Also generate a $n \times 1$ random array $b$, and then solve the system $Ax = b$, 
+using either \li{scipy.sparse.linalg.spsolve} or \li{scipy.linalg.solve} 
+(again depending on the value of \li{sparse}) and return the solution.
+
+Time the function for \li{n = 2000} using both the sparse and the full option.
 \end{problem}
 
 \begin{problem}
-Using the sparse array above and the method \li{sparla.eigs},
-calculate the smallest eigenvalue $\lambda$ of the array as the array's size goes to infinity. (You will need to set the \li{which = 'SM'} optional argument.)
-What value does $\lambda n^2$ approach?
+Write a function that accepts an integer argument \li{n} and returns $\lambda n^2$, where
+$\lambda$ is the smallest eigenvalue of the same $n \times n$ sparse tri-diagonal array as described above.
+To calculate $\lambda$, use \li{scipy.sparse.linalg.eigs}. You will need to set the \li{which = 'SM'} 
+optional argument. Further, if \li{A} is your tri-diagonal sparse matrix, you will need to use 
+\li{A.asfptype()} as the argument for the \li{eigs} function (so that the matrix has the right data type). 
+Check the documentation of the \li{eigs} function to see what it returns, so that you will know how to 
+get the smallest eigenvalue.
+
+What value does $\lambda n^2$ approach as $n \rightarrow \infty$?
 Hint: It's the square of an important number.
 This is related to operator theory: the second derivative operator has this eigenvalue in certain cases.
 \end{problem}
@@ -275,9 +280,9 @@ When the matrix has many nonzero entries, a sparse representation becomes disadv
 To see this, create and execute a script with the following code:
 \begin{lstlisting}
 >>> A = np.random.rand(600,600)
->>> B = spar.csc_matrix(A)
+>>> B = sparse.csc_matrix(A)
 >>> def square(A):
->>>     return sp.power(A, 2)
+>>>     return np.power(A, 2)
 >>> %timeit square(A)
 >>> %timeit square(B)
 \end{lstlisting}
@@ -294,10 +299,10 @@ Just as with dense arrays, we can pre-allocate sparse matrices.
 Sometimes it is necessary to create sparse matrices that do not have a nice banded pattern.
 We initialize a sparse matrix just like any other array.
 The most efficient sparse matrix for pre-allocation is LIL.
-Once you are done constructing you sparse matrix and wish to perform calculations,
+Once you are done constructing the sparse matrix and wish to perform calculations,
 you should convert to a more efficient sparse matrix (CSR or CSC).
 \begin{lstlisting}
->>> Z = spar.lil_matrix((400,300))
+>>> Z = sparse.lil_matrix((400,300))
 <400x300 sparse matrix of type '<type 'numpy.float64'>'
         with 0 stored elements in Linked List format>
 >>> Z[1,34] = 23

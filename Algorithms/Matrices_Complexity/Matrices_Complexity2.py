@@ -1,29 +1,45 @@
-from scipy import linalg as la
-from scipy import sparse as spar
-from scipy.sparse import linalg as sla
+import numpy as np
 import scipy as sp
+from matplotlib import pyplot as plt
+from scipy import linalg as la
+from scipy import sparse
+from scipy.sparse import linalg as sparla
+
+
+def Problem1():
+    # the students should have timed the code 4 times.
+    # their runtimes should be similar to what is below
+    runtimes = [8.95, 36.7, 144, 557]
+    inputs = [1000, 2000, 4000, 8000]
+    plt.plot(inputs, runtimes, 'go')
+    plt.show()
+    
+    # now calculate the average ratio of successive runtimes
+    return ((36.7/8.95)+(144/36.7)+(557.0/144))/3.0
+
+def Problem2(n):
+    # this solution imitates the example code given in the lab
+    return np.diagflat([-1]*(n-1), -1) + np.diagflat([2]*n, 0) + np.diagflat([-1]*(n-1),1)
 
 def Problem3(n):
-    return la.toeplitz([2,-1]+[0]*(n-2), [2,-1]+[0]*(n-2))
-
-def Problem4(n):
-    diags = sp.array([[-1]*n, [2]*n, [-1]*n])
-    return spar.spdiags(diags, [-1,0,1], n, n,format='csr')
-
-def Problem5(n, sparse=False):
-
-    b = sp.rand(n,1)
+    # build the diagonals
+    diags = np.array([[-1]*n,[2]*n,[-1]*n])
     
-    if sparse is True:
-        A=Problem4(n)
-        return sla.spsolve(A,b)
+    # create and return the sparse array
+    return sparse.spdiags(diags, [-1,0,1], n, n, format='csr')
+
+def Problem4(n, sparse=False):
+    b = np.random.rand(n,1)
+    if sparse:
+        A = Problem3(n)
+        return sparla.spsolve(A,b)
     else:
-        A=Problem3(n)
+        A = Problem2(n)
         return la.solve(A,b)
 
-def Problem6(n):
-    A = Problem4(n)
-    eig = sla.eigs(A.asfptype(), which="SM")[0].min()
+def Problem5(n):
+    A = Problem3(n)
+    eig = sparla.eigs(A.asfptype(), k=1, which="SM")[0].min()
     return eig*(n**2)
     
     
