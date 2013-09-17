@@ -33,39 +33,17 @@ def assortment():
     P = rand(100)
     D = (rand(100, 100) < .5)
     P * D.sum(axis=1) - D.dot(P)
-
-#naive way of suffling the deck
-def shuffle(deck):
-    size = len(deck)
-    newdeck=np.empty_like(deck)
-    for i in xrange(size/2):
-         if np.random.randint(0, 1) == 0:
-            newdeck[i*2]=deck[i]
-            newdeck[i*2+1]=deck[size/2+i]
-         else:
-            newdeck[i*2]=deck[size/2+i]
-            newdeck[i*2+1]=deck[i]
-    deck[:] = newdeck
-
-#Better way
-def shuffleB(deck):
-    s = len(deck)/2
-    ra = np.random.randint(0, 2, s)
-    #Genrates random number half the size of the deck. 
-    #if ra[i]==0 then the ith card form the second half of the deck goes in the first slot in the ith place in the new deck
-    #and the ith card in the first half goes in the the secod slot in the ith place in the new deck 
-    tempdeck = deck[range(s) + (1-ra)*s].copy()
-    deck[::2] = deck[range(s) + ra*s]
-    deck[1::2] = tempdeck
-    return deck
+    # j (shuffle problem)
+    A = np.arange(52)
+    A[::2], A[1::2] = A[A.shape[0]//2:].copy(), A[:A.shape[0]//2].copy()
 
 # image vectorization problem
 def image_vect():
 	# a
-	I = rand(100,200,3)
+	I = rand(100, 200, 3)
 	I.mean(axis=2)
 	# b
-	return np.absolute(I-I.mean(axis=2, keepdims=True))
+	return np.absolute(I - I.mean(axis=2, keepdims=True))
 
 #edit==1 inverts
 #edit==2 greyscales
