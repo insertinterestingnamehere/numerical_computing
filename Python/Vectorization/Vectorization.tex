@@ -8,7 +8,7 @@ Some of the benefits of allowing these types of operations are concise code and 
 
 \section*{Some Simple Examples}
 
-Vectorization is a term that refers generally to the eliminating of li{for} loops in higher level languages as well as taking advantage of the capabilities of modern processors to perform the same operaiton on multiple numbers at once.
+Vectorization is a term that refers generally to the eliminating of for-loops in higher level languages as well as taking advantage of the capabilities of modern processors to perform the same operaiton on multiple numbers at once.
 We'll start with a very simple example.
 The following code takes the sum of the elements of a NumPy array.
 \begin{lstlisting}
@@ -18,7 +18,7 @@ def pysum(A):
         total += A[i]
     return total
 \end{lstlisting}
-At each stage it accesses the array which involves the creation of a new NumPy object to contain the floating point value in that portion of the array.
+At each stage it accesses the array which involves the creation of a new Python object to contain the floating point value in that portion of the array.
 This slows down the operations significantly.
 We can avoid creating and deleting a Python object by doing the operations in a lower level language like C or FORTRAN.
 NumPy has already implemented many of these basic operations for us in these lower level languages.
@@ -42,6 +42,7 @@ Consider a two dimensional array where each row represents a point in $\mathbb{R
 To make computation nice, lets say that the norm of each point is neither extremely large nor extremely small.
 The following code normalizes the vectors represented in the array by modifying it in place:
 \begin{lstlisting}
+from math import sqrt
 def normalize1(A):
     # for each row (point) in A
     for i in xrange(A.shape[0]):
@@ -129,6 +130,9 @@ Here are a few specific techniqes that can be useful in vectorization.
 \item Try to manipulate your computations mathematically.
 Changing the order or way operations are applied can (but does not always) improve speed significantly.
 A very simple example is $\sin^2 x + \cos^2 x = 1$.
+Another example is that, for an orthogonal matrix, $A^{-1} = A^T$.
+A transpose is a constant time operation because all that is required is creating a new view of the same memory.
+A matrix inversion is much more expensive.
 
 \item Try to avoid allocating unnecessary temporary arrays.
 Long algebraic expressions in NumPy often involve the creation of large amounts of temporary arrays.
@@ -155,6 +159,10 @@ for i in xrange(A.size):
 \item In general, use common sense.
 Think about the operations required to perform each computation.
 Try out different implementations and compare their strengths and weaknesses, then use your best judgement about what the most common uses will be.
+When optimizing, make absolutely sure to test your code to verify that you are getting the expected results.
+Also be sure to comment your code carefully so that you (or whoever has to read your code) will be able to tell what you are doing.
+Often it is more important to make code readable than it is to make it fast.
+Use your best judgment.
 
 \end{itemize}
 
@@ -204,6 +212,7 @@ def dist3(A, B):
     # For each row in A
     for i in xrange(A.shape[0]):
         # Take distance from this row to each row in B.
+        # Use np.sqrt to operate on the entire array at once.
         D[i] = np.sqrt(((A[i] - B)**2).sum(axis=1))
     return D
 \end{lstlisting}
@@ -284,7 +293,7 @@ Plots of the times for these different functions can be seen in Figure \ref{dist
 \end{figure}
 
 \begin{problem}
-Use vectorization to obtain an optimized solution to each of the following problems.
+Use vectorization techniques to obtain an optimized solution to each of the following problems.
 They can all be done in one line.
 
 \begin{enumerate}[a)]
@@ -368,7 +377,7 @@ Depending on the format of the image, it may be read as an array of floating poi
 In this lab we will assume the latter.
 
 \begin{problem}
-Use vectorization to obtain an optimized solution to each of the following problems.
+Use vectorization techniques to obtain an optimized solution to each of the following problems.
 They can all be done in one line.
 \begin{enumerate}[a)]
 
