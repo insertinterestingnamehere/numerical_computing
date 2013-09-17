@@ -1,7 +1,7 @@
 \lab{Python}{Vectorization}{Vectorization}
 \label{lab:Python_Vectorization}
 
-In Python, the cost of looping over a sequence is sometime prohibitive.
+In Python, the cost of looping over a sequence is sometimes prohibitive.
 One method for avoiding these explicit for-loops is to \emph{vectorize} our code.
 NumPy allows operation that normally apply only to scalars to also work seamlessly with NumPy arrays.
 Some of the benefits of allowing these types of operations are concise code and fast execution.
@@ -10,22 +10,22 @@ Some of the benefits of allowing these types of operations are concise code and 
 We explore the benefits of vectorization in calculating the squared Euclidean distance of a set of points.
 This distance metric is commonly used in machine learning algorithms to calculate the how far apart data points lie from each other.
 Being able to calculate these distances is essential in quickly calculating nearest neighbors and other spatial algorithms.
-We start with a naive version.  Given two matrices, $A$ and $B$, it will calculate the squared Euclidean distance between points
+We start with a naive version.  Given two matrices, $A$ and $B$ (with the same number of columns), it will calculate the squared Euclidean distance between points
 represented as rows in both matrices.  The reason we calculate the squared distance instead of the true Euclidean distance is because
 taking the square root of a number is time consuming.
 \begin{lstlisting}
 def slow_sqdist(A, B):
     m = A.shape[0]
     n = B.shape[0]
-    
+
     E = np.zeros((m, n))
     for i in xrange(m):
         for j in xrange(n):
             E[i, j] = ((A[i] - B[j])**2).sum()
     return E
 \end{lstlisting}
-The naive version reasonably quickly for small sets of points.  However, increasing the number of points quickly slows down the algorithm.
-The motivating idea of vectorization is make NumPy take care of the looping.  
+The naive version runs reasonably fast for small sets of points.  However, increasing the number of points quickly slows down the algorithm.
+The motivating idea of vectorization is to make NumPy take care of the looping.
 We can easily vectorize the inner loop.  Instead of setting each element of E individually, we will calculate entire rows at a time.
 In the function \li{slow_sqdist()}, $A[i]-B[j]$ results in a vector, which we sum to a scalar value.
 In this next listing, we vectorize across one dimension of the calculation.
@@ -47,7 +47,7 @@ Our final version takes advantage of efficient matrix operations.
 def fast_sqdist(A, B):
     pn = A.shape[0]
     qn = B.shape[0]
-    
+
     pmag = (A**2).sum(axis=1, keepdims=True)
     qmag = (B**2).sum(axis=1, keepdims=True)
     return np.repeat(qmag.T, pn, axis=0) + np.repeat(pmag, qn, axis=1) - 2*np.dot(A, B.T)
@@ -61,32 +61,53 @@ def fast_sqdist(A, B):
 \end{figure}
 
 Notice that often it is much easier to partially vectorize a calculation than it is to vectorize the entire calculation.
-In many cases a partial vectorization will more than sufficient.  Vectorizing the inner loop was clearly worth the effort.
+In many cases, a partial vectorization will be more than sufficient.  Vectorizing the inner loop was clearly worth the effort.
+
+\section*{Vectorization Techniques}
+Some quick techniques to keep in mind when vectorizing are arithmetic operations take place over the whole array. For example \li{A=3+A} is the same as 
+\begin{lstlisting}
+for i in range(len(A)):
+	A[i]=3+A[i]
+\end{lstlisting}
+
+Numpy as some great predefined operations, for example \li{np.sum(A,n)} will take the sum of axis $n$ and output a array with one less dimension than $A$. For example \li{B=np.sum(A,1)} or \li{B=A.sum(1)} is the same as
+\begin{lstlisting}
+B=np.zeros(len(A),int)
+for i in range(len(A)):
+	for j in range(len(A[i])):
+		B[i]+=A[i,j]
+\end{lstlisting}
+Other operations similar to this include \li{np.prod}, \li{np.max}, and \li{np.min}.
+
+Additionally, Numpy defines a lot of functions that work over the whole array. for example \li{np.sin(A)} will output an array of size $A$ where each value is the sine of the corresponding value found in $A$. Functions like this include \li{np.exp}, \li{np.arcsin} and many more.
 
 \section*{Shuffle}
-This exercise is to write a program that shuffles a deck of a cards how a human would shuffle them, as opposed to having a random number generator put them in a random arrangement. 
-In order to this, first, cut the deck in half. 
+This exercise is to write a program that shuffles a deck of a cards how a human would shuffle them, as opposed to having a random number generator put them in a random arrangement.
+In order to this, first, cut the deck in half.
 Say that either the top card in the first half goes down then the top card in the second half or vice-versa.
 Which one comes first should be random.
-Follow the same procedure for the rest of the cards in the two halves. 
+Follow the same procedure for the rest of the cards in the two halves.
 The following is the code implemented using a loop.
 \begin{lstlisting}
+import numpy as np
 from random import randint
 def shuffle(deck):
     size = deck.size
     newdeck = np.empty_like(deck)
-    for i in xrange(size/2):
+    for i in xrange(size//2):
          if randint(0,1) == 0:
             newdeck[i*2] = deck[i]
-            newdeck[i*2+1] = deck[size/2+i]
+            newdeck[i*2+1] = deck[size//2+i]
          else:
-            newdeck[i*2] = deck[size/2+i]
+            newdeck[i*2] = deck[size//2+i]
             newdeck[i*2+1] = deck[i]
     return newdeck
 \end{lstlisting}
 
+We can always vectorize when the operations on the vector are not dependent on the previous entries. In the case above we go through each pair of a cards one at a time where they are not dependent on each other, meaning that the order of the 2nd pair of cards is not dependent on the 1st, the order of the 3rd pair is not dependent on the 2nd or the 1st and so on for each pair. So instead of generating the random numbers one at a time we could generate them all at once with \li{np.random.randint(0,1,n)} where $n$ is the number of random numbers you would like to generate. The other inefficiency is we add the cards from deck to newdeck one at a time.  Once we have the random numbers know which cards are going where.  Letting the cards from deck go to \li{newdeck[::2]} and \li{newdeck[1::2]} will accomplish that without having to use a loop. We leave it to you which indexes from deck go to each of those.
+
 \begin{problem}
-Write a function that shuffles a deck the same way as the function above using only array operations.
+Write a function that shuffles a deck the same way as the function above using only array operations in order to eleminate the loop.
 \end{problem}
 
 \section*{Image Editor}
@@ -105,9 +126,9 @@ In this lab we will assume the latter.
 
 \begin{problem}
 Write a function that edits an array representing an image.
-Include options that allow you to  invert the image, change it to grayscale, or add a motion blur (definitions below). 
-The function should take in a image, a parameter that tells how to modify the image, and a optional parameter for the motion blur.
-It should then plot the image. 
+Include options that allow you to  invert the image, change it to grayscale, or add a motion blur (definitions below).
+The function should take in an image, a parameter that indicates how to modify the image, and an optional parameter for the motion blur.
+It should then plot the image.
 \end{problem}
 
 \begin{itemize}
@@ -115,21 +136,64 @@ It should then plot the image.
 Every color value for every pixel is changed to its inverse value. For example, 0 becomes 255, 230 becomes 25, and 127 becomes 128.
 Remember that the minimum color value is 0 and the maximum is 255.
 
-\item Grayscale:
-To convert an image to grayscale, each pixel’s color value is changed to the average of 
-the pixel’s red, green, and blue value. For example, if the pixel values are:
-Red: 225 Green: 30 Blue: 131, we convert the 
+\vfill
+\begin{figure}[ht]
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Original.png}
+\end{minipage}
+\hspace{0.1cm}
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Invert.png}
+\end{minipage}
+\caption{Example of an inverted image}
+\end{figure}
+\vfill
 
-Grayscale conversion: $\frac{225 + 30 + 131}{3} = 128$ (using integer division)
-Red: 128 Green: 128 Blue: 128
+\item Grayscale:
+To convert an image to grayscale, each pixel's color value is changed to the average of
+the pixel's red, green, and blue value. For example, if the pixel values are
+Red: 225, Green:, 30 Blue: 131, we set each of these values to $\frac{225 + 30 + 131}{3} = 128$ (using integer division). (Hint: the \li{average} and \li{sum} 
+functions both have an \li{axis} option that is useful for vectorization.)
+
+\vfill
+\begin{figure}[ht]
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Original.png}
+\end{minipage}
+\hspace{0.1cm}
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Gray.png}
+\end{minipage}
+\caption{Example of an image that is grayscaled}
+\end{figure}
+\vfill
 
 \item Motion Blur:
 An additional parameter $n>0$ will be used for motion blur.
-The value of each color of each pixel is the average of that color value for $n$ pixels (from 
-the current pixel to $n-1$) horizontally. So pixel \li{[x,y,0]} would turn in to the average of
-pixel \li{[x, y, 0]} to pixel \li{[x, y+n-1, 0]}.
-Note: You will need to use one \li{for} loop here.
-Be sure to account for the situations where one or more of the values used in the computing the average do not exist. For example, if an image has width $w$ and we are considering the pixel on row $r$, column $c$, if $c + n \geq w$, then we only average the pixels up to $w$. (Proper array slicing should take care of this case without any extra code.)
+The value of each color of each pixel is the average of that color value for $n$ pixels (from
+the current pixel to $n-1$ beyond) horizontally. So pixel \li{[x,y,0]} would turn in to the average of
+pixel \li{[x,y,0]} to pixel \li{[x,y+n-1,0]}.
+Note: You will need to use one for-loop here.
+Be sure to account for the situations where one or more of the values used in the computing the average do not exist. For example, if an image has width $w$ and we are considering the pixel on row $r$, column $c$, if $c + n \ge w$, then we only average the pixels up to $w$. (Proper array slicing should take care of this case without any extra code.)
+
+\vfill
+\begin{figure}[ht]
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Original.png}
+\end{minipage}
+\hspace{0.1cm}
+\begin{minipage}[b]{0.47\linewidth}
+\centering
+\includegraphics[width=\textwidth]{Motion.png}
+\end{minipage}
+\caption{Example of an image with a motion blur of 60}
+\end{figure}
+\vfill
 
 \end{itemize}
 

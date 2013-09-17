@@ -42,16 +42,6 @@ plt.show()
 
 We should keep in mind that the deviations in air pressure that we hear as sound are extremely small relative to atmospheric pressure. For instance, in normal conversation, the deviation in air pressure reaching your ears might be around $.01$ pascals, about one ten-millionth of atmospheric pressure.
 
-\begin{problem}
-Modify the sound loaded from \texttt{pulseramp.wav} so that the pulses are bursts of negative pressure instead of positive pressure, i.e., change each +32767 to -32767. (Hint: This can be done in one line. Think of \texttt{mywave} as a vector.) Save the resulting sound to a file using the \texttt{wavfile.write} function which has the following syntax
-
-\begin{lstlisting}
-wavfile.write('negpulseramp.wav',rate,neg_data)
-\end{lstlisting}
-where the first entry is the name you want to save the new file as (don't forget the file extension), the second entry is the sampling rate, and the third entry is the data.
-
-Be sure to use a sample rate of 44100Hz. Then play the new \texttt{.wav} file. Does it sound different from the original?
-\end{problem}
 
 \section*{Using the Fourier Transform to Investigate the Spectrum of a Signal}
 
@@ -88,8 +78,7 @@ $$c_k=\langle e^{\frac{2\pi ikx}N}, f(x)\rangle=\frac1N\sum_{x=0}^{N-1}e^{\frac{
 
 In scipy, there is a module \texttt{scipy.fft} that contains functions for computing the DFT of a signal. (\texttt{fft} stands for Fast Fourier Transform.) For example, if we create a sine wave signal \texttt{sig} as above and then type,
 \begin{lstlisting}
-from scipy import fft
-fsig = fft(sig)
+fsig = sp.fft(sig)
 \end{lstlisting}
 then \texttt{fsig} is an array of complex numbers representing the DFT of this signal. We will plot the absolute values of the entries of \texttt{fsig} (see Figure \ref{sinespec}).
 
@@ -104,21 +93,20 @@ Implement a function to compute the DFT of a vector using the naive algorithm, d
 
 The naive way of computing the DFT has $O(N^2)$ runtime.  There is a very important algorithm (and many variations of it) called the Fast Fourier Transform (FFT) which computes the DFT in $O(N \log N)$ runtime.  Essentially the FFT algorithm accomplishes this speedup by breaking the recursively breaking up the original array into smaller pieces, finding the Fourier Transform of those smaller pieces, and carefully recombining to get the Fourier Transform of the original array.  While scipy uses the FFT algorithm, it's implementation at the time of this writing is somewhat slow.
 
-There is a library written in $C$ for computing the FFT called FFTW (Fastest Fourier Transform in the West) that is substantially quicker.  There is a python package available for download called ``anfft'' that wraps fftw in python.  Download it from https://code.google.com/p/anfft/ and install it for use in the remaining problems.
+There is a library written in $C$ for computing the FFT called FFTW (Fastest Fourier Transform in the West) that is substantially quicker.  There is a python package available for download called ``pyfftw'' that wraps fftw in python. The pyfftw package has an interface called scipy\_fftpack that acts exactly like scipy's fft but uses the FFTW. It is important to note that it is only faster than scipy's version on larger arrays. You can also set the number of threads. The default is 1. The author got a significant speed up by setting the threads=8 .
 
 \begin{figure}[ht]\caption{DFT of a sine wave}\label{sinespec}\centering\includegraphics[width=\textwidth]{sinespec}\end{figure}
 
-Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  If you read \texttt{tada.wav} into python you will find it has two columns.  That is because it is a stereo recording meaning the two columns correspond to two audio signals (left and right).  When using anfft, it will take the fourier transform along the last axis.  Because of this we will take the transpose before computing the FFT and again after to return to the original shape.  Also note that anfft expects signals to have scipy's float16 or float32 as the datatype.  Consequently after reading in the signal we cast it as a float32.
+Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  If you read \texttt{tada.wav} into python you will find it has two columns.  That is because it is a stereo recording meaning the two columns correspond to two audio signals (left and right).  When using pyFFTW, by default it will take the Fourier Transform along the last axis.  Because of this we will set axis=0. 
 
 Now we plot the DFT of \texttt{tada.wav} (see Figure \ref{tadaspec}):
 \begin{lstlisting}
 import scipy as sp
 from scipy.io import wavfile
-import anfft
-
+from pyfftw.interfaces import scipy_fftpack as fftw
 rate, sig = wavfile.read('tada.wav')
 sig = sp.float32(sig)
-fsig = anfft.fft(sig.T).T
+fsig = fftw.fft(sig,axis=0)
 plt.figure()
 plt.plot(sp.absolute(fsig))
 plt.show()
@@ -145,7 +133,7 @@ $$\frac{2030\text{ cycles}}{42752\text{ samples}} \times \frac{22050\text{ sampl
 So this tone is at 1047 Hz, which in musical terms is a (concert) C6, the C two octaves above middle C. There are also other, lower musical notes in the recording which each have their own sequence of overtones.
 
 \begin{problem}
-Listen to \texttt{pianoclip.wav}. Identify the audible frequency of greatest amplitude.  What musical note does the fundamental frequency correspond to? (For this, you may wish to use the table on http://en.wikipedia.org/wiki/Piano\_key\_frequencies)
+Listen to \texttt{pianoclip.wav}. Identify the audible frequency of greatest amplitude (Ignore the 0 frequency as explained in the following paragraph.).  What musical note does the fundamental frequency correspond to? (For this, you may wish to use the table on http://en.wikipedia.org/wiki/Piano\_key\_frequencies)
 \end{problem}
 
 You will notice that in this case the largest spike actually occurs in the very first entry of the DFT. This corresponds to a frequency of 0Hz. A cosine wave of 0Hz is nothing other than a constant function. The presence of this 0Hz frequency, if taken literally, would mean that there was a (slight) sustained increase above the normal atmospheric pressure throughout the recording. However, a speaker or musical instrument, because of its bounded ranges of motion, is incapable of producing a sustained increase (or decrease) in pressure; and a microphone, for the same reason, is incapable of detecting such a sustained change in pressure. An ordinary speaker cannot produce frequencies below about 15 to 20Hz, and even if it could, we would not be able to hear them. The 0Hz frequency which appears here is simply an artifact of an imperfect recording device. It indicates that some direct current ``leaked" through the device.
@@ -193,14 +181,14 @@ Well -- \emph{almost} that simple. Actually, when we say we're cutting out a set
 old_rate = 44100
 new_rate = 22050
 in_sig = sp.float32(in_sig)
-fin = anfft.fft(in_sig)
+fin = fftw.fft(in_sig)
 nsiz = sp.floor(in_sig.size*new_rate/old_rate)
 nsizh = sp.floor(nsiz/2)
 fout = sp.zeros(nsiz)
 fout = fout + 0j
 fout[0:nsizh] = fin[0:nsizh]
 fout[nsiz-nsizh+1:] = sp.conj(sp.flipud(fout[1:nsizh]))
-out = anfft.ifft(fout)
+out = fftw.ifft(fout)
 \end{lstlisting}
 There are just a couple minor problems we need to deal with before we're finished. First, because of roundoff error, you will find that some of the entries of the \texttt{out} have (slightly) nonzero imaginary components.  So we should first make sure the signal is purely real,
 \begin{lstlisting}
@@ -222,6 +210,7 @@ Convert the same sound, \texttt{saw.wav}, to a 11025Hz sampling rate. Do you not
 Can the technique above be used to change the sampling rate by something other than an integer factor, e.g., from 44100Hz to 36000Hz? Try it.
 \end{problem}
 
+\begin{comment}
 \begin{problem}
 Suppose we would like to upsample \texttt{Tada.wav} from a sampling rate of 22050Hz to 44100Hz. \begin{enumerate}
 \item[(a)]
@@ -229,4 +218,4 @@ The naive way to do this would be to use linear interpolation on the original si
 \item[(b)]Now write code to upsample the signal using the DFT, using a technique similar to what we did above for downsampling. Again, plot the spectrum of the result. Can you hear any difference between this and the result of (a)?
 \end{enumerate}
 \end{problem}
-
+\end{comment}
