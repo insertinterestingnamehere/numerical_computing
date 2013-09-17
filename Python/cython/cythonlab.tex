@@ -1,7 +1,6 @@
 \lab{Python}{Computing with Cython}{Cython}
 \label{lab:Cython}
-\objective{Use Cython when needed to avoid the overhead of some parts of the Python language.
-Cython allows for large, time-consuming calculations to be done quickly and near effortlessly in Python.}
+\objective{Use Cython to avoid the overhead of some parts of the Python language.}
 
 For small computations, Python is reasonably fast for computing the solutions to problems.
 However, for large computations, Python quickly becomes unable to solve anything in a reasonable amount of time.
@@ -20,7 +19,8 @@ A C-extension is a module that can be used like a Python module, but is written 
 This enables performance critical code to be executed as fast as possible in a Python environment.
 Writing these C-extensions can often be tedious work.
 
-Cython is an optimizing static compiler that accepts both Python and Cython (an extended syntax of Python).
+In the strictest sense, Cython is an optimizing static compiler that accepts both Python and Cython (an extended syntax of Python).
+As a language, \textbf{it is essentially just Python with some extra type declarations.}
 It automates the process of writing a Python C-extension and simplifies to the difficulty of writing Python code.
 Cython is a superset of the Python language that enables you to call C functions and declare C types on Python variables.
 The additional type declarations of Cython allow it to generate highly optimized C code that will compile with all major C/C++ compilers.
@@ -28,8 +28,9 @@ Cython is especially useful for doing large amounts of repetitive calculation, e
 Since Cython outputs C code, you can easily call any C function from any point in your Python program.
 
 Cython has a more complex compilation process than Python and is not usually run interactively.
-Cython code is usually written in a \texttt{.pyx} file that Cython then translates to a Python C-extension.
-The resulting executable is a Python extension that can be imported from the Python interpreter.
+Cython code is usually written in a \texttt{.pyx} file.
+A \li{.pyx} file is then compiled to C, and then the C is compiled to machine code.
+The resulting file is a Python extension that can be imported from the Python interpreter.
 Many of the same built in features, data types, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython program.
 Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
 Regardless of what method you use to compile a Cython file, this is more or less how it works.
@@ -45,7 +46,7 @@ The path from using a Cython function in a Python file to the actual evaluation 
 There are a variety of ways to import Cython functions and classes into Python.
 The standard way is to make a Python file that builds the C-extension module in a given directory.
 If your module needs some sort of a complex compilation step, you will need to do it this way.
-Instructions on how to do this can be found \url{http://docs.cython.org/src/reference/compilation.html}.
+Instructions on how to do this can be found at \url{http://docs.cython.org/src/reference/compilation.html}.
 The Sage and IPython notebooks have seamless integrations with Cython via cell magic extensions.
 In Sage, the cell magic is \li{\%cython}.
 In the IPython notebook, you must first load the extension with \li{\%load_ext cythonmagic}.
@@ -85,8 +86,8 @@ This skips making the list and makes a generator object which returns the values
 For large lists, this can give us a speedup of a factor of 3 or 4 times.
 Because of this, the \li{range} function in Python 3 was changed to behave as the \li{xrange} function of Python 2.
 However, \li{xrange} still generates a sequence of Python integers.
-Cython will also execute this loop in the Python interpreter.
-But, we can give Cython a little hint as to how to speed up the loop by telling it the type of the variable \li{i}.
+Cython will also execute this loop in the Python interpreter, but, if we pre-define the type of our loop variable, Cython can bypass the use of Python objects and run the for-loop in C using C integers.
+C integers are data types that have built in support on every CPU, so the operations involving the loop variable will now run much faster.
 If we do this, we can completely relieve the Python interpreter of executing the loop.
 We use a \li{cdef} statement to define \li{i} as a C integer type with this syntax \li{cdef <type> <name>}.
 The empty for-loops above would be written in Cython as follows:
@@ -113,22 +114,37 @@ Fortunately, Cython includes a direct interface to part of NumPy.
 NumPy arrays are already implemented in C, so we can use this interface to work directly with NumPy arrays.
 A typed NumPy array can be declared like this:
 \begin{lstlisting}
-cimport numpy as np
+cimport numpy
 ...
-cdef np.ndarray[dtype=double, ndim=2] X = ...
+cdef numpy.ndarray[dtype=double, ndim=2] X = ...
 \end{lstlisting}
-You can also use an additional argument, \li{mode}, to specify if the array is to be C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
+Or, more simply, as
+\begin{lstlisting}
+from numpy cimport ndarray as ar
+...
+cdef ar[double, ndim=2] X = ...
+\end{lstlisting}
+The \li{ndim} argument defaults to one and can be ommitted when declaring a one dimensional array, as in
+\begin{lstlisting}
+from numpy cimport ndarray as ar
+...
+cdef ar[double] X = ...
+\end{lstlisting}
+Declaring our arrays like this allows us to access individual items in a NumPy array at roughly the same speed we could access items in a C array.
+You can also use an additional argument, \li{mode}, to specify whether the array is C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
 An array is said to be C contiguous when neighboring values of the last dimension are closest together in memory.
 Fortran-contiguous arrays store data in the opposite ordering with neighboring values in the first dimension closest together.
 For a 2D array, C-contiguous ordering puts rows in continuous blocks of memory while Fortran-contiguous stores by column.
+This matters most when you have to chose which way you are iterating over the array.
+If your array is C-contiguous it is best to have your fastest varying indices run along the rows instead of along the columns.
 The syntax to declare arrays like this is:
 \begin{lstlisting}
-cimport numpy as np
+from numpy cimport ndarray as ar
 ...
 #C-contiguous
-cdef np.ndarray[dtype=double, ndim=2, mode=`c'] X = ...
+cdef ar[double, ndim=2, mode=`c'] X = ...
 \end{lstlisting}
-Declaring our arrays like this allows us to access individual items in a NumPy array at roughly the same speed we could access items in a C array.
+Specifying the mode of the array does not add any extra speed if the array is already laid out in the desired way, but it will raise an error if the array declared is not arranged in the correct way.
 We get all the convenience of using a NumPy array and can still use the different array operations, but we also get to access single items in the array more quickly.
 The catch is that this fast array access only works when we are accessing the array \textit{one item at a time}.
 Generally we can get around the slicing, but if we need to pass around NumPy array slices between the functions in the module, there can be a significant speed loss (these array slices are Python objects).
@@ -140,9 +156,9 @@ They also work especially well when used in inline functions, and the correspond
 %%will demonstrate benefits of inlining as well
 However, passing a memoryview object to a NumPy function becomes slower as the memoryview has to be converted to a NumPy array.
 %%also shown in solutions
-If you need to use NumPy array functions and pass memory views between functions you can define a \li{memoryview} object that views the same data as your array.
-If for some reason you need to convert a memory view to a NumPy array, you can use the \li{np.asarray} function, but that, as always, comes at a cost.
-The syntax to use when declaring a memory view of an array \li{X} is:
+If you need to use NumPy array functions and pass memoryviews between functions you can define a \li{memoryview} object that views the same data as your array.
+If for some reason you need to convert a memoryview to a NumPy array, you can use the \li{np.asarray} function, but that, as always, comes at a cost.
+The syntax to use when declaring a memoryview object from an array \li{X} is:
 \begin{lstlisting}
 cdef double[:,:] Xview = X
 \end{lstlisting}
@@ -159,7 +175,7 @@ cdef double[::1,:] Xview = X
 It is also worth noting that many of the array operations in Cython can also be done using pointers.
 The speed is roughly the same as with the optimized array lookups, but the code is often much less readable.
 Cython does not allow you to dereference a pointer using the \li{*} syntax.
-You should use square brackets \li{[ ]}.
+It requires square brackets \li{[ ]} instead.
 
 \section*{Compiler Directives}
 There are also some compiler directives you can pass to the Cython compiler which will speed up array access.
@@ -200,7 +216,8 @@ As you may expect, adding type declarations can also apply to function arguments
 You can optionally declare the types of the inputs for the function to ensure that it receives the right arguments.
 The syntax is what you would probably expect.
 \begin{lstlisting}
-def myfunction(np.ndarray[dtype=double, ndim=1] X, int n, double h, items):
+from numpy cimport ndarray as ar
+def myfunction(ar[double] X, int n, double h, items):
     ...
 \end{lstlisting}
 Notice that we did not have to include type declarations for all of the arguments.
@@ -209,7 +226,6 @@ Computations involving these untyped arguments will use Python instead of C.
 Keyword arguments are also supported.
 
 Cython also allows you to make C functions that are only callable within the extension library you are currently building.
-The type declarations for these functions are a little more useful (you don't usually gain much by declaring a type for a Python function).
 These functions are declared using the same syntax as you would in Python except that you replace the keyword \li{def} with \li{cdef}.
 These functions can be called within the module you are building, but are not actually imported into your namespace when you load the Cython module.
 
@@ -218,7 +234,8 @@ These functions are C functions that, when compiled, are also wrapped as Python 
 This allows you to do the function calls within the module in C, while still making a Python wrapper for your function available for use outside the module itself.
 You can specify the return type for functions declared using \li{cdef} and \li{cpdef} like you would a variable, for example:
 \begin{lstlisting}
-cpdef int myfunction(np.ndarray[dtype=double, ndim=1] X, int n, double h, items):
+from numpy cimport ndarray as ar
+cpdef int myfunction(ar[double] X, int n, double h, items):
     ...
 \end{lstlisting}
 This will make two functions, one will be a C function which will return an integer value.
@@ -270,7 +287,7 @@ Figure \ref{cython:dot} compares the timings of our new dot-product function wit
 \centering
 \includegraphics[width=\textwidth]{dot.pdf}
 \caption{
-The natural logarithm of the times of the pure Python dot-product, the Cython based dot-product, and the dot-product built into NumPy which links to the Intel MKL.
+The times of the pure Python dot-product, the Cython based dot-product, and the dot-product built into NumPy which links to the Intel MKL.
 As you can see, the Cython version can run nearly as fast as the version built into NumPy.
 }
 \label{cython:dot}
@@ -335,7 +352,7 @@ The timings of the Python and Cython versions of this function are shown in Figu
 \centering
 \includegraphics[width=\textwidth]{rowdot.pdf}
 \caption{
-The natural logarithms of the times of the Python, Cython, and NumPy (with MKL) versions of the \li{rowdot} function that we used as an example.
+The times of the Python, Cython, and NumPy (with MKL) versions of the \li{rowdot} function that we used as an example.
 The arrays used for testing were $n\times 3$ where $n$ is shown along the horizontal axis.
 }
 \label{cython:rowdot}
@@ -344,7 +361,7 @@ The arrays used for testing were $n\times 3$ where $n$ is shown along the horizo
 \begin{problem}
 Write a function in Python which takes the sum of a one-dimensional array by iterating over it.
 
-Write three Cython versions also, one which uses a typed for-loop to iterate over the array, one which uses a typed for-loop and optimized array access, and one which uses a typed for-loop, optimized array access, and special compiler directives to further speed up array access
+Write three Cython versions: one using a typed for-loop to iterate over the array, another using a typed for-loop and optimized array access, and another using a typed for-loop, optimized array access, and special compiler directives to further speed up array access.
 
 Compare the speed of the functions you just wrote, the builtin \li{sum()} function and NumPy's \li{sum()} function.
 What do you see?
@@ -368,7 +385,7 @@ It can make wrapping these libraries much easier.
 \begin{problem}
 In an earlier lab, you wrote a function to compute the LU decomposition of nonsingular matrix.
 Port it to Cython.
-Use the typed for-loops, typed arrays (or memory views), and the additional compiler directives in your optimized solution.
+Use the typed for-loops, typed arrays (or memoryviews), and the additional compiler directives in your optimized solution.
 You may assume, in this case, that you are only dealing with real arrays of double precision floating point numbers.
 
 Compare the speed of your new solution to the speed of the Python based version you wrote earlier.
@@ -377,7 +394,8 @@ For testing the speed of your solutions, you can generate large, symmetric, posi
 
 \begin{problem}
 The code below defines a Python function which takes a matrix to the $n$th power.
-Port it to Cython. Write three different versions: one which use typed arrays, another using typed arrays with the special compiler directives, and another using typed arrays with corresponding typed memory views of their corresponding data and the compiler directives.
+Port it to Cython.
+Write three different versions: one using typed arrays, another using typed arrays with the special compiler directives, and another using typed arrays with corresponding typed memoryviews of their corresponding data and the compiler directives.
 \begin{lstlisting}
 import numpy as np
 def mymult(X, power):
@@ -455,7 +473,7 @@ def tridiag(a, b, c, x):
 \end{lstlisting}
 
 \begin{problem}
-Port the above code to Cython using typed for loops, optimized array accesses and the special compiler directives.
+Port the above code to Cython using typed for-loops, optimized array accesses and the special compiler directives.
 Compare the speed of your new function with the pure Python version given above.
 Now compare the speed of both of these functions with the \li{solve()} function in \li{scipy.linalg}.
 For your first two functions a good starting point for computation will be to consider $1000000 \times 1000000$ sized systems and then adjust the size so you get good results on your particular machine.
