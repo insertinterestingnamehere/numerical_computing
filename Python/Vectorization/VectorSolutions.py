@@ -52,9 +52,7 @@ def imageEditor(X,edit,n=1):
     if edit==1:
         Xnew = 255 - X
     elif edit == 2:
-        Xnew = X.copy()
-        #The [:, :, np.newaxis] turns it the 2-d array into a 3-d array
-        Xnew[:, :, :] = (X/3).sum(2)[:, :, np.newaxis]
+        Xnew = X.mean(axis=2, dtype=int)
     else:
         Xnew = X.copy()/n
         for i in xrange(1, n):
