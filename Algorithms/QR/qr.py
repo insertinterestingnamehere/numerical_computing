@@ -1,4 +1,4 @@
-import scipy as sp
+import numpy as np
 from scipy.linalg import norm, det
 
 def QR(X):
@@ -11,7 +11,7 @@ def QR(X):
     #check types on X
     Q = X.T.copy()
     nrows, ncols = X.shape
-    R = sp.zeros((nrows, ncols))
+    R = np.zeros((nrows, ncols))
 
     for i in xrange(nrows):
         R[i,i] = norm(Q[i])
@@ -26,20 +26,20 @@ def QR(X):
 def detQR(X):
     """Computes the determinant of X using the QR decomposition"""
     Q, R = QR(X)
-    return la.det(Q)*la.det(R)
+    return np.diagonal(R).prod()
     
 def eigvv(A, niter=50):
     Qlist = [A]
-    x0 = sp.rand(A.shape[1])
+    x0 = np.random.rand(A.shape[1])
     for i in range(niter):
         Q,R = QR(Qlist[-1])
         A = Q.T.dot(A.dot(Q))        
         Qlist.append(A)
     
-    eigvals = sp.diag(Qlist[-1])
+    eigvals = np.diag(Qlist[-1])
     
-    L = sp.eye(Q.shape[0])    
+    L = np.eye(Q.shape[0])    
     for qm in Qlist:
-        L = sp.dot(L,qm)
+        L = L.dot(qm)
        
     return eigvals, x0, L
