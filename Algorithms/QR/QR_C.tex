@@ -3,26 +3,28 @@
 
 \objective{Understand how the QR algorithm works and write your own implementation.}
 
-The QR decomposition is used to represent any matrix as the multiple of an orthogonal matrix and an upper triangular matrix. This decomposition is useful in computing least squares and is part of a common method for finding eigenvalues.
-
-\section*{Review of Gram Schmidt}
-
-\vspace{5mm}
-\begin{theorem}[Gram-Schmidt Orthogonalization Process] Let
-$\{\x_i\}_{i=1}^n$ be a basis for the inner product space $V$. Let
-\[
-\q_1 = \frac{\x_1}{\norm{\x_1}},
-\]
-and define $\q_2,\q_3,\ldots,\q_n$ recursively by
-\[
-\q_{k+1} = \x_{k+1} - \sum^k_{j=1}\frac{\langle \x_{k+1}, \q_j\rangle}{\norm{\q_{j}}^2}\q_j,
-\]
-
-the sum term is a projection of $\x_{k+1}$ onto the subspace $\mbox{Span}(\q_1,\q_2,\ldots,\q_k)$.  Then the set $\{\q_i\}_{i=1}^n$ is an orthonormal basis for $V$.
+The QR decomposition is used to represent any square matrix as the matrix product of an orthogonal matrix, $Q$, and an upper triangular matrix, $R$.
+This decomposition is useful in computing least squares and is part of a common method for finding eigenvalues (the QR algorithm).
+We can succinctly state the QR decomposition in the following theorem.
+\begin{theorem}
+Let $A$ be an $m\times n$ matrix of rank $n$.  Then $A$ can be
+factored into a product $Q R$, where $Q$ is an $m\times n$ matrix
+with orthonormal columns and $R$ is a nonsingular $n \times n$ upper
+triangular matrix.
 \end{theorem}
-\vspace{5mm}
 
-For the above algorithm, let $r_{j k} = \langle \x_k, \q_j\rangle$ when $j \leq k$.  Then
+\section*{Computing the QR Decomposition}
+There are many methods for computing the QR factorization.
+This lab will focus on the method that uses the Gram-Schmidt algorithm for orthogonalizing a matrix.
+We use this algorithm to create $Q$.
+If we let $\{\x_i\}_{i=1}^n$ be a basis for the inner product space $V$.
+Let \[ \q_1 = \frac{\x_1}{\norm{\x_1}}\] and define $\q_2,\q_3,\ldots,\q_n$ recursively by
+\[ \q_{k+1} = \x_{k+1} - \sum^k_{j=1}\frac{\langle \x_{k+1}, \q_j\rangle}{\norm{\q_{j}}^2}\q_j .\]
+The sum term is a projection of $\x_{k+1}$ onto the subspace spanned by $\q_1,\q_2,\ldots,\q_k$.
+Then the set $\{\q_i\}_{i=1}^n$ is an orthonormal basis for $V$.
+
+For the above algorithm, let $r_{j k} = \langle \x_k, \q_j\rangle$ when $j \leq k$.
+Then
 \begin{align*}
 r_{1 1} \q_1 &= \x_1\\
 r_{k k} \q_k &= \x_k - r_{1 k} \q_1 - r_{2 k} \q_2 - r_{3 k} \q_3 -
@@ -59,48 +61,7 @@ Hence if our original basis $\{\x_i\}_{i=1}^n$ correspond to column
 vectors of a matrix $A$, we can likewise write the resulting
 orthonormal basis $\{\q_i\}_{i=1}^n$ as a matrix $Q$ of column
 vectors.  Then we have that $A = Q R$, where $R$ is the above
-nonsingular upper-triangular $n\times n$ matrix.  This is the QR
-Decomposition and is summarized by the following theorem:
-\vspace{5mm}
-\begin{theorem}
-Let $A$ be an $m\times n$ matrix of rank $n$.  Then $A$ can be
-factored into a product $Q R$, where $Q$ is an $m\times n$ matrix
-with orthonormal columns and $R$ is a nonsingular $n \times n$ upper
-triangular matrix.
-\end{theorem}
-
-
-There are three mode options available in SciPy's implementation of QR Decomposition.  We will be using the ``economic" option.
-\begin{lstlisting}
->>> import scipy as sp
->>> from scipy import linalg as la
->>> A = sp.randn(4,3)
->>> Q, R = la.qr(A, mode='economic')
->>> sp.dot(Q, R) == A     there will be some False entries
->>> sp.dot(Q, R) - A
->>> sp.dot(Q.T, Q)
-\end{lstlisting}
-
-In order to interpret the results correctly, we need to understand that the computer has limited precision (especially with floating point numbers).  This is why \li{sp.dot(Q, R)} is not exactly equal to A.  But subtracting the two yields numbers that are essentially zero.  This shows that indeed the product of $Q$ and $R$ is $A$.  Note also that $Q^T Q = I$.  This implies that the column vectors of $Q$ are orthonormal (why?).
-
-\section*{Solving Least Squares Problems}
-
-For large or ill-conditioned problems, the QR decomposition provides
-a nice method for computing least squares solutions of
-over-determined matrices.  Consider the problem $A x = b$.  Recall
-that the least squares solution is $\widehat x = (A^T A)^{-1}A^T b$.
-Alternatively, we write the linear system as
-\[
-Q R x = b.
-\]
-We then multiply both sides by $Q^T$, yielding
-\[
-R x = Q^T b.
-\]
-Then $\widehat x = R^{-1} Q^T b$.
-
-\section*{Computational Remark}
-
+nonsingular upper-triangular $n\times n$ matrix. 
 Numerically, the Gram Schmidt process can have problems due to
 finite precision arithmetic. Specifically, due to rounding errors,
 the resulting basis may not be orthonormal. To combat this, we
@@ -120,5 +81,53 @@ $\x_3,\x_4,\ldots,\x_n$.
 
 \begin{problem}
 \label{prob:QR}
-Write your own implementation of the QR decomposition.  It should accept as input a matrix $A$ and computes its QR decomposition, returning the matrices $Q$ and $R$. Be sure to use the numerically stable Modified Gram Schmidt algorithm.
+Write your own implementation of the QR decomposition.  
+It should accept as input a square matrix, $A$, and computes its QR decomposition, returning the matrices $Q$ and $R$ (which should be the same shape as $A$). 
+Be sure to use the numerically stable Modified Gram-Schmidt algorithm.
+
+You can test that you have the right decomposition by verifying that $QR=A$ and $Q^T Q = I$.
 \end{problem}
+
+\begin{problem}
+The QR decomposition gives a really nice way to calculate the determinant of a square matrix.
+Use your QR decomposition to calculate the determinant of any square matrix $A$.
+
+Compare the determinant you calculate with the output of \li{linalg.det(A)}.
+\end{problem}
+
+\section*{QR Decomposition in SciPy}
+The linear algebra library in SciPy wraps the very efficient algorithms of LAPACK to calculate the QR decomposition.
+In addition to being much faster, SciPy's QR decomposition is also much more general and can decompose non-square matrices.
+\begin{lstlisting}
+>>> import numpy as np
+>>> from scipy import linalg
+>>> A = np.random.rand(4,3)
+>>> Q, R = la.qr(A)
+>>> Q.dot(R) == A     #there will be some False entries
+>>> np.allclose(Q.dot(R), A) # A = QR
+>>> np.allclose(Q.T.dot(Q), np.eye(4)) #Q is indeed, orthogonal
+\end{lstlisting}
+
+In order to interpret the results correctly, we need to understand that the computer has limited precision (especially with floating point numbers). 
+This is why \li{Q.dot(R)} is not exactly equal to \li{A}.  
+We can see that the matrix product of $QR$ is very close to $A$.
+This shows that indeed the product of $Q$ and $R$ is $A$.  
+Note also that $Q^T Q = I$.  
+This implies that the column vectors of $Q$ are orthonormal.
+
+\section*{Solving Least Squares Problems}
+For large or ill-conditioned problems, the QR decomposition provides
+a nice method for computing least squares solutions of
+over-determined matrices.  Consider the problem $A x = b$.  Recall
+that the least squares solution is $\widehat x = (A^T A)^{-1}A^T b$.
+Alternatively, we write the linear system as
+\[
+Q R x = b.
+\]
+We then multiply both sides by $Q^T$, yielding
+\[
+R x = Q^T b.
+\]
+Then $\widehat x = R^{-1} Q^T b$.
+
+\section*{}
