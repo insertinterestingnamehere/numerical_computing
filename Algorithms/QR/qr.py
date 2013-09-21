@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.linalg import norm, det
+from scipy import linalg
 
 def QR(X):
     """Compute the Gram Schmidt of the column vectors in X
@@ -14,7 +14,7 @@ def QR(X):
     R = np.zeros((nrows, ncols))
 
     for i in xrange(nrows):
-        R[i,i] = norm(Q[i])
+        R[i,i] = linalg.norm(Q[i])
         Q[i] = Q[i]/R[i,i]
         for j in xrange(i+1,nrows):
             R[i,j] = Q[j].dot(Q[i])
@@ -24,9 +24,18 @@ def QR(X):
     
     
 def detQR(X):
-    """Computes the determinant of X using the QR decomposition"""
+    """Computes the determinant of X using the QR decomposition
+    This will give you the determinant up to, but without sign.
+    
+    The determinant of Q is +1 or -1 which may or may not change the sign of
+    the determinant of R"""
     Q, R = QR(X)
     return np.diagonal(R).prod()
+
+def leastsq(A, b):
+    Q, R = linalg.qr(A)
+    return linalg.solve_triangular(R, Q.T.dot(b))
+    
     
 def eigvv(A, niter=50):
     Qlist = [A]
