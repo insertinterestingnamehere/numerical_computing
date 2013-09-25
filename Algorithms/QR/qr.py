@@ -5,10 +5,12 @@ def QR(X):
     """Compute the Gram Schmidt of the column vectors in X
 
     The formula: x_k := x_k-<x_k, q_1>*q_1  (k=2,...,n)
-    Then we normalize x_k"""
+    Then we normalize x_k
+    
+    label: QR
+    """
 
     #transpose so we are dealing with rows instead of columns
-    #check types on X
     Q = X.T.copy()
     nrows, ncols = X.shape
     R = np.zeros((nrows, ncols))
@@ -33,7 +35,10 @@ def detQR(X):
     return np.diagonal(R).prod()
 
 def leastsq(A, b):
+    """Compute a least squares solution using the QR Decomposition"""
     Q, R = linalg.qr(A)
+    
+    #We solve the triangular system instead of inverting R
     return linalg.solve_triangular(R, Q.T.dot(b))
     
     
