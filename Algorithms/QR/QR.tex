@@ -82,7 +82,7 @@ $\x_3,\x_4,\ldots,\x_n$.
 \begin{problem}
 \label{prob:QR}
 Write your own implementation of the QR decomposition.  
-It should accept as input a square matrix, $A$, and computes its QR decomposition, returning the matrices $Q$ and $R$ (which should be the same shape as $A$). 
+It should accept as input a square matrix, $A$, and compute its QR decomposition, returning the matrices $Q$ and $R$ (which should be the same shape as $A$). 
 Be sure to use the numerically stable Modified Gram-Schmidt algorithm.
 
 You can test that you have the right decomposition by verifying that $QR=A$ and $Q^T Q = I$.
@@ -115,6 +115,74 @@ This shows that indeed the product of $Q$ and $R$ is $A$.
 Note also that $Q^T Q = I$.  
 This implies that the column vectors of $Q$ are orthonormal.
 
+The QR decomposition solution to Problem \ref{prob:QR} assumes that no zeroes appeared on the main diagonal.
+If a zero appears on the main diagonal, the QR decomposition will not be calculated correctly.
+Suppose that \li{QR()} is your solution to Problem \ref{prob:QR}.
+\begin{lstlisting}
+>>> A = np.arange(25).reshape((5,5))
+>>> Q, R = QR(A)
+>>> Q
+array([[0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0]])
+>>> R
+array([[ 27.38612788,   0.        ,   0.        ,   0.        ,   0.        ],
+       [  0.        ,  29.24038303,   0.        ,   0.        ,   0.        ],
+       [  0.        ,   0.        ,  31.144823  ,   0.        ,   0.        ],
+       [  0.        ,   0.        ,   0.        ,  33.09078422,   0.        ],
+       [  0.        ,   0.        ,   0.        ,   0.        ,
+         35.07135583]])
+>>> Q.dot(R)
+array([[ 0.,  0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.]])
+\end{lstlisting}
+This problem can be averted with \emph{pivoting}.  
+Pivoting will reorder the columns of $A$ so that the correct QR decomposition can be calculated.
+SciPy's QR decomposition supports pivoting, though it is disabled by default.
+\begin{lstlisting}
+>>> q, r, p = linalg.qr(A, pivoting=True)
+>>> p #the permutation of the columns
+array([4, 0, 3, 2, 1], dtype=int32)
+>>> q
+array([[-0.11405319, -0.76615395,  0.45174233,  0.40567063, -0.17708813],
+       [-0.25661968, -0.4838867 , -0.63502114, -0.0417832 ,  0.54314116],
+       [-0.39918616, -0.20161946, -0.23244821, -0.53138834, -0.68087757],
+       [-0.54175265,  0.08064778,  0.56299051, -0.43455624,  0.4406842 ],
+       [-0.68431914,  0.36291503, -0.14726349,  0.60205715, -0.12585965]])
+>>> r
+array([[ -3.50713558e+01,  -2.70876326e+01,  -3.30754250e+01,
+         -3.10794942e+01,  -2.90835634e+01],
+       [  0.00000000e+00,   4.03238919e+00,   1.00809730e+00,
+          2.01619460e+00,   3.02429189e+00],
+       [  0.00000000e+00,  -0.00000000e+00,   4.46096951e-15,
+          2.15346430e-15,   1.58185509e-16],
+       [  0.00000000e+00,  -0.00000000e+00,  -0.00000000e+00,
+          2.23932624e-15,   9.92088740e-16],
+       [  0.00000000e+00,  -0.00000000e+00,   0.00000000e+00,
+         -0.00000000e+00,   9.04466477e-16]])
+>>> q.dot(r).astype(int)
+array([[ 3,  0,  3,  2,  1],
+       [ 9,  5,  8,  7,  6],
+       [14, 10, 13, 12, 11],
+       [19, 15, 18, 17, 16],
+       [24, 20, 23, 22, 21]])
+>>> a[:,p]
+array([[ 3,  0,  3,  2,  1],
+       [ 9,  5,  8,  7,  6],
+       [14, 10, 13, 12, 11],
+       [19, 15, 18, 17, 16],
+       [24, 20, 23, 22, 21]])
+\end{lstlisting}
+As you can see, the columns of $A$ were reordered before performing the QR decomposition.
+With pivoting, the matrices $P$, $Q$, and $R$ are returned satisfying $AP = QR$.
+
+
+
 \section*{Solving Least Squares Problems}
 For large or ill-conditioned problems, the QR decomposition provides
 a nice method for computing least squares solutions of
@@ -130,4 +198,6 @@ R x = Q^T b.
 \]
 Then $\widehat x = R^{-1} Q^T b$.
 
-\section*{}
+\begin{problem}
+Write a function that will accept a least squares problem and use the QR decomposition to compute the solution
+\end{problem}
