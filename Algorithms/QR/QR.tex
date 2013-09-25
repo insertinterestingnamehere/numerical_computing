@@ -184,20 +184,28 @@ With pivoting, the matrices $P$, $Q$, and $R$ are returned satisfying $AP = QR$.
 
 
 \section*{Solving Least Squares Problems}
+The QR decomposition can be used to solve the linear least squares problem if $A$ is full rank.
+If $A$ is less than full rank, then we have to calculate the least squares solution a little more creatively.
+MATLAB's least squares backslash operator is based off the QR decomposition.
+SciPy uses the SVD to solve least squares problems because, although it is slower, the algorithm is more numerically stable.
 For large or ill-conditioned problems, the QR decomposition provides
 a nice method for computing least squares solutions of
-over-determined matrices.  Consider the problem $A x = b$.  Recall
-that the least squares solution is $\widehat x = (A^T A)^{-1}A^T b$.
+over-determined matrices.
+Consider the least squares problem $Ax=b$.
+We can approximate the solution with $\widehat x = (A^T A)^{-1}A^T b$.
 Alternatively, we write the linear system as
-\[
-Q R x = b.
-\]
+\[ Q R x = b. \]
 We then multiply both sides by $Q^T$, yielding
-\[
-R x = Q^T b.
-\]
+\[ R x = Q^T b. \]
 Then $\widehat x = R^{-1} Q^T b$.
 
+However, we can avoid calculating the inverse of $R$ (inverting a matrix is \emph{very expensive} computationally).
+Since $R$ is a triangular matrix, we have a triangular system that we can solve much more efficiently.
+SciPy includes a solver for triangular systems, \li{linalg.solve_triangular()}.
+We approximate $x$ by solving the triangular system $Rx = Q^T b$.
+
 \begin{problem}
-Write a function that will accept a least squares problem and use the QR decomposition to compute the solution
+Write a function that will accept a linear system (a matrix $A$ and a vector $b$) and solve the least squares problem.
+Your function should rely on the SciPy's QR decomposition and triangular system solver.  Assume that $A$ is full rank.
+You may test your function against the output of SciPy's least squares function, \li{linalg.lstsq()}.
 \end{problem}
