@@ -53,30 +53,3 @@ def prob_3:
 	coords = np.where(A7==0)
 	print "no 7 step connection for: ", zip(coords[0], coords[1])
 
-#problem 4
-def findpath(a, b, A):
-    Anew = A.copy()
-    arrs = [Anew]
-    num = 0
-    while Anew[a,b] == False:
-        num += 1
-        Anew = Anew.dot(A)
-        arrs.append(Anew)
-        if num > A.shape[0]-1:
-            raise ValueError("Nodes are not connected")
-            break
-    current = a
-    path = [current]   
-    for i in range(len(arrs)):
-        for j in xrange(A.shape[0]):
-            if A[j,current] == True:
-                if arrs[-i-1][j,b] == True:
-                    current = j
-                    path.append(current)
-                    break
-    path.append(b)
-    return path
-
-def prob_4():
-	A = np.load("maze.npy")
-	print findpath(0, 224, A)
