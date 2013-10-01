@@ -34,31 +34,32 @@ def LU2(A):
     return L, U
 
 def LU_inplace(A):
+    '''
+    this same as the LU function above, just replace the 
+    L's and U's by A. Also, we need to make sure to not
+    set the value of entries below the main diagonal twice.
+    ''
     for j in xrange(A.shape[0]-1):
         for i in xrange(j+1, A.shape[0]):
 			# change to L
-            A[i,j] /= A[j,j]
+            A[i,j] /= A[j,j]    
+                # we just set entries of jth column below the main diagonal
             # change to U
-            A[i,j+1:] -= A[i,j] * A[j,j+1:]
+            A[i,j+1:] -= A[i,j] * A[j,j+1:] 
+                # start from column j+1 to avoid setting entires in jth column again
 
-def solveLoop(A,LU,B,f):
-    if f==True:
-        # the fast way
-        for i in xrange(B.shape[0]):
-            la.lu_solve(LU,B[i])
-    else:
-        # the slow way
-        for i in xrange(B.shape[0]):
-            la.solve(A,B[i])
+def Solve():
+    # the students should have code to generate the random matrices, inverse, LU, and solve
+    A = np.random.rand(1000,1000)
+    B = np.random.rand(1000,500)
+    Ai = la.inv(A)
+    (lu,piv) = la.lu_factor(A)
+    
+    # the students should report the time for the following operations
+    np.dot(Ai,B)
+    la.lu_solve((lu,piv),B)
 
-def timeProblem(f):
-    A = np.random.random((500,500))
-    while (la.det(A) == 0):
-        A = np.random.random((500,500))
-    B = np.random.random((500,500))
-    ALU = la.lu_factor(A)
-    # python doesn't let me run the timer inside of a function
-    # %timeit solveLoop(A,ALU,B,f)
+
 
 def LU_solve(A,B):
     for j in xrange(A.shape[0]-1):
@@ -70,10 +71,12 @@ def LU_solve(A,B):
             B[i] -= A[i,j] * B[j]
 
 def LU_det(A):
-    B = A.copy()
-    ref(B)
-    # now extract diagonal and take product
-    return np.prod(B.diagonal())
+    (lu,piv) = la.lu_factor(A)
+    
+    # determine whether an even or odd number of row swaps
+    s = (piv != np.arange(A.shape[0])).sum() % 2
+    
+    return ((-1)**s) * lu.diagonal().prod()
 
 def cholesky(A):
     L = np.zeros_like(A)
