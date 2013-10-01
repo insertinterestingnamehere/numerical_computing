@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.random import rand
+from numpy.random import randn
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from timeit import timeit as ti
@@ -73,7 +73,7 @@ def laplace(U, tol):
 def large_numbers(n):
 	# demonstrates law of large numbers
 	# as n increases, variance goes to 0.
-    A = rand(n, n)
+    A = randn(n, n)
     return A.mean(axis=1).var()
 
 # The problems from here on are no longer in the first lab.
