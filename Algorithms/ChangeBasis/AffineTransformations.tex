@@ -1,7 +1,8 @@
+%!TEX root = ../../Vol1.tex
 \lab{Algorithm}{Invertible Affine Transformations}{Invertible Affine Transformations}
 \label{lab:ChangeBasis}
 
-\objective{Understand how to apply various linear affine transformations to 
+\objective{Understand how to apply various affine transformations to
 a set of vectors.}
 
 
@@ -29,10 +30,10 @@ of matrices.
 
 In this lab we will take vectors in $\mathbb{R}^2$ and apply various linear and
 affine transformations.
-For all these exercises we will use the points:
+For all these exercises we will use the following set of points:
 \begin{lstlisting}
- pts = np.array([-1.5,-1.,-.5,0.,.5,1.,1.5,.75,-.75],
-                [0.,-1.,-2.,-2.,-2.,-1.,0.,2.,2.])
+x,y = np.load('horse.npy') #x and y have shape (59520,)
+pts = np.array([x,y])  #pts has shape (2,59520)
 \end{lstlisting}
 In this case we have represented each point as a column of the array \li{pts}.
 It is common to represent points as rows as well.
@@ -51,8 +52,7 @@ directions.
 \caption{
 An example of a dilation. The top image is the original image and the bottom is
 the modified image.
-The figure was stretched by a factor of $2$ in the $x$ direction and $1.5$ in
-the $y$ direction.}
+The figure was stretched by a factor of $1.5$ in all directions.}
 \end{figure}
 
 \begin{problem}
@@ -89,7 +89,7 @@ A = \begin{pmatrix}
 \includegraphics[width=\textwidth]{rotate.pdf}
 \caption{An example of a rotation.
 The top image is the original and the bottom is the rotated image.
-The rotation angle is $\frac{3\pi}{16}$.}
+The rotation angle is $\frac{\pi}{3}$.}
 \label{basis:rotate}
 \end{figure}
 
@@ -124,15 +124,15 @@ A = \begin{pmatrix}
 c & 1
 \end{pmatrix},
 \]
-where $c$ indicates the amount of displacement. As you can see in Figure \ref{basis:shear},
-a sheared figure looks like the original figure viewed from an angle. Note that
+where $c$ indicates the amount of displacement.  Note that
 these shearing matrices are instances of a type III elementary matrix. Horizontal
 shears leave the y-coordinates fixed, while vertical shears leave the x-coordinate
-fixed. In physics, shears are known as Galilean Transformations, and are used
+fixed. In physics, shears are examples of what are known as Galilean Transformations, and are used
 to switch between reference frames that differ only by constant relative motion.
 
 \begin{problem}
-Write a function that accepts an array of points and an integer argument
+Write a function that accepts an array of points, a floating point argument that
+indicates the shearing amount, and an integer argument
 that indicates the direction of shearing (0 for horizontal, 1 for vertical).
 Have it return the sheared points.
 Plot the original points and their image under the transformation.
@@ -144,7 +144,7 @@ Plot the original points and their image under the transformation.
 \includegraphics[width=\textwidth]{reflection.pdf}
 \caption{An example of a reflection.
 The top image is the original and the bottom is the image after
-being reflected about the line $y = -3x$.}
+being reflected about the line $y = \sqrt{3}x$.}
 \label{basis:reflection}
 \end{figure}
 Reflection about a line (or in higher-dimensional spaces, a hyperplane) can also be
@@ -176,7 +176,7 @@ Plot the original points and their image under the transformation.
 \includegraphics[width=\textwidth]{shift.pdf}
 \caption{
 An example of a translation.
-The top image is the original and the bottom is the modified image.}
+The top image is the original and the bottom is the translated image.}
 \label{basis:translation}
 \end{figure}
 
@@ -205,13 +205,13 @@ Plot the original points and their image under the transformation.
 \centering
 \includegraphics[width=\textwidth]{combo.pdf}
 \caption{
-A composition of linear transformations: scaling, rotation, and translation.}
+A composition of affine transformations: shear, reflection, and translation.}
 \label{basis:combo}
 \end{figure}
-These transformations can be combined into single affine transformations through function composition.
-For example, if you want to apply a scaling and then a rotation, you can represent the
-scaling as a matrix $S$ and the rotation as a matrix $R$. The combined transformation is then $RS$.
-The image of $X$ under both transformations will be $RSX$.
+All the various transformations we have discussed can be combined into a single affine transformation through function composition.
+For example, if you want to apply a shear and then a reflection, you can represent the
+shear as a matrix $S$ and the reflection as a matrix $R$. The combined transformation is then $RS$.
+The image of $X$ under both transformations and then a translation that moves the origin to point $P$ will be $RSX+P$.
 An example like this is shown in Figure \ref{basis:combo}.
 
 \begin{problem}

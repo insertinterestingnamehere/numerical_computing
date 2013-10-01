@@ -46,7 +46,7 @@ def image_vect():
 	return np.absolute(I - I.mean(axis=2, keepdims=True))
 
 #edit==1 inverts
-#edit==2 greyscales
+#edit==2 grayscales
 #edit==3 does a motion blur of n
 def imageEditor(X,edit,n=1):
     if edit==1:

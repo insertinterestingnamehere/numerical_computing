@@ -8,7 +8,7 @@ Some of the benefits of allowing these types of operations are concise code and 
 
 \section*{Some Simple Examples}
 
-Vectorization is a term that refers generally to the eliminating of for-loops in higher level languages as well as taking advantage of the capabilities of modern processors to perform the same operaiton on multiple numbers at once.
+Vectorization is a term that refers generally to eliminating for-loops in higher level languages as well as taking advantage of the capabilities of modern processors to perform the same operation on multiple numbers at once.
 We'll start with a very simple example.
 The following code takes the sum of the elements of a NumPy array.
 \begin{lstlisting}
@@ -70,7 +70,6 @@ def normalize2(A):
         A[i] /= sqrt((A[i]**2).sum())
 \end{lstlisting}
 This is much shorter, much faster, and reads quite nicely.
-It is also usually faster than the original.
 To eliminate the last for-loop we do the computation for all the rows at once.
 \begin{lstlisting}
 def normalize3(A):
@@ -116,8 +115,8 @@ Notice how much the dimensions of \li{A} affect the performance of each algorith
 The first one is slowed down by its extensive use of Python objects for basic computations.
 The second one is slowed down by the fact that it makes a new array slice for each row.
 The third is slowed down by the fact that it must allocate a significant amount of temporary storage in memory to perform all its computations.
-A faster and more memory-efficient solution to this problem can be obtained, but it required using another language (like C, C++, Cython, or FORTRAN) that better optimizes for-loops.
-As always, when optimizing keep in mind that it takes extra time to optimize code.
+A faster and more memory-efficient solution to this problem can be obtained, but it requires using another language (like C, C++, Cython, or FORTRAN) that better optimizes for-loops.
+When optimizing, keep in mind that it takes extra time to speed up your code.
 A partial optimization is often good enough.
 In general, only optimize when you are sure it will be worth your time to do so.
 
@@ -167,7 +166,7 @@ Use your best judgment.
 \end{itemize}
 
 To demonstrate the above principles we'll consider another example.
-We will write a function which, given two arrays \li{A} and \li{B} will return the distance from \emph{each} point of \li{A} to \emph{every} point of \li{B}.
+We will write a function which, given two arrays \li{A} and \li{B} will return the distance from \emph{each} row (considered as a vector) of \li{A} to \emph{every} row of \li{B}.
 This can be done naively using for-loops as follows:
 \begin{lstlisting}
 from math import sqrt
@@ -249,7 +248,7 @@ def dist4(A, B):
 Depending on how you are using your squared distance you could also use the fact that for $x, y \geq 0$, $x < y$ if and only if $\sqrt{x} < \sqrt{y}$.
 This would be useful if all you need to know is which distances are greater than one another.
 Timing these functions gives the following results:
-\begin{lstlisting}
+\begin{lstlisting}[escapechar=\@]
 >>> A = rand(500, 2)
 >>> B = rand(1000, 2)
 >>> %timeit dist1(A, B)
@@ -279,7 +278,7 @@ Timing these functions gives the following results:
 >>> %timeit dist3(A, B)
 100 loops, best of 3: 5.28 ms per loop
 >>> %timeit dist4(A, B)
-1000 loops, best of 3: 283 µs per loop
+1000 loops, best of 3: 283 @$\mu$s@ per loop
 \end{lstlisting}
 As you can see, the dimensions of the problem still change how long it will take.
 In every case the final solution was the fastest.
@@ -288,7 +287,8 @@ Plots of the times for these different functions can be seen in Figure \ref{dist
 
 \begin{figure}
 \includegraphics[width=\textwidth]{distplot.pdf}
-\caption{A plot of the times for the different degrees of vectorization for a function finding the distance between points represented as rows in two arrays. Arrays of points in $\mathbb{R}^{10}$ were used for this computation.}
+\caption{A plot of the times for the different degrees of vectorization for a function finding the distance between points represented as rows in two arrays. Arrays of points in $\mathbb{R}^{10}$ were used for this computation. As this figure suggests, vectorization speeds up the computation 
+by a multiplicative constant, but usually does not change the Big-Oh.}
 \label{distplot}
 \end{figure}
 
@@ -302,7 +302,7 @@ They can all be done in one line.
 Hint: Think matrix multiplication.
 
 \item For an array of points \li{X} where each row represents a point in $\mathbb{R}^n$ compute $\| x\|^2$ for each row \li{x} of \li{X}.
-Hint: Use array multiplication instead of matrix multiplication for this one.
+Hint: Use array multiplication (element-wise multiplication) instead of matrix multiplication for this one.
 
 \item Compute the matrix expression $v^T A v$ where $A$ is a square matrix and each column vector $v$ is stored as a row in an array \li{V}.
 The shapes of \li{V} and \li{A} are \li{(n, d)} and \li{(n, n)} respectively.
@@ -351,34 +351,45 @@ plt.show()
 
 Matplotlib can read in PNG images on its own, otherwise it will read in images using the Python Image Library.
 Depending on the format of the image, it may be read as an array of floating point values between 0 and 1 or it may be read as an array of integer values between 0 and 255.
-In this lab we will assume the latter.
+In this lab we will assume the former. Load the image provided with the lab, entitled `musician.png':
+\begin{lstlisting}
+img = plt.imread('musician.png')
+\end{lstlisting}
+There is some extra data in this image that we do not need, so throw it out, and view the image:
+\begin{lstlisting}
+img = img[:,:,:-1]
+plt.imshow(img)
+plt.show()
+\end{lstlisting}
+
+%How is this problem different from the grayscale problem below?
+%\begin{problem}
+%Use vectorization techniques to obtain an optimized solution to each of the following problems.
+%They can all be done in one line.
+%\begin{enumerate}[a)]
+%
+%\item Given an array representing a color image, make an array representing a black and white image where the black and white value is the average of each of the color values.
+%Hint: see the \li{mean()} method of arrays.
+%
+%\item For an array representing a color image calculate the absolute value of the difference between each color value and the average value for each pixel.
+%Hint: pass the \li{keepdims=True} argument to the \li{mean} method so that broadcasting works properly.
+%
+%\end{enumerate}
+%\end{problem}
 
 \begin{problem}
-Use vectorization techniques to obtain an optimized solution to each of the following problems.
-They can all be done in one line.
-\begin{enumerate}[a)]
-
-\item Given an array representing a color image, make an array representing a black and white image where the black and white value is the average of each of the color values.
-Hint: see the \li{mean()} method of arrays.
-
-\item For an array representing a color image calculate the absolute value of the difference between each color value and the average value for each pixel.
-Hint: pass the \li{keepdims=True} argument to the \li{mean} method so tha broadcasting works properly.
-
-\end{enumerate}
-\end{problem}
-
-\begin{problem}
-Write a function that edits an array representing an image.
-Include options that allow you to  invert the image, change it to grayscale, or add a motion blur (definitions below).
-The function should take in an image, a parameter that indicates how to modify the image, and an optional parameter for the motion blur.
-It should then plot the image.
+Write a function that edits an array representing an image. The function should take as input 
+an array of shape (no. of rows, no. of columns, no. of color channels) and should then plot the edited
+image. Include options that allow you to  invert the image, change it to grayscale, or add a motion blur (definitions below).
+Note that the shape of a grayscale image is (no. of rows, no. of columns), and to plot a 
+grayscale image \li{A} you need to you the command \li{plt.imshow(A, cmap=plt.cm.Greys_r)}.
 \end{problem}
 
 \begin{itemize}
 \item Invert:
 Every color value for every pixel is changed to its inverse value.
-For example, 0 becomes 255, 230 becomes 25, and 127 becomes 128.
-Remember that the minimum color value is 0 and the maximum is 255.
+For example, 0.0 becomes 1.0 and 0.4 becomes 0.6.
+Remember that the minimum color value is 0.0 and the maximum is 1.0.
 
 \vfill
 \begin{figure}[ht]
@@ -396,10 +407,10 @@ Remember that the minimum color value is 0 and the maximum is 255.
 \vfill
 
 \item Grayscale:
-To convert an image to grayscale, each pixel's color value is changed to the average of the pixel's red, green, and blue value.
-For example, if the pixel values are Red: 225, Green:, 30 Blue: 131, we set each of these values to $\frac{225 + 30 + 131}{3} = 128$ (using integer division).
+To convert a \li{(n,m,3)} image \li{A} to grayscale, you will create a \li{(n,m)} image \li{B} such that \li{B[i,j]} is the average of the values \li{A[i,j,0], A[i,j,1], A[i,j,2]}.
+For example, if the $i,j$ pixel values are Red: 0.8, Green:, 0.2 Blue: 0.5, we set the 
+corresponding grayscale pixel value to $\frac{0.8+0.2+0.5}{3} = 0.5$.
 Hint: use the \li{axis} argument to the mean method of NumPy arrays.
-To get integer division, use its \li{dtype} argument.
 
 \vfill
 \begin{figure}[ht]
@@ -422,7 +433,7 @@ The value of each color of each pixel is the average of that color value for $n$
 So pixel \li{[x,y,0]} would turn in to the average of pixel \li{[x,y,0]} through pixel \li{[x,y+n-1,0]}.
 Note: You will need to use one for-loop here.
 Be sure to account for the situations where one or more of the values used in the computing the average do not exist.
-For example, if an image has width $w$ and we are considering the pixel on row $r$, column $c$, if $c + n \ge w$, then we only average the pixels up to $w$. 
+For example, if an image has width $w$ and we are considering the pixel on row $r$, column $c$, if $c + n \ge w$, then we only average the pixels up to $w$.
 Proper array slicing should take care of this case without any extra code.
 
 \vfill
