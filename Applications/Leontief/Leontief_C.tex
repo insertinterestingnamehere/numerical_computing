@@ -3,19 +3,18 @@
 
 \objective{Explain the basics of input-output models, and apply them to analyze a state economy.}
 
-One of the core purposes of linear algebra is to model the interactions between a large number of variables in a concise way.
-We can use this tool to simplify the analysis of very complicated, interactions in a variety of settings.
+One of the primary applications of linear algebra is modeling interactions between a large number of variables in a concise way.
+We can use it to simplify the analysis of very complicated, interactions in a variety of settings.
 
-For example, in economics one might be interested in how one the inputs of one sector of an economy are reliant upon the outputs of another economy.
-For example, to build a car you need refined steel, plastic, and glass, which are all outputs of other sectors of the economy.
-Thus if the car industry decides to produce more cars it will accordingly force increased production in several other sectors of the economy, including steel, plastic and glass.
-This type of interaction is described in economics using what is called the \emph{Leontief Input-Output model}, or just an Input-Output model.
+For example, in economics, one might be interested in how one the inputs of one sector of an economy are reliant upon the outputs of another economy.
+To build a car, you need refined steel, plastic, and glass.
+These are all outputs of other sectors of the economy.
+If there is an increase in car production there will necessarily be increases in production in other sectors of the economy like steel, plastic, and glass.
+This type of interaction can be described using what is called a \emph{Leontief Input-Output model}, or just an Input-Output model.
 
-We will explain the basics of this model using a simple imaginary economy involving agriculture, textiles and construction.
-
-Suppose that we have the data given in Table \ref{IORawTable} (we could say that it is in terms of millions or billions of dollars if we wished to make the numbers realistic).
-In this table the columns represent the inputs to a particular industry and the rows represent outputs.
-This matrix is known as the exchange matrix.
+Consider a simple ecomomy divided up into sectors representing agriculture, textiles, and construction.
+Suppose we have the data given in Table \ref{IORawTable}.
+This is known as the exchange matrix.
 If we divide each column by the output of the corresponding industry we can obtain a coefficient matrix that represents the amount of each input we need to obtain one additional unit of output.
 This matrix is known as the consumption matrix.
 We can do this in Python as follows, and we obtain the coefficients in Table \ref{IOCoefTable}.
@@ -34,9 +33,12 @@ So, for example, to produce one extra unit of agriculture output we need to inpu
 Agriculture & 250 & 150 & 30 & 600 \\ \hline
 Textiles & 25 & 25 & 20 & 280 \\ \hline
 Construction & 50 & 20 & 5 & 120 \\ \hline
+Total Input & 325 & 195 & 55 & \\ \hline
 \end{tabular}
 \caption{Raw Input Output Data.
-Columns represent inputs to an industry, and rows represent outputs.}  \label{IORawTable}
+Columns represent inputs to an industry, and rows represent outputs.
+Notice that not all the total output is used as input for the economy itself.}
+\label{IORawTable}
 \end{center}
 \end{table}
 
@@ -58,20 +60,21 @@ The columns represent the amount of each product needed to produce one additiona
 
 Now, we can represent the demand $D$ (``net'' output to consumers) by the following equation:
 \[
-D = X-CX
+D = X - CX
 \]
+In other words, the amout of output used for consumption is the total output minus the portion that is reused as input for the economy itself.
 
 Where $X$ is the output vector of our economy (the output of each industry) and $C$ is the coefficient matrix that we just found.
 Now we can rewrite this as:
 \[
-D = (I-C)X
+D = (I - C) X
 \]
 Now we have a simple relation between demand and production.
-We can accordingly use \li{linalg.solve()} to predict how changes in demand will affect overall production.
+We can use \li{linalg.solve()} to predict how changes in demand will affect overall production.
 
 \begin{problem}
 What are the demand levels for the three product economy?
-This can be solved for either using the \li{linalg.solve()} function and the coefficient matrix or by directly using the raw data.
+This can be solved for either using the \li{linalg.solve()} function and the coefficient matrix or by directly using the raw data in table \ref{IORawTable}.
 \end{problem}
 
 \begin{problem}
@@ -79,6 +82,9 @@ If demand for construction increases by fifty percent what will the output vecto
 This output vector is not readily apparent from the raw data, but can be easily found using the coefficient matrix.
 \end{problem}
 
+\begin{comment}
+% this data file isn't in the repository.
+% we need to get it somehow.
 \begin{problem}
 The file \li{WashingtonIOData.npy} contains the raw input output data for the state of Washington in the year 2002.
 The last column is the output vector.
@@ -87,6 +93,7 @@ The source of this file is the file \li{io2002table.xls}, and you can find the i
 Find the output vector if the demand for construction increases by ten percent.
 This will require first finding the initial demand vector, and then increasing the correct entry by ten percent and using \li{linalg.lstsq()} to find the new output vector.
 \end{problem}
+\end{comment}
 
 This method can be used to model economies of almost any scale.
 One of the primary limitations is that this model assumes that production varies linearly in its inputs, which may not be realistic.
