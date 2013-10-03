@@ -13,17 +13,38 @@ If there is an increase in car production there will necessarily be increases in
 This type of interaction can be described using what is called a \emph{Leontief Input-Output model}, or just an Input-Output model.
 
 Consider a simple ecomomy divided up into sectors representing agriculture, textiles, and construction.
-Suppose we have the data given in Table \ref{IORawTable}.
-This is known as the exchange matrix.
-If we divide each column by the output of the corresponding industry we can obtain a coefficient matrix that represents the amount of each input we need to obtain one additional unit of output.
-This matrix is known as the consumption matrix.
+Given sufficient data, we can estimate how much of the output from one economy is used as an input to another.
+An array representing the required inputs in this simple economy is shown in \ref{IOCoefTable}.
+This is called a consumption matrix.
+It can be especially useful when determining the short term impacts of a given change in the economy.
+Directly, its columns represent the inputs required to produce one additional unit of output.
+For example, to produce one extra unit of agriculture output we need to input .4 units of agriculture, .04 units of textiles and .08 units of construction.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+& Agriculture & Textiles & Construction \\ \hline
+Agriculture & .4167 & .5357 & .25 \\ \hline
+Textiles & .0417 & .0893 & .1667 \\ \hline
+Construction & .0833 & .0714 & .0417 \\ \hline
+\end{tabular}
+\caption{Input Output Coefficients.
+The columns represent the amount of each product needed to produce one additional unit of output.}
+\label{IOCoefTable}
+\end{center}
+\end{table}
+
+This sort of matrix can easily be computed from a table of inputs and outputs like the one shown in Table \ref{IORawTable}.
+A matrix of input and output values like the one shown in Table \ref{IORawTable} is called an exchange matrix.
+If we divide each column by the output of the corresponding industry we can obtain the coefficient matrix (consumption matrix).
 We can do this in Python as follows, and we obtain the coefficients in Table \ref{IOCoefTable}.
 
 \begin{lstlisting}
->>> IO = sp.array([[250,150,30,600],[25,25,20,280],[50,20,5,120]])
->>> IOCoeff = IO[:,0:3]/sp.dot(sp.ones((3,1),dtype=sp.float_),IO[:,3].reshape(1,3))
+>>> import numpy as np
+>>> IO = np.array([[250., 150., 30., 600.], [25., 25., 20., 280.], [50., 20., 5., 120.]])
+>>> IOCoeff = IO[:,:3] / IO[:,3]
 \end{lstlisting}
-So, for example, to produce one extra unit of agriculture output we need to input .4 units of agriculture, .04 units of textiles and .08 units of construction.
 
 \begin{table}
 \begin{center}
@@ -42,44 +63,37 @@ Notice that not all the total output is used as input for the economy itself.}
 \end{center}
 \end{table}
 
-\begin{table}
+We will now consider the sorts of things these matrices tell us.
+By way of example, we will consider the total output needed to produce one extra unit of agriculture.
+This certainly costs one unit of agriculture without accounting for the inputs required, but in order to produce one unit of agriculture, we also need inputs of .4167 units of agriculture, .0417 units of agriculture, .0417 units of textiles, and .0833 units of construction.
+We also need the inputs necessary to produce those inputs, and the inputs necessary to produce the inputs to the inputs for the inputs, etc.
+Letting $d$ be the $3\times 1$ array of needed goods and $C$ be the coefficient matrix, the total cost of producing the outputs in $d$ will be
 
-\begin{center}
-\begin{tabular}{|c|c|c|c|} 
-\hline
-& Agriculture & Textiles & Construction \\ \hline
-Agriculture & .4167 & .5357 & .25 \\ \hline
-Textiles & .0417 & .0893 & .1667 \\ \hline
-Construction & .0833 & .0714 & .0417 \\ \hline
-\end{tabular}
-\caption{Input Output Coefficients.
-The columns represent the amount of each product needed to produce one additional unit of output.}
-\label{IOCoefTable}
-\end{center}
-\end{table}
+\[ d + C d + C^2 d + C^3 d + \dots = \left( \sum_{n=1}^{\infty} C^n \right) d = \left( I - C \right)^{-1} d\]
 
-Now, we can represent the demand $D$ (``net'' output to consumers) by the following equation:
-\[
-D = X - CX
-\]
+This is just a geometric series in $C$.
+The last formula for evaluating the geometric series can be derived in the same way as the formula for a geometric series of complex numbers.
+It can be shown that a matrix has an infinite series if and only if the absolute value of each of its eigenvalues is strictly less than one.
+This is a constraint that will be built into any real system, and the non-existence of such a series would indicate a problem with the data.
+
+Since the overall effect of the increase in demand from inputs to inputs to inputs, etc. may not happen immediately, it may often be helpful to just evaluate the first two terms in this summation.
+
+\begin{problem}
+What would the cost of producing an additional 50\% more units of construction.
+Use the formula for the geometric series to find this value.
+Notice how a distortion in the market for construction can drastically effect the need for other goods as well.
+\end{problem}
+
+We can represent the ``net'' output to consumers $D$ (demand) by the following equation:
+\[ D = X - C X \]
 In other words, the amout of output used for consumption is the total output minus the portion that is reused as input for the economy itself.
 
-Where $X$ is the output vector of our economy (the output of each industry) and $C$ is the coefficient matrix that we just found.
-Now we can rewrite this as:
-\[
-D = (I - C) X
-\]
-Now we have a simple relation between demand and production.
-We can use \li{linalg.solve()} to predict how changes in demand will affect overall production.
+This agrees with our geometric series since the total output of the economy must be the total output required to produce everything that isn't reused, i.e.
+\[ X = \left( \sum_{n=1}^{\infty} C^n \right) D = \left( I - C \right)^{-1} D \]
+Which is equivalent to $ D = X - C X $.
 
 \begin{problem}
 What are the demand levels for the three product economy?
-This can be solved for either using the \li{linalg.solve()} function and the coefficient matrix or by directly using the raw data in table \ref{IORawTable}.
-\end{problem}
-
-\begin{problem}
-If demand for construction increases by fifty percent what will the output vector of the economy be?
-This output vector is not readily apparent from the raw data, but can be easily found using the coefficient matrix.
 \end{problem}
 
 \begin{comment}
