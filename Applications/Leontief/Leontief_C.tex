@@ -114,8 +114,8 @@ Estimate the amount the city should be prepared to produce of each good.
 \end{problem}
 
 \section*{Importing CSV Data with Missing Values}
-Before we get to the next problem, we review some important skills concerning data IO with csv files. 
-Recall that a csv file, or a `Comma Separated Values' file, contains tabular data with the rows on separate lines
+Before we get to the next problem, we review some important skills concerning reading and writing data with CSV files. 
+Recall that a CSV file, or a `Comma Separated Values' file, contains tabular data with the rows on separate lines
 of the file, and the columns separated by some delimiter character, such as a comma or a white space. This is a 
 ubiquitous format for storing and transferring data, and Python has good support for it. We will use the \li{csv}
 module to examine the contents of the file \li{missing_data.txt}.
@@ -126,20 +126,20 @@ module to examine the contents of the file \li{missing_data.txt}.
 >>>     myReader = csv.reader(csvfile, delimiter=';')
 >>>     for row in myReader:
 >>>         print row
->>> ['1.0', '2.2', '-3.0', '???']
-    ['0.0', '2.1', '???', '5.1']
-    ['0.4', '2.3', '-2.8', '4.8']
-    ['0.3', '???', '-3.1', '5.0']
+['1.0', '2.2', '-3.0', '???']
+['0.0', '2.1', '???', '5.1']
+['0.4', '2.3', '-2.8', '4.8']
+['0.3', '???', '-3.1', '5.0']
 \end{lstlisting}
 
 Notice the \li{with ... as ...} block. This is the preferred way to open and read from files, as it takes care of 
-closing the file once you are done processing and exit the block. We next created a \li{csv.reader} object around 
+closing the file once you exit the code block. We next created a \li{csv.reader} object around 
 the file, and specified the delimiter character to be a semi-colon. Then we iterated through the rows of our reader
 and printed the contents.
 
 Notice the entries that consist of three question marks. This indicates missing data. Such situations arise frequently
 in real life, and we need to know ways to cope with imperfect or incomplete datasets. NumPy provides a very convenient
-way to import homogeneous data from csv files, even with missing data. We will use the \li{np.genfromtxt} function to
+way to import homogeneous data from CSV files, even with missing data. We will use the \li{np.genfromtxt} function to
 extract the data and fill in the missing values. In this example, we will set the missing value in the second column to
 2.2, the missing value in the third column to -3.0, and the missing value in the fourth column to 4.9.
 
@@ -148,21 +148,21 @@ extract the data and fill in the missing values. In this example, we will set th
                          missing_values = ['???'],
                          filling_values = {1:2.2, 2:-3.0, 3:4.9})
 >>> data
->>> array([[ 1. ,  2.2, -3. ,  4.9],
-           [ 0. ,  2.1, -3. ,  5.1],
-           [ 0.4,  2.3, -2.8,  4.8],
-           [ 0.3,  2.2, -3.1,  5. ]])
+array([[ 1. ,  2.2, -3. ,  4.9],
+       [ 0. ,  2.1, -3. ,  5.1],
+       [ 0.4,  2.3, -2.8,  4.8],
+       [ 0.3,  2.2, -3.1,  5. ]])
 \end{lstlisting}
 
 We now have a NumPy array containing our filled-in data, and we can continue with whatever computations we desire. Notice
 that we still needed to specify the delimiter character. The \li{missing_values} argument is a list of strings that 
 designate missing values, and the \li{filling_values} argument is a dictionary that maps the index of a column to the 
-value used to replace all the missing values in that column. If you want to replace all missing values with the same
-filling value, the \li{filling_values} argument should be set to this single filling value.
+value used to replace all the missing values in that column.  The value of a \li{None} key in this dictionary will be used as a default fill value, except where you specify.  If you want to replace all missing values with the same
+filling value, the \li{filling_values} argument can be set to this single filling value.
 
-If for some reason we want to omit certain rows in the csv file, we can use the \li{skip_header} or \li{skip_footer} 
+If for some reason we want to omit certain rows from the beginning or end of the CSV file, we can use the \li{skip_header} or \li{skip_footer}
 arguments, which are integers representing the number of lines at the beginning or end of the file to skip, respectively.
-If we want to extract only certain columns from the csv file, we can use the \li{usecols} argument, which is a list of
+If we want to extract only certain columns from the CSV file, we can use the \li{usecols} argument, which is a list of
 the column indices that we want to extract. In this next example, we omit the first row and the first column.
 
 \begin{lstlisting}
@@ -172,23 +172,23 @@ the column indices that we want to extract. In this next example, we omit the fi
                          skip_header = 1,
                          usecols = (1,2,3))
 >>> data
->>> array([[ 2.1, -3. ,  5.1],
-           [ 2.3, -2.8,  4.8],
-           [ 2.2, -3.1,  5. ]])
+array([[ 2.1, -3. ,  5.1],
+       [ 2.3, -2.8,  4.8],
+       [ 2.2, -3.1,  5. ]])
 
 \end{lstlisting}
 
 \begin{problem}
 The file \li{io2002table.txt} contains the raw input output data for the state of Washington in the year 2002.
-The last column is the output vector. This is a csv file with a tab delimiter, so you will set to set your 
-delimiter to \li{'\t'}. The top row contains the names of each of the columns, and thus should be omitted when
+The last column is the output vector. This is a CSV file with a tab delimiter, so you will set to set your 
+delimiter to \li{'\\t'}. The top row contains the names of each of the columns, and thus should be omitted when
 you import the data. Similarly, the first column contains labels for the rows, and should be omitted. Finally,
 there are some missing values in this file, and we assume that they are missing because there is not interaction
 between the two corresponding sectors of the economy. Thus, set all missing values to 0. Import the data
 to a NumPy array, and calculate the IO coefficient matrix and the demand vector.
 
 Next, find the output vector if the demand for construction increases by ten percent.
-Note that column 8 of the original csv file corresponds to construction.
+Note that column 8 of the original CSV file corresponds to construction.
 This will require increasing the correct entry of the initial 
 demand vector by ten percent and using \li{linalg.solve()} to find the new output vector.
 \end{problem}
