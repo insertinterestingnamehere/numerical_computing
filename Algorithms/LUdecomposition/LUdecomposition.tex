@@ -37,11 +37,11 @@ array([[ 4. ,  5. ,  6. ,  3. ],
 The additional requirement is often added that the first nonzero entry of each row be 1.
 Do not worry about that requirement here.
 Notice that in our third row operation we were able to operate on only a portion of the third row because we knew that the first value would still be 0.
-In this case it made little difference, but it is good to watch for things like this because they can save a great deal of time when working with larger matrices. 
+In this case it made little difference, but it is good to watch for things like this because they can save a great deal of time when working with larger matrices.
 
-A brief discussion of some potential pitfalls is in order. 
-Round-off error can lead to serious numerical issues. Consider the 
-following variation on the above example. 
+A brief discussion of some potential pitfalls is in order.
+Round-off error can lead to serious numerical issues. Consider the
+following variation on the above example.
 \begin{lstlisting}
 >>> A = np.array([[4., 5., 6., 3.],[2., 2.5, 6., 4.],[7., 8., 0., 5.]])
 array([[ 4.,  5.,  6.,  3.],
@@ -58,9 +58,9 @@ If we work this out by hand, we should currently have
 0&-7.5&-10.5&-.25
 \end{pmatrix}.
 \]
-All that is left is to swap the second and third rows, and the matrix is in 
-row echelon form. However, suppose that due to numerical round-off error, 
-the machine computes instead 
+All that is left is to swap the second and third rows, and the matrix is in
+row echelon form. However, suppose that due to numerical round-off error,
+the machine computes instead
 \[
 \begin{pmatrix}
 4&5&6&3 \\
@@ -77,39 +77,38 @@ array([[ 4. ,  5.0e+00 , 6.00e+00 ,  3.000e-00 ],
        [ 0. ,  0.0e+00 , 2.25e+14 ,  1.875e+14 ]])
 \end{lstlisting}
 The round-off error in the \li{A[1,1]} entry has affected the third
-row, and the matrix is now much different than our first calculation. In 
-larger matrices, such an error could potentially propagate through many 
+row, and the matrix is now much different than our first calculation. In
+larger matrices, such an error could potentially propagate through many
 steps in the calculation, resulting in garbage output.
 
-This example also illustrates another issue to be aware of. Even if there 
-were no round-off error in the \li{A[1,1]} entry, a naive implementation of 
-the algorithm might still attempt to pivot on that entry, which would mean 
-dividing by zero. As noted above, we would first need to swap rows 2 and 3 
-in order to proceed. Dealing with leading zeros by permuting the rows is 
-another consideration when designing a fool-proof REF solver. 
+This example also illustrates another issue to be aware of. Even if there
+were no round-off error in the \li{A[1,1]} entry, a naive implementation of
+the algorithm might still attempt to pivot on that entry, which would mean
+dividing by zero. As noted above, we would first need to swap rows 2 and 3
+in order to proceed. Dealing with leading zeros by permuting the rows is
+another consideration when designing a fool-proof REF solver.
 
 \begin{problem}
 \label{prob:REF}
 Write a Python function, which takes a matrix and reduces it to REF.
-Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction. You are not 
-responsible for dealing with potential round-off errors. 
+Assume that the matrix is invertible and ignore the possibility that a zero may appear on the main diagonal during row reduction. You are not
+responsible for dealing with potential round-off errors.
 \end{problem}
 
 \section*{LU Decomposition}
-The LU Decomposition refers to a process for factoring a square matrix into 
-a product of a lower triangular matrix and an upper triangular matrix. Such 
-a factorization exists only for certain classes of matrices. In the case 
+The LU Decomposition refers to a process for factoring a square matrix into
+a product of a lower triangular matrix and an upper triangular matrix. Such
+a factorization exists only for certain classes of matrices. In the case
 of an invertible $n \times n$ matrix $A$, the LU decomposition exists if and only if all
 of the leading principle minors are non-zero (that is, all of the
-submatrices \li{A[:k,:k]} for $k = 1,\ldots,n-1$ are invertible). Even in 
-this case, however, it may still be necessary to permute the rows of the 
-matrix in order to prevent zeros from appearing on the main diagonal. Thus, 
-row swap operations are in general necessary for the LU decomposition. 
+submatrices \li{A[:k,:k]} for $k = 1,\ldots,n-1$ are invertible). Even in
+this case, however, it may still be necessary to permute the rows of the
+matrix in order to prevent zeros from appearing on the main diagonal. Thus,
+row swap operations are in general necessary for the LU decomposition.
 
 Using row reduction we can reduce the matrix $A$ to upper triangular form.
 Say this can be done in $k$ row operations.
 Let $U$ be the upper triangular form of $A$, so we have:
-Hence, we have
 \[
 U = E_k \dots E_2 E_1 A.
 \]
@@ -147,7 +146,7 @@ In this case, we have ignored the possibility that a 0 may appear along the main
 A full implementation of the LU decomposition would have to account for this possibility as well by swapping rows appropriately.
 
 \section*{Why This Matters}
-The LU decomposition is more efficient for solving linear systems than traditional row reduction and also allows quick computation of inverses and determinants. 
+The LU decomposition is more efficient for solving linear systems than traditional row reduction and also allows quick computation of inverses and determinants.
 For very large matrices, the LU decomposition can be performed without using any extra space as follows:
 $L$ is be stored above the main diagonal of the array and $U$ is be stored below it.
 There is no need to store the main diagonal of $L$ since all its entries are ones.
@@ -161,47 +160,46 @@ Assume that the matrix is invertible and ignore the possibility that a zero may 
 Write another version of the function that modifies its input in place, storing $L$ below the main diagonal and $U$ in the rest of the array.
 \end{problem}
 
-As noted earlier, in general one needs to consider row-swapping when 
-calculating the LU decomposition. This means that it is not always possible 
-to simply have 
+As noted earlier, in general one needs to consider row-swapping when
+calculating the LU decomposition. This means that it is not always possible
+to simply have
 \[
 A = LU,
-\] 
-but rather 
+\]
+but rather
 \[
 PA = LU,
 \]
-where $P$ is a permutation matrix representing the necessary row-swaps. Given such a decomposition, we can solve the linear system $Ax = b$ by 
-first solving $Ly = Pb$ and then $Ux = y$. Since $L$ and $U$ are triangular, 
-these systems can be solved easily with backward and forward substitution. 
-We can use this technique to calculate $A^{-1}$ by solving the matrix 
-equation $LUX = P$ column-by-column. Finally, we can calculate the 
+where $P$ is a permutation matrix representing the necessary row-swaps. Given such a decomposition, we can solve the linear system $Ax = b$ by
+first solving $Ly = Pb$ and then $Ux = y$. Since $L$ and $U$ are triangular,
+these systems can be solved easily with backward and forward substitution.
+We can use this technique to calculate $A^{-1}$ by solving the matrix
+equation $LUX = P$ column-by-column. Finally, we can calculate the
 determinant of $A$ via the formula
 \[
 \det(A) = (-1)^S\left(\displaystyle\prod_{i=1}^nu_{ii}\right),
 \]
-where $S$ is the number of row-swaps. 
+where $S$ is the number of row-swaps.
 
-SciPy includes a complete implementation of the LU decomposition in the \li{linalg} module. 
+SciPy includes a complete implementation of the LU decomposition in the \li{linalg} module.
+Furthermore, several other methods in the \li{linalg} module are based on the LU 
+decomposition, including \li{linalg.solve}, \li{linalg.inv}, and \li{linalg.det}.
 
 \begin{problem}
-\label{prob:loopSolve}
-Suppose there is a need to solve the system $Ax = b$ for fixed $A$ and many 
-different values of $b$. It would be unwise to perform row-reduction for 
-every single new value of $b$, and the LU decomposition helps us avoid this 
-and save time. 
+\label{prob:Solve}
+Suppose there is a need to solve the system $Ax = b$ for fixed $A$ and many
+different values of $b$. It would be unwise to perform row-reduction for
+every single new value of $b$, and the LU decomposition helps us avoid this
+and save time.
 
-Write a function that takes in an invertible matrix $A$, the LU factorization
-of $A$ (in the same form as the output of \li{scipy.linalg.lu_factor}),
-a two-dimensional array $B$ whose rows represent the different values of $b$,
-and a boolean argument indicating whether or not to use the LU factorization.
-The function should then loop through the rows of the array of $b$ values
-and solve the system $Ax = b$ at each iteration using either \li{scipy.linalg.lu_solve} or \li{scipy.linalg.solve}, depending on the value of
-the boolean argument.
-Set $A$ and $B$ to a random $500 \times 500$ arrays, and compute the LU
-factorization of $A$. Time your function on these inputs for both values of
-the boolean argument. Hopefully you see the utility of the LU decomposition
-in this setting!
+Create a random $1000 \times 1000$ array $A$, and a random $1000 \times 500$ array
+$B$. Use the \li{scipy.linalg.lu_factor} function to compute the LU factorization of 
+$A$. Then use the \li{scipy.linalg.lu_solve} function to solve the system $AX = B$,
+and time this operation. 
+
+Now use the \li{scipy.linalg.inv} function to compute the inverse of $A$, and then
+use it to solve the system $AX = B$. Again time the operation. 
+
 \end{problem}
 
 %\begin{problem}
@@ -210,11 +208,17 @@ in this setting!
 %No changes to the array storing the LU decomposition are necessary.
 %\end{problem}
 %
-%\begin{problem}
-%\label{prob:det}
-%Write a function which uses the solution to Problem \ref{prob:REF} to find the determinant of $A$.
-%Notice that the solution to Problem \ref{prob:REF} computes $U$ when applied to a square matrix.
-%\end{problem}
+\begin{problem}
+\label{prob:det}
+Write a function which takes as input a square matrix $A$ and uses \li{linalg.lu_factor} to 
+find the determinant of $A$. Note that \li{linalg.lu_factor} returns a square array \li{lu}
+that contains $U$ in its upper triangle, as well as an array \li{piv} that represents the 
+permutation matrix $P$. Use \li{piv} to compute the number of row swaps, and use the
+\li{diagonal} method on \li{lu} to compute the product of the diagonal terms, as needed in the
+formula for the determinant.
+
+Hint: if the $i^{th}$ entry of \li{piv} does not equal $i$, this means that a row swap occurred.
+\end{problem}
 
 \section*{The Cholesky Decomposition (Optional)}
 
@@ -259,10 +263,10 @@ Check the output of your function to ensure that it is functioning properly.
 
 The linalg module of SciPy also includes a Cholesky decomposition that should be much faster than the one you just implemented.
 It works much like the LU decomposition, providing the methods
-\li{cho_factor} and \li{cho_solve}. 
+\li{cho_factor} and \li{cho_solve}.
 
 \begin{problem}
-Repeat the steps in problem \ref{prob:loopSolve}, this time using the 
-Cholesky decomposition. Make sure the input matrix to be factored is 
-positive definite. 
-\end{problem}
+Repeat the steps in problem \ref{prob:loopSolve}, this time using the
+Cholesky decomposition. Make sure the input matrix to be factored is
+positive definite.
+\end{problem} 
