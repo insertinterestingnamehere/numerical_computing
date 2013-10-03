@@ -41,6 +41,9 @@ def melfb(p, n, fs):
 def dctmtx(n):
     """
     Return the DCT-II matrix of order n as a numpy array.
+    Calculating the DCT of an array using this matrix is
+    equivalent to using scipy.fftpack.dct and then 
+    dividing by four.
     """
     x,y = meshgrid(range(n), range(n))
     D = sqrt(2.0/n) * cos(pi * (2*x+1) * y / (2*n))
@@ -89,6 +92,7 @@ def extract(x, show = False):
         show_MFCC_spectrum(feature)
     # Mean & variance normalization
     if feature.shape[0] > 1:
+    
         mu = mean(feature, axis=0)
         sigma = std(feature, axis=0)
         feature = (feature - mu) / sigma
