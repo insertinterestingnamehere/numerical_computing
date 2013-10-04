@@ -29,7 +29,15 @@ Average  & 72 & 78 & 73 & 70\\
 
 We can shift our data set by subtracting each column by its average value.  This makes it so that the average of each column in the matrix below is zero.  If $W$ represents the matrix of scores, the following Python command will subtract out the average.  Why does this work?
 \begin{lstlisting}
->>> X = W - sp.dot(sp.ones((7,1),dtype=sp.float_),sp.mean(W,axis=0).reshape(1,4));X
+>>> W = np.array([[89, 91, 77, 75],
+                  [67, 72, 76, 66],
+                  [72, 77, 69, 70],
+                  [56, 60, 55, 61],
+                  [92, 98, 89, 86],
+                  [83, 88, 90, 84],
+                  [45, 60, 55, 48]])
+>>> X = W - W.mean(axis=0)
+>>> X
 array([[ 17.,  13.,   4.,   5.],
        [ -5.,  -6.,   3.,  -4.],
        [  0.,  -1.,  -4.,   0.],
@@ -42,7 +50,8 @@ array([[ 17.,  13.,   4.,   5.],
 
 \section*{Angles Between Vectors}
 
-Inner products give information about lengths of vectors and angles between vectors.  Recall that the angle $\theta$ between two vectors is given by
+Inner products give information about lengths of vectors and angles between vectors.  Recall that the angle $\theta$ between two nonzero 
+vectors is given by
 \[
 \cos{\theta} = \frac{\ipt{x}{y}}{\norm{x}\norm{y}}
 \]
@@ -50,11 +59,13 @@ where the norm (or length) of a vector is $\norm{x} = \sqrt{\ipt{x}{x}}$.  Note 
 \[
 \ipt{x}{y} = x^T y
 \]
-Alternatively, if we can first divide our vectors by their length (these are called unit vectors) and then take the inner product
+Alternatively, if we can first divide our vectors by their length and then take the inner product, the angle satisfies
 \[
-\cos{\theta} = \left\langle\frac{x}{\norm{x}},\frac{y}{\norm{y}}\right\rangle
+\cos{\theta} = \left\langle\frac{x}{\norm{x}},\frac{y}{\norm{y}}\right\rangle.
 \]
-Hence, we can find the cosine of the angles between our data columns in $X$ by dividing each column by its length.  There are a couple of ways of doing this.  The following is an interesting way of doing it.  Be sure to explore why it works:
+Hence, if we view the columns of $X$ as vectors in $\mathbb{R}^7$, we can find the cosine of the angles between these columns by dividing each 
+by its length, and then computing pairwise inner products. To divide the columns by their respective lengths, we may execute the following 
+code.
 \begin{lstlisting}
 >>> Y = X / sp.dot(sp.ones((7,1),dtype=sp.float_),sp.sqrt(sp.diag(sp.dot(X.T,X)).T).reshape(1,4));Y
 array([[ 0.39848615,  0.35329218,  0.11386819,  0.15371887],
@@ -65,44 +76,59 @@ array([[ 0.39848615,  0.35329218,  0.11386819,  0.15371887],
        [ 0.25784398,  0.27176321,  0.4839398 ,  0.43041282],
        [-0.63288976, -0.48917378, -0.51240685, -0.67636301]])
 \end{lstlisting}
-Hence we have:
-\[
-Y=
-\begin{bmatrix}
-0.3985 & 0.3533 & 0.1139 & 0.1537\\
--0.1172 & -0.1631 & 0.0854 & -0.1230\\
-0 &-0.0272 &-0.1139 & 0\\
--0.3750 & -0.4892 & -0.5124 & -0.2767\\
-0.4688 & 0.5435 & 0.4555 & 0.4919\\
-0.2578 & 0.2718 & 0.4839 & 0.4304\\
--0.6329 & -0.4892 & -0.5124 & -0.6764
-\end{bmatrix}
-\]
-Finally, we get the cosines of the angles between columns by computing $Y^T Y$.  In Python, that's just
+%I see no reason to re-write what Y is, as it is given clearly in the code listing.
+%Hence we have:
+%\[
+%Y=
+%\begin{bmatrix}
+%0.3985 & 0.3533 & 0.1139 & 0.1537\\
+%-0.1172 & -0.1631 & 0.0854 & -0.1230\\
+%0 &-0.0272 &-0.1139 & 0\\
+%-0.3750 & -0.4892 & -0.5124 & -0.2767\\
+%0.4688 & 0.5435 & 0.4555 & 0.4919\\
+%0.2578 & 0.2718 & 0.4839 & 0.4304\\
+%-0.6329 & -0.4892 & -0.5124 & -0.6764
+%\end{bmatrix}
+%\]
+Finally, we get the cosines of the angles between columns by computing $Y^T Y$. To justify this calculation, consider
+the $(i,j)^{th}$ entry of $Y^T Y$:
+\begin{align*}
+Y^T Y_{i,j} &= \sum_{k=1}^n Y_{i,k}(Y^T)_{k,j} \\
+&= \sum_{k=1}^n Y_{i,k}Y_{j,k} \\
+&= \left\langle Y_{col i}, Y_{col j} \right\rangle,
+\end{align*}
+where $Y_{col i}$ denotes the $i^{th}$ column of $Y$, and $Y_{col j}$ the $j^{th}$ column.
+Thus, we may obtain the cosine of the angle between each pair of columns of $X$ by computing $Y^T Y$,
+which can be easily done in Python as follows:
 \begin{lstlisting}
->>> sp.dot(Y.T,Y)
+>>> np.dot(Y.T,Y)
 array([[ 1.        ,  0.97782999,  0.89014869,  0.94908967],
        [ 0.97782999,  1.        ,  0.90978843,  0.92490144],
        [ 0.89014869,  0.90978843,  1.        ,  0.9276955 ],
        [ 0.94908967,  0.92490144,  0.9276955 ,  1.        ]])
 \end{lstlisting}
-This yields
-\[
-Y^T Y = 
-\begin{bmatrix}
-1.0000 & 0.9778 & 0.8901 & 0.9491\\
-0.9778 & 1.0000 & 0.9098 & 0.9249\\
-0.8901 & 0.9098 & 1.0000 & 0.9277\\
-0.9491 & 0.9249 & 0.9277 & 1.0000
-\end{bmatrix}.
-\]
-Note that the $(j,k)$ entry of $Y^T Y$ corresponds to the cosine of the angle between the $j^{th}$ and $k^{th}$ columns.  We remark that the diagonals are always equal to one because the angle between a vector and itself is zero and the cosine of zero is one.
+%Again, no need for repetition. 
+%This yields
+%\[
+%Y^T Y =
+%\begin{bmatrix}
+%1.0000 & 0.9778 & 0.8901 & 0.9491\\
+%0.9778 & 1.0000 & 0.9098 & 0.9249\\
+%0.8901 & 0.9098 & 1.0000 & 0.9277\\
+%0.9491 & 0.9249 & 0.9277 & 1.0000
+%\end{bmatrix}.
+%\]
+We remark that the diagonals are always equal to one because the angle between a vector and itself is zero, and the cosine of zero is one.
 
-It is also worth noting that the matrix resulting from the operation $A \cdot A^T$ is symmetric and positive definite, so it can be solved with the cholesky decomposition that was discussed at the end of Lab \ref{lab:LUdecomp}.
+It is also worth noting that the matrix resulting from the operation $A \cdot A^T$ is symmetric and positive definite, so it compliant 
+with the Cholesky decomposition that was discussed at the end of Lab \ref{lab:LUdecomp}.
+% I'm not totally sure what is going on with this last statement. What exactly is A \cdot A^T? I'm assuming we mean A^T A, in which case
+% the matrix is indeed only positive semi-definite. It still has a Cholesky decomposition in theory, although I think it can only be
+% computed for positive definite matrices.
 
 \section*{Correlation}
 
-We remark that the cosine of the angle between two vectors is sometimes called the correlation coefficient.  Two columns are said to be 
+We remark that the cosine of the angle between two vectors is sometimes called the correlation coefficient.  Two columns are said to be
 \begin{itemize}
 \item Perfectly correlated if the cosine of the angle between them is one.
 \item Positively correlated if the cosine of the angle between them is between zero and one.
