@@ -10,7 +10,7 @@ def hqr(A):
 	"""
 	R = A.copy()
 	m, n = R.shape
-	Q = np.eye(m, m)
+	Q = np.eye(m)
 	for k in xrange(n-1):
 		v = R[k:,k].copy()
 		v[0] += np.sign(v[0]) * la.norm(v)
