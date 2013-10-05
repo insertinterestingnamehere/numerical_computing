@@ -208,54 +208,72 @@ Write a script using Householder reflections to find the QR decomposition of a m
 
 \subsection*{Stability of the Householder QR algorithm}
 
+We will now examine the stability of the Householder QR algorithm.
+We will use SciPy's built in QR factorization which uses Householder reflections internally.
+
 Try the following in Python.
 
 \begin{lstlisting}
->>> import scipy as sp
+>>> import numpy as np
+>>> from numpy.random import rand
 >>> import numpy.linalg as la
->>> import my_householder
->>> Q,X = la.qr(sp.rand(50,50)) #create a random orthogonal matrix:
->>> R = sp.triu(sp.rand(50,50)) # create a random upper triangular matrix
->>> A = sp.dot(Q,R) #Q and R are the exact QR decomposition of A
-# use your Householder QR script to estimate Q and R:
->>> Q1,R1 = my_householder.qr(A)
-#now check the relative errors of Q1 and R1
->>> la.norm(Q1-Q)/la.norm(Q)
+>>> Q, X = la.qr(rand(500,500)) # create a random orthogonal matrix:
+>>> R = np.triu(rand(500,500)) # create a random upper triangular matrix
+>>> A = np.dot(Q,R) # Q and R are the exact QR decomposition of A
+>>> Q1, R1 = la.qr(A) # compute QR decomposition of A
+>>> la.norm(Q1-Q)/la.norm(Q) # check error in Q
 0.282842955725
->>> la.norm(R1-R)/la.norm(R)
+>>> la.norm(R1-R)/la.norm(R) # check error in R
 0.0428922016647
 \end{lstlisting}
 This is terrible! 
-Python works in $16$ decimal points of precision.
-But $Q_1$ and $R_1$ are only accurate to $0$ and $1$ decimal points, respectively.
+This algorithm works in $16$ decimal points of precision, but $Q_1$ and $R_1$ are only accurate to $0$ and $1$ decimal points, respectively.
 We've lost $16$ decimal points of precision!
 
-Don't lose hope. Check how close the product $Q_1 R_1$ is to $A$.
+Don't lose hope.
+Check how close the product $Q_1 R_1$ is to $A$.
 \begin{lstlisting}
->>> A1 = sp.dot(Q1,R1)
->>> la.norm(A1-A)/la.norm(A)
-9.73996046986e-16
+>>> A1 = Q1.dot(R1)
+>>> np.absolute(A1 - A).max()
+3.9968028886505635e-15
 \end{lstlisting}
 We've now recovered $15$ digits of accuracy.
+Considering the error relative to the norm of $A$ (using the 2-norm for matrices), we see that this relative error is even smaller.
+\begin{lstlisting}
+>>> la.norm(A1 - A, ord=2) / la.norm(A, ord=2)
+8.8655568331889288e-16
+\end{lstlisting}
 The errors in $Q_1$ and $R_1$ were somehow ``correlated," so that they canceled out in the product.
 The errors in $Q_1$ and $R_1$ are called \emph{forward errors}.
 The error in $A_1$ is the \emph{backward error}.
-The Householder $QR$ algorithm is a backward stable algorithm.
+
+In fact, the large errors in \li{Q1} and \li{R1} were not because the algorithm was bad, it was because $A$ was poorly conditioned.
+The condition number for randomly generated upper triangular matrices generally very high, and this was the case here.
+This has, in turn, made the condition number of $A$ extremely large as well.
+Try the following to compute the condition numbers of $A$.
+In this case the condition numbers of $A$ and $R$ are computed to be different, though, in theory, they should be exactly the same.
+\begin{lstlisting}
+>>> from numpy.linalg import cond
+>>> cond(A)
+4.1426075832870472e+18
+>>> cond(R)
+3.1767577244363792e+19
+\end{lstlisting}
 
 Householder QR factorization is more numerically stable than Gram-Schmidt or even Modified Gram-Schmidt (MGS).
 However, MGS is still useful for some types of iterative methods, because it finds the orthogonal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
 
 \subsection*{Upper Hessenberg Form}
-%I'm not sure about this math. Is this true in the real case?
 An upper Hessenberg matrix is a square matrix with zeros below the first subdiagonal.
 Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthogonal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
-Note the similarity of this decomposition to the Schur decomposition.
 
 The Hessenberg decomposition can be computed using Householder reflections, in a process very similar to Householder triangularization.
 Let's demonstrate this process on a $5 \times 5$ matrix $A$.
 Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthogonal matrices until it is in Hessenberg form.
 If we try the same $Q_1$ as in the first step of the Householder algorithm, then with $Q_1 A$ we introduce zeros in the first column of $A$.
 However, since we now have to multiply $Q_1 A$ on the left by $Q_1^T$, all those zeros are destroyed, as demonstrated below.
+In order to zero out the entire first column we chose $Q_1$ so that it does not fix the first row.
+When we apply the same operation on the right, this ruins the column that we just zeroed out.
 (Although this process may seem futile now, it actually does tend to decrease the size of the subdiagonal entries.
 If we repeat it over and over again, the subdiagonal entries will often converge to zero.
 That's the idea behind the $QR$ algorithm in Lab \ref{lab:EigSolve}.)
@@ -330,8 +348,12 @@ Q_3 Q_2 Q_1 A Q_1^T Q_2 ^T Q_3^T =
 \end{pmatrix}
 \end{equation*}
 
+This is even more convenient when we are working with Hermitian matrices.
+In that case, the matrices applied on the left zero out everything below the first subdiagonal and the matrices applied on the right zero out everything above the first superdiagonal, leaving us with a tridiagonal matrix.
+There are remarkably efficient ways to solve systems involving tridiagonal matrices, so this is especially convenient.
+
 \begin{problem}
-Write a script that transfers an input matrix to upper Hessenberg form.
+Write a script that transforms an input matrix to upper Hessenberg form.
 (Hint: You only need to modify your code code from problem \ref{prob:HouseholderQR} slightly.)
 We will use this technique in the eigenvalue lab later
 \end{problem}
