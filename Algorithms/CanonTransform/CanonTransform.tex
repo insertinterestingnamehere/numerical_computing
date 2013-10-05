@@ -173,7 +173,7 @@ The whole process is summarized in Algorithm \ref{Alg:Householder triangularizat
 \begin{pseudo}{Householder triangularization}{A}
 \label{Alg:Householder triangularization}
 m,n = size(A)\\
-\FOR k = 0 \TO n-1 \DO
+\FOR 0 \leq k < n-1 \DO
 \BEGIN
    x = A_{k:m,k}\\
    v_k = \text{sign} \left( x_1 \right) \norm{x} e_1 + x \\
@@ -182,7 +182,20 @@ m,n = size(A)\\
 \END
 \end{pseudo}
 
-This algorithm returns upper triangular $R$. You can find $Q$ s.t. $QR = A$ by multiplying the $P_k$ together appropriately.
+This algorithm returns upper triangular $R$.
+Notice that we did not explicitly calculate each orthogonal matrix.
+We applied the changes we needed to each portion of the array that needed to be changed.
+Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
+A few other clever optimizations can still be applied, but they will not change the overall complexity of the algorithm.
+
+You may also have noticed that we did not explicitly calculate $Q$ in this algorithm.
+Since each of the orthogonal operations is self-inverse (i.e. idempotent), $Q$ can be computed by applying the these operations to the identity in reverse order.
+In other words, you could make an identity matrix and then for $k$ such that $n-2 \geq k > -1$ , do $I[k:,k:] -= 2 v_k v_k^\ast$
+Since each of these orthogonal operations is it's own inverse (i.e. idempotent), they are certainly symmetric, so, letting $P_1$ through $P_k$ be their matrix representations, we have that $Q^{-1} = Q^T = P_1 \dots P_k$.
+In our computation, it may be more convenient to simply apply the operations to an identity matrix as we go, just like we are doing to $R$, then take the transpose at the end to invert $Q$.
+This way we do not have to store the $v_k$ as we go.
+However, it is interesting to note that we can use the $v_k$ to behave like $Q$ or $Q^{-1}$ depending on the order in which we apply them.
+Such an approach does not require the computation of $Q$ or $Q^{-1}$ at all.
 
 \begin{problem}
 \label{prob:HouseholderQR}
