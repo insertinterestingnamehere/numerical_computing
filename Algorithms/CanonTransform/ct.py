@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import linalg as la
+from math import copysign
 
 def hqr(A):
     """Finds the QR decomposition of A using Householder reflectors.
@@ -9,7 +10,7 @@ def hqr(A):
             s.t QR = A
     """
     # This is just a pure Python implementation.
-    # It's not well optimized, but it should
+    # It's not fully optimized, but it should
     # have the right asymptotic speed.
     # initialize Q and R
     # start Q as an identity
@@ -22,7 +23,7 @@ def hqr(A):
     m, n = R.shape
     # avoid reallocating v in the for loop
     v = np.empty(A.shape[1])
-    for k in xrange(n):
+    for k in xrange(n-1):
         # get a slice of the temporary array
         vk = v[k:]
         # fill it with corresponding values from R
