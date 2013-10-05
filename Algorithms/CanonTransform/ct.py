@@ -1,6 +1,5 @@
-from __future__ import division
-import scipy as sp
-import scipy.linalg as la
+import numpy as np
+from scipy import linalg as la
 
 def hqr(A):
 	"""Finds the QR decomposition of A using Householder reflectors.
@@ -10,17 +9,17 @@ def hqr(A):
 	        s.t QR = A
 	"""
 	R = A.copy()
-	m,n = R.shape
-	Q = sp.eye(m,m)
-	for k in sp.arange(n-1):
-		v = R[k:m,k].copy()
-		v[0] += sp.sign(v[0])*la.norm(v)
-		v = v/la.norm(v)
-		v = v.reshape(m-k,1)
-		P = sp.eye(m,m)
-		P[k:m,k:m] -= 2*sp.dot(v,v.T)
-		Q = sp.dot(P,Q)
-		R = sp.dot(P,R)
+	m, n = R.shape
+	Q = np.eye(m, m)
+	for k in xrange(n-1):
+		v = R[k:,k].copy()
+		v[0] += np.sign(v[0]) * la.norm(v)
+		v /= la.norm(v)
+		v = v.reshape(m-k, 1)
+		P = np.eye(m)
+		P[k:,k:] -= 2 * v.dot(v.T)
+		Q = P.dot(Q)
+		R = P.dot(R)
 	return Q.T,R
 	
 def hess(A):
@@ -31,18 +30,18 @@ def hess(A):
 			s.t. QHQ' = A
 	"""
 	H = A.copy()
-	m,n = H.shape
-	Q = sp.eye(m,m)
-	for k in sp.arange(n-2):
-		v = H[k+1:m,k].copy()
-		v[0] += sp.sign(v[0])*la.norm(v)
-		v = v/la.norm(v)
-		v = v.reshape(m-k-1,1)
-		P = sp.eye(m,m)
-		P[k+1:m,k+1:m] -= 2*sp.dot(v,v.T)
-		Q = sp.dot(P,Q)
-		H = sp.dot(P,sp.dot(H,P.T))
-	return Q.T,H
+	m, n = H.shape
+	Q = np.eye(m, m)
+	for k in xrange(n-2):
+		v = H[k+1:,k].copy()
+		v[0] += np.sign(v[0]) * la.norm(v)
+		v /= la.norm(v)
+		v = v.reshape(m-k-1, 1)
+		P = np.eye(m, m)
+		P[k+1:,k+1:] -= 2 * v.dot(v.T)
+		Q = P.dot(Q)
+        H = P.dot(H).dot(P.T)
+	return Q.T, H
 	
 def gqr(A):
 	"""Finds the QR decomposition of A using Givens rotations.
@@ -51,13 +50,13 @@ def gqr(A):
 	        R, upper triangular mxn array
 	        s.t QR = A
 	"""
-	def rotate(i,k,B):
+	def rotate(i, k, B):
 	# create the Givens rotation matrix G to zero out the i,k entry of B
-		c,s,r = solve(B[k,k],B[i,k])
-		r = sp.sqrt(B[k,k]**2 + B[i,k]**2)
-		c = B[k,k]/r
-		s = -B[i,k]/r
-		G = sp.eye(m)
+		c,s,r = la.solve(B[k,k], B[i,k])
+		r = np.sqrt(B[k,k]**2 + B[i,k]**2)
+		c = B[k,k] / r
+		s = - B[i,k] / r
+		G = np.eye(m)
 		G[i,i] = c
 		G[k,k] = c
 		G[k,i] = -s
@@ -65,13 +64,13 @@ def gqr(A):
 		return G
 	
 	B = A.copy()	
-	m,n = B.shape
-	G = sp.eye(m)
+	m, n = B.shape
+	G = np.eye(m)
 	#cycle through each nonzero subdiagonal element of B, and rotate it to zero
-	for k in sp.arange(n-1):
-		for i in sp.arange(k+1,m):
-			if B[i,k] is not 0:
-				H = rotate(i,k,B)
-				B = sp.dot(H,B)
-				G = sp.dot(H,G)
+	for k in xrange(n-1):
+		for i in xrange(k+1, m):
+			if B[i,k] != 0:
+				H = rotate(i, k, B)
+				B = H.dot(B)
+				G = H.dot(G)
 	return G.T, B
