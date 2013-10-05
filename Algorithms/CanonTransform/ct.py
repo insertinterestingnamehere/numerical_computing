@@ -35,27 +35,39 @@ def hqr(A):
         # apply projection to R
         R[k:,k:] -= 2 * np.outer(vk, vk.dot(R[k:,k:]))
         # Apply it to Q
-        Q[k:,:] -= 2 * np.outer(vk, vk.dot(Q[k:,:]))
+        Q[k:] -= 2 * np.outer(vk, vk.dot(Q[k:]))
     # note that its returning Q.T, not Q itself
     return Q.T, R
 
 def hess(A):
-	"""Computes the upper Hessenberg form of A using Householder reflectors.
-	input:  A, mxn array
-	output: Q, orthogonal mxm array
-			H, upper Hessenberg
-			s.t. QHQ' = A
-	"""
-	H = A.copy()
-	m, n = H.shape
-	Q = np.eye(m)
-	for k in xrange(n-2):
-		v = H[k+1:,k].copy()
-		v[0] += np.sign(v[0]) * la.norm(v)
-		v /= la.norm(v)
-		v = v.reshape(m-k-1, 1)
-		P = np.eye(m)
-		P[k+1:,k+1:] -= 2 * v.dot(v.T)
-		Q = P.dot(Q)
-        H = P.dot(H).dot(P.T)
-	return Q.T, H
+    """Computes the upper Hessenberg form of A using Householder reflectors.
+    input:  A, mxn array
+    output: Q, orthogonal mxm array
+            H, upper Hessenberg
+            s.t. QHQ' = A
+    """
+    # similar approach as the householder function.
+    # again, not perfectly optimized, but good enough.
+    Q = np.eye(A.shape[0]).T
+    H = np.array(A, order="C")
+    # initialize m and n for convenience
+    m, n = H.shape
+    # avoid reallocating v in the for loop
+    v = np.empty(A.shape[1]-1)
+    for k in xrange(n-2):
+        # get a slice of the temporary array
+        vk = v[k:]
+        # fill it with corresponding values from R
+        vk[:] = H[k+1:,k]
+        # add in the term that makes the reflection work
+        vk[0] += copysign(la.norm(vk), vk[0])
+        # normalize it so it's an orthogonal transform
+        vk /= la.norm(vk)
+        # apply projection to H on the left
+        H[k+1:,k:] -= 2 * np.outer(vk, vk.dot(H[k+1:,k:]))
+        # apply projection to H on the right
+        H[:,k+1:] -= 2 * np.outer(H[:,k+1:].dot(vk), vk)
+        # Apply it to Q
+        Q[k+1:] -= 2 * np.outer(vk, vk.dot(Q[k+1:]))
+    # note that its returning Q.T, not Q itself
+    return Q.T, H
