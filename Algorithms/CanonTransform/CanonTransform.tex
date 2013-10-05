@@ -172,15 +172,72 @@ The whole process is summarized in Algorithm \ref{Alg:Householder triangularizat
 
 \begin{pseudo}{Householder triangularization}{A}
 \label{Alg:Householder triangularization}
-m,n = size(A)\\
-\FOR 0 \leq k < n-1 \DO
+m,n = \text{size}(A)\\
+R = \text{copy} \left( A \right) \\
+Q = I_m \\
+\FOR 0 \leq k < n-1
+\DO
 \BEGIN
    x = A_{k:m,k}\\
    v_k = \text{sign} \left( x_1 \right) \norm{x} e_1 + x \\
    v_k = v_k / \norm{v_k} \\
-   A[k:,k:] -= 2 v_k \left( v_k^\ast A[k:,k:] \right)
-\END
+   A[k:,k:] -= 2 v_k \left( v_k^\ast A[k:,k:] \right) \\
+   Q[k:] -= 2 v_k \left( v_k^\ast Q[k:] \right) \\
+\END \\
+return Q^\ast , R
 \end{pseudo}
+
+To see how we are operating on the matrices $A$ and $Q$ consider the way each orthogonal transformation defined by the $v_k$ operites blockwise on each matrix.
+The matrix form of each operation on $A$ and $Q$ can be represented in block form like this:
+
+\[
+\begin{pmatrix}
+I & 0 \\
+0 & I - 2 v_k v_k^\ast
+\end{pmatrix}
+\]
+
+Notice that a block matrix of this form operates only on entries that lie in the rows from $k$ onward.
+Consider what happens when we left-multiply a $m \times n$ matrix by a block matrix of this form.
+We obtain the following:
+
+\[
+\begin{pmatrix}
+I & 0 \\
+0 & I - 2 v_k v_k^\ast
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+A[:k,:k] & A[:k,k:] \\
+A[k:,:k] & A[k:,k:]
+\end{pmatrix}
+=
+\begin{pmatrix}
+A[:k,:k] & A[:k,k:] \\
+A[k:,:k] - 2 v_k v_k^\ast A[k:,:k] & A[k:,k:] - 2 v_k v_k^\ast A[k:,k:]
+\end{pmatrix}
+\]
+
+And, when we consider right multiplication by the same block matrix, we see that it fixes the first $k-1$ columns as below.
+
+\[
+\begin{pmatrix}
+A[:k,:k] & A[:k,k:] \\
+A[k:,:k] & A[k:,k:]
+\end{pmatrix}
+\cdot
+\begin{pmatrix}
+I & 0 \\
+0 & I - 2 v_k v_k^\ast
+\end{pmatrix}
+=
+\begin{pmatrix}
+A[:k,:k] & A[:k,k:] - 2 v_k v_k^\ast A[:k,k:] \\
+A[k:,:k] & A[k:,k:] - 2 v_k v_k^\ast A[k:,k:]
+\end{pmatrix}
+\]
+
+When we are iterating through the columns of $R$ and zeroing out the entries below the main diagonal we are able to safely ignore all the entries that lie in columns we have already processed because they are already zero.
 
 This algorithm returns upper triangular $R$.
 Notice that we did not explicitly calculate each orthogonal matrix.
@@ -188,13 +245,14 @@ We applied the changes we needed to each portion of the array that needed to be 
 Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
 A few other clever optimizations can still be applied, but they will not change the overall complexity of the algorithm.
 
-You may also have noticed that we did not explicitly calculate $Q$ in this algorithm.
+It should now be clear how it was that we computed $R$ using this algorithm.
+We can compute $Q$ in much the same way.
 Since each of the orthogonal operations is self-inverse (i.e. idempotent), $Q$ can be computed by applying the these operations to the identity in reverse order.
 In other words, you could make an identity matrix and then for $k$ such that $n-2 \geq k > -1$ , do $I[k:,k:] -= 2 v_k v_k^\ast$
-Since each of these orthogonal operations is it's own inverse (i.e. idempotent), they are certainly symmetric, so, letting $P_1$ through $P_k$ be their matrix representations, we have that $Q^{-1} = Q^T = P_1 \dots P_k$.
 In our computation, it may be more convenient to simply apply the operations to an identity matrix as we go, just like we are doing to $R$, then take the transpose at the end to invert $Q$.
 This way we do not have to store the $v_k$ as we go.
-However, it is interesting to note that we can use the $v_k$ to behave like $Q$ or $Q^{-1}$ depending on the order in which we apply them.
+There is one key difference, when applying these operations to $Q$ we cannot ignore columns we have already processed because they are not necessarily zero.
+It is interesting to note that we can use the $v_k$ to behave like $Q$ or $Q^{-1}$ depending on the order in which we apply them.
 Such an approach does not require the computation of $Q$ or $Q^{-1}$ at all.
 
 Another important thing to notice is that, when computing the matrix $v_k \left( v_k^\ast A[k:,k:] \right)$, an outer product is needed for the outside operation, \emph{not} an inner product.
