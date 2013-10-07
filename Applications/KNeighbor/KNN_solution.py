@@ -1,15 +1,10 @@
-import cPickle
-import scipy as sp
-import matplotlib.pyplot as plt
-import operator
-import sys
+import numpy as np
+from sklearn import neighbors
 
-file = 'mnist.pkl'
-file = open(file, 'rb')
-train_set, valid_set, test_set = cPickle.load(file)
-file.close()
 
+labels,points,testlabels,testpoints=np.load('PostalData.npz').items()
 #Display the digit at index (0 to 49999) and print its label
+# Helper functions
 def display_index(index):
 #	index = 2000
 	A = sp.reshape(train_set[0][index], [28,28])
@@ -43,39 +38,35 @@ def display_avg_int(integer):
 	plt.imshow(avg_of_images,cmap='gray')
 	print "There were " + str(count) + " " + str(integer) + "'s in the training set"
 
-def calc_KNN(k, index):
+#Problem 1 uses array broadcasting to do the operation effiecently.
+def weight_fun(data,weight):
+    return data/wieght
 
-	def calc_euc_dist(a,b):
-	
-		dist = 0
-		for j in range(len(a)):
-			dist += (a[j] - b[j])**2
+#straint foward. n_neighbors=4, weights = 'distance' does the best
+def Problem2():
+	nbs = neighbors.KNeighborsClassifier(n_neighbors=4, weights = 'uniform', p=2)
+	nbs.fit(points[1], labels[1])
+	predictions=nbs.predict(testpoints[1])
+	ans1=np.sum(predictions==testlabels[1])/float(len(testpoints[1]))
 
-		return sp.sqrt(dist)
+	nbs = neighbors.KNeighborsClassifier(n_neighbors=10, weights = 'uniform', p=2)
+	nbs.fit(points[1], labels[1])
+	predictions=nbs.predict(testpoints[1])
+	ans2=np.sum(predictions==testlabels[1])/float(len(testpoints[1]))
 
-	#Generate a dictionary of distances
-	label_image_dict = {}
-	
-	for i in range(len(train_set[0])):
-		dist = 0
-		for j in range(len(train_set[0][i])):
-			dist += (train_set[0][i][j] - test_set[0][index][j])**2
-		dist = sp.sqrt(dist)
- 
-		label_image_dict[i] = dist
-		
-		sys.stdout.write('Working line: ' + str(i) + ' of ' + str(50000) + '\r')
-		sys.stdout.flush()
-	
-	
-	sorted_dict = sorted(label_image_dict.iteritems(), key=operator.itemgetter(1))
+	nbs = neighbors.KNeighborsClassifier(n_neighbors=4, weights = 'distance', p=2)
+	nbs.fit(points[1], labels[1])
+	predictions=nbs.predict(testpoints[1])
+	ans3=np.sum(predictions==testlabels[1])/float(len(testpoints[1]))
 
-	neighbors = sp.zeros(10)
-	for pair in sorted_dict[:k]:
-		neighbors[train_set[1][pair[0]]] += 1
+	nbs = neighbors.KNeighborsClassifier(n_neighbors=10, weights = 'distance', p=2)
+	nbs.fit(points[1], labels[1])
+	predictions=nbs.predict(testpoints[1])
+	ans4=np.sum(predictions==testlabels[1])/float(len(testpoints[1]))
 
-	return neighbors.argmax(), test_set[1][index]
+	nbs = neighbors.KNeighborsClassifier(n_neighbors=1, weights = 'distance', p=2)
+	nbs.fit(points[1], labels[1])
+	predictions=nbs.predict(testpoints[1])
+	ans5=np.sum(predictions==testlabels[1])/float(len(testpoints[1]))
 
-def calc_all_KNN(k):
-	#This should take a long time
-	pass	
+	return ans1,ans2,ans3,ans4,ans5
