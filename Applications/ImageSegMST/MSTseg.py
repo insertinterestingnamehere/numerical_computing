@@ -48,7 +48,7 @@ def ImgToGraph(A):
 
 # This is a modified version of the solution
 # to the first problem in the MST lab.
-def kruskalInt(edges, nodelist, div):
+def kruskal(edges, nodelist, div):
     removed = []
     nodes = {node:node for node in nodelist}
     remaining = len(nodes) - 1
