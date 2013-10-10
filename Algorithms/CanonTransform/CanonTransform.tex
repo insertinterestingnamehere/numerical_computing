@@ -1,8 +1,8 @@
 \lab{Algorithms}{QR Decomposition using Householder reflectors}{QR Decomposition using Householder reflectors}
-\objective{Use orthogonal transformations to perform QR decomposition.}
+\objective{Use orthonormal transformations to perform QR decomposition.}
 \label{lab:Canonical Transformations}
 
-\section*{Orthogonal transformations}
+\section*{Orthonormal transformations}
 Recall that a matrix $Q$ is \emph{unitary} if $Q^* Q = I$ or for real matrices, 
 $Q^T Q = I$ (since the conjugate of a real number is itself).
 We like unitary transformations because they're very numerically stable.
@@ -14,7 +14,7 @@ There are matrices with norm 1 that are not unitary.)
 The Cauchy-Schwarz inequality $\norm{AB} \leq \norm{A} \norm{B}$ also holds for these norms.
 It follows that $\kappa(A) = \norm{A} \norm{A^{-1}} \geq \norm{A A^{-1}} = \norm{I} = 1$.
 Note that if $Q$ is unitary, $Q^{-1} = Q^*$ and $Q^*$ is also unitary, so $\kappa(Q) = \norm{Q} \norm{Q^*} = 1$.
-This means that orthogonal matrices have the smallest possible condition number, which is great!
+This means that orthonormal matrices have the smallest possible condition number, which is great!
 
 Any unitary matrix $Q$ can be described as a reflection, a rotation, or some combination of the two.
 If $det(Q) = 1$, then $Q$ is a rotation.
@@ -29,7 +29,7 @@ Recall that a hyperplane can be defined by a unit vector $v$ which is orthogonal
 As shown in figure \ref{fig:Householder_reflector}, $x - \langle v,x \rangle v$ is the projection of $x$ onto the hyperplane orthogonal to $v$.
 However, to reflect \emph{across} the hyperplane, we must move twice as far; that is, $Px = x - 2\langle v,x \rangle v$.
 This can be written $Px = x - 2v(v^* x)$, so $P$ has matrix representation $P = I - 2vv^*$.
-Note that $P^* P = I$; thus $P$ is orthogonal.
+Note that $P^* P = I$; thus $P$ is orthonormal.
 
 \begin{figure}
 	\centering
@@ -42,11 +42,11 @@ Note that $P^* P = I$; thus $P$ is orthogonal.
 Consider the problem of computing the $QR$ decomposition of a matrix $A$.
 You've already learned the Gram-Schmidt and the Modified Gram-Schmidt algorithms for this problem.
 The $QR$ decomposition can also be computed by applying a series of Householder reflections.
-Gram-Schmidt and Modified Gram-Schmidt \emph{orthogonalize} $A$ by a series of \emph{triangular} transformations.
-On the other hand, we can use Householder reflections to \emph{triangularize} $A$ by a series of \emph{orthogonal} transformations.
+Gram-Schmidt and Modified Gram-Schmidt make $A$ \emph{orthonormal} by a series of transformations stored in an \emph{upper triangular} matrix.
+On the other hand, we can use Householder reflections to make $A$ \emph{triangular} by a series of \emph{orthonormall} transformations.
 
 Let's demonstrate this method on a $4 \times 3$ matrix $A$.
-First we find a orthogonal transformation $Q_1$ that maps the first column of A into the range of $e_1$
+First we find a orthonormal transformation $Q_1$ that maps the first column of A into the range of $e_1$
 (where $e_1$ is the vector where the first element is one and the remainder of the elements are zeros).
 
 \def\mc#1{\multicolumn{1}{c|}{#1}}
@@ -67,7 +67,7 @@ First we find a orthogonal transformation $Q_1$ that maps the first column of A 
 \end{pmatrix}
 \end{equation*}
 Let $A_2$ be the boxed submatrix of $A$.
-Now find an orthogonal transformation $Q_2$ that maps the first column of $A_2$ into the range of $e_2$.
+Now find an orthonormal transformation $Q_2$ that maps the first column of $A_2$ into the range of $e_2$.
 
 \begin{equation*}
 \begin{pmatrix}
@@ -118,7 +118,7 @@ Q_3 Q_2 Q_1
 \end{pmatrix}
 \end{equation*}
 
-We've accomplished our goal, which was to triangularize $A$ using orthogonal transformations.
+We've accomplished our goal, which was to triangularize $A$ using orthonormal transformations.
 But now, how do we find the $Q_i$ that do what we want? Using Householder reflections.
 (Surprise!)
 
@@ -187,7 +187,7 @@ Q = I_m \\
 \text{return } Q^* , R
 \end{pseudo}
 
-To see how we are operating on the matrices $A$ and $Q$ consider the way each orthogonal transformation defined by the $v_k$ operites blockwise on each matrix.
+To see how we are operating on the matrices $A$ and $Q$ consider the way each orthonormal transformation defined by the $v_k$ operites blockwise on each matrix.
 The matrix form of each operation on $A$ and $Q$ can be represented in block form like this:
 
 \[
@@ -240,14 +240,14 @@ A[k:,:k] & A[k:,k:] - 2 A[k:,k:] v_k v_k^*
 When we are iterating through the columns of $R$ and zeroing out the entries below the main diagonal we are able to safely ignore all the entries that lie in columns we have already processed because they are already zero.
 
 This algorithm returns upper triangular $R$.
-Notice that we did not explicitly calculate each orthogonal matrix.
+Notice that we did not explicitly calculate each orthonormal matrix.
 We applied the changes we needed to each portion of the array that needed to be changed.
 Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
 A few other clever optimizations can still be applied, but they will not change the overall complexity of the algorithm.
 
 It should now be clear how it was that we computed $R$ using this algorithm.
 We can compute $Q$ in much the same way.
-Since each of the orthogonal operations is self-inverse (i.e. idempotent), $Q$ can be computed by applying the these operations to the identity in reverse order.
+Since each of the orthonormal operations is self-inverse (i.e. idempotent), $Q$ can be computed by applying the these operations to the identity in reverse order.
 In other words, you could make an identity matrix and then for $k$ such that $n-2 \geq k > -1$ , do $I[k:,k:] -= 2 v_k v_k^*$
 In our computation, it may be more convenient to simply apply the operations to an identity matrix as we go, just like we are doing to $R$, then take the transpose at the end to invert $Q$.
 This way we do not have to store the $v_k$ as we go.
@@ -275,7 +275,7 @@ Try the following in Python.
 >>> import numpy as np
 >>> from numpy.random import rand
 >>> import numpy.linalg as la
->>> Q, X = la.qr(rand(500,500)) # create a random orthogonal matrix:
+>>> Q, X = la.qr(rand(500,500)) # create a random orthonormal matrix:
 >>> R = np.triu(rand(500,500)) # create a random upper triangular matrix
 >>> A = np.dot(Q,R) # Q and R are the exact QR decomposition of A
 >>> Q1, R1 = la.qr(A) # compute QR decomposition of A
@@ -319,15 +319,15 @@ In this case the condition numbers of $A$ and $R$ are computed to be different, 
 \end{lstlisting}
 
 Householder QR factorization is more numerically stable than Gram-Schmidt or even Modified Gram-Schmidt (MGS).
-However, MGS is still useful for some types of iterative methods, because it finds the orthogonal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
+However, MGS is still useful for some types of iterative methods, because it finds the orthonormal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
 
 \subsection*{Upper Hessenberg Form}
 An upper Hessenberg matrix is a square matrix with zeros below the first subdiagonal.
-Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthogonal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
+Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthonormal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
 
 The Hessenberg decomposition can be computed using Householder reflections, in a process very similar to Householder triangularization.
 Let's demonstrate this process on a $5 \times 5$ matrix $A$.
-Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthogonal matrices until it is in Hessenberg form.
+Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthonormal matrices until it is in Hessenberg form.
 If we try the same $Q_1$ as in the first step of the Householder algorithm, then with $Q_1 A$ we introduce zeros in the first column of $A$.
 However, since we now have to multiply $Q_1 A$ on the left by $Q_1^T$, all those zeros are destroyed, as demonstrated below.
 In order to zero out the entire first column we chose $Q_1$ so that it does not fix the first row.
