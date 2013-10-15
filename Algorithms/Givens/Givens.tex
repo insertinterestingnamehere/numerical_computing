@@ -62,6 +62,46 @@ We can zero out the entries below the main diagonal of A as follows:
 \end{array}
 \]
 
+Here is an outline for the algorithm.
+Let $A$ be the array passed to the function.
+
+\begin{itemize}[$\bullet$]
+
+\item Make $R$ a copy of $A$ and $Q$ an identity array of the appropriate size.
+
+\item Make an empty $2 \times 2$ array $G$ that will be used to apply the Givens rotations
+
+\item For each column:
+
+  \begin{itemize}[$\bullet$]
+
+  \item For each row below the main diagonal (starting at the bottom of the column):
+
+    \begin{itemize}[$\bullet$]
+
+    \item If the leading entry of this row is not zero:
+
+      \begin{itemize}[$\bullet$]
+
+      \item Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it.
+
+      \item Use $c$ and $s$ to construct the matrix $G$.
+
+      \item Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
+      Multiply it in place by $G$ to zero out the leading nonzero entry of the current row.
+
+      \item Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well. (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
+
+      \end{itemize}
+
+    \end{itemize}
+
+  \end{itemize}
+
+\item Return the transpose of $Q$ and $R$.
+
+\end{itemize}
+
 Because givens rotations only operate on two specific rows at a time, they give us a variety of ways to iterate over an array we are processing.
 For example, using givens rotations you could, starting at the bottom of each column and continuing up until you reach the main diagonal, zero out each entry by applying a givens rotation to each row and the row immediately above it.
 Alternatively, within each column, you could could zero out the first entry of each row below the main diagonal by rotating it with the row corresponding to the main diagonal.
