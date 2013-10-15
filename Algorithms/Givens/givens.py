@@ -45,3 +45,38 @@ def givens(A, tol=1E-15):
                 Q[i-1:i+1,min(i-1-j,0):] = G.dot(Q[i-1:i+1,min(i-1-j,0):])
     # Return Q^T and R.
     return Q.T, R
+
+def givens_hess(A, tol=1E-15):
+    # Make R a copy of A and Q an
+    # identity array of the appropriate size.
+    R = np.array(A, order="C")
+    Q = np.eye(A.shape[0])
+    # Make an empty 2x2 array G that will
+    # be used to apply the Givens rotations.
+    G = np.empty((2,2))
+    # Iterate along first subdiagonal.
+    # Run index along columns.
+    for j in xrange(A.shape[0]-1):
+        # If the leading entry of this row is
+        # not zero (i.e. if its absolute value
+        # is within a given tolerance):
+        if tol <= abs(R[i,j]):
+            # Compute c and s using the entry
+            # in the current row and column
+            # and the entry immediately above it.
+            c = R[j,j]
+            s = - R[j+1,j]
+            n = sqrt(c**2 + s**2)
+            c /= n
+            s /= n
+            # Use c and s to construct the matrix G.
+            G[0,0] = c
+            G[1,1] = c
+            G[0,1] = -s
+            G[1,0] = s
+            # Apply rotation to proper portion of R.
+            R[j:j+2,j:] = G.dot(R[j:j+2,j:])
+            # Apply rotation to proper portion of Q
+            Q[j:j+2,:j+2] = G.dot(Q[j:j+2,:j+2])
+    # Return Q^T and R.
+    return Q.T, R

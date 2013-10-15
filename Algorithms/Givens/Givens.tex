@@ -122,6 +122,9 @@ It allows for the use of Givens rotations while requiring roughly the same numbe
 In practice, these methods are still not quite as fast as the Householder algorithm.
 In spite of the need for more floating point operations, Givens rotations are still well suited for parallelization and can be much faster than the Householder algorithm when multiple processors are used.
 % Givens and Householder Reductions for Linear Least Squares on a Cluster of Workstations, Omer Egecioglu and Ashok Srinivasan
+% Note: technically you can apply Householder reflections on pairs of rows in this way as well.
+% When operating on pairs of rows, the approaches are equivalent (except for the signs of the entries in each orthogonal matrix).
+% The important part is really how we iterate over the array.
 
 \begin{problem}
 \label{prob:Givens}
@@ -130,11 +133,13 @@ By performing successive Givens rotations, triangularize $A$ to find $R$.
 Apply the rotations to an identity matrix as you go, then take the transpose to invert it and find $Q$.
 \end{problem}
 
-One of the most useful features of Givens rotation is their flexibility when it comes to operating on specific parts of the array.
-Because of this, they can be enormously useful for QR decomposition and least squares problems involving sparse matrices.
+We will now illustrate one example of how to use Givens rotations to change only specific parts of the array.
+
 
 \begin{problem}
 Make a modified version of your solution to Problem \ref{prob:Givens} that computes the QR decomposition of an upper Hessenberg matrix.
 Instead of starting at the bottom of each column and working up, just run down the first subdiagonal from left to right.
+When operating on $Q$, you do not need to operate on the full length of each row.
+It is sufficient to perform the matrix multiplication on the portion of the array \li{Q[j:j+2,:j+2]} where \li{j} is the current column.
 Notice how $Q$ in the QR decomposition of an upper Hessenberg matrix is also upper Hessenberg.
 \end{problem}
