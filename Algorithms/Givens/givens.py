@@ -1,31 +1,47 @@
-def gqr(A):
-	"""Finds the QR decomposition of A using Givens rotations.
-	input: 	A, mxn array with m>=n
-	output: Q, orthogonal mxm array
-	        R, upper triangular mxn array
-	        s.t QR = A
-	"""
-	def rotate(i,k,B):
-	# create the Givens rotation matrix G to zero out the i,k entry of B
-		c,s,r = solve(B[k,k],B[i,k])
-		r = sp.sqrt(B[k,k]**2 + B[i,k]**2)
-		c = B[k,k]/r
-		s = -B[i,k]/r
-		G = sp.eye(m)
-		G[i,i] = c
-		G[k,k] = c
-		G[k,i] = -s
-		G[i,k] = s
-		return G
-	
-	B = A.copy()	
-	m,n = B.shape
-	G = sp.eye(m)
-	#cycle through each nonzero subdiagonal element of B, and rotate it to zero
-	for k in sp.arange(n-1):
-		for i in sp.arange(k+1,m):
-			if B[i,k] is not 0:
-				H = rotate(i,k,B)
-				B = sp.dot(H,B)
-				G = sp.dot(H,G)
-	return G.T, B
+import numpy as np
+from math import sqrt
+
+def givens(A, tol=1E-15):
+    # Make R a copy of A and Q an
+    # identity array of the appropriate size.
+    R = np.array(A, order="C")
+    Q = np.eye(A.shape[0])
+    # Make an empty 2x2 array G that will
+    # be used to apply the Givens rotations.
+    G = np.empty((2,2))
+    # For each column:
+    for j in xrange(A.shape[1]-1):
+        # For each row below the main diagonal
+        # (starting at the bottom of the column):
+        for i in xrange(A.shape[0]-1, j, -1):
+            # If the leading entry of this row is
+            # not zero (i.e. if its absolute value
+            # is within a given tolerance):
+            if tol <= abs(R[i,j]):
+                # Compute c and s using the entry
+                # in the current row and column
+                # and the entry immediately above it.
+                c = R[i-1,j]
+                s = - R[i,j]
+                n = sqrt(c**2 + s**2)
+                c /= n
+                s /= n
+                # Use c and s to construct the matrix G.
+                G[0,0] = c
+                G[1,1] = c
+                G[0,1] = - s
+                G[1,0] = s
+                # Get a slice of $R$ of the current row
+                # and the row above it that includes the
+                # columns from the current column onward.
+                # Multiply it in place by $G$ to zero out
+                # the leading nonzero entry of the current row.
+                R[i-1:i+1,j:] = G.dot(R[i-1:i+1,j:])
+                # Get a slice of $Q$ of the current row and
+                # the row above it and apply $G$ to it as well.
+                # Here we use the fancy slicing to avoid extra
+                # computations in creating Q.
+                # The column slicing is not in the lab.
+                Q[i-1:i+1,min(i-1-j,0):] = G.dot(Q[i-1:i+1,min(i-1-j,0):])
+    # Return Q^T and R.
+    return Q.T, R
