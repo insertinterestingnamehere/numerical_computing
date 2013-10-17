@@ -5,7 +5,7 @@
 \section*{Orthonormal transformations}
 Recall that a matrix $Q$ is \emph{unitary} if $Q^\mathsf{H} Q = I$ or for real matrices,
 $Q^T Q = I$.
-For the real case we say that such a matrix is \emph{orthogonal}.
+For the real case we say that such a matrix is \emph{orthonormal}.
 
 Unitary transformations have the very desirable property of being numerically stable.
 The number $\kappa(A) = \norm{A} \norm{A^{-1}}$ is called the \emph{condition number} of $A$.
@@ -14,7 +14,7 @@ For induced matrix norms (which include most of the matrix norms of practical in
 The Cauchy-Schwarz inequality $\norm{AB} \leq \norm{A} \norm{B}$ also holds for these norms, and
 so it follows that $\kappa(A) = \norm{A} \norm{A^{-1}} \geq \norm{A A^{-1}} = \norm{I} = 1$.
 Note that if $Q$ is unitary, $Q^{-1} = Q^\mathsf{H}$ and $Q^\mathsf{H}$ is also unitary, so $\kappa(Q) = \norm{Q} \norm{Q^\mathsf{H}} = 1$.
-This means that orthogonal matrices have the smallest possible condition number.
+This means that orthonormal matrices have the smallest possible condition number.
 
 Any orthogonal matrix $Q$ can be described as a reflection, a rotation, or some combination of the two.
 If $det(Q) = 1$, then $Q$ is a rotation.
@@ -29,7 +29,7 @@ Recall that a hyperplane can be defined by a unit vector $v$ which is orthogonal
 As shown in figure \ref{fig:Householder_reflector}, $x - \langle v,x \rangle v$ is the projection of $x$ onto the hyperplane orthogonal to $v$.
 However, to reflect \emph{across} the hyperplane, we must move twice as far; that is, $Px = x - 2\langle v,x \rangle v$.
 This can be written $Px = x - 2v(v^\mathsf{H} x)$, so $P$ has matrix representation $P = I - 2v v^\mathsf{H}$.
-Note that $P^\mathsf{H} P = I$; thus $P$ is orthogonal.
+Note that $P^\mathsf{H} P = I$; thus $P$ is orthonormal.
 
 \begin{figure}
 	\centering
@@ -42,7 +42,7 @@ Note that $P^\mathsf{H} P = I$; thus $P$ is orthogonal.
 Consider the problem of computing the $QR$ decomposition of a matrix $A$.
 You've already learned the Gram-Schmidt and the Modified Gram-Schmidt algorithms for this problem.
 The $QR$ decomposition can also be computed by applying a series of Householder reflections.
-Gram-Schmidt and Modified Gram-Schmidt make $A$ \emph{orthogonal} using a series of transformations stored in an \emph{upper triangular} matrix.
+Gram-Schmidt and Modified Gram-Schmidt make $A$ \emph{orthonormal} using a series of transformations stored in an \emph{upper triangular} matrix.
 On the other hand, we can use Householder reflections to make $A$ \emph{triangular} by a series of \emph{orthonormal} transformations.
 
 Let's demonstrate this method on a $4 \times 3$ matrix $A$.
@@ -239,8 +239,8 @@ A[k:,:k] & A[k:,k:] - 2 A[k:,k:] v_k v_k^\mathsf{H}
 
 When we are iterating through the columns of $R$ and zeroing out the entries below the main diagonal we are able to safely ignore all the entries that lie in columns we have already processed because they are already zero.
 
-This algorithm returns orthogonal $Q$ and upper triangular $R$ satisfying $A = QR$.
-Notice that we did not explicitly construct each orthogonal reflector matrix.
+This algorithm returns orthonormal $Q$ and upper triangular $R$ satisfying $A = QR$.
+Notice that we did not explicitly construct each orthonormal reflector matrix.
 We applied the changes we needed to each portion of the array that needed to be changed.
 Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
 A few other clever optimizations can still be applied, but they will not change the overall complexity of the algorithm.
@@ -281,7 +281,7 @@ Try the following in Python.
 >>> import numpy as np
 >>> from numpy.random import rand
 >>> from scipy import linalg as la
->>> Q, X = la.qr(rand(500,500)) # create a random orthogonal matrix:
+>>> Q, X = la.qr(rand(500,500)) # create a random orthonormal matrix:
 >>> R = np.triu(rand(500,500)) # create a random upper triangular matrix
 >>> A = np.dot(Q,R) # Q and R are the exact QR decomposition of A
 >>> Q1, R1 = la.qr(A) # compute QR decomposition of A
@@ -329,11 +329,11 @@ However, MGS is still useful for some types of iterative methods, because it fin
 
 \subsection*{Upper Hessenberg Form}
 An upper Hessenberg matrix is a square matrix with zeros below the first subdiagonal.
-Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthogonal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
+Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthonormal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
 
 The Hessenberg decomposition can be computed using Householder reflections, in a process very similar to Householder triangularization.
 Let's demonstrate this process on a $5 \times 5$ matrix $A$.
-Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthogonal matrices until it is in Hessenberg form.
+Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthonormal matrices until it is in Hessenberg form.
 If we try the same $Q_1$ as in the first step of the Householder algorithm, then with $Q_1 A$ we introduce zeros in the first column of $A$.
 However, since we now have to multiply $Q_1 A$ on the left by $Q_1^T$, all those zeros are destroyed, as demonstrated below.
 In order to zero out the entire first column we chose $Q_1$ so that it does not fix the first row.
@@ -431,7 +431,7 @@ Q = I_m \\
    v_k[0] += \text{sign} \left( v_k[0] \right) \norm{v_k} \\
    v_k = v_k / \norm{v_k} \\
    H[k+1:,k:] -= 2 v_k \left( v_k^\mathsf{H} H[k+1:,k:] \right) \\
-   H[:,k+1:] -= 2 \left( H[:,k+1] v \right) v^\mathsf{H} \\
+   H[:,k+1:] -= 2 \left( H[:,k+1:] v_k \right) v_k^\mathsf{H} \\
    Q[k+1:] -= 2 v_k \left( v_k^\mathsf{H} Q[k+1:] \right) \\
 \END \\
 \text{return } Q, H
@@ -440,7 +440,7 @@ Q = I_m \\
 \begin{problem}
 Write a function \li{hessenberg} that computes the Hessenberg form of a real-valued
 input matrix $A$. The function should return $Q$ and $H$ satisfying $A = Q^THQ$,
-where $Q$ is orthogonal and $H$ has zeros below the first subdiagonal.
+where $Q$ is orthonormal and $H$ has zeros below the first subdiagonal.
 
 The code for this algorithm will be fairly similar to the code for the QR factorization using Householder reflections.
 This factorization technique will be used later on in Lab \ref{lab:EigSolve}.
