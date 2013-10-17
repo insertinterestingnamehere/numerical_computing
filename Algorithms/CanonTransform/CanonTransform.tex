@@ -33,10 +33,9 @@ This can be written $Px = x - 2v(v^\mathsf{H} x)$, so $P$ has matrix representat
 Note that $P^\mathsf{H} P = I$; thus $P$ is orthonormal.
 
 \begin{figure}
-	\centering
-	\includegraphics[width= \textwidth]{fig1}
-	\caption{Householder reflector}
-	\label{fig:Householder_reflector}
+\includegraphics[width= \textwidth]{fig1}
+\caption{Householder reflector}
+\label{fig:Householder_reflector}
 \end{figure}
 
 \subsection*{Householder triangularization}
@@ -165,28 +164,30 @@ So $\frac{u}{\norm{u}}$ is a proper choice of $v$ that will project $x$ into the
 This whole process is summarized in Algorithm \ref{Alg:Householder}.
 
 \begin{figure}
-	\centering
-	\includegraphics[width= \textwidth]{fig2}
-	\caption{two reflectors}
-	\label{fig:two reflectors}
+\includegraphics[width= \textwidth]{fig2}
+\caption{two reflectors}
+\label{fig:two reflectors}
 \end{figure}
 
-\begin{pseudo}{Householder triangularization}{A}
+\begin{algorithm}
+\caption{Householder triangularization}
 \label{Alg:Householder}
-m, n = \text{shape} \left( A \right) \\
-R = \text{copy} \left( A \right) \\
-Q = I_m \\
-\FOR 0 \leq k < n-1
-\DO
-\BEGIN
-   v_k = \text{copy} \left( R_{k:,k} \right) \\
-   v_k[0] += \text{sign} \left( v_k[0] \right) \norm{v_k} \\
-   v_k = v_k / \norm{v_k} \\
-   R[k:,k:] -= 2 v_k \left( v_k^\mathsf{H} R[k:,k:] \right) \\
-   Q[k:] -= 2 v_k \left( v_k^\mathsf{H} Q[k:] \right) \\
-\END \\
-\text{return } Q^\mathsf{H} , R
-\end{pseudo}
+\begin{algorithmic}[1]
+\Procedure{Householder}{$A$}
+\State $m, n \gets \text{shape} \left( A \right)$
+\State $R \gets \text{copy} \left( A \right)$
+\State $Q \gets I_m$
+\For{$0 \leq k < n-1$}
+    \State $v_k \gets \text{copy} \left( R_{k:,k} \right)$
+    \State $v_{k_0} \gets v_{k_0} + \text{sign} \left( v_{k_0} \right) \norm{v_k}$
+    \State $v_k \gets v_k / \norm{v_k}$
+    \State $R_{k:,k:} \gets R_{k:,k:} - 2 v_k \left( v_k^\mathsf{H} R_{k:,k:} \right)$
+    \State $Q_{k:} \gets Q_{k:} - 2 v_k \left( v_k^\mathsf{H} Q_{k:} \right)$
+\EndFor
+\State \pseudoli{return} $Q^\mathsf{H}, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 To see how we are operating on the matrices $A$ and $Q$ consider the way each orthonormal transformation defined by the $v_k$ operites blockwise on each matrix.
 The matrix form of each operation on $A$ and $Q$ can be represented in block form like this:
@@ -261,12 +262,11 @@ Make sure that you account for this when you write the code to run this algorith
 You can either make the vectors $v_k$ column vectors (two dimensional with a single column) instead of just one-dimensional arrays, or you can use the built in function \li{np.outer()} in the appropriate place.
 
 \begin{problem}
-\label{prob:HouseholderQR}
 Write a script using Householder reflections to find the QR decomposition of a real-valued matrix A.
+\label{prob:HouseholderQR}
 \end{problem}
 
 \subsection*{Stability of the Householder QR algorithm}
-
 We will now examine the stability of the Householder QR algorithm.
 We will use SciPy's built in QR factorization which uses Householder reflections internally.
 
@@ -414,26 +414,29 @@ There are remarkably efficient ways to solve systems involving tridiagonal matri
 The pseudocode for computation of the Hessenberg form of a matrix is shown in Algorithm \ref{Alg:Hessenberg}.
 The exact inner workings of this algorithm are similar to the inner workings of Algorithm \ref{Alg:Householder}.
 
-\begin{pseudo}{Reduction to Hessenberg Form}{A}
+\begin{algorithm}
+\caption{Reduction to Hessenberg Form}
 \label{Alg:Hessenberg}
-m, n = \text{shape} \left( A \right) \\
-H = \text{copy} \left( A \right) \\
-Q = I_m \\
-\FOR 0 \leq k < n-2
-\DO
-\BEGIN
-   v_k = H_{k+1:,k}\\
-   v_k[0] += \text{sign} \left( x_1 \right) \norm{v_k} \\
-   v_k /= \norm{v_k} \\
-   H[k+1:,k:] -= 2 v_k \left( v_k^\mathsf{H} H[k+1:,k:] \right) \\
-   H[:,k+1:] -= 2 \left( H[:,k+1] v \right) v^\mathsf{H} \\
-   Q[k+1:] -= 2 v_k \left( v_k^\mathsf{H} Q[k+1:] \right) \\
-\END \\
-\text{return } Q^\mathsf{H} , R
-\end{pseudo}
+\begin{algorithmic}[1]
+\Procedure{Hessenberg}{$G,u,l,p$}
+\State $m, n \gets \text{shape}(A)$
+\State $H \gets \text{copy}(A)$
+\State $Q \gets I_m$
+\For{$0 \leq k < n-2$}
+    \State $v_k \gets H_{k+1:, :}$
+    \State $v_{k_0} \gets v_{k_0} + \text{sign}(x_1) \norm{v_k}$
+    \State $v_k \gets v_k/norm{v_k}$
+    \State $H_{k+1:,k:} \gets H_{k+1:,k:} - 2v_k(v_k^\mathsf{H} H_{k+1:,k:})$
+    \State $H_{:,k+1:} \gets H_{:,k+1:} - 2(H_{:,k+1} v) v^\mathsf{H}$
+    \State $Q_{k+1:} \gets Q_{k+1:} - 2v_k(v_k^\mathsf{H} Q_{k+1:})$
+\EndFor
+\State \pseudoli{return} $Q^\mathsf{H}, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \begin{problem}
-Write a script that factors a real-valued matrix into its upper-Hessenberg form and the corresponding orghogonal matrix $Q$.
+Write a script that factors a real-valued matrix into its upper-Hessenberg form and the corresponding orthogonal matrix $Q$.
 The code for this algorithm will be fairly similar to the code for the QR factorization using Householder reflections.
 This factorization technique will be used later on in Lab \ref{lab:EigSolve}.
 Notice what happens when you compute the Hessenberg factorization of a Hermitian matrix.
