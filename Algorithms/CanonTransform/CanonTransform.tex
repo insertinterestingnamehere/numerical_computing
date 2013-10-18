@@ -32,10 +32,9 @@ This can be written $Px = x - 2v(v^\mathsf{H} x)$, so $P$ has matrix representat
 Note that $P^\mathsf{H} P = I$; thus $P$ is orthonormal.
 
 \begin{figure}
-	\centering
-	\includegraphics[width= \textwidth]{fig1}
-	\caption{Householder reflector}
-	\label{fig:Householder_reflector}
+\includegraphics[width= \textwidth]{fig1}
+\caption{Householder reflector}
+\label{fig:Householder_reflector}
 \end{figure}
 
 \subsection*{Householder triangularization}
@@ -164,28 +163,30 @@ It can be shown that the vector  $\frac{u}{\norm{u}}$ is the proper choice for $
 This whole process is summarized in Algorithm \ref{Alg:Householder}.
 
 \begin{figure}
-	\centering
-	\includegraphics[width= \textwidth]{fig2}
-	\caption{two reflectors}
-	\label{fig:two reflectors}
+\includegraphics[width= \textwidth]{fig2}
+\caption{two reflectors}
+\label{fig:two reflectors}
 \end{figure}
 
-\begin{pseudo}{Householder triangularization}{A}
+\begin{algorithm}
+\caption{Householder triangularization}
 \label{Alg:Householder}
-m, n = \text{shape} \left( A \right) \\
-R = \text{copy} \left( A \right) \\
-Q = I_m \\
-\FOR 0 \leq k < n-1
-\DO
-\BEGIN
-   v_k = \text{copy} \left( R_{k:,k} \right) \\
-   v_k[0] += \text{sign} \left( v_k[0] \right) \norm{v_k} \\
-   v_k = v_k / \norm{v_k} \\
-   R[k:,k:] -= 2 v_k \left( v_k^\mathsf{H} R[k:,k:] \right) \\
-   Q[k:] -= 2 v_k \left( v_k^\mathsf{H} Q[k:] \right) \\
-\END \\
-\text{return } Q^\mathsf{H} , R
-\end{pseudo}
+\begin{algorithmic}[1]
+\Procedure{Householder}{$A$}
+\State $m, n \gets \text{shape} \left( A \right)$
+\State $R \gets \text{copy} \left( A \right)$
+\State $Q \gets I_m$
+\For{$0 \leq k < n-1$}
+    \State $v_k \gets \text{copy} \left( R_{k:,k} \right)$
+    \State $v_{k_0} \gets v_{k_0} + \text{sign} \left( v_{k_0} \right) \norm{v_k}$
+    \State $v_k \gets v_k / \norm{v_k}$
+    \State $R_{k:,k:} \gets R_{k:,k:} - 2 v_k \left( v_k^\mathsf{H} R_{k:,k:} \right)$
+    \State $Q_{k:} \gets Q_{k:} - 2 v_k \left( v_k^\mathsf{H} Q_{k:} \right)$
+\EndFor
+\State \pseudoli{return} $Q^\mathsf{H}, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 To see how we are operating on the matrices $A$ and $Q$, consider the way each orthonormal transformation defined by the $v_k$ operates blockwise on each matrix.
 The matrix form of each operation on $A$ and $Q$ can be represented in block form like this:
@@ -271,7 +272,6 @@ of your function, and check that the result matches the original input matrix.
 \end{problem}
 
 \subsection*{Stability of the Householder QR algorithm}
-
 We will now examine the stability of the Householder QR algorithm.
 We will use SciPy's built in QR factorization which uses Householder reflections internally.
 
@@ -419,23 +419,26 @@ There are remarkably efficient ways to solve systems involving tridiagonal matri
 The pseudocode for computation of the Hessenberg form of a matrix is shown in Algorithm \ref{Alg:Hessenberg}.
 The exact inner workings of this algorithm are similar to the inner workings of Algorithm \ref{Alg:Householder}.
 
-\begin{pseudo}{Reduction to Hessenberg Form}{A}
+\begin{algorithm}
+\caption{Reduction to Hessenberg Form}
 \label{Alg:Hessenberg}
-m, n = \text{shape} \left( A \right) \\
-H = \text{copy} \left( A \right) \\
-Q = I_m \\
-\FOR 0 \leq k < n-2
-\DO
-\BEGIN
-   v_k = \text{copy}(H_{k+1:,k})\\
-   v_k[0] += \text{sign} \left( v_k[0] \right) \norm{v_k} \\
-   v_k = v_k / \norm{v_k} \\
-   H[k+1:,k:] -= 2 v_k \left( v_k^\mathsf{H} H[k+1:,k:] \right) \\
-   H[:,k+1:] -= 2 \left( H[:,k+1:] v_k \right) v_k^\mathsf{H} \\
-   Q[k+1:] -= 2 v_k \left( v_k^\mathsf{H} Q[k+1:] \right) \\
-\END \\
-\text{return } Q, H
-\end{pseudo}
+\begin{algorithmic}[1]
+\Procedure{Hessenberg}{$G,u,l,p$}
+\State $m, n \gets \text{shape}(A)$
+\State $H \gets \text{copy}(A)$
+\State $Q \gets I_m$
+\For{$0 \leq k < n-2$}
+    \State $v_k \gets H_{k+1:, k}$
+    \State $v_{k_0} \gets v_{k_0} + \text{sign}(v_{k_0}) \norm{v_k}$
+    \State $v_k \gets v_k/norm{v_k}$
+    \State $H_{k+1:,k:} \gets H_{k+1:,k:} - 2v_k(v_k^\mathsf{H} H_{k+1:,k:})$
+    \State $H_{:,k+1:} \gets H_{:,k+1:} - 2(H_{:,k+1:} v_k) v_k^\mathsf{H}$
+    \State $Q_{k+1:} \gets Q_{k+1:} - 2v_k(v_k^\mathsf{H} Q_{k+1:})$
+\EndFor
+\State \pseudoli{return} $Q, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \begin{problem}
 Write a function \li{hessenberg} that computes the Hessenberg form of a real-valued
