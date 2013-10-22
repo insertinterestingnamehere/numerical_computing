@@ -11,7 +11,7 @@ This zeros out the entry containing $b$.
 We could do this by finding the angle between $\begin{pmatrix} a \\ b \end{pmatrix}$ and the axis containing $b$ then rotating the vector by the negative of that angle.
 In order to avoid computations involving $\sin$ and $\arcsin$ at each iteration we can just solve for $\sin \theta $ and $\cos \theta$ using the pythagorean theorem instead of explicitly computing $\theta$.
 Such an approach gives us the result that $\cos \theta = \frac{a}{\sqrt{a^2 + b^2}}$ and $\sin \theta = \frac{- b}{\sqrt{a^2 + b^2}}$.
-The transformed image of $\begin{pmatrix} a \\ b \end{pmatrix}$ is then $\begin{pmatrix} \| \sqrt{a^2 + b^2} \| \\ 0 \end{pmatrix}$.
+The transformed image of $\begin{pmatrix} a \\ b \end{pmatrix}$ is then $\begin{pmatrix} \sqrt{a^2 + b^2} \\ 0 \end{pmatrix}$.
 
 The application of such a rotation to any two rows of a matrix $A$ is an orthonormal transform.
 Such a transformation can be represented in matrix form, where $c = \cos \theta$ and $s = \sin \theta$, like this:
@@ -64,6 +64,33 @@ We can zero out the entries below the main diagonal of A as follows:
 
 Here is an outline for the algorithm.
 Let $A$ be the array passed to the function.
+
+\begin{comment}
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{Givens Triangularization}{$A$}
+\State $R \gets \text{copy}(A)$
+\State $Q \gets I_A$
+\State $G \gets \text(empty)(2,2)$
+\For{each column}
+    \For{each row below the main diagonal}
+        \If{leading element is not zero}
+            \State Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it
+            \State Use $c$ and $s$ to construct the matrix $G$
+            \State Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
+                Multiply it in place by $G$ to zero out the leading nonzero entry of the current row. 
+            \State Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well.
+                (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
+        \EndIf
+    \EndFor
+\EndFor
+\State \pseudoli{return} $Q^T, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\end{comment}
 
 \begin{itemize}[$\bullet$]
 
