@@ -44,7 +44,7 @@ def hess(A):
     input:  A, mxn array
     output: Q, orthogonal mxm array
             H, upper Hessenberg
-            s.t. QHQ' = A
+            s.t. Q.dot(H).dot(Q.T) = A
     """
     # similar approach as the householder function.
     # again, not perfectly optimized, but good enough.
@@ -69,5 +69,4 @@ def hess(A):
         H[:,k+1:] -= 2 * np.outer(H[:,k+1:].dot(vk), vk)
         # Apply it to Q
         Q[k+1:] -= 2 * np.outer(vk, vk.dot(Q[k+1:]))
-    # note that its returning Q.T, not Q itself
-    return Q.T, H
+    return Q, H
