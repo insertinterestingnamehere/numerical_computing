@@ -1,6 +1,7 @@
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 from matplotlib import pyplot as plt
+from scipy import stats as stats
 
 import numpy as np
 
@@ -58,7 +59,24 @@ def correlation():
     ax.set_aspect((x1-x0)/(y1-y0))
     plt.savefig('correlation.pdf')
     plt.clf()
+    
+def nonlinear_dependence():
+    #create two normal distributions with different means
+    n1 = stats.norm(loc=1, scale=.3)
+    n2 = stats.norm(loc=5, scale=.3)
+    
+    #generate random samples, then glue things together to obtain the desired pattern
+    s1 = n1.rvs(size=200)
+    s2 = n2.rvs(size=200)
+    s = np.vstack([s1,s2, s1, s2])
+    v1 = n1.rvs(size=200)
+    v2 = n2.rvs(size=200)
+    v = np.vstack([v1,v2, v2, v1])
+    plt.scatter(s,v)
+    plt.savefig('nonlinear_dependence.pdf')
+    plt.clf()
 
 if __name__ == "__main__":
     variance()
     correlation()
+    nonlinear_dependence()

@@ -3,6 +3,9 @@
 
 \objective{This section addresses applications of inner product spaces to topics in statistics.}
 
+% Source of the datasets: http://people.sc.fsu.edu/~jburkardt/datasets/regression/regression.html
+% under the GNU LGPL liscence
+
 \section*{Shifting Data by the Mean}
 
 Consider the table below representing students scores in a class.\\
@@ -54,7 +57,11 @@ $$
 $$
 where $\mu$ is the mean of $\mathbf{v}$. The \emph{standard deviation} of $\mathbf{v}$ is simply $\sigma$, i.e. the square
 root of the variance. These quantities measure the spread of the entries of the vector. When all of the entries are clustered
-closely around the mean, the variance is small. See Figure \ref{fig:variance} for an illustration of variance and mean-shifted data. 
+closely around the mean, the variance is small. See Figure \ref{fig:variance} for an illustration of variance and mean-shifted data.
+
+(Note: \emph{unbiased variance} is a quantity closely related to variance, but defined slightly differently. It comes into play
+in particular for small datasets or vectors. Further discussion is beyond the scope of this lab, but be aware that there is
+more than one type of variance.)
 
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{variance}
@@ -65,7 +72,7 @@ closely around the mean, the variance is small. See Figure \ref{fig:variance} fo
 \end{figure}
 
 Calculating the variance and the standard deviation in Python is straight forward.
-Given the shifted data $X$, we simply square each entry, sum along the columns, and divide by the number of rows 
+Given the shifted data $X$, we simply square each entry, sum along the columns, and divide by the number of rows
 to obtain the variance. Take the square root of the result to get the standard deviation.
 \begin{lstlisting}
 >>> var = (X**2).sum(axis=0)/X.shape[0]
@@ -77,7 +84,7 @@ array([ 16.124515,  13.907860,  13.277263,  12.294017])
 \end{lstlisting}
 Observe that the scores for the homework exhibited the largest amount of spread.
 
-As with many things in Python, there is an even shorter, more convenient way to calculate these quantities. 
+As with many things in Python, there is an even shorter, more convenient way to calculate these quantities.
 We may calculate the variance and standard deviation of the columns directly from $W$, without having to shift
 by the mean.
 
@@ -92,42 +99,52 @@ array([ 16.124515,  13.907860,  13.277263,  12.294017])
 
 \begin{problem}
 \label{prob:shiftdata}
-Insert some problem here about importing some data, shifting by mean, finding row with the smallest variance, etc.
+Import the dataset contained in the \li{weight_age_fat.txt} file. The first row is a header, and contains the names
+of each column, but no actual data. There are five columns, but the first two do not contain any data of interest.
+The last three columns contain data on the weight (in kilograms), age (in years), and blood fat content of 25
+individuals. Distinct data entries are separated by whitespace.
+
+Write a function \li{shiftByMean} that shifts the columns of an input array by their respective means, and returns the result.
+Next, write a function \li{computeVariance} that calculates and returns the variance of each column of an input array.
+Finally, write a function \li{reportStDev} that accepts no parameters and returns nothing, and simply contains a print
+statement that prints out the name of the column with the smallest standard deviation as well as the numerical value of
+its standard deviation.
+
 \end{problem}
 
 \section*{The Inner Product and Angles Formula}
 
-Inner products give information about lengths of vectors and angles between vectors. 
+Inner products give information about lengths of vectors and angles between vectors.
 Recall that the standard inner product on $\mathbb{R}^n$ between vectors $x$ and $y$ is given by
 $$
-\ipt{x}{y} = x^T y = \displaystyle\sum_{i=1}^n x_iy_i.
+\ipt{v}{u} = v^T u = \displaystyle\sum_{i=1}^n v_iu_i.
 $$
 We can take advantage of convenient syntax in NumPy to quickly calculate the inner product between two vectors:
 \begin{lstlisting}
->>> x = np.array([1., -2., 4.])
->>> y = np.arary([2., 3., -1.])
->>> (x * y).sum()
+>>> v = np.array([1., -2., 4.])
+>>> u = np.arary([2., 3., -1.])
+>>> ( v* u).sum()
 -8.0
 \end{lstlisting}
 The 2-norm of a vector can be easily recovered from the inner product:
 \begin{lstlisting}
->>> x_norm = np.sqrt((x * x).sum())
->>> x_norm
+>>> v_norm = np.sqrt((v * v).sum())
+>>> v_norm
 4.5825756949558398
 \end{lstlisting}
-Another option to calculate the norm of an array is to use the \li{scipy.linalg.norm} function, which has the 
+Another option to calculate the norm of an array is to use the \li{scipy.linalg.norm} function, which has the
 capability of computing a variety of different types of norms. For the purposes of this lab, however, our own
 approach is perfectly sufficient (and even marginally faster).
 
 Recall that the angle $\theta$ between two nonzero
 vectors is given by
 \[
-\cos{\theta} = \frac{\ipt{x}{y}}{\norm{x}\norm{y}}
+\cos{\theta} = \frac{\ipt{v}{u}}{\norm{v}\norm{u}}
 \]
-where $\norm{x} = \sqrt{\ipt{x}{x}}$ denotes the 2-norm of $x$.
+where $\norm{v} = \sqrt{\ipt{v}{v}}$ denotes the 2-norm of $x$.
 By bringing the constants into the inner product, we see that the angle satisfies
 \[
-\cos{\theta} = \left\langle\frac{x}{\norm{x}},\frac{y}{\norm{y}}\right\rangle.
+\cos{\theta} = \left\langle\frac{v}{\norm{v}},\frac{u}{\norm{u}}\right\rangle.
 \]
 Hence, if we view the columns of $X$ as vectors in $\mathbb{R}^7$, we can find the cosine of the angles between these columns by dividing each
 by its length, and then computing pairwise inner products. To divide the columns by their respective lengths, we may execute the following
@@ -167,15 +184,15 @@ We remark that the diagonals are always equal to one because the angle between a
 %It is also worth noting that the matrix resulting from the operation $A \cdot A^T$ is symmetric and positive definite, so it compliant
 %with the Cholesky decomposition that was discussed at the end of Lab \ref{lab:LUdecomp}.
 % ^^ I'm not totally sure what is going on with this last statement. What exactly is A \cdot A^T? I'm assuming we mean A^T A, in which case
-% the matrix is indeed only guaranteed to be positive semi-definite. It still has a Cholesky decomposition in theory, although I think it can only be
+% the matrix is in fact only guaranteed to be positive semi-definite. It still has a Cholesky decomposition in theory, although I think it can only be
 % computed for positive definite matrices. Anyway, I don't think the comment is relevant, so I have it removed for now.
 
 \section*{Correlation}
-In statistics, \emph{correlation} is a broad term that refers to various types of statistical relationships and dependence between 
-variables of interest. 
-In this setting, the \emph{Pearson correlation coefficient} of two vectors $u$ and $v$ is defined to be the cosine of the angle between the 
+In statistics, \emph{correlation} is a broad term that refers to various types of statistical relationships and dependence between
+variables of interest.
+In this setting, the \emph{Pearson correlation coefficient} of two vectors $u$ and $v$ is defined to be the cosine of the angle between the
 vectors $\overline{u}$ and $\overline{v}$, where $\overline{u}$ is the vector obtained by subtracting the mean of $u$ from each of its entries,
-and similarly for $\overline{v}$. 
+and similarly for $\overline{v}$.
 Two vectors are said to be
 \begin{itemize}
 \item Perfectly correlated if their correlation coefficient is one.
@@ -185,9 +202,18 @@ Two vectors are said to be
 \item Perfectly anticorrelated if their correlation coefficient is negative one.
 \end{itemize}
 
-The notion of correlation is important in establishing linear relationships between measurements.  
+If we have a whole array with the columns as the vectors of interest, we may calculate a correlation matrix
+by first shifting the columns by their mean, and then computing the matrix of angles as described in the
+previous section. The $(i,j)$ entry of the resulting correlation matrix gives the correlation coefficient
+of columns $i$ and $j$.
+
+\begin{problem}
+Write a function \li{corrMatrix} that calculates and returns the correlation matrix of the input array.
+\end{problem}
+
+The notion of correlation is important in establishing linear relationships between measurements.
 Parallel vectors pointing in the same direction are perfectly correlated, since they lie in the same line.
-Orthogonal vectors, on the other hand, are uncorrelated. 
+Orthogonal vectors, on the other hand, are uncorrelated.
 Given two vectors of the same length, one can visually check for correlation by viewing a scatter plot.
 This can be done in Python as follows:
 \begin{lstlisting}
@@ -209,20 +235,39 @@ See Figure \ref{fig:correlation} for examples of correlated and uncorrelated dat
          Right: scatter plot of two highly negatively correlated vectors.}
 \label{fig:correlation}
 \end{figure}
-  
-It's important to understand that the high correlation between quantities does not necessarily imply 
-a causal relationship. For example, high correlation between violent crime rates and ice cream sales has 
-been observed. This does not mean that ice cream causes crime or that increases in crime makes people want 
-to eat more ice cream. Rather, both rates happen to increase during the summer and decrease during the winter.
-
-Another import consideration is that the correlation coefficient does not provide information about 
-non-linear relationships and dependencies between data. 
 
 \begin{problem}
-Load the data file \texttt{data.npy}.
-The dataset consists of two columns.  Find the correlation coefficient of the two columns.  Then plot the original data and see if the value that you got is reasonable.
+Import the data contained in the \li{mortality.txt} file. The first 17 rows are headers, providing the names of the
+17 columns, and do not contain data. The first column is simply an index column, and may also be omitted.
+The following 16 columns provide various demographic and environmental data for 60 countries, with the
+final column giving the mortality rate for that country.
+Distinct data entries are separated by whitespace.
+
+Write a function that prints the answers to the following three questions, and generates plots as
+described below.
+Between which pair of distinct columns is the highest correlation?
+Which column (apart from the last column) has the most negative correlation coefficient with mortality rate?
+Which column is most nearly uncorrelated with mortality rate (i.e. the correlation coefficient is closest to 0)?
+Make scatter plots of all three of these pairs of columns, and include them on the same subplot panel.
+In all relevant cases, the mortality rate column should be the second argument passed to \li{plt.scatter}.
 \end{problem}
 
-The concepts of variance, standard deviation, correlation, and covariance apply to a much broader class of objects
-known as \emph{random variables}, which are central to statistics and probability theory. These topics will be 
-covered in detail later on. 
+It's important to understand that the high correlation between quantities does not necessarily imply
+a causal relationship. For example, high correlation between violent crime rates and ice cream sales has
+been observed. This does not mean that ice cream causes crime or that increases in crime makes people want
+to eat more ice cream. Rather, both rates happen to increase during the summer and decrease during the winter.
+
+Another import consideration is that the correlation coefficient does not provide information about
+non-linear relationships and dependencies between data. Any thorough analysis will go well beyond a simple
+calculation of the correlation matrix.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{nonlinear_dependence}
+\caption{There is a clear nonlinear relationship present in this data, but the Pearson correlation
+         coefficient, which has a value of -0.00056, fails to capture it.}
+\label{fig:correlation}
+\end{figure}
+
+Finally, the concepts of variance, standard deviation, correlation, and covariance apply to a much broader class of objects
+known as \emph{random variables}, which are central to statistics and probability theory. These topics will be
+covered in detail later on.
