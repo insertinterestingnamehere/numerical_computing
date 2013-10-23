@@ -79,7 +79,7 @@ Let $A$ be the array passed to the function.
             \State Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it
             \State Use $c$ and $s$ to construct the matrix $G$
             \State Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
-                Multiply it in place by $G$ to zero out the leading nonzero entry of the current row. 
+                Multiply it in place by $G$ to zero out the leading nonzero entry of the current row.
             \State Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well.
                 (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
         \EndIf
@@ -129,7 +129,7 @@ Let $A$ be the array passed to the function.
 
 \end{itemize}
 
-This version of the algorithm is not the most well optimized way to use Givens rotations, but it is good for illustrative purposes.
+This version of the algorithm is not the most well-optimized way to use Givens rotations, but it is good for illustrative purposes.
 
 Because Givens rotations only operate on two specific rows at a time, they give us a variety of ways to iterate over an array we are processing.
 For example, using Givens rotations you could, starting at the bottom of each column and continuing up until you reach the main diagonal, zero out each entry by applying a Givens rotation to each row and the row immediately above it.
@@ -140,10 +140,10 @@ When working with sparse matrices, Givens rotations allow for the solution of li
 The fact that Givens rotations operate only on small portions of the array also lends well to parallel solutions to systems of equations (or least squares problems).
 They allow for the sort of flexibility we had when using Gaussian elimination while still maintaining the favorable stability that comes with using orthonormal transformations.
 
-While Givens rotations do allow for greather flexibility and are well suited for parallelization, they also require a greater number of floating point operations than Householder reflections.
+While Givens rotations do allow for greater flexibility, they also require a greater number of floating point operations than Householder reflections.
 In general, the operation count for computing the QR factorization for an $m \times n$ matrix is $3 n^2 \left( m - \frac{n}{3} \right)$.
 % Accuracy and Stability of Numerical Algorithms, Nicholas J. Higham
-There are modified versions of the Givens QR algorithm that use "fast Givens rotations" which decrease the number of multiplications and square roots needed for the application of each Givens rotation.
+There are modified versions of the Givens QR algorithm that use ``fast Givens rotations" which decrease the number of multiplications and square roots needed for the application of each Givens rotation.
 % Fast Plane Rotations With Dynamic Scaling, Anda and Park, SIAM, 1994
 It allows for the use of Givens rotations while requiring roughly the same number of floating point operations used by the Householder QR algorithm.
 In practice, these methods are still not quite as fast as the Householder algorithm.
@@ -152,16 +152,19 @@ In spite of the need for more floating point operations, Givens rotations are st
 
 \begin{problem}
 \label{prob:Givens}
-Write a script that uses Givens rotations to compute the $QR$ decomposition of a matrix $A$.
+Write a function called \li{givens} that uses Givens rotations to compute the $QR$ decomposition of
+a matrix $A$.
 By performing successive Givens rotations, triangularize $A$ to find $R$.
 Apply the rotations to an identity matrix as you go, then take the transpose to invert it and find $Q$.
+Return $Q$ and $R$.
 \end{problem}
 
 We will now illustrate one example of how to use Givens rotations to change only specific parts of the array.
 
 \begin{problem}
 \label{prob:givens_hessenberg}
-Make a modified version of your solution to Problem \ref{prob:Givens} that computes the QR decomposition of an upper Hessenberg matrix.
+Write a modified version of your solution to Problem \ref{prob:Givens}, call it \li{givens2} that computes the 
+QR decomposition of an upper Hessenberg matrix.
 Instead of starting at the bottom of each column and working up, just run down the first subdiagonal from left to right.
 When operating on $Q$, you do not need to operate on the full length of each row.
 It is sufficient to perform the matrix multiplication on the portion of the array \li{Q[j:j+2,:j+2]} where \li{j} is the current column.
@@ -182,12 +185,14 @@ Approximately for what $m$ is your implementation as fast as the general QR deco
 
 \begin{problem}
 \label{prob:givens_hessenberg_modified}
-You may have noticed that matrix multiplication by $Q$ is generally a $\mathcal{O} \left( n^3 \right)$ algorithm, while the application of these individual givens rotations is a $\mathcal{O} \left( n^2 \right)$ algorithm.
-Write a modified version of your solution to Problem \ref{prob:givens_hessenberg} which returns an $n-1 \times 2 \times 2$ array containing the computed values for $G$ at each step in the algorithm in the order in which they are applied to the upper Hessenberg array $H$.
+You may have noticed that matrix multiplication by $Q$ is generally a $\mathcal{O} \left( n^3 \right)$ algorithm, while the application of these individual Givens rotations is a $\mathcal{O} \left( n^2 \right)$ algorithm.
+Write a modified version of your solution to Problem \ref{prob:givens_hessenberg} called \li{givens2_mod} which returns 
+an $(n-1) \times 2 \times 2$ array containing the computed values for $G$ at each step in the algorithm in the order in which they are applied to the upper Hessenberg array $H$.
 
-Write two more funcitons which, using the matrix of givens rotations, perform left multiplication by $Q$ and $Q^{-1}$ on some other input array $B$.
-Left multiplication by $Q^{-1}$ can be done by applying each of the givens rotations to $B$ the same way you did to $H$ to compute its QR factorization.
-Left multiplication by $Q$ can be done by applying the transpose of the givens rotations to their corresponding portions of $B$, but in the reverse order.
+Write two more functions \li{apply_Q} and \li{apply_QT} which, using the matrix of Givens rotations, perform left multiplication 
+by $Q$ and $Q^{-1}$, respectively, on some other input array $B$.
+Left multiplication by $Q^{-1}$ can be done by applying each of the Givens rotations to $B$ the same way you did to $H$ to compute its QR factorization.
+Left multiplication by $Q$ can be done by applying the transpose of the Givens rotations to their corresponding portions of $B$, but in the reverse order.
 Notice that you will have to apply each Givens rotation across the full width of the rows it operates on since you do not know anything about the content of $B$.
 
 For around what size of matrices is direct multiplication by $Q$ slower than this method of multiplying by $Q$?
@@ -200,4 +205,4 @@ An interesting side-note is that each Givens rotation can be represented as a si
 A similar approach would to store Householder reflectors in the columns they zero out.
 In either case, we can represent the QR decomposition of an array using only the memory that was originally used to store the array itself.
 This is similar to the approach mentioned in Lab \ref{lab:LUdecomp} for computing the LU decomposition entirely in place.
-These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed.
+These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed. 
