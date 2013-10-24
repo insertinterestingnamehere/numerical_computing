@@ -123,12 +123,23 @@ In this case we have used the \li{iso_c_binding} library in C to make the functi
 If we were wrapping a function or subroutine that we did not write ourselves we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it recieves to call the original function.
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
 
-\begin{info}
-When interfacing between Fortran and C, you will have to pass Fortran pointers to all the variables you send to the function as arguments.
+We will now write a header that tells C how to interface with the function we have just defined.
+\begin{warn}
+When interfacing between Fortran and C, you will have to pass Fortran pointers to \emph{all} the variables you send to the function as arguments.
 Passing a variable directly will probably crash Python.
-\end{info}
+\end{warn}
+Here is the file:
+\lstinputlisting[style=fromfile, language=C, name=ftridiag.h]{./ftridiag/ftridiag.h}
 
-% Add additional Fortran example
+To compile \li{ftridiag.f90} to an object file you can run the following command in your command line:
+\begin{lstlisting}[style=ShellInput]
+gfortran -c ftridiag.f90 -o ftridiag.o"
+\end{lstlisting}
+As before, if you are working on a linux of Macintosh based machine you will probably need to include the \li{-fPIC} flag as well.
+
+Aside from the small changes in the names used, the modified header file, and the use of gfortran instead of gcc, the rest of the compilation process is entirely the same.
+The test script that verifies that the function works properly is the same except that it will import the function from the moule \li{cython_ftridiag} instead.
+The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab but will not be displayed here.
 
 % Using C++ and Cython
 
