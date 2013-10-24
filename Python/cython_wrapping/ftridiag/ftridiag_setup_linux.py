@@ -9,6 +9,6 @@ o = " ftridiag.o"
 flags = ic + npy + o + " -fPIC"
 
 system("gfortran ftridiag.f90 -c -o ftridiag.o -fPIC")
-system("cython -a cytridiag.pyx --embed")
-system("gcc -c cytridiag.c" + flags)
-system("gcc -shared cytridiag.o -o cytridiag.so" + flags)
+system("cython -a cython_ftridiag.pyx --embed")
+system("gcc -c cython_ftridiag.c" + flags)
+system("gcc -shared cyton_ftridiag.o -o cytthon_ftridiag.so" + flags)
