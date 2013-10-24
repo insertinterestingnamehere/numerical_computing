@@ -15,19 +15,21 @@ from os import system
 system("gcc ctridiag.c -c -o ctridiag.o")
 
 # Tell Python how to compile the extension.
-ext_modules = [Extension("cytridiag",
+ext_modules = [Extension(
                          # Module name:
-                         ["cytridiag.pyx"],
+                         "cython_ctridiag",
+                         # Cython source file:
+                         ["cython_ctridiag.pyx"],
                          # Other compile arguments
-                         # This flag isn't necessary
+                         # This flag doesn't do much
                          # this time, but this is
                          # where it would go.
                          extra_compile_args=["-O3"],
-                         # Extra files to link to.
+                         # Extra files to link to:
                          extra_link_args=["ctridiag.o"])]
 
 # Build the extension.
-setup(name = 'cytridiag',
+setup(name = 'cython_ctridiag',
       cmdclass = {'build_ext': build_ext},
       include_dirs = [get_include()],
       ext_modules = ext_modules)
