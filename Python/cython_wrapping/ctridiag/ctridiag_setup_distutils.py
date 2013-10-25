@@ -6,7 +6,7 @@ from Cython.Distutils import build_ext
 # We still need to include the directory
 # containing the NumPy headers.
 from numpy import get_include
-# We still need to run one command via command line
+# We still need to run one command via command line.
 from os import system
 
 # Compile the .o file we will be accessing.
@@ -31,5 +31,7 @@ ext_modules = [Extension(
 # Build the extension.
 setup(name = 'cython_ctridiag',
       cmdclass = {'build_ext': build_ext},
+      # Include the directory with the NumPy headers
+      # when compiling.
       include_dirs = [get_include()],
       ext_modules = ext_modules)

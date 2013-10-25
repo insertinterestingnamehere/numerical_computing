@@ -13,7 +13,6 @@ from distutils.sysconfig import get_python_inc
 # Use the -I flag to include the directory containing
 # the Python headers for C extensions.
 # This header is needed when compiling Cython-made C files.
-# This flag will look something like: -Ic:/Python27/include
 ic = " -I" + get_python_inc()
 # Use the -I flag to include the directory for the NumPy
 # headers that allow C to interface with NumPy arrays.
