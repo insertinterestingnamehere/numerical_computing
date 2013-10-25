@@ -1,5 +1,5 @@
 '''
-    Solutions file for Volume 1, Lab 8
+    Solutions file for the MarkovGraph lab.
 '''
 
 import numpy as np
