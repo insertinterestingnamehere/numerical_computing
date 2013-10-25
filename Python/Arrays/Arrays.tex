@@ -4,11 +4,10 @@
 
 \section*{Why Arrays?}
 Let's begin with a simple demonstration of why arrays are important for numerical computation.
-Why use arrays when Python already has a reasonably efficient list object?
-In this demonstration, we will try squaring a matrix.
-The matrix will be represented as a two dimensional list (i.e. a list of lists).
+We know Python already has a reasonably efficient list object, so why use arrays?
+In this demonstration, we will square a matrix that is represented as a two dimensional list (i.e. a list of lists).
 
-The following is a function that will accept two matrices (two dimensional list), $A$ and $B$, and return $AB$ following the usual rules of matrix multiplication.
+The following is a function that will accept two matrices (each a two dimensional list), $A$ and $B$ and return $AB$ following the usual rules of matrix multiplication.
 \lstinputlisting[style=fromfile]{arr_mult.py}
 We can initialize a $k \times k$ ``array" of integers like this:
 \begin{lstlisting}
@@ -17,19 +16,26 @@ We can initialize a $k \times k$ ``array" of integers like this:
 \end{lstlisting}
 
 \begin{problem}
-Time how long this function takes to square matrices for increasing values of \li{k}.
-In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}, as in \li{\%timeit range(100)}.
+Time how long NumPy and the \li{arr_mult.py} function listed above takes to square matrices for \li{k = 100, 200, 300} and report the computed times. Briefly comment on the time needed to square a two dimensional list vs. a two dimensional NumPy array.
 
-Now import NumPy and create a NumPy array, \li{A}, and square it.
-\li{A*A} does \emph{not} square the array using matrix multiplication, but rather multiplies \li{A} with itself element by element.
-To get matrix multiplication for NumPy arrays, you must use \li{np.dot} or the \li{dot()} method of an array like this:
+In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}. The following instruction may be useful in completing this problem. 
+
+Import timeit and NumPy. Create a NumPy array, \li{A}, and square it.
+Note that \li{A*A} does \emph{not} square the array using matrix multiplication, but rather multiplies \li{A} with itself element by element.
+To get matrix multiplication for NumPy arrays you must use \li{np.dot} or the \li{dot()} method of an array like this:
 \begin{lstlisting}
 import numpy as np
+k=100
 A = np.array([range(i, i+k) for i in range(0, k**2, k)])
 np.dot(A, A)
 \end{lstlisting}
-Time how long NumPy takes to square arrays for increasing sizes of \li{k}.
-What do you notice about the time needed to square a two dimensional list vs. a two dimensional NumPy array?
+It may be beneficial to write a timer function similar to the following. 
+\begin{lstlisting}
+import timeit
+def timefunction(f, *args, **kwargs):
+	pfunc = lambda: f(*args, **kwargs)
+	print min(timeit.repeat(pfunc, number = 1, repeat = 3))
+\end{lstlisting}
 \end{problem}
 
 % Below is a comparison of runtimes needed to square a matrix
@@ -49,9 +55,11 @@ What do you notice about the time needed to square a two dimensional list vs. a 
 %
 % \end{center}
 
+
+
 The reason for the drastic speed difference is that Python, as a high level interpreted language, tends to be slower than lower level compiled languages.
 The algorithms implemented in NumPy are heavily optimized and are usually implemented in C or Fortran.
-Instead of operating purely in Python, they use Python to run code that is written and optimized in other languages.
+Instead of operating purely in Python they use Python to run code that is written and optimized in other languages.
 NumPy interfaces with some of the best packages available for doing computational linear algebra and can be used to write relatively fast programs.
 
 \section*{NumPy}
@@ -77,7 +85,7 @@ NumPy provides a variety of ways to easily create different kinds of arrays.
 >>> b
 array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 \end{lstlisting}
-Its optional arguments work the same as the optional arguments do for the \li{range} function that is built in to Python.
+Its optional arguments work the same as the optional arguments do for the \li{range} function that is built into Python.
 We can also create arrays that consist entirely of ones or zeros using \li{np.ones()} and \li{np.zeros()} respectively.
 \begin{lstlisting}
 >>> c = np.ones(5)
@@ -95,7 +103,7 @@ The first and second arguments define the endpoints of this closed interval.
 array([  0.        ,  10.66666667,  21.33333333,  32.        ])
 \end{lstlisting}
 We can even create arrays using random values chosen from a variety of probability distributions.
-These functions are stored in a submodule of NumPy, \li{np.random}.
+These functions are stored in a submodule of NumPy called \li{np.random}.
 \begin{lstlisting}
 >>> f = np.random.rand(5) #uniformly distributed values
 >>> f
@@ -114,11 +122,22 @@ This is most useful when the initial values of an array do not matter (like when
 array([  0.00000000e+000,   1.30586451e-316,   1.17126324e-316,
          0.00000000e+000,   2.37151510e-322])
 \end{lstlisting}
+We can also create an array with the same shape and type as another given array.
+\begin{lstlisting}
+>>> h = np.random.rand(3,5)
+>>> h
+array([[ 0.90193121,  0.54952824,  0.71892463],
+       [ 0.44109638,  0.9431592 ,  0.09779614]])
+>>> j = np.empty_like(h)
+>>> j
+array([[  3.18299369e-313,   4.95065560e+173,  -1.00498695e+047],
+       [ -2.88958188e-089,   3.18299369e-313,   7.92118726e-314]])
+\end{lstlisting}
+Note that you can also dictate that your new array be filled entirely with ones or zeros by using the \li{empty_like} or \li{zeros_like} respectively. 
 
-Three other functions that may be useful are \li{empty_like}, \li{ones_like}, and \li{zeros_like}, which create new arrays with the same shape and datatype as another array, for example, to initialize an empty array with the same shape and type as an array \li{A}, you could use \li{np.empty_like(A)}.
 
 \section*{Array Objects}
-Unlike Python containers, all of the elements of an array have to have the same datatype.
+Unlike Python containers, all of the elements of an array must have the same datatype.
 These datatypes are machine-native data types that avoid the overhead of Python objects (an \li{int} in NumPy is not the same as an \li{int} in Python).
 The benefit of using these machine-native types is a a tremendous speedup of numerical operations.
 The datatypes supported by NumPy are shown in Table \ref{numpytypes}
