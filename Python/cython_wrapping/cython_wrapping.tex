@@ -1,0 +1,153 @@
+\lab{Python}{Interfacing With Other Programming Languages Using Cython}{Interfacing With Other Programming Languages Using Cython}
+\label{lab:cythonwrap}
+
+\objective{Learn to interface with object files using Cython.}
+
+This lab should work on a machine that has already been configured to build Cython extensions using gcc or MinGW.
+
+There are several ways to interface with other languages from Python.
+Python, since it is such a high-level language, for performance reasons, often needs to call functions from C and Fortran.
+There is also an easy built in interface for R, which is a language that is used mostly for statistics.
+Python can interface with C in a variety of ways.
+There is a built in library, ctypes, that allows you to interface with object files compiled by other languages.
+SWIG is another tool that is often used.
+In these labs we will focus primarily on using Cython and F2PY to interface with other languages.
+
+% Describe .o files and dll's
+\section*{Object Files and DLL's}
+
+For C, C++, and Fortran, the desired functions or classes are compiled into an object file containing instructions in assembly that can be used by compilers of a variety of languages.
+Object files use the \li{.o} extension.
+Object files that can be used and modified by multiple programs are called "shared objects" and use the \li{.so} extension.
+When C code has been compiled with the proper headers, etc. to interface with Python, it uses the \li{.pyd} extension on Windows and the \li{.so} extension on Unix-based operating systems.
+The two extensions are essentially the same, except that Python object files are distinguished from normal object files on Windows.
+When you compile anything that uses functions from object files, you must tell your compiler to include the contents of the object file.
+The part of the compiler that forms these links between the code is called the linker.
+If you do not give your compiler proper instructions for linking, it will raise a linking error.
+The compiler must also be able to find the necessary header files for compiling the source code.
+This can be done by including the proper directories in the system path or by passing the paths to the proper directories as arguments to the compiler at compile time.
+
+DLL's are object files that are loaded by the operating system instead of by the compiler.
+They are libraries of functions much like .o files, but are loaded by the operating system.
+
+In our instructions here we will use the compiler gcc to demonstrate how Python can be made to interface with other languages.
+Other compilers can be used, but significant compatibility issues may arise.
+Python's distutils package is designed to avoid some of the difficulty that comes when interfacing with interfacing with different compilers, and we will show some very basic examples of how it is used here.
+The simplest way to learn to interface with other languages is to work through simple examples.
+The examples in this lab are intended to provide simple templates that you can use later to wrap C and Fortran functions.
+It would be good to read through and think about how each file works, but it will not be critical for you to understand every detail of how this works at this point.
+
+\begin{warn}
+When passing arrays as pointers to C, C++, and Fortran functions, you must be \emph{absolutely sure} that the array you are passing to the function is contiguous.
+Passing one of these functions a strided array will result in out of bounds memory accesses and could crash your computer.
+When working with two dimensional arrays, C and C++ expect rows to be stored in contiguous blocks of memory.
+Fortran expects columns to be stored in contiguous blocks of memory.
+\end{warn}
+
+\section*{Wrapping a C Function}
+
+Consider the following C function to compute the solution to a tridiagonal system.
+it works by taking pointers to four arrays.
+Array \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
+Array \li{b} and \li{x} have length\li{n} and represent the main diagonal of the banded matrix and the right hand side of the system of equations.
+\li{c} and \li{x} are modified in place to compute the solution the the system.
+\li{c} is used to store temporary values and \li{x} is transformed into the solution to the system.
+
+\lstinputlisting[style=fromfile, language=C, name=ctridiag.c]{./ctridiag/ctridiag.c}
+
+This file can be compiled to a \li{.o} file so that this function can be called by other programs by running the following command in a terminal:
+\begin{lstlisting}[style=ShellInput]
+gcc -c ctridiag.c -o ctridiag.o
+\end{lstlisting}
+The \li{-c} flag tells the compiler to compile the file without performing linking at this stage.
+The \li{-o} flag is used to specify the output file.
+Once we have run this command the file has been compiled to a \li{.o} file, but it still is not accessible in Python.
+Python, though it relies on C internally, needs some special interfaces to interact with \li{.o} files like this.
+Ctypes is designed to allow you to load these files directly and then specify the C variable types that must be passed to each function.
+We will demonstrate a similar approach using Cython.
+Since a Cython file compiles to C, then to a callable extension for Python, it can be used to interface with C code and other object files.
+We will use the following approach:
+\begin{itemize}
+
+\item Write a C header that specifies what the function is named and how it is called
+
+\item Write a Cython file that imports the header to its C file and defines a Python wrapper for C function to import.
+
+\item Compile the Cython file to C code.
+
+\item Compile the Cython file to a Python extension, giving it access to the the object file we are accessing and giving the compiler access to the proper header files.
+
+\end{itemize}
+
+An approach similar to this will work for some other types of \li{.o} files compiled from other languages as well.
+
+The header file that defines how to interface with the C function is very simple:
+
+\lstinputlisting[style=fromfile, language=C, name=ctridiag.h]{./ctridiag/ctridiag.h}
+
+We can now use this header file to tell Cython how to interact with the object file once it has been loaded.
+Here is a simple Cython file that defines a Python wrapper for the C function contained in the object file:
+
+\lstinputlisting[style=fromfile, language=Python, name=cython_ctridiag.pyx]{./ctridiag/cython_ctridiag.pyx}
+
+Now that we have the needed source files written, we can build the Python extension.
+On Windows, using the compiler MinGW (a version of gcc for windows), the compilation can be performed by running the following setup file.
+
+\lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_windows64.py]{./ctridiag/ctridiag_setup_windows64.py}
+
+The following file should work on Linux and Macintosh machines using gcc.
+
+\lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_linux.py]{./ctridiag/ctridiag_setup_linux.py}
+
+The \li{distutils} module in Python is designed to allow the compilation of Python extensions on different platforms with a single setup file.
+The following setup file uses \li{distutils} to compile the Cython file.
+It should run on Windows, Linux, or Macintosh based computers.
+This is a more standard way to build this sort of Cython extension.
+
+\lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_distutils.py]{./ctridiag/ctridiag_setup_distutils.py}
+
+This setup file can be called via command line using the command
+\begin{lstlisting}[style=ShellInput]
+Python ctridiag_setup_distutils.py build_ext --inplace
+\end{lstlisting}
+The \li{--inplace} flag tells the script to compile the extension in the current directory.
+
+Here is a simple script to test whether or not the compilation worked.
+
+\lstinputlisting[style=fromfile, language=Python, name=ctridiag_test.py]{./ctridiag/ctridiag_test.py}
+
+\begin{info}
+It is a good idea to test whether or not these compilations work using test scripts instead of doing it manually or in an IPython notebook since you may run into trouble when trying to build an extension that replaces a file currently in use.
+\end{info}
+
+\section*{Wrapping a Fortran Function}
+
+By making some small modifications to our original approach we can also use Cython to interface with functions that have been written in Fortran.
+Here we will consider a simple Fortran implementation of the same function as before.
+Here is that same algorithm implemented in Fortran.
+Since this function does not return a value, it is called a \li{subroutine} in Fortran.
+In this case we have used the \li{iso_c_binding} library in C to make the function accept pointers to native C types.
+If we were wrapping a function or subroutine that we did not write ourselves we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it recieves to call the original function.
+\lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
+
+We will now write a header that tells C how to interface with the function we have just defined.
+\begin{warn}
+When interfacing between Fortran and C, you will have to pass Fortran pointers to \emph{all} the variables you send to the function as arguments.
+Passing a variable directly will probably crash Python.
+\end{warn}
+Here is the file:
+\lstinputlisting[style=fromfile, language=C, name=ftridiag.h]{./ftridiag/ftridiag.h}
+
+To compile \li{ftridiag.f90} to an object file you can run the following command in your command line:
+\begin{lstlisting}[style=ShellInput]
+gfortran -c ftridiag.f90 -o ftridiag.o"
+\end{lstlisting}
+As before, if you are working on a linux of Macintosh based machine you will probably need to include the \li{-fPIC} flag as well.
+
+Aside from the small changes in the names used, the modified header file, and the use of gfortran instead of gcc, the rest of the compilation process is entirely the same.
+The test script that verifies that the function works properly is the same except that it will import the function from the moule \li{cython_ftridiag} instead.
+The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab but will not be displayed here.
+
+% Using C++ and Cython
+
+% Wrapping classes (focus on Cython, show a ctypes example if there's space)

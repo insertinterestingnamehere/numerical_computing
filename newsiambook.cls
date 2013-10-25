@@ -834,18 +834,18 @@
 %_%_%_%_%make list of algorithms
 %_%_%_%_%
 \newcommand*\l@algorithm{\@dottedtocline{1}{0pt}{84pt}}
-\newcommand\listofalgorithms{%
-    \if@twocolumn
-      \@restonecoltrue\onecolumn
-    \else
-      \@restonecolfalse
-    \fi
-    \chapter*{List of Algorithms
-      \@mkboth{{List of Algorithms}}%
-              {{List of Algorithms}}}%
-    \@starttoc{loa}%
-    \if@restonecol\twocolumn\fi
-    }
+% \newcommand\listofalgorithms{%
+%     \if@twocolumn
+%       \@restonecoltrue\onecolumn
+%     \else
+%       \@restonecolfalse
+%     \fi
+%     \chapter*{List of Algorithms
+%       \@mkboth{{List of Algorithms}}%
+%               {{List of Algorithms}}}%
+%     \@starttoc{loa}%
+%     \if@restonecol\twocolumn\fi
+%     }
 
 \newcounter{algorithm}[chapter]
 \renewcommand{\thealgorithm}{\arabic{chapter}.\arabic{algorithm}}
