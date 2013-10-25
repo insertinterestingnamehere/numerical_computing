@@ -1,243 +1,245 @@
-% TODO pick and choose parts of SIMD, MIMD etc... even though it doesn't really apply. ask jeremy about this- maybe include later?
-% TODO cite jeremy somehow? or is it good since he's in the list of contributors?
-% TODO Add something about how to get on supercomputer? I think you need to if you're on a mac...
-
-
-
-
-
-
 \lab{Algorithms}{An Introduction to Parallel Programming using MPI}{Introduction to Parallel Programming}
 \objective{Learn the basics of parallel computing on distributed memory machines using MPI for Python}
 \label{lab:MPI_Intro}
 
-
-
-  \section*{Why Parallel Computing?}
-
-    % TODO simplfy this into 1 paragraph:
-
-      % \section*{Flynn's Taxonomy}
-      % The original classification of parallel computers is popularly known as Flynn's taxonomy. In 1966, Michael Flynn classified systems according to the number of instruction streams and the number of data streams. The classical von Neumann machine has a single instruction stream and a single data stream, and hence is identified as a single-instruction single-data (SISD) machine. This basically translates into modern terms as one processor and one set of RAM. At the opposite extreme is the multiple-instruction multiple-data (MIMD) system, in which a collection of autonomous processors operate on their own data streams. In Flynn's taxonomy, this is the most general architecture.  Lying between these two extremes, are single-instruction multiple-data (SIMD) and multiple-instruction single-data (MISD) systems.
-
-      % The classical von Neumann machine is divided into a CPU and main memory. The CPU is further divided into a control unit and an arithmetic logic unit (ALU). Both data and program memory are stored in a separate memory area, and have to be moved to the CPU in order to do any computation. The wires used to transport the data and program are collectively referred to as the bus. The larger the bus, the more data can be transported simultaneously. Unfortunately, no matter how wide the bus, the CPU can only process one calculation at a time. The von Neumann Bottleneck is the limitation of transfer of data and instructions between memory and the CPU: no matter how fast we make our CPUs, the speed of execution is limited by the rate at which we can transfer information between main memory and the CPU.
-
-
-      % \subsection*{Piplining}
-      % The first solution to the von Neumann bottleneck was the idea of pipelining. Pipelining is the architecting of a computer and its program into functional units, such that calculations which do not depend on each other can be done concurrently. If the circuits of the CPU are split up, then in theory, the CPU can act like more than one CPU.
-
-
-      % \subsection*{SIMD Systems}
-      % A pure SIMD system has only one processor, or CPU, to control, and has many subordinate ALUs. With each instruction cycle, the CPU broadcasts a single instruction to all the subordinate processors, which either executed the instruction or is idle. For example, if we have two vectors of length 1000, we could theoretically add them by distributing their data among the ALUs, and concurrently processing the data. If 1000 is not evenly divisible by the number of ALU's, then some are going to have to process more data than the others. Thus, as the few ALUs with extra information to process are working, the other ALU's must sit idle, since they are receiving the same instructions from the master CPU.
-
-
-      % \subsection*{General MIMD}
-      % The main difference between MIMD and SIMD systems are that the MIMD systems consist of processors which are autonomous, or self-governing. Each process is a fully implemented CPU with its own program memory. Each processor is capable of executing its own program in its own space. It is like having completely separate computers, but which work together. Unlike SIMD systems, MIMD systems are asynchronous, meaning that there is no global clock issuing instructions at regular intervals across all processors anymore. This gives rise to greater flexibility in programming, and greater complexity to manage.
-
-    % TODO add in explanation/problems about what the max percent speedup when parallelizing various algorithms?
-    Over the past few dacades, vast increases in computational power have come through increased single processor performance, which have almost wholly been driven by smaller transistors. However, these faster transistors generate more heat, which destabilizes circuits. The so-called ``heat wall'' refers to the physical limits of single processors to become faster because of the growing inability to sufficiently dissapate heat.
-
-    To get around this physical limitation, parallel computing was born. It began, as with most things, in many different systems and styles, involving various systems. Some systems had shared memory between many processors and some systems had a separate program for each processor while others ran all the processors off the same base program.
-
-    Today, the most commonly used method for high performance computing is a single-program, multiple-data system with message passing. Essentially, these supercomputers are made up of many, many normal computers, each with their own memory. These normal computers are all running the same program and are able to communicate with each other. Although they all run the same program file, each process takes a different execution path through the code, as a result of the interactions that message passing makes possible.
-
-    Note that the commands being executed by process \emph{a} are going to be different from process \emph{b}. Thus, we could actually write two separate computer programs in different files to accomplish this. However, the most common method today has become to write both processes in a single program, using conditionals and techniques from the Message Passing Interface to control which lines of execution get assigned to which process.
-
-    This is a very different architecture than ``normal'' computers, and it requires a different kind of software. You can't take a traditional program and expect it to magically run faster on a supercomputer; you have to completely design a new algorithm to take advantage of the unique opportunities parallel computing gives.
-
-  \section*{MPI: the Message Passing Interface}
-    At its most basic, the Message Passing Interface (MPI) provides functions for sending and recieving messages between different processes.
-
-    MPI was developed out of the need for standardization of programming parallel systems. It is different than other approaches in that MPI does not specify a particular language. Rather, MPI specifies a \emph{library} of functions--the syntax and sematics of message passing routines--that can be called from other programming languages, such as Python and C. MPI provides a very powerful and very general way of expressing parallelism. It can be thought of as ``the assembly language of parallel computing,'' because of this generality and the detail that it forces the programmer to deal with\footnote{
-    Parallel Programming with MPI, by Peter S. Pacheco, p. 7
-    }. In spite of this apparent drawback, MPI is important because it was the \emph{first} portable and universally available standard for programming parallel systems and is the \emph{de facto} standard. That is, MPI makes it possible for programmers to develop portable, parallel software libraries, an extremely valuable contribution.
-    Until recently, one of the biggest problems in parallel computing was the lack of software. However, parallel software is growing faster thanks in large part to this standardization. 
-    %TODO "first" here doesn't make sense to me
-    % removed a footnote to ibid. p. 340 about MPI's signifigance (I got rid of the sentence right before the footnote too, so I think I'm good...)
-
-
-
-    \begin{problem}
-      Provide a concise definition of MPI.
-    \end{problem}
-
-    \begin{problem}
-      Most modern personal computers now have multicore processors. In order to take advantage of the extra available computational power, a single program must be specially designed. Programs that are designed for these multicore processors are also ``parallel'' programs, typically written using POSIX ® threads or openMP. MPI, on the other hand, is designed with a different kind of architecture in mind. How does the architecture of a system for which MPI is designed differ what POSIX ® threads or openMP is designed for? What is the difference between MPI and openMP or Pthreads?
-    \end{problem}
-
-    \begin{problem}
-      List two different implementations of MPI. (This was not covered in the text--You'll need to do some further research)
-    \end{problem}
-
-      % \begin{problem}
-      %   Determine what implementation of MPI is running on the machine you are using. (Note that \li{mpi4py} must be built on top an MPI distrubtion like MPICH or openMPI. What implementation is \li{mpi4py} built on top of on you machine?)
-      % \end{problem}
-
-
-  \section*{Why \emph{MPI for Python} (\li{mpi4py})?}
-    In general, parallel programming is much more difficult and complex than in serial. Python is an excellent language for algorithm design and for solving problems that don't require maximum performance. This makes Python great for prototyping and writing small to medium sized parallel programs. This is especially useful in parallel computing, where the code becomes especially complex. However, Python is not designed specifically for high performance computing and its parallel capabilities are still somewhat underdeveloped, so in practice it is better to write production code in fast, compiled languages, such as C or Fortran.
-
-    We use \li{mpi4py} because it retains most of the functionality of C implementations of MPI, making it a good learning tool since it will be easy to translate these programs to C later. There are three main differences to keep in mind between \li{mpi4py} and MPI in C:
-    \begin{itemize}
-      \item Python is array-based. C and Fortran are not.
-      \item \li{mpi4py} is object oriented. MPI in C is not.
-      \item \li{mpi4py} supports two methods of communication to implement each of the basic MPI commands. They are the upper and lower case commands (e.g. \li{Bcast(...)} and \li{bcast(...)}). The uppercase implementations use traditional MPI datatypes while the lower case use Python's pickling method. Pickling offers extra convenience to using \li{mpi4py}, but the traditional method is faster. In these labs, we will only use the uppercase functions
-    \end{itemize}
-
-
-  \section*{Introduction to MPI}
-    \textbf{TODO add installation guide. Basically, download the appropriate version of mpi4py from here: \url{http://www.lfd.uci.edu/~gohlke/pythonlibs/\#mpi4py}}
-
-    As tradition has it, we will start with a Hello World program:
-
-    \begin{lstlisting}
-      #hello.py
-      from mpi4py import MPI
-
-      COMM = MPI.COMM_WORLD
-      RANK = COMM.Get_rank()
-
-      print "Hello world! I'm process number {RANK}.".format(**locals())
-    \end{lstlisting}
-
-    Save this program as \texttt{hello.py} and execute it from the command line as follows:
-
-    \begin{verbatim}
-      $ mpirun -n 5 python hello.py
-    \end{verbatim}
-    (If you're using a machine running on Windows, you may have to use
-    \begin{verbatim}
-      $ mpirun -n 5 python.exe hello.py
-    \end{verbatim}
-    instead.)
-    % TODO expand here; getting this to work on everyone's computers will be nontrivial
-
-    The program should output something like this:
-
-    \begin{lstlisting}
-      Hello world! I'm process number 3.
-      Hello world! I'm process number 2.
-      Hello world! I'm process number 0.
-      Hello world! I'm process number 4.
-      Hello world! I'm process number 1.
-    \end{lstlisting}
-
-    Notice that when you try this on your own, the lines will not necessarily print in order. This is because there will be five separate processes running autonomously, and we cannot know beforehand which one will execute its \li{print} statement first.
-    % TODO expand Talk about how the output gets all mixed together on my CPU- why does this happen? It didn't happen on some other people's cpus
-
-    \emph{Warning:}
-    It is usually bad practice to perform I/O (e.g., call \li{print}) from any process besides the root process, though it can oftentimes be a useful tool for debugging.
-    % TODO implement this somewhere:
-      % (for more information see the chapter {\hyperref[IOandDebugging:ioanddebugging]{\emph{I/O, Debugging, and Performance}}}).
-      % Probably distribute our [small] library of parallel utilities (includes ordered_print() )
-
-    \section*{Execution}
-    How does this program work? As mentioned above, \li{mpi4py} programs are follow the single-program multiple-data paradigm, and therefore each process will run the same code a bit differently. When we execute 
-    \begin{verbatim}
-      $ mpirun -n 5 python hello.py
-    \end{verbatim}
-    a number of things happen:
-
-    First, the mpirun program is launched. This is the program which starts MPI, a wrapper around whatever program you to pass into it. The ``-n 5'' option specifies the desired number of processes. In our case, 5 processes are run, with each one being an instance of the program ``python''. To each of the 5 instances of python, we pass the argument ``hello.py'' which is the name of our program's text file, located in the current directory. Each of the five instances of python then opens the \texttt{hello.py} file and runs the same program. The difference in each process's execution environment is that the processes are given different ranks in the communicator. Because of this, each process prints a different number when it executes.
-
-    MPI and Python combine to make wonderfully succinct source code. In the above program, the line \li{from mpi4py import MPI} loads the MPI module from the \li{mpi4py} package. The line \li{COMM = MPI.COMM_WORLD} accesses a static communicator object, which represents a group of processes which can communicate with each other via MPI commands.
-
-      % In each of the processes, the line \li{RANK = COMM.Get_rank()} gets the ``rank'' or id of that process within the global communicator. Each process will be assigned a unique rank between 0 and \li{SIZE-1}, where \li{SIZE} is the total number of processes.
-
-    The next line, \li{RANK = COMM.Get_rank()}, is where things get interesting. A ``rank'' is the process's id within a communicator, and they are essential to learning about other processes. When the program mpirun is first executed, it creates a global communicator and stores it in the variable \li{MPI.COMM_WORLD}. One of the main purposes of this communicator is to give each of the five processes a unique identifier, or ``rank''. When each process calls \li{COMM.Get_rank()}, the communicator returns the rank of that process. \li{RANK} points to a local variable, which is unique for every calling process because each process has its own separate copy of local variables. This gives us a way to distinguish different processes while writing all of the source code for the five processes in a single file.
-
-    In more advanced MPI programs, you can create your own communicators, which means that any process can be part of more than one communicator at any given time. In this case, the process will likely have a different rank within each communicator.
-    
-
-    Here is the syntax for \li{Get_size()} and \li{Get_rank()}, where \li{Comm} is a communicator object:
-
-      \begin{description}
-      \item[Comm.Get\_size()]
-        Returns the number of processes in the communicator. It will return the same number to every process.
-        Parameters:
-        \begin{description}
-          \item[Return value] - the number of processes in the communicator
-          \item[Return type] - integer
-        \end{description}
-        Example:
-          \begin{lstlisting}
-              #Get_size_example.py
-              from mpi4py import MPI
-              SIZE = MPI.COMM_WORLD.Get_size()
-              print "The number of processes is {SIZE}.".format(**locals())
-          \end{lstlisting}
-      \item[Comm.Get\_rank()]
-        Determines the rank of the calling process in the communicator.
-        Parameters:
-        \begin{description}
-          \item[Return value] - rank of the calling process in the communicator
-          \item[Return type] - integer
-        \end{description}
-        Example:
-          \begin{lstlisting}
-              #Get_rank_example.py
-              from mpi4py import MPI
-              RANK = MPI.COMM_WORLD.Get_rank()
-              print "My rank is {RANK}.".format(**locals())
-          \end{lstlisting}
-      \end{description}
-
-
-
-    \begin{problem}
-        Write the ``Hello World'' program from above so that every process prints out its rank and the size of the communicator (for example, process 3 on a communicator of size 5 prints ``Hello World from process 3 out of 5!'').
-    \end{problem}
-
-
-  \section*{The Communicator}
-    A communicator is a logical unit that defines which processes are allowed to send and receive messages. In most of our programs we will only deal with the \li{MPI.COMM_WORLD} communicator, which contains all of the running processes. In more advanced MPI programs, you can create custom communicators to group only a small subset of the processes together. By organizing processes this way, MPI can physically rearrange which processes are assigned to which CPUs and optimize your program for speed. Note that within two different communicators, the same process will most likely have a different rank.
-      % ASK Talk to jeremy about this- wording of "global comm", "dif ranks" etc. Also, put this here or at "tag comm"?
-
-
-    % <fold helper>
-
-      % \subsection*{Intracommunicators and Intercommunicators}
-      % Intracommunicators are the most commonly used form of communicator in MPI. Each intracommunicator contains a set of processes, each of which is identified by its ``rank'' within the communicator. The ranks are numbered 0 through \code{Size-1}. Any process in the communicator can send a message to another process within the communicator or receive a message from any other process in the communicator. Intracommunicators also support a variety of collective operations that involve all of the processes in the communicator. Most MPI communication occurs within intracommunicators. Intercommunicators provide a sophisticated method of implementing complex communications, but very few MPI programs require them.
-      % include? I don't remember this from boot camp
-
-
-      % The hierarchy of communicators is shown in the figure below {\hyperref[introMPI:commhier]{\emph{The Hierarchy of Communicators}}}. In this document we will focus on intracommunicator communication.
-      % \begin{figure}[htbp]
-      % \centering
-      % \capstart
-
-      % \includegraphics{commHier.png}
-      % \caption{The Hierarchy of Communicators}\label{introMPI:commhier}\end{figure}
-
-
-
-    Note that one of the main differences between \li{mpi4py} and MPI in C or Fortan, besides being array-based, is that \li{mpi4py} is largely object oriented. Because of this, there are some minor changes between the mpi4py implementation of MPI and the official MPI specification.
-    
-    For instance, the MPI Communicator in \li{mpi4py} is a Python class and MPI functions like \li{Get_size()} or \li{Get_rank()} are instance methods of the communicator class. Throughout these MPI labs, you will see functions like \li{Get_rank()} presented as \li{Comm.Get_rank()} where it is implied that \li{Comm} is a communicator object.
-    % TODO learn how to use MPI in C better to make sure this is accurate 
-
-  \section*{Seperate Codes in One File}
-    When an MPI program is run, each process receives the same code. However, each process is assigned a different rank, allowing us to specify separate behaviors for each process. In the following code, all processes are given the same two numbers. However, though there is only one file, 3 processes are given completely different instructions for what to do with them. Process 0 sums them, process 1 multiplies them, and process 2 takes the maximum of them:
-
-    \begin{lstlisting}
-      #separateCode.py
-      from mpi4py import MPI
-      RANK = MPI.COMM_WORLD.Get_rank()
-
-      a = 2
-      b = 3
-      if RANK == 0:
-        print a + b
-      elif RANK == 1:
-        print a*b
-      elif RANK == 2:
-        print max(a, b)
-    \end{lstlisting}
-
-    \begin{problem}
-        Write a program in which the the processes with even rank print ``Hello'' and process with odd rank print ``Goodbye.'' Print the process number along with the ``Hello'' or ``Goodbye'' (for example, ``Goodbye from process 3'').
-    \end{problem}
-
-    \begin{problem}
-      Sometimes the program you write can only run correctly if it has a certain number of processes. Although you typically want to avoid writing these kinds of programs, sometimes it is inconvenient or unavoidable. Write a program that runs only if it has 5 processes. Upon failure, the root node should print ``Error: This program must run with 5 processes'' and upon success the root node should print ``Success!'' To exit, call the function \li{COMM.Abort()}.
-    \end{problem}
+\section*{Why Parallel Computing?}
+Over the past few decades, vast increases in computational power have come through 
+increased single processor performance, which have almost wholly been driven by smaller transistors.
+However, these faster transistors generate more heat, which destabilizes circuits. 
+The so-called ``heat wall'' refers to the physical limits of single processors to 
+become faster because of the growing inability to sufficiently dissipate heat.
+
+To get around this physical limitation, parallel computing was born.
+It began, as with most things, in many different systems and styles, involving various systems. 
+Some systems had shared memory between many processors and some systems had a separate 
+program for each processor while others ran all the processors off the same base program.
+
+Today, the most commonly used method for high performance computing is a single-program,
+multiple-data system with message passing. 
+Essentially, these supercomputers are made up of many, many normal computers, each with their own memory. 
+These normal computers are all running the same program and are able to communicate with each other. Although they all run the same program file, each process takes a different execution path through the code, as a result of the interactions that message passing makes possible.
+
+Note that the commands being executed by process \emph{a} are going to be different 
+from process \emph{b}. Thus, we could actually write two separate computer programs 
+in different files to accomplish this. 
+However, the most common method today has become to write both processes in a single program, 
+using conditionals and techniques from the Message Passing Interface to control which 
+lines of execution get assigned to which process.
+
+This is a very different architecture than ``normal'' computers, and it requires a 
+different kind of software. You can't take a traditional program and expect it to 
+magically run faster on a supercomputer; you have to completely design a new algorithm 
+to take advantage of the unique opportunities parallel computing gives.
+
+\section*{MPI: the Message Passing Interface}
+At its most basic, the Message Passing Interface (MPI) provides functions for sending 
+and receiving messages between different processes.
+
+MPI was developed out of the need for standardization of programming parallel systems. 
+It is different than other approaches in that MPI does not specify a particular language. 
+Rather, MPI specifies a library of functions--the syntax and semantics of message passing routines--that can be called from other programming languages, 
+such as Python and C. MPI provides a very powerful and very general way of expressing parallelism. 
+It can be thought of as ``the assembly language of parallel computing,'' because of this 
+generality and the detail that it forces the programmer to deal with
+\footnote{Parallel Programming with MPI, by Peter S. Pacheco, p. 7}.
+In spite of this apparent drawback, MPI is important because it was the first portable, 
+universally available standard for programming parallel systems and is the \emph{de facto} standard. 
+That is, MPI makes it possible for programmers to develop portable, parallel software libraries,
+an extremely valuable contribution.
+Until recently, one of the biggest problems in parallel computing was the lack of software. 
+However, parallel software is growing faster thanks in large part to this standardization. 
+
+\begin{problem}
+Most modern personal computers now have multicore processors. 
+In order to take advantage of the extra available computational power, a single program must be specially designed. 
+Programs that are designed for these multicore processors are also ``parallel'' programs, typically written using POSIX threads or OpenMP.
+MPI, on the other hand, is designed with a different kind of architecture in mind. 
+How does the architecture of a system for which MPI is designed differ what POSIX threads or OpenMP is designed for? 
+What is the difference between MPI and OpenMP or Pthreads?
+\end{problem}
+
+\section*{Why MPI for Python?}
+In general, parallel programming is much more difficult and complex than in serial. 
+Python is an excellent language for algorithm design and for solving problems that 
+don't require maximum performance. 
+This makes Python great for prototyping and writing small to medium sized parallel programs. 
+This is especially useful in parallel computing, where the code becomes especially complex. 
+However, Python is not designed specifically for high performance computing and its 
+parallel capabilities are still somewhat underdeveloped, so in practice it is better 
+to write production code in fast, compiled languages, such as C or Fortran.
+
+We use a Python library, mpi4py, because it retains most of the functionality of 
+C implementations of MPI, making it a good learning tool since it will be easy to 
+translate these programs to C later. 
+There are three main differences to keep in mind between mpi4py and MPI in C:
+\begin{itemize}
+    \item Python is array-based. C and Fortran are not.
+    \item mpi4py is object oriented. MPI in C is not.
+    \item mpi4py supports two methods of communication to implement each of the basic MPI commands. 
+    They are the upper and lower case commands (e.g. \li{Bcast(...)} and \li{bcast(...)}). 
+    The uppercase implementations use traditional MPI datatypes while the lower case use 
+    Python's pickling method. Pickling offers extra convenience to using mpi4py, 
+    but the traditional method is faster. In these labs, we will only use the uppercase functions.
+\end{itemize}
+
+
+\section*{Introduction to MPI}
+As tradition has it, we will start with a Hello World program.
+\lstinputlisting[style=fromfile]{hello.py}
+Save this program as \texttt{hello.py} and execute it from the command line as follows:
+\begin{lstlisting}[style=ShellInput]
+$ mpirun -n 5 python hello.py
+\end{lstlisting}
+The program should output something like this:
+\begin{lstlisting}[style=ShellOutput]
+Hello world! I'm process number 3.
+Hello world! I'm process number 2.
+Hello world! I'm process number 0.
+Hello world! I'm process number 4.
+Hello world! I'm process number 1.
+\end{lstlisting}
+Notice that when you try this on your own, the lines will not necessarily print in order. 
+This is because there will be five separate processes running autonomously, and we cannot 
+know beforehand which one will execute its \li{print} statement first.
+
+\begin{warn}
+It is usually bad practice to perform I/O (e.g., call \li{print}) from any process 
+besides the root process, though it can oftentimes be a useful tool for debugging.
+\end{warn}
+
+\section*{Execution}
+How does this program work? As mentioned above, mpi4py programs are follow the single-program 
+multiple-data paradigm, and therefore each process will run the same code a bit differently. 
+When we execute 
+\begin{lstlisting}[style=ShellInput]
+$ mpirun -n 5 python hello.py
+\end{lstlisting}
+a number of things happen:
+
+First, the mpirun program is launched. 
+This is the program which starts MPI, a wrapper around whatever program you to pass into it. 
+The ``-n 5'' option specifies the desired number of processes. 
+In our case, 5 processes are run, with each one being an instance of the program ``python''. 
+To each of the 5 instances of python, we pass the argument ``hello.py'' which is the name of our program's text file, 
+located in the current directory. Each of the five instances of python then opens the 
+\texttt{hello.py} file and runs the same program. 
+The difference in each process's execution environment is that the processes are given 
+different ranks in the communicator. Because of this, each process prints a different 
+number when it executes.
+
+MPI and Python combine to make wonderfully succinct source code. 
+In the above program, the line \li{from mpi4py import MPI} loads the MPI module from the mpi4py package.
+The line \li{COMM = MPI.COMM_WORLD} accesses a static communicator object, which represents a group of processes which can communicate with each other via MPI commands.
+
+The next line, \li{RANK = COMM.Get_rank()}, is where things get interesting. 
+A ``rank'' is the process's id within a communicator, and they are essential to learning 
+about other processes. When the program mpirun is first executed, it creates a 
+global communicator and stores it in the variable \li{MPI.COMM_WORLD}. 
+One of the main purposes of this communicator is to give each of the five processes a 
+unique identifier, or ``rank''. When each process calls \li{COMM.Get_rank()}, 
+the communicator returns the rank of that process. 
+\li{RANK} points to a local variable, which is unique for every calling process 
+because each process has its own separate copy of local variables. 
+This gives us a way to distinguish different processes while writing all of the source code 
+for the five processes in a single file.
+
+In more advanced MPI programs, you can create your own communicators, which means that 
+any process can be part of more than one communicator at any given time. 
+In this case, the process will likely have a different rank within each communicator.
+
+
+Here is the syntax for \li{Get_size()} and \li{Get_rank()}, where \li{Comm} is a communicator object:
+\begin{description}
+\item[Comm.Get\_size()]
+Returns the number of processes in the communicator. It will return the same number to every process.
+Parameters:
+\begin{description}
+    \item[Return value] - the number of processes in the communicator
+    \item[Return type] - integer
+\end{description}
+Example:
+\begin{lstlisting}
+#Get_size_example.py
+from mpi4py import MPI
+SIZE = MPI.COMM_WORLD.Get_size()
+print "The number of processes is {SIZE}.".format(**locals())
+\end{lstlisting}
+\item[Comm.Get\_rank()]
+Determines the rank of the calling process in the communicator.
+Parameters:
+\begin{description}
+    \item[Return value] - rank of the calling process in the communicator
+    \item[Return type] - integer
+\end{description}
+Example:
+\begin{lstlisting}
+#Get_rank_example.py
+from mpi4py import MPI
+RANK = MPI.COMM_WORLD.Get_rank()
+print "My rank is {RANK}.".format(**locals())
+\end{lstlisting}
+\end{description}
+
+\begin{problem}
+Write the ``Hello World'' program from above so that every process prints out its 
+rank and the size of the communicator 
+(for example, process 3 on a communicator of size 5 prints ``Hello World from process 3 out of 5!'').
+\end{problem}
+
+\section*{The Communicator}
+A communicator is a logical unit that defines which processes are allowed to 
+send and receive messages. In most of our programs we will only deal with the \li{MPI.COMM_WORLD} 
+communicator, which contains all of the running processes. 
+In more advanced MPI programs, you can create custom communicators to group only a small 
+subset of the processes together. By organizing processes this way, MPI can 
+physically rearrange which processes are assigned to which CPUs and optimize your 
+program for speed. Note that within two different communicators, the same process 
+will most likely have a different rank.
+
+Note that one of the main differences between mpi4py and MPI in C or Fortran, 
+besides being array-based, is that mpi4py is largely object oriented. 
+Because of this, there are some minor changes between the mpi4py implementation of 
+MPI and the official MPI specification.
+
+For instance, the MPI Communicator in mpi4py is a Python class and MPI functions 
+like \li{Get_size()} or \li{Get_rank()} are instance methods of the communicator class. 
+Throughout these MPI labs, you will see functions like \li{Get_rank()} presented as 
+\li{Comm.Get_rank()} where it is implied that \li{Comm} is a communicator object.
+
+\section*{Separate Codes in One File}
+When an MPI program is run, each process receives the same code. 
+However, each process is assigned a different rank, allowing us to specify separate 
+behaviors for each process. In the following code, all processes are given the same two numbers. 
+However, though there is only one file, 3 processes are given completely different instructions 
+for what to do with them. Process 0 sums them, process 1 multiplies them, 
+and process 2 takes the maximum of them:
+\begin{lstlisting}
+#separateCode.py
+from mpi4py import MPI
+RANK = MPI.COMM_WORLD.Get_rank()
+
+a = 2
+b = 3
+if RANK == 0:
+print a + b
+elif RANK == 1:
+print a*b
+elif RANK == 2:
+print max(a, b)
+\end{lstlisting}
+
+\begin{problem}
+Write a program in which the the processes with an even rank print ``Hello'' and 
+process with an odd rank print ``Goodbye.'' 
+Print the process number along with the ``Hello'' or ``Goodbye'' 
+(for example, ``Goodbye from process 3'').
+\end{problem}
+
+\begin{problem}
+Sometimes the program you write can only run correctly if it has a certain number of processes. 
+Although you typically want to avoid writing these kinds of programs, sometimes it is 
+inconvenient or unavoidable. Write a program that runs only if it has 5 processes. 
+Upon failure, the root node should print ``Error: This program must run with 5 processes'' 
+and upon success the root node should print ``Success!'' To exit, call the function 
+\li{COMM.Abort()}.
+\end{problem}
