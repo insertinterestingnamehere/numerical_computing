@@ -38,7 +38,7 @@ def LU_inplace(A):
     this same as the LU function above, just replace the 
     L's and U's by A. Also, we need to make sure to not
     set the value of entries below the main diagonal twice.
-    ''
+    '''
     for j in xrange(A.shape[0]-1):
         for i in xrange(j+1, A.shape[0]):
 			# change to L
