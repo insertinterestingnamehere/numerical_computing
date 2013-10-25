@@ -33,7 +33,7 @@ def Problem2():
         n3 -- array giving the stable fixed point if exists, or None
     '''
     A = np.array([[1./4, 1./3, 1./2], [1./4, 1./3, 1./3], [1./2, 1./3, 1./6]])
-    n2 = A.dot(A)[0,1]
+    n2 = A.dot(A)[1,0]
     n3 = la.matrix_power(A, 20)[:,0]
     return A, n2, n3
 
