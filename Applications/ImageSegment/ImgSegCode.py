@@ -1,8 +1,8 @@
 #Applications: Image Segmentation
 
-def imgAdj(img,radius, sigmaI, sigmaX):
+def imgAdj(img, radius, sigmaI, sigmaX):
     nodes = img.flatten()
-    height,width=img.shape
+    height, width = img.shape
     W = spar.lil_matrix((nodes.size, nodes.size), dtype=float)
     
     #Here we generate the values that go into the adjacency matrix W.  For the most part we don't have to worry to 

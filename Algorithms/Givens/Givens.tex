@@ -1,35 +1,36 @@
 \lab{Algorithms}{Givens rotations}{Givens rotations}
 \objective{Use orthogonal transformations to perform QR decomposition.}
+\label{lab:givens}
 
-The matrix $\begin{pmatrix} cos(\theta) & -sin(\theta) \\ sin(\theta) & cos(\theta) \end{pmatrix}$ rotates a vector counterclockwise by $\theta$. Given a vector $x = \begin{pmatrix} a \\ b \end{pmatrix}$, we can rotate $x$ into the range of $e_1$ by choosing the correct $\theta$. The problem is equivalent to solving for $c = cos(\theta)$ and $s = sin(\theta)$ in the system
-\begin{equation}
-\label{eq:Givens rotation system}
-\begin{pmatrix} c & -s \\ s & c \end{pmatrix} \begin{pmatrix}a\\b\end{pmatrix} 
-= \begin{pmatrix}r\\0\end{pmatrix}
-\end{equation}
- In fact, it's not necessary to compute $\theta$; we solve for $c$ and $s$ directly. An obvious solution is $c = \frac{a}{\sqrt{a^2 + b^2}}$ and $s = \frac{-b}{\sqrt{a^2+b^2}}$.
+In Lab \ref{lab:Canonical Transformations} we discussed how to form the QR decomposition of a matrix using a series of householder reflectors.
+The general approach was to apply a series of orthogonal transformations to a given matrix to transform it into upper triangular form.
+This same approach can be applied using rotations instead of reflections.
 
-\section*{Givens triangularization}
+The matrix $\begin{pmatrix}\ cos \theta & - \sin \theta \\ \sin \theta & \cos \theta \end{pmatrix}$ rotates a vector counterclockwise by $\theta$.
+Given a vector $x = \begin{pmatrix} a \\ b \end{pmatrix}$, we can rotate $x$ into the span of $e_1$ by choosing the correct $\theta$.
+This zeros out the entry containing $b$.
+We could do this by finding the angle between $\begin{pmatrix} a \\ b \end{pmatrix}$ and the axis containing $b$ then rotating the vector by the negative of that angle.
+In order to avoid computations involving $\sin$ and $\arcsin$ at each iteration we can just solve for $\sin \theta $ and $\cos \theta$ using the pythagorean theorem instead of explicitly computing $\theta$.
+Such an approach gives us the result that $\cos \theta = \frac{a}{\sqrt{a^2 + b^2}}$ and $\sin \theta = \frac{- b}{\sqrt{a^2 + b^2}}$.
+The transformed image of $\begin{pmatrix} a \\ b \end{pmatrix}$ is then $\begin{pmatrix} \sqrt{a^2 + b^2} \\ 0 \end{pmatrix}$.
 
-Like Householder, the Givens $QR$ algorithm, \emph{triangularizes} a matrix $A$ using \emph{orthogonal transformations}. The Householder $QR$ algorithm worked one column at a time; Givens works one element at a time. Each nonzero below the main diagonal can be zeroed out with a Givens rotation. If we solve for $c$ and $s$ as above, the matrix
+The application of such a rotation to any two rows of a matrix $A$ is an orthonormal transform.
+Such a transformation can be represented in matrix form, where $c = \cos \theta$ and $s = \sin \theta$, like this:
 \begin{equation*}
-G(i,j,c,s) = 
 \begin{pmatrix}
-1   & \cdots & 0 & \cdots & 0 & \cdots & 0 \\
- \vdots & \ddots & \vdots &  & \vdots & & \vdots \\
-0   & \cdots &    c   & \cdots &    -s   & \cdots &    0   \\
- \vdots &        & \vdots & \ddots & \vdots &        & \vdots \\
- 0   & \cdots &   s   & \cdots &    c   & \cdots &    0   \\
-\vdots &        & \vdots &        & \vdots & \ddots & \vdots \\
-0   & \cdots &    0   & \cdots &    0   & \cdots &    1 
+I & 0 & 0 & 0 & 0 \\
+0 & c & 0 & -s & 0 \\
+0 & 0 & I & 0 & 0 \\
+0 & s & 0 & c & 0 \\
+0 & 0 & 0 & 0 & I
 \end{pmatrix}
 \end{equation*}
-where
-\[ \begin{array}{ll}
-g_{i\, i} = c  & g_{j\, i}= -s   \\
-g_{j\, j} = c &  g_{i\, j}= s  \\
-\end{array}\]
-rotates by $\theta$ in the $i,j$ plane. Also, it's easy to check that $G(i,j,c,s)$ is orthogonal. Left-multiplying $A$ by $G(i,j,c,s)$ zeroes out $A_{i\, j}$. For example, 
+In actual computation, we \emph{do not} actually form such a large matrix at each step.
+Instead we apply the transformation to the two rows we want to change and then leave the rest of the matrix unchanged.
+Proceeding in this manner we can zero out each entry of any matrix below its main diagonal, resulting in a QR factorization.
+For an example, consider some matrix $A$.
+Let $G \left( i, j, k \right)$ denote the Givens rotation that will zero out $A \left[ j, k \right]$ by rotation with row $i$ of $A$.
+We can zero out the entries below the main diagonal of A as follows:
 
 \[
 \begin{array}{ccccccc}
@@ -39,21 +40,21 @@ rotates by $\theta$ in the $i,j$ plane. Also, it's easy to check that $G(i,j,c,s
 *&*&*
 \end{pmatrix}
 &
-\underrightarrow{G(3,1)}
+\underrightarrow{G(1,2,0)}
 &\begin{pmatrix}
 *&*&*\\
 *&*&*\\
 0&*&*
 \end{pmatrix}
 &
-\underrightarrow{G(2,1)}
+\underrightarrow{G(0,1,0)}
 &\begin{pmatrix}
 *&*&*\\
 0&*&*\\
 0&*&*
 \end{pmatrix}
 &
-\underrightarrow{G(3,2)}
+\underrightarrow{G(1,2,1)}
 &\begin{pmatrix}
 *&*&*\\
 0&*&*\\
@@ -62,14 +63,147 @@ rotates by $\theta$ in the $i,j$ plane. Also, it's easy to check that $G(i,j,c,s
 \end{array}
 \]
 
-The Givens QR method is often slower than Householder, because it works one element at a time. But it is faster than Householder when $A$ is sparse, and it is very parallelizable.
+Here is an outline for the algorithm.
+Let $A$ be the array passed to the function.
+
+\begin{comment}
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{Givens Triangularization}{$A$}
+\State $R \gets \text{copy}(A)$
+\State $Q \gets I_A$
+\State $G \gets \text(empty)(2,2)$
+\For{each column}
+    \For{each row below the main diagonal}
+        \If{leading element is not zero}
+            \State Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it
+            \State Use $c$ and $s$ to construct the matrix $G$
+            \State Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
+                Multiply it in place by $G$ to zero out the leading nonzero entry of the current row.
+            \State Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well.
+                (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
+        \EndIf
+    \EndFor
+\EndFor
+\State \pseudoli{return} $Q^T, R$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\end{comment}
+
+\begin{itemize}[$\bullet$]
+
+\item Make $R$ a copy of $A$ and $Q$ an identity array of the appropriate size.
+
+\item Make an empty $2 \times 2$ array $G$ that will be used to apply the Givens rotations.
+
+\item For each column:
+
+  \begin{itemize}[$\bullet$]
+
+  \item For each row below the main diagonal (starting at the bottom of the column):
+
+    \begin{itemize}[$\bullet$]
+
+    \item If the leading entry of this row is not zero (i.e. if its absolute value is within a given tolerance):
+
+      \begin{itemize}[$\bullet$]
+
+      \item Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it.
+
+      \item Use $c$ and $s$ to construct the matrix $G$.
+
+      \item Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
+      Multiply it in place by $G$ to zero out the leading nonzero entry of the current row.
+
+      \item Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well. (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
+
+      \end{itemize}
+
+    \end{itemize}
+
+  \end{itemize}
+
+\item Return $Q^T$ and $R$.
+
+\end{itemize}
+
+This version of the algorithm is not the most well-optimized way to use Givens rotations, but it is good for illustrative purposes.
+
+Because Givens rotations only operate on two specific rows at a time, they give us a variety of ways to iterate over an array we are processing.
+For example, using Givens rotations you could, starting at the bottom of each column and continuing up until you reach the main diagonal, zero out each entry by applying a Givens rotation to each row and the row immediately above it.
+Alternatively, within each column, you could could zero out the first entry of each row below the main diagonal by rotating it with the row corresponding to the main diagonal.
+Yet another way to do it would be to start at the bottom left corner of the matrix and then zero out each entry from left to right along each diagonal.
+This flexibility is what makes the use of Givens rotations ideal for some problems.
+When working with sparse matrices, Givens rotations allow for the solution of linear systems through a series of orthonormal operations that operate only on small parts of the array.
+The fact that Givens rotations operate only on small portions of the array also lends well to parallel solutions to systems of equations (or least squares problems).
+They allow for the sort of flexibility we had when using Gaussian elimination while still maintaining the favorable stability that comes with using orthonormal transformations.
+
+While Givens rotations do allow for greater flexibility, they also require a greater number of floating point operations than Householder reflections.
+In general, the operation count for computing the QR factorization for an $m \times n$ matrix is $3 n^2 \left( m - \frac{n}{3} \right)$.
+% Accuracy and Stability of Numerical Algorithms, Nicholas J. Higham
+There are modified versions of the Givens QR algorithm that use ``fast Givens rotations" which decrease the number of multiplications and square roots needed for the application of each Givens rotation.
+% Fast Plane Rotations With Dynamic Scaling, Anda and Park, SIAM, 1994
+It allows for the use of Givens rotations while requiring roughly the same number of floating point operations used by the Householder QR algorithm.
+In practice, these methods are still not quite as fast as the Householder algorithm.
+In spite of the need for more floating point operations, Givens rotations are still well suited for parallelization and can be much faster than the Householder algorithm when multiple processors are used.
+% Givens and Householder Reductions for Linear Least Squares on a Cluster of Workstations, Omer Egecioglu and Ashok Srinivasan
 
 \begin{problem}
-Write a script that uses Givens rotations to do $QR$ decomposition. By performing successive Givens rotations, triangularize $A$ to find $R$. You can find $Q$ using the chain of rotations.
-
-To find each rotation, you will have to solve \eqref{eq:Givens rotation system} for $c$ and $s$. Let $b$ be the element you want to zero out, say $A_{i\,j}$. Then $a$ is in the same \emph{column} as $b$, and in the \emph{row} you want to rotate into (it's like we're squishing the whole vector into $a$'s spot.) You can choose $a$ to be the diagonal element above $b$.
+\label{prob:Givens}
+Write a function called \li{givens} that uses Givens rotations to compute the $QR$ decomposition of
+a matrix $A$.
+By performing successive Givens rotations, triangularize $A$ to find $R$.
+Apply the rotations to an identity matrix as you go, then take the transpose to invert it and find $Q$.
+Return $Q$ and $R$.
 \end{problem}
 
-\begin{problem} 
-Compare the MGS, Householder, and Givens algorithms for $QR$ decomposition on various matrices. Try different sizes and different levels of sparsity. Which is the fastest? Which is the most stable?
+We will now illustrate one example of how to use Givens rotations to change only specific parts of the array.
+
+\begin{problem}
+\label{prob:givens_hessenberg}
+Write a modified version of your solution to Problem \ref{prob:Givens}, call it \li{givens2} that computes the 
+QR decomposition of an upper Hessenberg matrix.
+Instead of starting at the bottom of each column and working up, just run down the first subdiagonal from left to right.
+When operating on $Q$, you do not need to operate on the full length of each row.
+It is sufficient to perform the matrix multiplication on the portion of the array \li{Q[j:j+2,:j+2]} where \li{j} is the current column.
+
+Note: You can zero out the portion below the first subdiagonal of a matrix like this:
+\begin{lstlisting}
+import numpy as np
+import scipy.linalg as la
+from numpy.random import rand
+A = rand(500, 500)
+A[1:] = la.triu(A[1:])
+\end{lstlisting}
+
+Notice how $Q$ in the QR decomposition of an upper Hessenberg matrix is also upper Hessenberg.
+What is the computational order of  complexity for this problem?
+Approximately for what $m$ is your implementation as fast as the general QR decomposition built in to \li{scipy.linalg} for computing the QR decomposition of an upper Hessenberg matrix?
 \end{problem}
+
+\begin{problem}
+\label{prob:givens_hessenberg_modified}
+You may have noticed that matrix multiplication by $Q$ is generally a $\mathcal{O} \left( n^3 \right)$ algorithm, while the application of these individual Givens rotations is a $\mathcal{O} \left( n^2 \right)$ algorithm.
+Write a modified version of your solution to Problem \ref{prob:givens_hessenberg} called \li{givens2_mod} which returns 
+an $(n-1) \times 2 \times 2$ array containing the computed values for $G$ at each step in the algorithm in the order in which they are applied to the upper Hessenberg array $H$.
+
+Write two more functions \li{apply_Q} and \li{apply_QT} which, using the matrix of Givens rotations, perform left multiplication 
+by $Q$ and $Q^{-1}$, respectively, on some other input array $B$.
+Left multiplication by $Q^{-1}$ can be done by applying each of the Givens rotations to $B$ the same way you did to $H$ to compute its QR factorization.
+Left multiplication by $Q$ can be done by applying the transpose of the Givens rotations to their corresponding portions of $B$, but in the reverse order.
+Notice that you will have to apply each Givens rotation across the full width of the rows it operates on since you do not know anything about the content of $B$.
+
+For around what size of matrices is direct multiplication by $Q$ slower than this method of multiplying by $Q$?
+For timing purposes, make a random upper Hessenberg matrix, compute its QR decomposition using the function you just wrote and your solution to Problem \ref{prob:givens_hessenberg}, then time how long it takes to left multiply a random square array by $Q$ using the function you just wrote and the \li{dot} method of NumPy arrays.
+
+Note: the functions you just wrote can be used to perform right multiplication as well since $B Q = \left(Q^T B^T \right)^T$ and $B Q^T = \left( Q B^T \right)^T$.
+\end{problem}
+
+An interesting side-note is that each Givens rotation can be represented as a single floating point number, so, when operating in place, $Q$ can be stored entirely in the lower triangular portion of the array on which we are operating by storing each rotation in the entry that it zeroes out.
+A similar approach would to store Householder reflectors in the columns they zero out.
+In either case, we can represent the QR decomposition of an array using only the memory that was originally used to store the array itself.
+This is similar to the approach mentioned in Lab \ref{lab:LUdecomp} for computing the LU decomposition entirely in place.
+These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed.
