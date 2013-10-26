@@ -185,5 +185,3 @@ def passoff():
     plt.imshow(img_color)
     plt.show()
     plt.clf()
-    
-passoff()
