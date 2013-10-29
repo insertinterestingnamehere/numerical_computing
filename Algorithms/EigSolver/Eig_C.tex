@@ -11,10 +11,10 @@ A x - \lambda x &= 0 \notag \\
 (A - \lambda I)x  &= 0 \label{eq:singularity}
 \end{align}
 Since $x$ is nonzero, \eqref{eq:singularity} means $A-\lambda I$ must be singular.
-Thus $det(A - \lambda I) = 0$.  This determinant is often notated $det(A - \lambda I) = p(\lambda)$ and is called the \emph{characteristic polynomial} of $A$.
+Thus $\det(A - \lambda I) = 0$.  This determinant is often notated $\det(A - \lambda I) = p(\lambda)$ and is called the \emph{characteristic polynomial} of $A$.
 The roots of the characteristic polynomial are the eigenvalues of $A$.
 
-If $A$ is $n \times n$, the degree of $p(\lambda) = n$.
+If $A$ is $n \times n$, the degree of $p(\lambda)$ is  $n$.
 Finding the roots is easy for small $n$, but it becomes difficult or impossible as $n$ increases.
 Abel's Theorem  outlines the problem.
 
@@ -30,12 +30,10 @@ This is a significant result. In practice it means that we often rely on iterati
 
 There are many such iterative methods for finding eigenvalues.
 We will explore one of the simplest: the $QR$ algorithm.
-The following recurrence describes the $QR$ Algorithm in its most basic form.
-
+The following recurrence describes the $QR$ Algorithm in its most basic form:
 \begin{equation*}
 A_0 = A, \quad A_k = Q_k R_k, \quad A_{k+1} = R_k Q_k
 \end{equation*}
-
 where $Q_k, R_k$ is the $QR$ decomposition of $A_k$.
 Yes, it's as easy as it looks.
 All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q_k$ and $R_k$ together again but in the opposite order.
@@ -49,7 +47,7 @@ Then prove that $A_n \sim A$ for all $n$.
 \end{problem}
 \end{comment}
 
-$A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity).
+Observe that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity).
 Then $A_n \sim A$ for all $n$.
 This statement shows that $A_n$ has the same eigenvalues as $A$.
 Preservation of eigenvalues is the first important feature that makes the algorithm work.
@@ -58,7 +56,7 @@ Under very general conditions, $A_n$ will converge to a matrix of the form
 
 \begin{equation*}
 \label{eq:Schur form}
-S = 
+S =
      \begin{pmatrix}
           S_1 &* & \cdots & * \\
            0     &S_2  &  \ddots & \vdots \\
@@ -95,8 +93,9 @@ It is a good idea to reduce to Hessenberg form before continuing with the $QR$ a
 You'll converge to the Schur form faster this way, since Hessenberg matrices are already close to upper triangular.
 
 \begin{problem}
-Code the QR algorithm using the QR decomposition built in to scipy.linalg.
-Have your function accept a real-valued $n \times n$ matrix $A$ and a number of iterations, and return the corresponding estimate for all the eigenvalues of $A$.
+Write a function \li{qrSolver} that implements the QR algorithm as described above. Use the QR decomposition built in to \li{scipy.linalg}.
+Have your function accept a real-valued $n \times n$ matrix $A$, a number of iterations, and a tolerance number,
+and return the corresponding estimate for all the eigenvalues of $A$.
 Note that you will need to find the eigenvalues of the $2 \times 2$ $S_i$ directly, whenever there are any.
 \end{problem}
 
@@ -133,11 +132,12 @@ How many iterations are necessary?
 How large can $A$ be?
 \end{problem}
 
-The $QR$ algorithm is not the only iterative method used to find eigenvalues.
+Be aware that the algorithms we coded today is a very un-optimized approach. 
+In practice, the QR algorithm as we have described it here is not generally used.
+There is an improved version called the Implicit QR algorithm that iterates much more efficiently.
+
+Further, the $QR$ algorithm is not the only iterative method used to find eigenvalues.
 Arnoldi iteration is similar to the $QR$ algorithm but exploits sparsity.
 Other methods include the Jacobi method and the Rayleigh quotient method.
 
-In practice, the QR algorithm as we have described it here is not generally used.
-There is an improved version called the Implicit QR algorithm that iterates even more efficiently.
-
-It is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned.
+As a final note, it is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned. Convergence is not unconditionally guaranteed. 
