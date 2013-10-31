@@ -85,4 +85,4 @@ def washingtonOutput(iocoeffs, demand):
     # now increase the construction demand by 10% (entry 8)
     demand[8] += demand[8]*.10
     # now calculate the new output vector corresponding to this demand:
-    return la.solve(np.eye(iocoeff.shape[0]) - iocoeff, D)
+    return la.solve(np.eye(iocoeffs.shape[0]) - iocoeffs, demand)
