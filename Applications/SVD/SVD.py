@@ -1,6 +1,49 @@
+import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 import scipy.linalg as la
+from scipy.linalg import svd, norm
+
+def svd_approx(A, k):
+    '''
+    Calculate the best rank k approximation to A with respect to the induced
+    2-norm. Use the SVD.
+    Inputs:
+        A -- array of shape (m,n)
+        k -- positive integer
+    Returns:
+        Ahat -- best rank k approximation to A obtained via the SVD
+    '''
+    #compute the reduced SVD
+    U,s,Vh = svd(A,full_matrices=False)
+    
+    #keep only the first k singular values
+    S = np.diag(s[:k])
+    
+    #reconstruct the best rank k approximation
+    return U[:,:k].dot(S).dot(Vt[:k,:])
+    
+    
+def lowest_rank_approx(A,e):
+    '''
+    Calculate the lowest rank approximation to A that has error stricly less than e.
+    Inputs:
+        A -- array of shape (m,n)
+        e -- positive floating point number
+    Returns:
+        Ahat -- the best rank s approximation of A constrained to have error less than e, 
+                where s is as small as possible.
+    '''
+    #calculate the reduced SVD
+    U,s,Vh = svd(A,full_matrices=False)
+    
+    #find the index of the first singular value less than e
+    k = np.where(s<e)[0][0] 
+    
+    #now recreate the rank k approximation
+    S = np.diag(s[:k])
+    return U[:,:k].dot(S).dot(Vt[:k,:])
+    
 
 def readimg(filename, channel=None):
     if channel is not None:
