@@ -20,10 +20,16 @@ the submodule \li{pyfftw.interfaces.scipy_fftpack} mimics the \li{scipy.fftpack}
 the same functions with the same interfaces, just higher-performance.
 
 \subsection*{Cepstral Analysis and Mel-Frequency Cepstral Coefficients}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{PowerCepstrum.pdf}
+\caption{Example of the steps in calculating the Power Cepstrum.}
+\label{fourierext:pc}
+\end{figure}
 When analyzing complex sound signals such as speech or music, the simple spectral information provided by
-the Fourier Transform is often insufficient. Cepstral analysis was developed to try to redress this 
+the Fourier Transform is often insufficient. Cepstral analysis was developed to try to redress this
 situation, and it provides a collection of signal processing techniques. The basic idea is to analyze the
-\emph{cepstrum} of a signal as opposed to the \emph{spectrum} (which is the approach of the basic Fourier 
+\emph{cepstrum} of a signal as opposed to the \emph{spectrum} (which is the approach of the basic Fourier
 Transform). There are various ways to define the cepstrum, and they all involve composing the Fourier
 Transform with non-linear operations. Given a signal $f(t)$, the \emph{Power Cepstrum} is defined by
 $$
@@ -48,15 +54,14 @@ $$
 The reason for this relies on the fact that convolution can be converted to multiplication by
 the Fourier transform, and when the logarithm is applied it becomes addition.
 This is useful when trying to separate two signals that have been convolved with each other, such as
-a source and a filter, a problem known as \emph{deconvolution}. 
-Other uses for the various cepstra include fundamental pitch detection in speech signals, voice 
+a source and a filter, a problem known as \emph{deconvolution}.
+Other uses for the various cepstra include fundamental pitch detection in speech signals, voice
 identification, and analysis of signals containing echoes.
 
 As a side note, the field of Cepstral analysis comes with its own distinctive jargon, including ``cepstrum",
-``quefrency", ``liftering", and ``alanysis". These are derived, respectively, from ``spectrum", 
-``frequency", ``filtering", and ``analysis".
-
-%%Include some pictures of various cepstra
+``quefrency", ``liftering", and ``alanysis". These are derived, respectively, from ``spectrum",
+``frequency", ``filtering", and ``analysis". See Figure \ref{fourierext:pc} for an example of the Power 
+Cepstrum.
 
 \begin{problem}
 Write a function \li{powerCepstrum} that accepts a one-dimensional array $f$ and computes the
@@ -70,33 +75,37 @@ speech recognition and automatic musical instrument classification.
 Suppose we have a sound signal 2 seconds long sampled at a standard rate of 44100 Hz, which means the
 signal has 88200 entries. The  MFCCs are obtained through a series of steps, which are outlined
 as follows:
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{Hamming.pdf}
+\caption{The Hamming Window.}
+\label{fourierext:ham}
+\end{figure}
 \begin{itemize}
 \item \emph{Windowing}. This refers to splitting up the original signal into a sequence of overlapping
 short segments called frames, and then applying a so-called \emph{window-function}, which scales down
 the edges of the frames.
 
-In the particular case at hand, we wish to split up the signal into frames approximately 30 ms in 
+In the particular case at hand, we wish to split up the signal into frames approximately 30 ms in
 duration, with adjacent frames overlapping by 20 ms. This means splitting our signal into $198$ frames, each frame containing $1323$ values from the original signal, overlapping $882$ values with each frame immediately preceding and following it. We then multiply each frame by a \emph{Hamming} window of length
-1323 (we have provided the code to calculate a Hamming window of a given length).
-
-%%Include picture of a hamming window
+1323 (we have provided the code to calculate a Hamming window of a given length). See Figure \ref{fourierext:ham} for an example of the Hamming window applied to a signal.
 
 \begin{problem}
 Write a function \li{window} that accepts a 2-second sound signal with sample rate 44100, and
 returns a list of the 198 windowed frames calculated as in the description above.
 \end{problem}
 
-\item \emph{Pre-emphasis and Power Spectrum}. For each frame $\tilde{f}$, we next apply 
+\item \emph{Pre-emphasis and Power Spectrum}. For each frame $\tilde{f}$, we next apply
 a filtering process known as \emph{pre-emphasis} used to improve the signal-to-noise ratio as follows:
 \begin{equation*}
 \widehat{f}_{n} = \tilde{f}_{n} - 0.95 \tilde{f}_{n-1}
 \end{equation*}
 for $n = 1,\ldots,1322$ (in Python, this can be done in one line of code using vectorization).
 We then compute the \emph{power spectrum} of the result, which is the square of the magnitude of the
-Fourier transform. 
+Fourier transform.
 
 \begin{problem}
-Write a function \li{powerSpectrum} that accepts a frame (one dimensional array of length 1323) and 
+Write a function \li{powerSpectrum} that accepts a frame (one dimensional array of length 1323) and
 applies pre-emphasis and then computes the power spectrum of the result. In this computation,
 pad the frame with zeros so that it is of length 2048 when computing the fourier transform. This
 can be done by using the keyword argument \li{n = 2048} when calling
@@ -105,40 +114,46 @@ since the remaining entries are just a mirror image of the first half.
 \end{problem}
 
 \item \emph{Mel Scale}. The Mel Frequency scale is based on human perception of pitch. It maps frequency
-in Herz to a slightly distorted scale where equal distances between values correspond to equal perceived 
-differences in pitch. We will map the power spectrum of each frame to the mel scale, which can be 
+in Herz to a slightly distorted scale where equal distances between values correspond to equal perceived
+differences in pitch. We will map the power spectrum of each frame to the mel scale, which can be
 accomplished by matrix multiplication. We have provided the code to calculate the required mel scale
 matrix (use 40 filters, with FFT length 2048 and sample rate 44100).
 Before we perform this multiplication, however, we first want to prevent underflow problems. We
 therefore want to set all values of the power spectrum below a certain threshold to that threshold value.
-For our purposes, we will set this threshold value to \li{1e-100}. 
+For our purposes, we will set this threshold value to \li{1e-100}.
 
 \item \emph{Discrete Cosine Transform}. To complete the process, we take the discrete cosine transform
-of the resulting mel scale power spectrum frames, multiply the result by 0.25, and retain only entries 2 
-through 11 (yielding an array of length 10), since these are the entries that contain most of desired 
+of the resulting mel scale power spectrum frames, multiply the result by 0.25, and retain only entries 2
+through 11 (yielding an array of length 10), since these are the entries that contain most of desired
 information.
 \end{itemize}
 After this process, we should end up with a list of 198 arrays, each of length 10. These are our MFCCs,
-which can then be used in various classification algorithms. 
+which can then be used in various classification algorithms.
 
 \begin{problem}
 Write a function \li{extract} which accepts an array of length 88200 (representing a two second sound sample
-with rate 44100 Hz), and returns an array of shape (198,10), where each row gives the calculated MFCCs for 
+with rate 44100 Hz), and returns an array of shape (198,10), where each row gives the calculated MFCCs for
 a particular windowed frame of the original signal. Use your previous solutions as you see fit, and try to
 avoid unnecessary looping.
 \end{problem}
 
 \subsection*{The 2-dimensional FFT}
-You know how to calculate the Fourier Transform for one-dimensional signals. In fact, the theory of 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{2dfft.pdf}
+\caption{The 2D Fourier Transform Applied to Images.}
+\label{fourierext:2dfft}
+\end{figure}
+You know how to calculate the Fourier Transform for one-dimensional signals. In fact, the theory of
 Fourier Transforms may be readily extended to any number of dimensions.
 Computationally, the problem reduces to performing the one-dimensional Fourier Transform iteratively
-along each of the dimensions. We will focus on calculating the Fourier Transform of two-dimensional 
+along each of the dimensions. We will focus on calculating the Fourier Transform of two-dimensional
 matrices. In this setting, we think of the matrices not as functions of time, but rather as functions of
 space. One we have the 2-dimensional Fourier Transform, we can perform many useful operations for
-denoising, compression, edge-detection, image enhancement, and more. 
+denoising, compression, edge-detection, image enhancement, and more.
 
 Given a matrix $A$, we first calculate the one-dimensional Fourier Transform of each column, storing the
-result column-wise in an array the same shape as $A$. We then calculate the Fourier Transform of each 
+result column-wise in an array the same shape as $A$. We then calculate the Fourier Transform of each
 row of this resulting array, and this yields the two-dimensional Fourier Transform of $A$. 
 
 Calculating the two-dimensional inverse Fourier Transform is done in a similar fashion, but in the
@@ -150,7 +165,7 @@ Fourier Transform of the input. You may use built-in methods to calculate the on
 Transform.
 
 Write another function \li{2dIFFT} that accepts a two-dimensional array as input and returns the two-
-dimensional inverse Fourier Transform. Once again,  you may use built-in methods to calculate the 
+dimensional inverse Fourier Transform. Once again,  you may use built-in methods to calculate the
 one-dimensional inverse Fourier Transform.
 \end{problem}
 
@@ -179,6 +194,7 @@ plt.imshow(F_mag, plt.cm.Greys)
 plt.show()
 plt.clf()
 \end{lstlisting}
+See Figure \ref{fourierext:2dfft} for an example.
 
-%%Include some plots of the 2D FFT data. 
+%Does anyone know of a good way to intuitively describe these visualizations? 
 
