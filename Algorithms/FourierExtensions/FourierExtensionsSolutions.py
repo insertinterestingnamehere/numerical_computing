@@ -51,7 +51,7 @@ def powerSpectrum(f):
     f[1:] -= f[:-1] * .95
     return np.abs(pyfftw.interfaces.scipy_fftpack.fft(f, 2048)[:1025]) ** 2
     
-def extract2(x):
+def extract(x):
     '''
     Extract MFCC coefficients of the sound signal x in numpy array format.
     Inputs:
@@ -70,6 +70,7 @@ def extract2(x):
         X = np.abs(pyfftw.interfaces.scipy_fftpack.fft(frame, n=2048)[:1025]) ** 2
         X[X < 1e-100] = 1e-100  # Avoid zero
         # Mel filtering, logarithm, DCT
+        M = melfb(40, 2048, 44100)
         X = 0.25*pyfftw.interfaces.scipy_fftpack.dct(np.log(np.dot(M,X)))[1:11]
         feature.append(X)
     feature = np.row_stack(feature)
