@@ -17,6 +17,9 @@ def FFT2(A):
     B = pyfftw.interfaces.scipy_fftpack.fft(A, axis=0)
     return pyfftw.interfaces.scipy_fftpack.fft(B, axis=1)
 
+def melScale(f):
+    return 2595*np.log10(1+f/700)
+
 def powerCepstrum():
     '''
     Generate plots of the steps in creating the power Cepstrum.
@@ -77,7 +80,45 @@ def hammingWindow():
     plt.savefig('Hamming.pdf')
     plt.clf()
 
+def plotMelScale():
+    '''
+    Generate plot of the mel scale and a traditional mel filterbank.
+    '''
+    dom = np.linspace(0,10000, 1000)
+    ms = melScale(dom)
+    plt.subplot(211)
+    plt.subplots_adjust(hspace=.5)
+    plt.plot(dom, ms, 'm', lw = 5)
+    plt.title('Mel Scale vs. Hz Scale')
+    plt.xlim([0,10000])
+    plt.ylim([0,4000])
+    plt.grid(b=True, which='major', color='b', linestyle='--')
+    plt.tick_params(labelsize=8)
+    plt.xlabel('Herz scale')
+    plt.ylabel('Mel scale')
+    bins = 13
+    hz_max = 8000
+    mel_max = 2595*np.log10(1+hz_max/700.)
+    mel_bins = np.linspace(0, mel_max, bins+2)
+    hz_bins = 700*(10**(mel_bins/2595.)-1)
+    l1 = np.zeros(hz_bins.shape)
+    l2 = np.zeros(hz_bins.shape)
+    l1[1::2] = 1
+    l2[2:-1:2] = 1
+    plt.subplot(212)
+    plt.plot(hz_bins, l1, 'm', hz_bins, l2, 'm')
+    plt.title('Mel Filterbank')
+    plt.xlim([0,8000])
+    plt.tick_params(labelsize=8)
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('Magnitude')
+    plt.savefig('melScale.pdf')
+    plt.clf()
+
 def plotFFT():
+    '''
+    Generate plots of the 2D FFT of the Lena image and another image.
+    '''
     L = misc.lena()
     E = plt.imread('ecoli.jpg')[:512, :512]
     FL = FFT2(L)
@@ -116,4 +157,5 @@ def plotFFT():
 powerCepstrum()
 hammingWindow()
 plotFFT()
+plotMelScale()
     

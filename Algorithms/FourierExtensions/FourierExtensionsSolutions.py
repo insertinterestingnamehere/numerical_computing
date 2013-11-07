@@ -75,7 +75,7 @@ def extract2(x):
     feature = np.row_stack(feature)
     return feature
 
-def 2dFFT(A):
+def fft2(A):
     '''
     Calculate the fourier transform of A.
     Inputs:
@@ -86,7 +86,7 @@ def 2dFFT(A):
     B = pyfftw.interfaces.scipy_fftpack.fft(A, axis=0)
     return pyfftw.interfaces.scipy_fftpack.fft(B, axis=1)
 
-def 2dIFFT(A):
+def ifft2(A):
     '''
     Calculate the inverse fourier transform of A.
     Inputs:
