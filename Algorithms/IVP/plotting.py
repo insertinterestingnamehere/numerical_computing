@@ -78,6 +78,7 @@ def Fig3():
 	plt.legend(loc='best')
 	plt.xlabel('x')
 	plt.ylabel('y')
+	plt.show()
 	plt.savefig('Fig3.pdf')
 	plt.clf()
 

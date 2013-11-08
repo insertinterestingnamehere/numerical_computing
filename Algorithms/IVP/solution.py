@@ -51,15 +51,15 @@ def Runge_Kutta_4(func,a,b,n,y0):
 	return Y
 
 def ode_f(x,y): 
-	out = 1.0*y + 3.0 - 1.0*x
+	out = 1.*y + 3. - 1.*x
 	return np.array([out])
 	
 def ode_f1(x,y):
-	out = 1.0*y -2.0*x + 4.0
+	out = 1.*y -2.*x + 4.
 	return np.array([out])
 	
 def ode_f2(x,y):
-	out = -1.0*y+2.0-2.0*x
+	out = -1.*y+6.+2.*x
 	return np.array([out])
 	
 def ode_f3(x,y): 
@@ -67,11 +67,11 @@ def ode_f3(x,y):
 	return np.array([out])
 
 def f1(x,ya):
-	out = -2.0 + 2.0*x + (ya + 2.0)*np.exp(x)
+	out = -2. + 2.*x + (ya + 2.)*np.exp(x)
 	return out
 	
 def f2(x,ya):
-	out = 4.0 + 2.0*x + (ya - 4.0)*np.exp(-x)
+	out = 4. + 2.*x + (ya - 4.)*np.exp(-x)
 	return out
 
 def function(x,g,ya):
