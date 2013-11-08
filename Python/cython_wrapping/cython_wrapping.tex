@@ -148,6 +148,53 @@ Aside from the small changes in the names used, the modified header file, and th
 The test script that verifies that the function works properly is the same except that it will import the function from the moule \li{cython_ftridiag} instead.
 The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab but will not be displayed here.
 
+Here is a file for the next problem:
+\lstinputlisting[style=fromfile, language=Fortran, name=fssor.f90]{./fssor/fssor.f90}
+
+\begin{problem}
+The fortran subroutine \li{fssor} included with this lab uses a technique called Successive Over Relaxation to solve Laplace's equation on a rectangular domain descretized as a grid of equispaced points.
+It solves the same problem as problem involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
+It takes the following inputs:
+\begin{itemize}
+\item \li{U} is expected to be a pointer to a Fortran ordered array of double precision numbers.
+\item \li{m} is a pointer to an integer storing the number of rows of \li{U}.
+\item \li{n} is a pointer to an integer storing the number of columns of \li{U}.
+\item \li{omega} is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
+The closer this value is to $2$, the faster the algorithm will converge, but if it is too close the algorithm may not converge at all.
+For this lab just use 1.9.
+\item \li{tol} is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
+\item \li{maxiters} is a pointer to an integer storing the maximum allowable number of iterations.
+\item \li{info} is a pointer to an integer.
+This subroutine will set \li{info} to $0$ if it converged to a solution within the given tolerance.
+It will set \li{info} to $1$ if it did not.
+\end{itemize}
+
+Write a crresponding C header \li{fssor.h}, Cython wrapper \li{cython_fssor.pyx}, and Cython setup file (using distutils) \li{fssor_setup_distutils.py} to wrap this subroutine for use in Python.
+Call the wrapper function in your Cython file \li{cyssor}.
+
+Fortran works with Fortran ordered arrays, but this algorithm does not need any particular orientation of axes.
+Have your Cython wrapper swap the length of the axes when calling \li{fssor} if the array is C ordered.
+If it is Fortran ordered, pass the lengths as they are.
+Have the wrapper raise an error if the array \li{U} is neither Fortran ordered nor C ordered.
+Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets \li{info} to 1).
+Use keyword arguments to pass fssor a default tolerance of \li{1E-8} and a default maximum number of iterations of \li{2000}.
+
+Here is how you should be able to call this function:
+\begin{lstlisting}
+import numpy as np
+from cython_fssor import cyssor
+resolution = 501
+U = np.zeros((resolution, resolution))
+X = np.linspace(0, 1, resolution)
+U[0] = np.sin(10 * np.pi * X)
+U[-1] = - U[0]
+cyssor(U, 1.9)
+\end{lstlisting}
+
+Generate a 3D plot of \li{U} after it has been modifed by the function \li{cyssor}.
+Use equispaced points between 0 and 1 as your $x$ and $y$ values.
+\end{problem}
+
 % Using C++ and Cython
 
 % Wrapping classes (focus on Cython, show a ctypes example if there's space)
