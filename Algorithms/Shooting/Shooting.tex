@@ -1,0 +1,262 @@
+\lab{Algorithms}{The Shooting Method for Boundary Value Problems}{The Shooting Method for Boundary Value Problems}
+\label{lab:Shooting}
+
+Consider a boundary value problem of the form 
+\begin{eqnarray*}
+y'' &=& f(x,y,y'), \,\, a \leq x \leq b, \\
+y(a) &=& \alpha, \\
+y(b) &=& \beta. 
+\end{eqnarray*}
+One natural way to approach this problem is to study the initial value problem associated with this differential equation: 
+\begin{eqnarray*}
+y'' &=& f(x,y,y'), \,\, a \leq x \leq b, \\
+y(a) &=& \alpha, \\
+y'(a) &=& t. 
+\end{eqnarray*}
+The goal is to determine an  appropriate value $t$, so that the solution of the IVP is also a solution of the BVP. 
+
+Suppose $y(x,t)$ be the solution of the initial value problem given above. We wish to find the value of $t$ so that 
+$y(b,t) - \beta = 0$. 
+Applying Newton's method to the function $f(t) = y(b,t) - \beta$, we obtain the iterative method 
+\[t_{n+1} = t_n - \frac{ y(b,t_n) - \beta}{\frac{d}{dt} \left.y(b,t)\right|_{t_n} }, \,\, n = 0,1,\hdots .\]
+
+We recall that Newton's method requires an `close' initial guess $t_0$; a plausible initial guess would be the average rate of change of the solution across the entire interval, so that $y'(0) = t_0 =  (\beta - \alpha)/(b-a)$. If this initial guess is not sufficient, the initial guess may be refined by looking at the solution $y(x,t_0)$ of the initial value problem.
+
+This method requires us to use the function $\frac{d}{dt} \left.y(b,t)\right|_{t_n}$. This term may be approximated with a finite difference, giving us the iterative method
+\[t_{n+1} = t_n - \frac{ (y(b,t_n) - \beta)(t_n - t_{n-1})}{y(b,t_n) - y(b,t_{n-1}) }, \,\, n = 1, 2,\hdots .\]
+This variation of the shooting algorithm is called the secant method, and requires two initial values instead of one. Notice that finding $y(b,t_n)$ requires solving the IVP.
+
+Consider the boundary value problem
+%\begin{eqnarray*}
+%y'' &=& -4y -9\sin(x), \,\, x \in [0,3\pi/4],\\
+%y(0) &=& 1,\\
+%y(3 \pi/4) &=& -\frac{1+3\sqrt{2}}{2}.
+%\end{eqnarray*}
+\begin{equation}
+\begin{split}
+\label{bvp1}
+y'' &= -4y -9\sin(x), \,\, x \in [0,3\pi/4],\\
+y(0) &= 1, \\
+y(3 \pi/4) &= -\frac{1+3\sqrt{2}}{2}.
+\end{split}
+\end{equation}
+
+The following code employs the secant method to find the initial slope $y'(0) = t$ of a solution of \ref{bvp1}. The numerical solution may then be computed and plotted using \li{dopri5} and \li{matplotlib}. \ref{bvp1} has an exact solution $y(x) = \cos(2x) + (1/2)\sin(2x) -3\sin(x)$.
+
+\begin{lstlisting}
+import numpy as np
+from scipy.integrate import ode
+
+a, b = 0., 3*np.pi/4.
+alpha, beta =  1., -(1.+3*np.sqrt(2))/2.
+t0,t1 = 3., 1.
+dim, iterate = 2,10
+reltol, abstol = 1e-9,1e-8
+def ode_f(x,y): return np.array([y[1] , -4.*y[0] - 9.*np.sin(x)])
+	
+print '\nj = 1','\nt = ', t0
+	
+for j in range(2,iterate):
+	print '\nj = ', j,'\nt = ', t1
+		
+	if j >2: 			# Update
+		y0 = y1
+	else:
+		example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
+		example.set_initial_value(np.array([alpha,t0]),a) 
+		y0 = example.integrate(b)[0]
+			
+	example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
+	example.set_initial_value(np.array([alpha,t1]),a) 
+	y1 = example.integrate(b)[0]
+	if abs(y1-beta)<1e-8: 
+		print '\n--Initial slope t computed successfully--',\
+		'\n|y(b) - beta| = ',np.abs(beta-y1),'\n'
+		break
+		
+	t2 = t1 - (y1 - beta)*(t1-t0)/(y1- y0)
+	t0 = t1
+	t1 = t2
+\end{lstlisting}
+
+Let us consider how to solve for $\frac{d}{dt} y(b,t)$. Let $z(x,t) = \frac{d}{dt} y(x,t).$ We assume that the function $y(x,t)$ can be differentiated with respect to $x$ and $t$ in any order.  Using the chain rule, we obtain 
+\begin{eqnarray*}
+z'' = \frac{d}{dt} y''(x,t) &=& \frac{\partial f}{\partial y} (x,y(x,t),y'(x,t)) \cdot \frac{dy}{dt}(x,t) ,\\
+&+& \frac{\partial f}{\partial y'} (x,y(x,t),y'(x,t)) \cdot \frac{dy'}{dt}(x,t),
+\end{eqnarray*}
+Using the initial conditions associated with $y(x,t)$, we obtain the following initial value problem for $z(x,t)$: 
+\begin{eqnarray*}
+z'' &=& \frac{\partial f}{\partial y} (x,y,y') z + \frac{\partial f}{\partial y'} (x,y,y') z'
+,\,\,a \leq x \leq b, \\
+ z(a) &=& 0, z'(a) = 1.
+\end{eqnarray*}
+
+To use Newton's method, the (coupled) IVPs for $y$ and $z$ must be solved simultaneously. The iterative method then becomes 
+\[
+t_{n+1} = t_n - \frac{ y(b,t_n) - \beta}{z(b,t_n)}, \,\, n = 0,1,\hdots
+.\]
+The following code solves the BVP using Newton's method: 
+\begin{lstlisting}
+import numpy as np
+from scipy.integrate import ode
+
+a, b = 0., 3*np.pi/4.
+alpha, beta =  1., -(1.+3*np.sqrt(2))/2.
+dim, iterate = 4,10
+reltol, abstol,TOL = 1e-9,1e-8,1e-9
+t = (beta-alpha)/(b-a)  # Initial guess for the slope y'(1)
+def ode_f(x,y): 
+	return np.array([y[1], -4.*y[0] - 9.*np.sin(x), 
+				 y[3],  -4.*y[2]                  ])
+	
+	
+for j in range(1,iterate):
+	print '\nj = ', j,'\nt = ', t
+		
+	example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol,nsteps=5000) 
+	example.set_initial_value(np.array([alpha,t,0.,1.]),a) 
+	X = example.integrate(b)
+	y0, z0 = X[0],X[2]
+
+	if abs(y0-beta)<TOL: 
+		print '\n--Initial slope t computed successfully--',\
+		'\n|y(b) - beta| = ',np.abs(beta-y0),'\n'
+		break
+	t = t - (y0 - beta)/z0   # Update guess y'(1) = t
+\end{lstlisting}
+
+
+\begin{problem}
+Use Newton's method to solve the bvp
+\begin{equation*}
+\begin{split}
+y'' &= 6y^2-6x^4-10, \,\, x \in [1,2],\\
+y(1) &= 2, \\
+y(2) &= 4.25.
+\end{split}
+\end{equation*}
+Plot your solution. What is an appropriate initial guess? 
+\end{problem}
+
+\begin{problem}
+Use Newton's method to solve the bvp
+\begin{equation*}
+\begin{split}
+y'' &= 3 + \frac{2y}{x^2}, \,\, x \in [1,e],\\
+y(1) &= 6, \\
+y(e) &= e^2 + 6/e.
+\end{split}
+\end{equation*}
+Plot your solution. What is an appropriate initial guess? 
+\end{problem}
+
+\begin{problem} Use the secant method to solve the bvp
+\begin{equation*}
+\begin{split}
+y'' &= -4y -9\sin(x), \,\, x \in [0,\pi],\\
+y(0) &= 1, \\
+y(\pi) &=1.
+\end{split}
+\end{equation*}
+Find both numerical solutions, and graph them on the same plot. What initial values $t_0, t_1$ did you use to find them?  
+\end{problem}
+
+
+
+\begin{problem}
+Solve the following bvp on the interval $[0,120.]$
+\begin{eqnarray*}
+\frac{dy}{dx} &=& \tan {\theta} ,\\
+\frac{dv}{dx} &=& -\frac{g \tan{\theta}}{v } ,\\
+\frac{d\theta}{dx} &=& -\frac{g}{v^2},\\
+y(0)&=& y(100) = 0,\\
+v(0) &=& 35 \text{ }m/s^2.\\
+\end{eqnarray*}
+($g = 9.8067$ $m/s^2.$) There should be two values $\phi(0)$ that produce a solution 
+for this bvp.
+\end{problem}
+
+
+
+
+
+
+% 
+% \section*{The Cannon Problem}
+% 
+% Consider the problem of tracking a projectile launched at given angle and velocity. Let its coordinates be given by $\vec{r}(t) = \langle x(t), y(t) \rangle.$ If $\theta(t)$ represents the angle of the velocity vector from the positive $x$-axis and $v(t) = |\vec{v}(t) |$, then we have 
+% \begin{eqnarray*}
+% \dot{x} &=& v\cos{\theta},\\
+% \dot{y} &=& v\sin{\theta}.\\
+% \end{eqnarray*}
+% The tangent vector to the path traced by the projectile is the unit vector in the direction of the projectile's velocity, so $\vec{T}(t) = \langle \cos{\theta}, \sin{\theta} \rangle.$ The unit normal vector $\vec{N} (t)$ is given by $\vec{N} (t)= \langle -\sin{\theta}, \cos{\theta} \rangle.$ Thus the relationship between basis vectors $\vec{i}, \vec{j}$, and $\vec{T(t)}, \vec{N}(t)$ is given by 
+% 
+% \[
+% \left[\begin{array}{cc}\cos{\theta} & \sin{\theta} \\-\sin{\theta} & \cos{\theta}\end{array}\right] \left[\begin{array}{c}\vec{i} \\\vec{j}\end{array}\right] = \left[\begin{array}{c}\vec{T(t)} \\\vec{N(t)}\end{array}\right]
+% .\]
+% 
+% 
+% 
+% 
+% Let $F_g$ represent the force on the projectile due to gravity, and $F_d$ represent the force on the projectile due to air resistance. (We assume the air is still.) From Newton's law we have
+% 
+% \begin{eqnarray*}
+% m \dot{\vec{v}} &=& F_g + F_d , \\
+% &=& -mg \vec{j} - C_Dv^2 \vec{t},\\
+% &=& -mg( \sin{\theta} \vec{T} + \cos{\theta} \vec{N} ) - C_D v^2 \vec{T},\\
+% &=& (-mg \sin{\theta} - C_D v^2 ) \vec{T} - mg \cos{\theta} \vec{N}.
+% \end{eqnarray*}
+% 
+% From the identity 
+% $\vec{v} = \langle \dot{x}, \dot{y} \rangle = \langle v \cos{\theta}, v \sin{\theta} \rangle$ 
+% we have 
+% \begin{eqnarray*}
+% m \dot{\vec{v}} &=& m\langle v' \cos{\theta} - v\sin{\theta} \cdot \theta' ,v'\sin{\theta} + v\cos{\theta} \cdot \theta' \rangle \\
+% &=& m(v'\cos{\theta} - v\sin{\theta} \cdot \theta')(\cos{\theta} \vec{T} - \sin{\theta}\vec{N}) \\
+% &+& m(v' \sin{\theta} + v\cos{\theta} \cdot \theta')( \sin{\theta} \vec{T} + \cos{\theta} \vec{N})  ,\\
+% &=& m(\vec{T} \cdot v' + \vec{N} \cdot v \cdot \theta') .
+% \end{eqnarray*}
+% From these two equations we have 
+% \begin{eqnarray*}
+% mv' &=& -mg\sin{\theta} - C_D v^2,\\
+% mv\theta' &=& -mg \cos{\theta}.
+% \end{eqnarray*}
+% 
+% 
+% Thus we have the coupled system of differential equations
+% 
+% \begin{eqnarray*}
+% \dot{x} &=& v\cos{\theta},\\
+% \dot{y} &=& v\sin{\theta},\\
+% v' &=& -g\sin{\theta} - C_D v^2/m,\\
+% \theta' &=& -g \cos{\theta}/v.
+% \end{eqnarray*}
+% 
+% Suppose we wish to fire a projectile (which travels at a predetermined initial velocity) at a target. We need to find an appropriate angle at which the projectile should be fired. In this case the independent variable $t$ used above is unessential to our problem. If we assume that $t$ is an smooth invertible function of $x$ ($t = t(x)$), then we obtain 
+% \begin{eqnarray*}
+% \frac{dy}{dx} &=& \frac{dy}{dt}\frac{dt}{dx} ,\\
+% &=& \frac{dy}{dt} \frac{1}{v\cos{\theta}}, \text{  etc.}
+% \end{eqnarray*}
+% Thus our system of differential equations becomes 
+% 
+% \begin{eqnarray*}
+% \frac{dy}{dx} &=& \tan {\theta} ,\\
+% \frac{dv}{dx} &=& -\frac{g \sin{\theta} + (C_D/m)v^2}{v \cos{\theta}} ,\\
+% \frac{d\theta}{dx} &=& -\frac{g}{v^2}.
+% \end{eqnarray*}
+% 
+% 
+% 
+% \begin{problem}
+% Use the secant method to solve the boundary value problem 
+% 
+% \end{problem}
+% 
+
+
+%\li{ode} 
+%
+%\begin{lstlisting}
+
+%\end{lstlisting}
+%
