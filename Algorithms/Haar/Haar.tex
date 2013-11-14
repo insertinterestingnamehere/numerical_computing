@@ -18,7 +18,7 @@ time and frequency domains. This brings us to the following question: are
 there types of transforms that avoid the shortcomings mentioned above? The
 answer is an emphatic yes. Enter Wavelet analysis.
 
-\section*{The Haar Wavelet}
+\subsection*{The Haar Wavelet}
 
 As noted earlier, the Fourier transform is based on the complex exponential
 function. Let us alter the situation and consider instead the following
@@ -136,7 +136,7 @@ same $m$ values given above. Use previous results to compute the coefficients
 for $f_5$, $f_7$, and $f_9$ and plot them.
 \end{problem}
 
-\section*{The Discrete Wavelet Transform}
+\subsection*{The Discrete Wavelet Transform}
 
 What purpose do these details and approximation frames serve? According to the
 properties discussed above, we can approximate $L^2$ functions as follows:
@@ -159,7 +159,17 @@ part of the signal, or in recovering the entire signal to only a limited resolut
 also study just those frequencies of the signal that fall within a certain range (called a
 sub-band) by examining the detail coefficients at a particular level. These
 properties make the discrete wavelet transform an attractive alternative to the Fourier
-transform in many applications.
+transform in many applications. See Figure \ref{fig:dwt1D} for an example of the discrete Wavelet transform.
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{dwt1D}
+\caption{A level 4 wavelet decomposition of a signal. The top panel is the original signal,
+the next panel down is the approximation frame, and the remaining panels are the detail coefficients.
+Notice how the approximation frame resembles a smoothed version of the original signal, while the 
+details capture the high-frequency oscillations and noise.}
+\label{fig:dwt1D}
+\end{figure}
 
 In practice, we are often interested in analyzing discrete signals with compact support (that is,
 finite-time signals that we have sampled at a finite number of points). If wavelet analysis is
@@ -167,7 +177,7 @@ to be of any use, we first need an efficient way to calculate the discrete wavel
 The process described in the first section, while intuitive and illustrative of the mathematical
 principles
 behind wavelet analysis, is not the best approach to calculating the wavelet coefficients. It
-turns out that the discrete wavelet transform can be implemented as an iterated low-pass/high-pass 
+turns out that the discrete wavelet transform can be implemented as an iterated low-pass/high-pass
 filter bank, one iteration of which is shown graphically in the figure. We present the
 algorithm without getting into the details of why it works.
 \begin{figure}[H]
@@ -198,7 +208,7 @@ you need to omit the first entry. For downsampling, only keep the even-indexed e
 \end{problem}
 We also need to know how to reconstruct the signal from the detail coefficients and
 approximation frame. Fortunately, the algorithm described above is entirely reversible,
-albeit with slightly different filters: 
+albeit with slightly different filters:
 $$\text{Lo} = (\sqrt{2}^{-1}, \sqrt{2}^{-1})$$ and
 $$\text{Hi} = (\sqrt{2}^{-1}, -\sqrt{2}^{-1}).$$
 Given $A_{j+1}$ and $D_{j+1}$, simply upsample both arrays (by inserting a zero after
@@ -216,7 +226,7 @@ transform, and compare the original signal with the recovered signal. The differ
 should be very small.
 \end{problem}
 
-\section*{The two-dimensional Discrete Wavelet Transform}
+\subsection*{The two-dimensional Discrete Wavelet Transform}
 Our discussion so far has focused on one-dimensional
 discrete signals, but it is not difficult to extend the same ideas into the
 realm of two-dimensional arrays. As you know, a digital image can be represented
@@ -227,10 +237,23 @@ calculate detail and approximation coefficients using an iterative filter
 bank, but now we generate four arrays of coefficients at each iteration as opposed to
 just two. In essence, we perform the one-dimensional wavelet transform first on each
 row, and then on each column of the matrix. Notice the similarity with our approach
-to extending the one-dimensional Fourier transform to two-dimensional images.
+to extending the one-dimensional Fourier transform to two-dimensional images. See
+Figure \ref{fig:dwt2D} of an example of the two-dimensional Wavelet transform applied
+to an image.
 
-Given an input matrix of size $2^n \times 2^n$, after first operating on the rows, 
-we have two matrices of size $2^n \times 2^{n-1}$,
+\begin{figure}
+    \includegraphics[width=0.8\textwidth]{dwt2D.pdf}
+    \caption{The level 2 wavelet coefficients of the Lena image. The upper left quadrant 
+    is the approximation frame, and the other quadrants are the details. Notice how the 
+    details highlight the parts of the image with high-frequency textures and borders.}
+    \label{fig:dwt2D}
+\end{figure}
+
+The algorithm goes as follows.
+Given an input matrix of size $2^n \times 2^n$, first operate on the rows as you would
+in the one-dimensional Wavelet transform (i.e. convolve each row with the filters, then
+downsample).
+We then have two matrices of size $2^n \times 2^{n-1}$,
 since each row has been downsampled by a factor of 2. Then for each of these two
 intermediate matrices, operate on each column, yielding a total of four matrices of
 size $2^{n-1} \times 2^{n-1}$. Figure \ref{fig:2dwt}
@@ -286,9 +309,9 @@ for i in xrange(image.shape[1]/2):
 	HL[:,i] = fftconvolve(temp[:,i],lo_d,mode='full')[1::2]
     HH[:,i] = fftconvolve(temp[:,i],hi_d,mode='full')[1::2]
 \end{lstlisting}
-At this point, the variables \li{LL, LH, HL, HH} contain the current level of coefficients.
+At this point, the variables \li{LL, LH, HL, HH} contain the current level of wavelet coefficients.
 You would then store \li{(LH, HL, HH)} in a list, and feed \li{LL} back into the same
-block of code (with \li{LL} replacing \li{image} to obtain the next level of coefficients.
+block of code (with \li{LL} replacing \li{image}) to obtain the next level of coefficients.
 
 Now, given a current level of wavelet coefficients, here is the code to recover the previous
 approximation frame, which is the crucial step in the inverse transform.
@@ -321,14 +344,12 @@ for i in xrange(2*n):
 \begin{problem}
 Build off of the sample code to fully implement the two-dimensional discrete
 wavelet transform as described above.
-As in the last lab, the input to your decomposition function should consist of
+As before, the input to your function should consist of
 three arrays: the input image, the low-pass filter, and the high-pass filter.
-To increase the flexibility, also include an integer parameter that determines
-the level of the decomposition, i.e. how many iterations to perform. Have the
-default value of this parameter cause the function to compute the complete
-decomposition.
 You should return a list of the following form: $$[LL_n,(LH_n,HL_n,HH_n), \ldots
-,(LH_1,HL_1,HH_1)]$$. The reconstruction function should take as input a list
+,(LH_1,HL_1,HH_1)].$$ 
+
+The inverse wavelet transform function should take as input a list
 of that same form, as well as the reconstruction low-pass and high-pass filters,
 and should return the reconstructed image.
 \end{problem}
@@ -342,7 +363,7 @@ information is captured by a small subset of the wavelet coefficients.
 In the remainder of this lab, we will see how the discrete wavelet transform
 plays a role in edge detection, noise removal, and compression.
 
-\section*{More Wavelets}
+\subsection*{More Wavelets}
 Up to this point, the only wavelet that we have considered is the Haar wavelet,
 which is the simplest and historically first example. Wavelet analysis is a broad
 field, however, and there are myriad other wavelets that have been studied and
