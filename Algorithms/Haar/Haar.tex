@@ -167,8 +167,8 @@ to be of any use, we first need an efficient way to calculate the discrete wavel
 The process described in the first section, while intuitive and illustrative of the mathematical
 principles
 behind wavelet analysis, is not the best approach to calculating the wavelet coefficients. It
-turns out that the discrete wavelet transform can be implemented as an iterated low-pass/high-
-pass filter bank, one iteration of which is shown graphically in the figure. We present the
+turns out that the discrete wavelet transform can be implemented as an iterated low-pass/high-pass 
+filter bank, one iteration of which is shown graphically in the figure. We present the
 algorithm without getting into the details of why it works.
 \begin{figure}[H]
 \centering
@@ -191,15 +191,16 @@ return all of the stored detail coefficients as well as the final approximation 
 Write a function that calculates the discrete wavelet transform as described above.
 The inputs should be three one-dimensional NumPy arrays (the signal, low-pass filter, and
 high-pass filter). The output should be a list of one-dimensional NumPy arrays in the
-following form: $[A_n, D_n, D_{n-1},\ldots,D_1]$. (Note: for the convolution, you may use
+following form: $[A_n, D_n, \ldots, D_1]$. (Note: for the convolution, you may use
 the \li{fftconvolve} function from the \li{scipy.signal} package using the default
 \li{mode = 'full'} parameter, but note that the output array is one entry too large, and so
 you need to omit the first entry. For downsampling, only keep the even-indexed entries.)
 \end{problem}
 We also need to know how to reconstruct the signal from the detail coefficients and
 approximation frame. Fortunately, the algorithm described above is entirely reversible,
-albeit with slightly different filters: Lo $= (\sqrt{2}^{-1}, \sqrt{2}^{-1})$ and
-Hi $= (\sqrt{2}^{-1}, -\sqrt{2}^{-1})$.
+albeit with slightly different filters: 
+$$\text{Lo} = (\sqrt{2}^{-1}, \sqrt{2}^{-1})$$ and
+$$\text{Hi} = (\sqrt{2}^{-1}, -\sqrt{2}^{-1}).$$
 Given $A_{j+1}$ and $D_{j+1}$, simply upsample both arrays (by inserting a zero after
 each entry of the original array), convolve the results
 with the Lo and Hi filters, respectively (this time omit the \emph{last} entry of the
@@ -215,14 +216,140 @@ transform, and compare the original signal with the recovered signal. The differ
 should be very small.
 \end{problem}
 
+\section*{The two-dimensional Discrete Wavelet Transform}
+Our discussion so far has focused on one-dimensional
+discrete signals, but it is not difficult to extend the same ideas into the
+realm of two-dimensional arrays. As you know, a digital image can be represented
+as a matrix of pixel values (for simplicity we will consider grayscale images of
+size $2^n \times 2^n$). We can perform the wavelet decomposition of
+an image in much that same way as with one-dimensional signals. We once again
+calculate detail and approximation coefficients using an iterative filter
+bank, but now we generate four arrays of coefficients at each iteration as opposed to
+just two. In essence, we perform the one-dimensional wavelet transform first on each
+row, and then on each column of the matrix. Notice the similarity with our approach
+to extending the one-dimensional Fourier transform to two-dimensional images.
+
+Given an input matrix of size $2^n \times 2^n$, after first operating on the rows, 
+we have two matrices of size $2^n \times 2^{n-1}$,
+since each row has been downsampled by a factor of 2. Then for each of these two
+intermediate matrices, operate on each column, yielding a total of four matrices of
+size $2^{n-1} \times 2^{n-1}$. Figure \ref{fig:2dwt}
+gives a graphical depiction of one iteration of the algorithm.
+
+\begin{figure}[t]
+    \includegraphics[width=0.8\textwidth]{2dwt.jpg}
+    \caption{The 2-dimensional discrete wavelet transform.}
+    \label{fig:2dwt}
+\end{figure}
+
+
+We initialize $LL_0$ to be the
+original image matrix, and we terminate once the length of the rows or columns
+is less than the length of the filters. We end up with a list of wavelet
+coefficients, starting with the final approximation frame $LL_n$ followed by
+collections of detail coefficients $(LH_n,HL_n,HH_n)$, $(LH_{n-1},HL_{n-1},HH_{n-1})$,
+$\ldots$, $(LH_1,HL_1,HH_1)$. Note that at each iteration we operate first on the
+rows (convolve with the filter, then downsample), and the we operate on the columns
+of the resulting matrices (\emph{not} the original matrix). The size of the output
+matrices have been reduced by a factor of two in both dimensions. As with the
+one-dimensional algorithm, to reconstruct the image from the coefficients, we simply
+reverse the process by upsampling, convolving, and adding (first the columns, then
+the rows). We provide sample code for one iteration of the transform and the inverse.
+
+\begin{lstlisting}
+import numpy as np
+from scipy.signal import fftconvolve
+
+# given the current approximation frame image, and the filters lo_d and hi_d
+# initialize empty arrays
+temp = np.zeros([image.shape[0], image.shape[1]/2])
+LL = np.zeros([image.shape[0]/2, image.shape[1]/2])
+LH = np.zeros([image.shape[0]/2, image.shape[1]/2])
+HL = np.zeros([image.shape[0]/2, image.shape[1]/2])
+HH = np.zeros([image.shape[0]/2, image.shape[1]/2])
+
+# low-pass filtering along the rows
+for i in xrange(image.shape[0]):
+	temp[i] = fftconvolve(image[i], lo_d, mode='full')[1::2]
+
+# low and hi-pass filtering along the columns
+for i in xrange(image.shape[1]/2):
+	LL[:,i] = fftconvolve(temp[:,i],lo_d,mode='full')[1::2]
+    LH[:,i] = fftconvolve(temp[:,i],hi_d,mode='full')[1::2]
+
+# hi-pass filtering along the rows
+for i in xrange(image.shape[0]):
+	temp[i] = fftconvolve(image[i], hi_d, mode='full')[1::2]
+
+# low and hi-pass filtering along the columns
+for i in xrange(image.shape[1]/2):
+	HL[:,i] = fftconvolve(temp[:,i],lo_d,mode='full')[1::2]
+    HH[:,i] = fftconvolve(temp[:,i],hi_d,mode='full')[1::2]
+\end{lstlisting}
+At this point, the variables \li{LL, LH, HL, HH} contain the current level of coefficients.
+You would then store \li{(LH, HL, HH)} in a list, and feed \li{LL} back into the same
+block of code (with \li{LL} replacing \li{image} to obtain the next level of coefficients.
+
+Now, given a current level of wavelet coefficients, here is the code to recover the previous
+approximation frame, which is the crucial step in the inverse transform.
+\begin{lstlisting}
+# given current coefficients LL, LH, HL, HH
+# initialize temporary arrays
+n = LL.shape[0]
+temp1 = np.zeros([2*n,n])
+temp2 = np.zeros([2*n,n])
+up1 = np.zeros(2*n)
+up2 = np.zeros(2*n)
+
+# upsample and filter the columns of the coefficient arrays
+for i in xrange(n):
+	up1[1::2] = HH[:,i]
+	up2[1::2] = HL[:,i]
+	temp1[:,i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
+	up1[1::2] = LH[:,i]
+	up2[1::2] = LL[:,i]		
+	temp2[:,i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
+
+# upsample and filter the rows, then add results together
+result = sp.zeros([2*n,2*n])
+for i in xrange(2*n):
+	up1[1::2] = temp1[i]
+	up2[1::2] = temp2[i]
+	result[i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
+\end{lstlisting}
+
+\begin{problem}
+Build off of the sample code to fully implement the two-dimensional discrete
+wavelet transform as described above.
+As in the last lab, the input to your decomposition function should consist of
+three arrays: the input image, the low-pass filter, and the high-pass filter.
+To increase the flexibility, also include an integer parameter that determines
+the level of the decomposition, i.e. how many iterations to perform. Have the
+default value of this parameter cause the function to compute the complete
+decomposition.
+You should return a list of the following form: $$[LL_n,(LH_n,HL_n,HH_n), \ldots
+,(LH_1,HL_1,HH_1)]$$. The reconstruction function should take as input a list
+of that same form, as well as the reconstruction low-pass and high-pass filters,
+and should return the reconstructed image.
+\end{problem}
+
+These wavelet coefficients are very useful in a variety of image processing
+tasks. They allow us to analyze and manipulate images in terms of both their
+frequency and spatial properties, and at differing levels of resolution.
+Furthermore, wavelet bases often have the remarkable ability to represent
+images in a very \textit{sparse} manner -- that is, most of the image
+information is captured by a small subset of the wavelet coefficients.
+In the remainder of this lab, we will see how the discrete wavelet transform
+plays a role in edge detection, noise removal, and compression.
+
 \section*{More Wavelets}
-Up to this point, the only wavelet that we have considered is the Haar wavelet, 
-which is the simplest and historically first example. Wavelet analysis is a broad 
-field, however, and there are myriad other wavelets that have been studied and 
-applied. Your implementation of the discrete wavelet transform is quite general, 
-and you will find that different types of signals or functions call for different 
-wavelets. We will not go into detail here, but be aware that there is a large 
-selection of wavelets out there. 
+Up to this point, the only wavelet that we have considered is the Haar wavelet,
+which is the simplest and historically first example. Wavelet analysis is a broad
+field, however, and there are myriad other wavelets that have been studied and
+applied. Your implementation of the discrete wavelet transform is quite general,
+and you will find that different types of signals or functions call for different
+wavelets. We will not go into detail here, but be aware that there is a large
+selection of wavelets out there.
 
 \begin{figure}[H]
 \minipage{0.49\textwidth}
