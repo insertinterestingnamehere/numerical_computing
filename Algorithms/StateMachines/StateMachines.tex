@@ -134,6 +134,67 @@ Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for des
 \label{prob:reprDFA}
 \end{problem}
 
-\section*{Kleene Operators})
+\section*{Non-Deterministic Finite Automatons}
+A non-deterministic finite automaton (NFA) are a generalization of deterministic state machines.
+The difference between and NFA and a DFA is the transition function.
+A transition for a DFA maps the current state and the input symbol to exactly one result state.
+In contrast, an NFA can map the current state and the input symbol (or the empty string, $\epsilon$) to a set of resulting states.
+If the set of resulting states has a cardinality greater than 1, the computation separates into independent branches.
+For example, in Figure \ref{fig:simple_nfa}, given the input \texttt{0100}, we start at state $q_0$.  We match the first 0 and the active state is again $q_0$.  Next, we match a 1 and the resulting states are \{$q_0$, $q_1$, $q_2$\}.
+At this point, our machine is in three states simultaneously (we transition to state $q_2$ on the $\epsilon$ transition).
+This is the non-deterministic behavior of our state machine.
+Our next input symbol is 0.
+It is helpful to think of three separate and independent branches of computations.
+\begin{enumerate}
+\item State $q_0$ transitions back to $q_0$
+\item State $q_1$ transitions to $q_2$
+\item State $q_2$ transitions to $q_3$
+\end{enumerate}
+Our matching could terminate here, but since we have not completely read out input, we must still keep going.  The most we can say at this point is the string \texttt{010} is in the NFA's language.  Our current states are the set \{$q_0$, $q_2$, $q_3$\}.
+Our last symbol is another 0.
+\begin{enumerate}
+\item State $q_0$ transitions back to itself
+\item State $q_2$ transitions to $q_3$
+\item State $q_3$ transitions to the implied fail state
+\end{enumerate}
+Now that we have read all of our input, and one of our final resulting states is an accepting state, we accept the entire string.  Does the string \texttt{01000} exist in the NFA's language?
+
+You might think that this new power of NFAs will allow us to represent many more languages.  However, every language that can be represented as an NFA can also be represented by an equivalent DFA.  This is to say that an NFA is equivalent to a DFA in computing power.
+In fact a method exists that will transform any NFA into an equivalent DFA.  This is, however, beyond the scope of this lab.
+NFAs are quite useful though because they can often represent complex languages very simply and intuitively.
+\begin{figure}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state] (q1) [right=of q0] {$q_1$};
+\node[state] (q2) [right=of q1] {$q_2$};
+\node[state,accepting] (q3) [right=of q2] {$q_3$};
+
+\path[->]
+(q0) edge node {1} (q1)
+(q0) edge[loop above] node {0,1} (q0)
+(q1) edge node {0,1,$\epsilon$} (q2)
+(q2) edge node {0,1} (q3);
+\end{tikzpicture}
+\caption{A simple non-deterministic finite automaton.}
+\label{fig:simple_nfa}
+\end{figure}
+
+\begin{problem}
+Draw a non-deterministic finite automaton that can match the following language.
+\[L = \setconstruct{w \in L}{w\mbox{ where the number of a's is a multiple of 3, or contains least 4 b's, or where the number of c's is odd}}\]
+\end{problem}
 
 
+\section*{Operations on Regular Languages}
+We can build machines that represent more complex languages by concatenating several simpler DFAs or NFAs together.  The format expression for concatenating the languages $A$ and $B$ is $A \circ B$.  We can also union the machines and thus union the languages they each represent (expressed as $A \cup B$).  
+There are two more basic operations, \emph{star} and \emph{plus}, that are extremely useful.  Given a language, $L$, $L^*$ means that we can attach any number of strings in $L$ to get another string in $L^*$.  $L^+$ denotes one or more strings of $L$ have been attached to form a new string in $L^+$.  Note that $L^*$ and $L^+$ are different languages than $L$.
+
+\section*{Introduction to Regular Expressions}
+Regular expressions are not trivial or easy, but understanding them can be very straightforward.
+The best way to think of regular expressions is the view them as operations on regular languages.  The entire regular expression represents a regular language.  In fact, the definition of being a regular language, $L$ means that there is a regular expression that represents $L$.   Since a every regular language can be represented by a DFA, we have an equivalence between regular expressions and DFAs.  And, because every NFA is equivalent to some DFA, we have a three-way equivalence (DFA=NFA=RE).  They are a \emph{very} compact way of representing complex state machines.
+As noted, regular expressions can only represent a language if it is regular.  There do exist languages that are non-regular.  There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.  A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
+
+Regular expressions are especially useful and powerful for find and matching patterns in text.  Many tools can take advantage of the powerful matching features of regular expressions.  
+\begin{warn}
+Theoretically, regular expressions have a linear runtime.  However, because of more advanced features that many regular expression libraries have, poorly written regular expressions can have exponential runtime!  Profiling regular expressions is tricky because of their syntax.  A single character or two  could mean the difference between a fast regular expression and a regular expression that has practically infinite runtime (depending on the length of the input).
+\end{warn}
