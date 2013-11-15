@@ -29,7 +29,7 @@ Since Cython outputs C code, you can easily call any C function from any point i
 
 Cython has a more complex compilation process than Python and is not usually run interactively.
 Cython code is usually written in a \texttt{.pyx} file.
-A \li{.pyx} file is then compiled to C, and then the C is compiled to machine code.
+Such a file is then compiled to C, and then the C is compiled to machine code.
 The resulting file is a Python extension that can be imported from the Python interpreter.
 Many of the same built in features, data types, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython program.
 Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
@@ -61,7 +61,7 @@ pyximport.install()
 \section*{Type Declarations}
 One of the easiest ways improve performance in Cython is declaring types on variables.
 While it is good practice to try and restrict variables to a single type (doing so can improve performance in Python program),
-Python does not enforce strict type checking.  In fact, Python variables are dynamically typed.  
+Python does not enforce strict type checking.  In fact, Python variables are dynamically typed.
 Any variable can be any type and that type can change at any time.
 To allow this behavior, lots of background checking must be performed.
 Cython allows us to declare a variable of a certain type.  If we declare a variable an integer, then an integer it will be for the remainder of its life.
@@ -70,12 +70,12 @@ In Python, you can iterate over a list, or use a generator object.
 In C, for-loops are managed by indexing an integer and checking to see if it is within a range of allowed values.
 This is a good example of a time when Python objects can incur significant overhead.
 In Python to do a for-loop from 0 to 1000000 you would do something like this:
-Doing a for-loop in this way creates a Python list of 1000000 objects and then iterates through it.
-This can  be very slow.
 \begin{lstlisting}
 for i in range(1000000):
     pass
 \end{lstlisting}
+Doing a for-loop in this way creates a Python list of 1000000 objects and then iterates through it.
+This can  be very slow.
 It also uses a great deal of memory for no particular reason
 We can improve on this by using the \li{xrange} function as follows:
 \begin{lstlisting}
@@ -87,7 +87,7 @@ For large lists, this can give us a speedup of a factor of 3 or 4 times.
 Because of this, the \li{range} function in Python 3 was changed to behave as the \li{xrange} function of Python 2.
 However, \li{xrange} still generates a sequence of Python integers.
 Cython will also execute this loop in the Python interpreter, but, if we pre-define the type of our loop variable, Cython can bypass the use of Python objects and run the for-loop in C using C integers.
-C integers are data types that have built in support on every CPU, so the operations involving the loop variable will now run much faster.
+C integers are data types that have built-in support on every CPU, so the operations involving the loop variable will now run much faster.
 If we do this, we can completely relieve the Python interpreter of executing the loop.
 We use a \li{cdef} statement to define \li{i} as a C integer type with this syntax \li{cdef <type> <name>}.
 The empty for-loops above would be written in Cython as follows:
@@ -124,7 +124,7 @@ from numpy cimport ndarray as ar
 ...
 cdef ar[double, ndim=2] X = ...
 \end{lstlisting}
-The \li{ndim} argument defaults to one and can be ommitted when declaring a one dimensional array, as in
+The \li{ndim} argument defaults to one and can be omitted when declaring a one-dimensional array, as in
 \begin{lstlisting}
 from numpy cimport ndarray as ar
 ...
@@ -142,7 +142,7 @@ The syntax to declare arrays like this is:
 from numpy cimport ndarray as ar
 ...
 #C-contiguous
-cdef ar[double, ndim=2, mode=`c'] X = ...
+cdef ar[double, ndim=2, mode='c'] X = ...
 \end{lstlisting}
 Specifying the mode of the array does not add any extra speed if the array is already laid out in the desired way, but it will raise an error if the array declared is not arranged in the correct way.
 We get all the convenience of using a NumPy array and can still use the different array operations, but we also get to access single items in the array more quickly.
@@ -271,7 +271,7 @@ def cydot(ar[double] A, ar[double] B):
     for i in xrange(A.size):
         tot += A[i] * B[i]
     return tot
-\end{listlisting}
+\end{lstlisting}
 We can then time our function by evaluating the following cell
 \begin{lstlisting}
 from numpy.random import rand
@@ -294,9 +294,10 @@ As you can see, the Cython version can run nearly as fast as the version built i
 \end{figure}
 
 Now we will do a more advanced example using memoryviews.
-We will write functions which, given a two-dimensional array \li{A}, make a new array \li{B} for which, \li{B[i,j] = dot(A[i],A[j])}.
+We will write functions which, given a two-dimensional array \li{A}, make a new array \li{B} such that
+\li{B[i,j] = dot(A[i],A[j])}.
 
-Here's a purely iteration-based solution in Python.
+Here's a purely iteration-based solution in Python:
 \begin{lstlisting}
 def pyrowdot(A):
     B = np.empty((A.shape[0], A.shape[0]))
@@ -376,7 +377,7 @@ These functions can be imported using something along the lines of:
 from libc.math cimport fabs, sin, cos, ...
 \end{lstlisting}
 Notice that we imported \li{fabs}.
-This is the absolute value function from C, but it is imported as fabs so that it does not overwrite Python's built in \li{abs} function. 
+This is the absolute value function from C, but it is imported as fabs so that it does not overwrite Python's built in \li{abs} function.
 \li{min} and \li{max} are also renamed the same way.
 These functions are good for large amounts of computation when we don't want to deal with the overhead from Python objects.
 Cython also allows you to import other C functions and libraries.
@@ -431,7 +432,7 @@ a_0 & b_1 & c_1 & 0 & 0 & \cdots & \cdots & 0 \\
 0 & 0 & a_2 & b_3 & c_3 & \cdots & \cdots & 0 \\
 \vdots & \vdots & \vdots & \vdots & \vdots & \ddots & \ddots & \vdots \\
 \vdots & \vdots & \vdots & \vdots & \vdots & \ddots & \ddots & c_{n-1} \\
-0 & 0 & 0 & 0 & 0 & \cdots & a_{n-1} & b_n 
+0 & 0 & 0 & 0 & 0 & \cdots & a_{n-1} & b_n
 \end{bmatrix}
 \begin{bmatrix}
 d_0\\
