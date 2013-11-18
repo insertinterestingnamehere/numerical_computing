@@ -14,7 +14,7 @@ contains
 subroutine fssor(U, m, n, omega, tol, maxiters, info) bind(c)
     
 !   Here we declare the types for the inputs.
-!   Thisis where we use the c_double and c_int types.
+!   This is where we use the c_double and c_int types.
 !   The 'dimension' statement tells the compiler that
 !   the argument is an array of the given shape.
     integer(c_int), intent(in) :: m, n, maxiters
