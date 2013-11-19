@@ -1,7 +1,41 @@
-\lab{Python}{Wrapping Fortran}{Wrapping Fortran}
+\lab{Python}{F2PY}{F2PY}
 \label{lab:f2py}
+\objective{Learn how to use F2PY, especially for wrapping Fortran code involving arrays.}
 
-\objective{Learn how to use FORTRAN code, specifically for array computations.}
+Here we will explore another simple way to access external code from Python.
+Various utilities exist to do this, and many are specialized for specific tasks.
+F2PY is a utility that can be used to automatically wrap Fortran subroutines so that they are callable from Python.
+It is included with NumPy and in most cases does not usually require heavy configuration for use.
+The primary requirement for using F2PY is a working Fortran compiler.
+If you have access to GFortran, the Fortran equivalent of gcc, it should work well.
+
+\section*{Examples}
+
+F2PY is very simple to use.
+Many simple Fortran files can be compiled \emph{automatically} without any hand-written interfaces between languages.
+We will start by wrapping the Fortran function we wrapped as a part of Lab \ref{lab:cythonwrap}.
+Here we will wrap the subroutine in unmodified form.
+In Lab \ref{lab:cythonwrap} we modified the Fortran file to make it callable from C.
+F2PY will take care of this for us so that we can wrap the subroutine directly.
+Here is the file in its unmodified form:
+\lstinputlisting[style=fromfile, language=Fortran]{ftridiag.f90}
+We can wrap this file by running the following in our terminal:
+\begin{lstlisting}[style=ShellInput]
+python f2py.py -c ftridiag.f90 -m ftridiag
+\end{lstlisting}
+We can also tell F2PY to pass an optimization flag to the compiler using the \li{--opt} flag, as in:
+\begin{lstlisting}[style=ShellInput]
+python f2py.py -c ftridiag.f90 -m ftridiag --opt="-O3"
+\end{lstlisting}
+Depending on your system configuration, you may be able to call F2PY without expressly calling python, or without including its file extension (or both).
+
+Running these commands will create a file called \li{ftridiag.pyd} on a Windows computer or \li{ftridiag.so} on a Linux or Mac based computer.
+This file is a Python module that is linked against the compiled Fortran code.
+All the details about array type, etc. have been infered by F2PY.
+We can test the module the same way we tested the module we built using Cython.
+\lstinputlisting[style=fromfile]{ftridiag_test.py}
+For our example here we compiled the subroutine by itself instead of compiling an entire module.
+If the function were a part of a Fortran module \li{tridiag} F2PY would have made it available to us as \li{ftridiag.tridiag.ftridiag}.
 
 % Show example of wrapping FORTRAN using Cython.
 
