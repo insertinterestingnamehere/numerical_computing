@@ -389,22 +389,22 @@ def Cannon_Shooting(t0,t1):
 # Exercise3(3.,-2.) 
 # Exercise3(3.,1.)
 
-phi1,X,Y = Exercise4(0.,35., 0.,np.pi/3.5,np.pi/3.)
-plt.plot(X,Y,'-k')
-phi2,X,Y = Exercise4(0,35.,0.,np.pi/6.,np.pi/6.5)
-plt.plot(X,Y,'-k')
-print '\n'*4,"Angle giving the furthest distance: "
-print 'pi/4 =   ', np.pi/4.
-print "\nSolutions to BVP:"
-print "phi(0) = ", phi1
-print "         ", phi2
-plt.show()
-
-
-
-
-# X,Y = Cannon_Shooting(np.pi/4., np.pi/4.5)
-# X1,Y1 = Cannon_Shooting(np.pi/3.5, np.pi/3.0)
-# plt.plot(X,Y[:,0],'-k')
-# plt.plot(X1,Y1[:,0],'-k')
+# phi1,X,Y = Exercise4(0.,35., 0.,np.pi/3.5,np.pi/3.)
+# plt.plot(X,Y,'-k')
+# phi2,X,Y = Exercise4(0,35.,0.,np.pi/6.,np.pi/6.5)
+# plt.plot(X,Y,'-k')
+# print '\n'*4,"Angle giving the furthest distance: "
+# print 'pi/4 =   ', np.pi/4.
+# print "\nSolutions to BVP:"
+# print "phi(0) = ", phi1
+# print "         ", phi2
 # plt.show()
+
+
+
+
+X,Y = Cannon_Shooting(np.pi/4., np.pi/4.5)
+X1,Y1 = Cannon_Shooting(np.pi/3.5, np.pi/3.0)
+plt.plot(X,Y[:,0],'-k')
+plt.plot(X1,Y1[:,0],'-k')
+plt.show()
