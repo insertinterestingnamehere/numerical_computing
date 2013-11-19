@@ -1,10 +1,10 @@
 from numpy cimport ndarray as ar
 
 cdef extern from "cssor.h":
-    void cssor(double* U, unsigned int m, unsigned int n, double omega, double tol, unsigned int maxiters, unsigned int info)
+    void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int info)
 
-def cyssor(ar[double,ndim=2] U, double omega, double tol=1E-8, unsigned int maxiters=10000):
-    cdef unsigned int m=U.shape[0], n=U.shape[1], info
+def cyssor(ar[double,ndim=2] U, double omega, double tol=1E-8, int maxiters=10000):
+    cdef int m=U.shape[0], n=U.shape[1], info
     if U.flags["F_CONTIGUOUS"]:
         # If U is Fortran contiguous, call it exactly as it is written.
         cssor(&U[0,0], m, n, omega, tol, maxiters, info)

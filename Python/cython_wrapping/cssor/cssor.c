@@ -1,4 +1,4 @@
-void cssor(double* U, unsigned int m, unsigned int n, double omega, double tol, unsigned int maxiters, unsigned int info){
+void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int info){
     // Temporary variables:
     // 'maxerr' is a temporary value.
     // It is used to determine when to stop iteration.
@@ -6,7 +6,7 @@ void cssor(double* U, unsigned int m, unsigned int n, double omega, double tol, 
     // lcf and rcf will be precomputed values
     // used on the inside of the loops.
     double maxerr, temp, lcf, rcf;
-    unsigned int i, j, k;
+    int i, j, k;
     lcf = 1.0 - omega;
     rcf = 0.25 * omega;
     for (k=0; k<maxiters; k++){
