@@ -1,4 +1,5 @@
-void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int info){
+void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int* info){
+    // info is passed by reference so the function can modify it as needed.
     // Temporary variables:
     // 'maxerr' is a temporary value.
     // It is used to determine when to stop iteration.
@@ -23,5 +24,5 @@ void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int 
     // the desired tolerance was attained
     // within the the given maximum
     // number of iterations.
-    if (maxerr < tol){info=0;}
-    else{info=1;}}
+    if (maxerr < tol){*info=0;}
+    else{*info=1;}}
