@@ -7,7 +7,7 @@ The derivative of a function at a point is formally defined as
 
 \begin{equation}
 \label{eqn:deriv}
-f'(x) = \lim_{h\rightarrow 0} \frac{f(x + h)-f(x)}{h}
+f'(x) = \lim_{h\rightarrow 0} \frac{f(x + h)-f(x)}{h}.
 \end{equation}
 
 In most real world applications we will be solving problems using computers. How does a computer calculate a limit? In short it can't. Computers can only approximate functions at specific points, and the notion of a limit graces infinity in a way that a computer never can.
@@ -29,13 +29,12 @@ f(x_0 + h) = f(x_0) + hf'(x_0) + h^2/2 f''(\xi),\hspace{5mm} \xi \in (x_0,x_0 + 
 Which can be also expressed as
 
 \begin{equation*}
-f'(x_0) = \frac{f(x_0 + h) - f(x)}{h} + \frac{h}{2}
-f''(\xi) = \frac{f(x_0 + h) - f(x)}{h} + O(h)
+f'(x_0) = \frac{f(x_0 + h) - f(x)}{h} + \frac{h}{2}f''(\xi) = \frac{f(x_0 + h) - f(x)}{h} + O(h)
 \end{equation*}
 
 Here we use the big-O notation to denote that the errors are bounded by some constant multiplied by $h$.
 
-We can use Taylor expansions to find approximations that have different big-O error bounds, up to any polynomial of arbitrary degree. The following tables offer the coefficients for forward, and centered difference schemes.
+We can use Taylor expansions to find approximations that have different big-O error bounds, up to any polynomial of arbitrary degree. Tables \ref{Table:CDiff} and \ref{Table:FDiff} offer the coefficients for centered and forward difference schemes.
 
 \begin{table}
 \begin{center}
@@ -114,11 +113,85 @@ As you can see, the error actually increases as $h$ becomes very small. Why is t
 As a matter of reference, calculating numerical derivatives is an unstable operation. An unstable operation, informally, is one where errors are magnified by the operation. This usually is not an issue, but it's important to know that taking derivatives can amplify errors.
 
 \begin{problem}
-Write a function that accepts as inputs: a derivative (first or second), a degree of accuracy ($n$), a type of difference (forward, backward or centered), a function to be differentiated, and a vector of points to differentiate at. Also, allow an optional input of error tolerance. Have the function estimate the derivative with the inputed specifications. Have the function return a vector of the approximate derivative and the number of total function evaluations. Try to minimize the total number of necessary function evaluations. You can have the function output an error if the specified order of derivative or degree were not provided in Table \ref{Table:CDiff} or \ref{Table:FDiff}.
+Write a function \li{numDer} that accepts as inputs: a callable function object \li{f}, an
+array of numbers \li{pts}, a keyword argument \li{mode} (taking one of the values 
+\li{'centered'}, \li{'forward'}, or \li{'backward'}), a keyword argument \li{d} (taking one of 
+the values \li{1} or \li{2}), a keyword argument \li{o} (taking an integer value in 
+\li{[2, 4, 6]} if \li{mode = 'centered'}, and otherwise taking a value in \li{[1, 2, 3]}), and
+a keyword argument \li{h} giving the step size. The default settings of the keyword
+arguments should be \li{mode = 'centered', d = 1, o = 2, h = 1e-5}.
+ 
+Have the function return an array of the approximate derivative of order \li{d} with accuracy
+ \li{o} of \li{f} at each of the points in \li{pts}, using the coefficients indicated by \li{mode}.
 \end{problem}
 
 We note that higher order approximations of the derivative can be derived using the Taylor series and Lagrange polynomials, but generally higher-order approximations are not practically useful as they can often be ill-conditioned.
 
+For any numerical approximation method, it is important to be able to empirically calculate
+the order of convergence. We will do so for our numerical derivative approximation. 
+For an $m$-th order approximation of the first derivative, we have that the error is in
+$O(h^m)$, so that
+$$
+err(h) \approx Ch^m
+$$
+for some constant $C$.
+Hence, taking the log of both sides, we obtain
+$$
+\log err(h) \approx \log C + m\log h,
+$$
+which means that if we plot the log of the errors against the log of the $h$ values, we 
+ought to see a linear relationship whose slope gives the rate of convergence. 
+
+We do this in python as follows:
+\begin{lstlisting}
+# assume that the function numDer has already been written
+import numpy as np
+from matplotlib import pyplot as plt
+
+# approximate the derivative of cosine at x = 3
+# create a callable function object
+def myCosine(x):
+    return np.cos(x)
+f = myCosine
+
+# calculate the actual derivative
+actual = -np.sin(3.0)
+
+# initialize array of h values at which to calculate the error
+hvals = np.linspace(1e-5, 1e-1)
+err1 = np.zeros(hvals.shape)
+err2 = np.zeros(hvals.shape)
+
+# calculate the errors for order 1 and order 2 approximations
+for i in xrange(len(hvals)):
+    err1[i] = np.abs(actual - numDer(f, np.array([3.0]), mode = 'forward', h = hvals[i], o=1))
+    err2[i] = np.abs(actual - numDer(f, np.array([3.0]), mode = 'forward', h = hvals[i], o=2))
+
+# plot the log of the h values against the log of the errors
+plt.subplot(121)
+plt.loglog(hvals, err1)
+plt.ylim((1e-11, 1e-1))
+plt.subplot(122)
+plt.loglog(hvals, err2)
+plt.ylim((1e-11, 1e-1))
+plt.show()
+\end{lstlisting}
+
+The generated plot is shown in Figure \ref{fig:convergence}. Note that the slope
+of the line in the left plot is about 1, and the slope of the line in the right
+plot is about 2. Further, the log of the errors for the order 2 approximations
+are much lower than the log of the errors of the order 1 approximations.
+
+\begin{figure}[t]
+    \includegraphics[width=0.8\textwidth]{convergence.pdf}
+    \caption{Convergence plots for our numerical derivative approximations.
+    The left plot shows the convergence for order 1 approximations. 
+    The right plot shows the convergence for order 2 approximations.}
+    \label{fig:convergence}
+\end{figure}
+
 \begin{problem}
-Test the convergence properties claimed in Tables \ref{Table:CDiff} and \ref{Table:FDiff}. Specifically, empirically calculate the order of convergence of a $O(h^2)$ centered difference and a $O(h^3)$ forward difference by calculating the derivative of the sine function at $x=1$. How does it compare to the order of convergence expected?
+Explore the convergence properties for different orders of approximation,
+and for the second derivative as well. You may need to adjust your $h$
+values, as they may be too small for some of the calculations.
 \end{problem}
