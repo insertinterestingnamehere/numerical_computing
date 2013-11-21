@@ -1,111 +1,79 @@
 \lab{Applications}{Wavelet Denoising and Compression}{Denoising and Compression}
 
-\objective{This lab presents the two-dimensional Discrete Wavelet Transform
-as well as related applications in image denoising and compression.}
+\objective{This lab presents applications of the Discrete Wavelet Transform in 
+image denoising and compression.}
 
-\section*{The two-dimensional Discrete Wavelet Transform}
-In the previous lab, we explored wavelet analysis using the Haar wavelet and
-the discrete wavelet transform. Our discussion focused on one-dimensional
-discrete signals, but it is not difficult to extend the same ideas into the
-realm of two-dimensional arrays. As you know, a digital image can be represented
-as a matrix of pixel values (for simplicity we will consider grayscale images of
-size $2^n \times 2^n$ in this lab). We can perform the wavelet decomposition of
-an image in much that same way as with one-dimensional signals. We once again
-calculate detail and approximation coefficients using an iterative filter
-bank, but now we generate four arrays of coefficients at each iteration as opposed to
-just two. In essence, we perform the one-dimensional wavelet transform first on each
-row, and then on each column of the matrix. Given an input matrix of size $2^n \times
-2^n$, after operating on the rows, we have two matrices of size $2^n \times 2^{n-1}$,
-since each row has been downsampled by a factor of 2. Then for each of these two
-intermediate matrices, operate on each column, yielding a total of four matrices of
-size $2^{n-1} \times 2^{n-1}$. Recall the issues associated with the function
-\li{sp.signal.fftconvolve} discussed in the previous lab. Figure \ref{fig:2dwt}
-gives a graphical depiction of one iteration of the algorithm.
+\section*{The PyWavelets Module}
+PyWavelets is a Python library for Wavelet Analysis. It provides convenient and 
+efficient methods to calculate the one and two-dimensional discrete Wavelet 
+transform, as well as much more. Assuming that the package has been installed on
+your machine, type the following to get started:
+\begin{lstlisting}
+>>> import pywt
+\end{lstlisting}
+Performing the basic discrete Wavelet transform is very simple. 
+Below, we compute the one-dimensional transform for a sinusoidal signal.
+\begin{lstlisting}
+>>> import numpy as np
+>>> f = np.sin(np.linspace(0,8*np.pi, 256))
+>>> fw = pywt.wavedec(f, 'haar')
+\end{lstlisting}
+The variable \li{fw} is now a list of arrays, starting with the final approximation
+frame, followed by the various levels of detail coefficients, just like the output
+of the wavelet transform function that you coded in the previous lab. 
+Plot the level 2 detail and verify that it resembles a blocky sinusoid.
+\begin{lstlisting}
+>>> from matplotlib import pyplot as plt
+>>> plt.plot(fw[-2], linestyle='steps')
+>>> plt.show()
+\end{lstlisting}
+We can give alter the arguments to the \li{wavedec} function to use different
+wavelets or obtain different levels of the wavelet transform. The second 
+positional argument, as you will notice, is a string that gives the name of the
+wavelet to be used. We first used the Haar wavelet, with which you are already
+familiar. PyWavelets supports a number of different Wavelets, however, which you can
+list by executing the following code:
+\begin{lstlisting}
+>>> # list the available Wavelet families
+>>> print pywt.families()
+['haar', 'db', 'sym', 'coif', 'bior', 'rbio', 'dmey']
+>>> # list the available wavelets in the coif family
+>>> print pywt.wavelist('coif')
+['coif1', 'coif2', 'coif3', 'coif4', 'coif5']
+\end{lstlisting}
+We can also include optional arguments \li{mode} and \li{level} when calling the
+\li{wavedec} function. Using these arguments, you can adjust the mode for dealing
+with border distortion and the level of the Wavelet decomposition, respectively.
+
+Now we illustrate how to perform a two-dimensional Wavelet transform using
+PyWavelets. We will work with the traditional Lena image, performing a
+two level wavelet transform using the Daubechies 4 Wavelet.
+\begin{lstlisting}
+>>> import scipy.misc
+>>> lena = scipy.misc.lena()
+>>> lw = pywt.wavedec2(lena, 'db4', level=2)
+\end{lstlisting}
+The variable \li{lw} is a list of tuples of arrays. The first entry of the list is
+simply the level 2 approximation frame. The second entry of the list is a tuple of 
+the level 2 detail coefficients $LH$, $HL$, and $HH$ (in that order). The remaining
+entries of the list are tuples containing the lower level detail coefficients. 
+Thus, to plot the level 1 $HL$ detail coefficients, we can execute the following code:
+\begin{lstlisting}
+>>> HL1 = lw[-1][1]
+>>> plt.imshow(np.abs(HL1), cmap=plt.cm.Greys_r, interpolation='none')
+>>> plt.show()
+\end{lstlisting}
+The output of this code should be a plot resembling the lower left plot given in Figure
+\ref{fig:dwt2}.
 
 \begin{figure}[t]
-    \includegraphics[width=0.8\textwidth]{2dwt.jpg}
-    \caption{The 2-dimensional discrete wavelet transform.}
-    \label{fig:2dwt}
+    \includegraphics[width=\linewidth]{dwt2.pdf}
+    \caption{Level 1 Wavelet decomposition of the Lena image.
+    The upper left is the approximation frame, and the remaining
+    plots are the detail coefficients.}
+    \label{fig:dwt2}
 \end{figure}
-
-
-We initialize $LL_0$ to be the
-original image matrix, and we terminate once the length of the rows or columns
-is less than the length of the filters. We end up with a list of wavelet
-coefficients, starting with the final approximation frame $LL_n$ followed by
-collections of detail coefficients $(LH_n,HL_n,HH_n)$, $(LH_{n-1},HL_{n-1},HH_{n-1})$,
-$\ldots$, $(LH_1,HL_1,HH_1)$. Note that at each iteration we operate first on the
-rows (convolve with the filter, then downsample), and the we operate on the columns
-of the resulting matrices (\emph{not} the original matrix). The size of the output
-matrices have been reduced by a factor of two in both dimensions. As with the
-one-dimensional algorithm, to reconstruct the image from the coefficients, we simply
-reverse the process by upsampling, convolving, and adding (first the columns, then
-the rows). Here is some sample code for one iteration of the transform and the inverse.
-
-\begin{lstlisting}
-def dwt2_pass(image,lo_d,hi_d):
-	temp = sp.zeros([image.shape[0], image.shape[1]/2])
-	LL = sp.zeros([image.shape[0]/2, image.shape[1]/2])
-    LH = sp.zeros([image.shape[0]/2, image.shape[1]/2])    
-	for i in xrange(image.shape[0]):
-		temp[i] = sp.signal.fftconvolve(image[i], lo_d, mode='full')[1::2]    
-	for i in xrange(image.shape[1]/2):    
-		LL[:,i] = sp.signal.fftconvolve(temp[:,i],lo_d,mode='full')[1::2]    
-        LH[:,i] = sp.signal.fftconvolve(temp[:,i],hi_d,mode='full')[1::2]  
-	HL = sp.zeros([image.shape[0]/2, image.shape[1]/2])        
-    HH = sp.zeros([image.shape[0]/2, image.shape[1]/2])        
-	for i in xrange(image.shape[0]):        
-		temp[i] = sp.signal.fftconvolve(image[i], hi_d, mode='full')[1::2]        
-	for i in xrange(image.shape[1]/2):        
-		HL[:,i] = sp.signal.fftconvolve(temp[:,i],lo_d,mode='full')[1::2]
-        HH[:,i] = sp.signal.fftconvolve(temp[:,i],hi_d,mode='full')[1::2] 	return [LL,LH,HL,HH]
-
-def idwt2_pass(coeffs, lo_r, hi_r):
-	LL, LH, HL, HH = coeffs
-    n = LL.shape[0]
-	temp1 = sp.zeros([2*n,n])
-	temp2 = sp.zeros([2*n,n])
-	up1 = sp.zeros(2*n)
-	up2 = sp.zeros(2*n) 
-	for i in xrange(n):
-		up1[1::2] = HH[:,i]
-		up2[1::2] = HL[:,i]
-		temp1[:,i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
-		up1[1::2] = LH[:,i]
-		up2[1::2] = LL[:,i]		
-		temp2[:,i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
-	result = sp.zeros([2*n,2*n])
-	for i in xrange(2*n):
-		up1[1::2] = temp1[i]
-		up2[1::2] = temp2[i]
-		result[i] = fftconvolve(up1, hi_r)[1:] + fftconvolve(up2, lo_r)[1:]
-	return result
-\end{lstlisting}
-
-\begin{problem}
-Build off of the sample code to fully implement the two-dimensional discrete 
-wavelet transform as described above.
-As in the last lab, the input to your decomposition function should consist of
-three arrays: the input image, the low-pass filter, and the high-pass filter.
-To increase the flexibility, also include an integer parameter that determines
-the level of the decomposition, i.e. how many iterations to perform. Have the
-default value of this parameter cause the function to compute the complete
-decomposition.
-You should return a list of the following form: $[LL_n,[LH_n,HL_n,HH_n],\ldots
-,[LH_1,HL_1,HH_1]]$. The reconstruction function should take as input a list
-of that same form, as well as the reconstruction low-pass and high-pass filters,
-and should return the reconstructed image.
-\end{problem}
-
-These wavelet coefficients are very useful in a variety of image processing
-tasks. They allow us to analyze and manipulate images in terms of both their
-frequency and spatial properties, and at differing levels of resolution.
-Furthermore, wavelet bases often have the remarkable ability to represent
-images in a very \textit{sparse} manner -- that is, most of the image
-information is captured by a small subset of the wavelet coefficients.
-In the remainder of this lab, we will see how the discrete wavelet transform
-plays a role in edge detection, noise removal, and compression.
-
+ 
 \section*{Edge Detection}
 It is often useful to identify the edges of objects and figures
 represented in images. The edge information can be used to classify images
@@ -308,4 +276,4 @@ Do this for a few different values of $\delta$ (with $t=2$), and observe how
 the image is distorted. Keep in mind that we are using the Haar wavelet,
 which is definitely not well-suited for compression, and so the
 distortion will be greater than tolerable in real-life settings.
-\end{problem} 
+\end{problem}
