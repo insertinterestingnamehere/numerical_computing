@@ -55,6 +55,10 @@ This function has many local minima which we will see proves difficult for the m
 
 For example, if we use the \li{opt.fmin} function (which employs the Neader-Mead method, otherwise known as the downhill simplex method) the algorithm fails to find the global maximum, and instead comes to rest on a local maximum.
 \begin{lstlisting}
+def multimin(x):
+    r = np.sqrt((x[0]+1)**2 + x[1]**2)
+    return r**2 *(1+ np.sin(4*r)**2)
+
 x0 = [-2,-2]
 res = opt.fmin(multimin, x0, xtol=1e-8, disp=True)
 print res
@@ -73,3 +77,29 @@ Optimization terminated successfully.
 \end{lstlisting}
 
 However, scipy does have some tools to help us with these problems. Specifically, we can use the \li{opt.basinhopping} function. 
+Conceptually, most of the minimizing algorithms use to derivitive the function to search for the downhill direction of the function and make guesses downhill. Often they overshoot the minimum and come back. You can think of it as a ball rolling down a hill that slowly loses momentum as is overshoots the valleys and goes up the hill sides. Eventually the ball comes to rest at the bottom of a valley - hopefully the lowest valley. However, if there are many valleys (or loval minima) the ball can get stuck in one that's not the lowest valley.
+The \li{opt.basinhopping} algorithim uses the same minimizing functions (in fact, you can tell it whatever minimizing algorithm you can pass to \li{opt.minimize}). However, once it settles on a minimum, the basinhopping algorithm pops it out of the this minimum (depending on how we set the "hopping" distance)  and hopefully out of the minimum its stuck it. If the new minimum it finds is even smaller than the last, it starts over with the new minimum.
+
+\emph{Only Scipy Version 0.12+ has \li{opt.basinhopping}, in earlier versions, such as 0.11 you won't find it}
+%I've seen a real cool animation of this -feasible to do in python?
+\begin{problem}
+
+Look at the documentation for the \li{opt.basinhopping} function online and use it to find the global minimum of our function with the same \li{x0}. Use the same \li{Nelder-Mead} algorithim with the same \li{xtol}. You will need to pass into the \li{opt.basinhopping} function a dictionary within a dictionary for the arguments of the minimizing algorithm to get all these options in.
+Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't it find the minimum the second time?
+
+\end{problem}
+
+%we still have curve fitting
+%least squares programming -- but it seems that it's already been done in Volume One
+Scipy also has functions to do curve fitting.
+
+\begin{problem}
+Use the \li{opt.curve_fit} function to fit a heating curve to 
+\end{problem}
+
+
+%minimizing scalar functions
+
+%root finding
+
+
