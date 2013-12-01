@@ -12,7 +12,8 @@ You may recall that equally spaced points provided a very poor approximation to 
 This weakness in interpolation using equispaced points is called Runge's Phenomenon.
 We can avoid Runge's Phenomenon by choosing to interpolate our function with a different set of points.
 Since there is an increased amount of instability toward the edges of the interval where we are interpolating we will choose more points toward the edges of the interval so that the approximation remains accurate throughout the whole interval.
-It can be shown that, when forming an interpolating polynomial of degree $n$, the ideal points to use for interpolation on the interval $[-1, 1]$ are the points $\cos{\frac{\pi k}{n}}$ for $k\in\mathbb{Z}$, $0 \leq k \leq n$.
+
+It can be shown that, when forming an interpolating polynomial of degree $n$, the ideal points to use for interpolation on the interval $[-1, 1]$ are the points $\cos{\frac{\pi k}{k}}$ for $k\in\mathbb{Z}$, $0 \leq k \leq n$.
 These points are called the Chebyshev nodes.
 These points can also be viewed as the projection of equispaced points along the half-circle in the complex plane projected onto the real axis.
 This interpretation is shown in Figure [Add Figure].
@@ -20,6 +21,37 @@ They can be shifted and scaled appropriately for use on any interval.
 As we have presented them here they are on the interval $[-1, 1]$.
 These nodes provide for much more stable interpolation of functions as can be seen in Figure [Add Figure].
 
+\begin{problem}
+Write a function that, given the endpoints $a$ and $b$ of an interval and the order of the desired interpolating polynomial returns the $k+1$ Chebyshev nodes on the interval $[ a, b ]$.
+\end{problem}
+
 \section*{Chebyshev Polynomials}
 This sort of interpolation is also related to what are called the Chebyshev polynomials.
-Chebyshev Polynomials can be used 
+Chebyshev Polynomials can be used very nicely to approximate functions on $[ -1, 1 ]$ and, with proper scaling, can be used to approximate reasonably well-behaved functions on any interval.
+The $k$'th Chebyshev polynomial is commonly written $T_k \left( x \right)$.
+One way to define the Chebyshev Polynomials is that the $k$'th Chebyshev polynomial on the unit circle is the real part of the function $z^k$ on the unit circle.
+More precisely, let $z(x) = t + i \sqrt{1 - x^2}$, then the $k$'th Chebyshev polynomial on $[-1, 1]$ is the real part of the polynomial $x^k$.
+We can write this real part explicitly as $\frac{1}{2} \left( z^k + z^{-k} \right) = \cos \left( k \cos^{-1} \left( x \right) \right)$.
+Notice that, as this function has been defined, the Chebyshev polynomial of order $k$ on an interval takes values of $1$ and $-1$ at the $k+1$ chebyshev points corresponding to interpolation with a polynomial of order $k$ on that interval.
+The first few Chebyshev polynomials are shown in Figure [Add Figure].
+
+These polynomials are orthogonal with respect to the integral inner product
+\[\langle f, g \rangle = \int_{-1}^1 \frac{1}{\sqrt{1 - x^2}} f\left( x \right) g\left( x \right) dx\]
+This inner product allows us to write many functions as an infinite series of Chebyshev polynomials.
+In particular, we can write any polynomial as a finite series of Chebyshev polynomials.
+As it turns out, it is relatively easy to compute the Chebyshev series representation of an interpolating polynomial for a function on a given interval.
+These approximations converge to the function we are approximating nearly as well as the partial sums of the infinite series formed using the inner product above, so, in practice, we will use them instead.
+
+It can be shown that the Chebyshev polynomials follow the following recurrence relation: $ T_{k+1} \left( x \right) = 2 x T_k \left( x \right) - T_{k-1}$.
+$T_0 \left( x \right)$ is equal $1$ and $T_1 \left( x \right)$ is equal to $x$ (still working on the interval $[-1, 1]$.)
+This recurrence relation forms the basis for what is known as Clenshaw's Algorithm.
+Clensaw's Algorithm says that, given a polynomial of degree $n$ represented as a sum of Chebyshev polynomials:
+\[p\left(x\right) = \sum_{k=0}^{n} a_k T_k\left(x\right)\]
+$p(x)$ can be evaluated by the following process.
+Let $u_{n+1} = 0$ and $u_{n} = a_n$ and $u_k = 2 x u_{k+1} - u_{k+2} + a_k$ for $k = n-1, n-2, \dots, 0$, then $p(x) = \frac{1}{2} \left( a_0 + u_0 - u_2 \right)$.
+
+\begin{problem}
+Write a Python function that performs Clenshaw's algorithm to evaluate a series of Chebyshev polynomials for an array of points in the interval $[-1, 1]$.
+Use it to plot the first $5$ Chebyshev polynomials on that interval.
+\end{problem}
+
