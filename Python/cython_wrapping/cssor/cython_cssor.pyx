@@ -1,7 +1,7 @@
 from numpy cimport ndarray as ar
 
 cdef extern from "cssor.h":
-    # Notice that we pass info by reference so it can be modified.
+    # Notice that we pass info as a pointer so it can be modified.
     void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int* info)
 
 def cyssor(ar[double,ndim=2] U, double omega, double tol=1E-8, int maxiters=10000):

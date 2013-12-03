@@ -1,5 +1,5 @@
 void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int* info){
-    // info is passed by reference so the function can modify it as needed.
+    // info is passed as a pointer so the function can modify it as needed.
     // Temporary variables:
     // 'maxerr' is a temporary value.
     // It is used to determine when to stop iteration.
@@ -16,7 +16,7 @@ void cssor(double* U, int m, int n, double omega, double tol, int maxiters, int*
             for (i=1; i<m-1; i++){
                 temp = U[i*n+j];
                 U[i*n+j] = lcf * U[i*n+j] + rcf * (U[i*n+j-1] + U[i*n+j+1] + U[(i-1)*n+j] + U[(i+1)*n+j]);
-                maxerr = fmax(abs(U[i*n+j] - temp), maxerr);}}
+                maxerr = fmax(fabs(U[i*n+j] - temp), maxerr);}}
         // Break the outer loop if within
         // the desired tolerance.
         if (maxerr < tol){break;}}
