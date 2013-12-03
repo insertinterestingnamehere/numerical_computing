@@ -1,5 +1,7 @@
 import numpy as np
 import pyfftw.interfaces.scipy_fftpack as ft
+from numpy.polynomial.chebyshev import Chebyshev
+from matplotlib import pyplot as plt
 
 def nodes(a, b, n):
     """Get Chebyshev nodes on [a,b]"""
@@ -33,3 +35,44 @@ def get_coefs(samples):
     cfs /= (samples.size - 1)
     cfs[::cfs.size-1] /= 2
     return cfs
+
+def cos_interp():
+    a = -1
+    b = 1
+    order = 20
+    resolution = 501
+    X = nodes(a, b, resolution)
+    F = lambda x: np.cos(x)
+    A = F(X)
+    cfs = get_coefs(A)
+    print "number of coefficients for cos that are greater than 1E-14: ", (np.absolute(cfs) > 1E-14).sum()
+    f = Chebyshev(cfs)
+    X2 = np.linspace(a, b, resolution)
+    ax = plt.subplot(1, 1, 1)
+    plt.plot(X2, F(X2), label="$\\cos x$")
+    plt.plot(X2, f(X2), label="Chebyshev Interpolant")
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, loc="upper right")
+    plt.show()
+
+def crazy_interp():
+    # This one takes a little time to run
+    a = -1
+    b = 1
+    order = 100000
+    resolution = 100001
+    # Where to sample.
+    X = nodes(a, b, order)
+    F = lambda x: np.sin(1./x) * np.sin(1./np.sin(1./x))
+    A = F(X)
+    cfs = get_coefs(A)
+    print "The last 10 coeffients are: ", cfs[-10:]
+    f = Chebyshev(cfs)
+    # Sample values for plot.
+    X2 = np.linspace(a, b, resolution)
+    ax = plt.subplot(1, 1, 1)
+    plt.plot(X2, f(X2), label="Chebyshev Interpolant")
+    plt.plot(X2, F(X2), label="$\\sin\\frac{1}{x} \\sin\\frac{1}{\\sin\\frac{1}{x}}$")
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, loc="upper right")
+    plt.show()
