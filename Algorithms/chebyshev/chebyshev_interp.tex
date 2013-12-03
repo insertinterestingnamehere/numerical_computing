@@ -83,4 +83,59 @@ Use the option \li{type=1} to tell either scipy or pyfftw the version of the dis
 Write a function that, given the samples for a function at the chebyshev nodes for a funciton on an interval computes the coefficients for the Chebyshev representation of the interpolating polynomial through the samples at the Chebyshev nodes.
 \end{problem}
 
+\section*{NumPy's Chebyshev Module}
 
+NumPy includes a module for working with Chebyshev polynomials and Chebyshev series alongside its polynomials module.
+It does not include all of the functions we had you write today, but it does include many other useful things.
+This module includes a Python class for Chebyshev polynomials.
+It works much like the poly1d class that is used for polynomials.
+Here are a few lines of code that use NumPy's Chebyshev class to evaluate the 20'th Chebyshev polynomial.
+We will plot the corresponding function using Matplotlib.
+\begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+import numpy.polynomial.chebyshev as ch
+from matplotlib import pyplot as plt
+coefficients = np.zeros(20)
+coefficients[-1] = 1
+poly = ch.Chebyshev(coefficients)
+X = np.linspace(-1, 1, 2001)
+Y = poly(X)
+plt.plot(X, Y)
+plt.show()
+\end{lstlisting}
+
+Here we used the Chebyshev class to evaluate a Chebyshev series.
+It also includes other methods that allow you to multiply, divide, differentiate, and integrate Chebyshev series.
+We will discuss integration and differentiation later on.
+There are also functions that allow you to convert back and forth between Chebyshev series and standard polynomials.
+
+\begin{problem}
+\label{prob:cheb_interpolations}
+We will briefly consider the rate of convergence of these polynomial approximations.
+Compute the coefficients for the interpolating Chebyshev series for the function $\cos x$ on the interval $[-1, 1]$.
+This approximation converges very rapidly, so the first $20$ terms or so should be more than enough.
+How many of these coefficients have absolute value greater than $10^{-14}$?
+How close does your series approximate the actual function?
+
+Now compute the coefficients for a degree $100000$ polynomial approximating the function
+\[\sin \left( \frac{1}{x} \right) \left( \frac{1}{\sin \left( \frac{1}{x} \right)} \right) \]
+on the interval $[-1, 1]$.
+How large are the last $10$ coefficients in the series?
+Use NumPy's Chebyshev class to plot this function at $100000$ equispaced points on the interval $[-1, 1]$.
+Plot it with the original function.
+Compare the two.
+How close are they?
+Notice how the interpolating polynomial is able to approximate the original function about as well as the discrete sample of the original function.
+\end{problem}
+
+This last problem also illustrates an interesting principle.
+These series converge more quickly when a function is infinitely differentiable everywhere in the complex plane.
+For a less well-behaved function like the one considered in the second half of Problem \ref{prob:cheb_interpolations} the coefficients converge much more slowly.
+The last $10$ coefficients for the interpolant of degree $2^{23} - 1$ are still
+\begin{lstlisting}
+[9.52973125e-08,  -1.89451973e-09,  -7.42182166e-08,
+ 1.89319137e-09,   5.26564839e-08,  -1.89451836e-09,
+ -3.13050802e-08,   1.89319005e-09,   1.03700608e-08,
+ -9.47258778e-10]
+\end{lstlisting}

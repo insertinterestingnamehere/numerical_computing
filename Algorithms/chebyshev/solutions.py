@@ -3,7 +3,7 @@ import pyfftw.interfaces.scipy_fftpack as ft
 
 def nodes(a, b, n):
     """Get Chebyshev nodes on [a,b]"""
-    vals = np.linspace(0, np.pi, n)
+    vals = np.linspace(0, np.pi, n+1)
     np.cos(vals, out=vals)
     vals *= (b - a) / 2.
     vals += (b + a) / 2.
