@@ -8,12 +8,73 @@ You can learn about more about cvxopt at
 
 \section*{Linear Programs}
 
-Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
+%%Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
+CVXOPT is a convex solver. In this lab we will focus on linear and quadratic programming.
+Linear programs are of the form, 
+
+\begin{lstlisting}[mathescape]
+min $c^Tx$
+subject to $Gx \leq h$
+	        $Ax    = b$
+\end{lstlisting}
+
+cvxopt uses the notation
+
+\begin{lstlisting}[mathescape]
+min $c^Tx$
+subject to $Gx +s = h$
+	   $Ax    = b$
+	   $s     \geq 0$
+\end{lstlisting}
+
+Note that $Gx +s = h$ with $s  \geq 0$ is equivalent to $Gx \leq h$
+
+Cvxopt also solves the dual problem
+
+\begin{lstlisting}[mathescape]
+min $-h^Tz - b^Ty$
+subject to $G^Tz +A^Ty + c = 0$
+	   $z     \geq 0$
+\end{lstlisting}
+
+Consider the following problem.
+\begin{lstlisting}[mathescape]
+minimize $-4x_1-5x_2$
+subject to $x_1+2x_2 \leq 3$
+	        $2x_1+x_2 \leq 3$
+		$x_1 \geq 0$
+		$x_2 \geq 0$
+\end{lstlisting}
+All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt.
+Numpy arrays can be converted to matrix by
+
+\begin{lstlisting}
+>>> a = numpy.array([[11,2],[2,5]])
+>>> A = matrix(a)
+\end{lstlisting}
+
+The follow code will solve the problem. Type it in and see what it prints out.
+\begin{lstlisting}
+>>> from cvxopt import matrix, solvers
+>>> c = matrix([-4., -5.])
+>>> G = matrix([[1., 2., -1., 0.],
+                            [2., 1., 0., -1.]])
+>>> h = matrix([ 3., 3., 0., 0.])
+>>> sol = solvers.lp(c,G,h,A,b)  
+>>> print sol['x']
+>>> print sol['primal objective']
+\end{lstlisting}
+Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information.
+All we really care about right now are the values of $x$ and the objective value.
+
+So \li{c} is what you are trying to minimize and corresponds to minimize $-4x_1-5x_2$. The columns of \li{G} with the corresponding entry is \li{h} make up the constraints. So the first column of \li{G} and the first entry of \li{h} is the constraint $x_1+2x_2 \leq 3$. The last column of \li{G} with the last entry of \li{h} is the constraint $x_2 \geq 0$. Note that $x_2 \geq 0$ is equivalent to $-x_2 \leq 0$, it is a good principle to get in mind, when you have an $\geq$ you can put it in to $G$ and $h$ after multiplying by $-1$. Also note that minimize $-4x_1-5x_2$ is the same as maximize $4x_1+5x_2$
+
+\section*{Transportation}
 
 Consider the following transportation problem:
 A piano company needs to transport thirteen pianos from their three  supply centers (1,2, and 3) to two demand centers (4 and 5).
 Transporting a piano from a supply center to a demand center incurs a cost, listed in the table below.
-The company want to minimize shipping costs for the pianos.
+The company wants to minimize shipping costs for the pianos.
 How many pianos should each supply center send each demand center?
 
 \begin{table}[h]
@@ -72,39 +133,13 @@ The objective function is the number of pianos shipped from each location multip
 $4p + 7q + 6r + 8s + 8t + 9u$
 \end{center}
 
-We can solve this program using cvxopt, which uses the notation
-
-\begin{lstlisting}[mathescape]
-min $c^Tx$
-subject to $Gx +s = h$
-	   $Ax    = b$
-	   $s     \geq 0$
-\end{lstlisting}
-
-Cvxopt also solves the dual problem
-
-\begin{lstlisting}[mathescape]
-min $-h^Tz - b^Ty$
-subject to $G^Tz +A^Ty + c = 0$
-	   $z     \geq 0$
-\end{lstlisting}
-
-All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt.
-Numpy arrays can be converted to matrix by
-
-\begin{lstlisting}
->>> a = numpy.array([[11,2],[2,5]])
->>> A = matrix(a)
-\end{lstlisting}
-
-There a several ways to solve the linear program. 
+There a several ways to solve the linear program. Now note that you want all your answers to be integers, that turns out to be an NP-hard problem and there is a whole field devoted to that called integer linear programming which is beyond the scope of this lab. For this problem the linear programming solutions are equivalent. 
 
 \section*{Example}
 Here, $G$ and $h$ constrain the variables to be non-negative.
 The entries are negative because cvxopt uses the format $Gx \leq h$.
 $A$ and $b$ represent the supply and demand constraints.
-Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information.
-All we really care about right now are the values of $x$ and the objective value.
+
 
 \begin{lstlisting}
 >>> from cvxopt import matrix, solvers
@@ -129,14 +164,17 @@ All we really care about right now are the values of $x$ and the objective value
 >>> print sol['primal objective']
 \end{lstlisting}
 
-\textbf{Problem 1}
-
 Run the example.
-What happens?
+
+You will notice that the problem does not find an optimal solution. TODO why is that.
 
 We can fix the problem by including the supply demand constraints in the $G$ matrix.
-
+\begin{problem}
+Solve the problem by putting the supply and demand constraints in $G$ matrix similar to the first example problem. Return the optimal values for $x$ and the primal objective.
+\end{problem}
+\begin{comment}
 \section*{Example}
+
 Why are all of the terms in $G$ and $h$ non-positive?
 
 \begin{lstlisting}
@@ -208,7 +246,7 @@ Choose one of these methods and compare the optimal values for the integer linea
 \textbf{Problem 3}
 Create the dual problem for the linear program and solve. 
 Compare your answer to the dual value cvxopt returned. 
-
+\end{comment}
 \section*{Programmming}
 
 The quadratic programming setup is similar to the linear programming.
@@ -236,7 +274,7 @@ f(x,y) = 2x^2 +2xy + y^2 +x -y
 >>> print sol['primal objective']
 \end{lstlisting}
 
-\textbf{Problem 4}
+\begin{problem}
 Find the minimizer and minimum of 
 \begin{equation}
 f(x) = \frac{1}{2}x^tQx - x^Tp
@@ -259,3 +297,4 @@ and $p =
 \end{bmatrix}
 $
 \end{center}
+\end{problem}
