@@ -65,20 +65,12 @@ def plotEdges(I):
     plt.show()
     
 def cameramanClean():
-    plt.imshow(K, cmap=plt.cm.Greys_r)
-    plt.xticks([])
-    plt.yticks([])
-    plt.box(on=False)
-    plt.savefig('cameramanClean.pdf')
+    plt.imsave('cameramanClean.pdf',np.flipud(K), origin='lower')
     plt.clf()
     
 def cameramanBlur():
     O = Filter(K, blur)
-    plt.imshow(O, cmap=plt.cm.Greys_r)
-    plt.xticks([])
-    plt.yticks([])
-    plt.box(on=False)
-    plt.savefig('cameramanBlur.pdf')
+    plt.imsave('cameramanBlur.pdf', np.flipud(O), origin='lower')
     plt.clf()
 
 def edges():
@@ -97,11 +89,7 @@ def edges():
     thresh = 4*O.mean()
     
     #plot the thresholded image
-    plt.imshow(O > thresh, cmap=plt.cm.Greys_r)
-    plt.xticks([])
-    plt.yticks([])
-    plt.box(on=False)
-    plt.savefig('edges.pdf')
+    plt.imsave('edges.pdf',np.flipud(O>thresh), origin='lower')
     plt.clf()
 
 cameramanClean()
