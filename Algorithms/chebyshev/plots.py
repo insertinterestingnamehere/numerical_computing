@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.polynomial.chebyshev import Chebyshev
-from solutions import nodes, get_coefs
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+from solutions import nodes, get_coefs
 from matplotlib import pyplot as plt
 
 def node_project():
@@ -16,8 +16,8 @@ def node_project():
     plt.plot(X, np.zeros_like(X), zorder=-1)
     for x, y in zip(Xpts, Ypts):
         plt.plot([x, x], [y, 0], 'r', zorder=-1)
-    plt.scatter(Xpts, Ypts)
-    plt.scatter(Xpts, np.zeros_like(Xpts))
+    plt.scatter(Xpts, Ypts, color='b')
+    plt.scatter(Xpts, np.zeros_like(Xpts), color='b')
     plt.xlim((-1.05, 1.05))
     plt.ylim((-.25, 1.25))
     plt.savefig("node_project.pdf")
