@@ -64,3 +64,76 @@ def Hessian(func, inputs, tol=1e-5):
             hessian[i,j] = eval_hessian(func, inputs, elists[i], elists[j], tol)
 
     return hessian
+
+'''
+The following are updated solutions corresponding to the latest version of the lab.
+'''
+
+import numpy as np
+from matplotlib import pyplot as plt
+import math
+
+def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
+    '''
+    Approximate the Jacobian of a function at a point.
+    Inputs:
+        f -- a callable function whose jacobian we will approximate
+        m -- integer giving the dimension of the domain or f
+        n -- integer giving the dimension of the range of f
+        pt -- numpy array specifying the point at which to approximate the Jacobian
+        mode -- specifies the type of difference scheme. Should take values in
+                ['centered', 'backward', 'forward'].
+        d -- the order of the derivative. Should take values in [1,2]
+        o -- order of approximation. If mode = 'centered', should take values
+             [2,4,6], otherwise should take values in [1,2,3]
+        h -- the size of the difference step
+    Returns:
+        jac -- array the same shape as pts, giving the approximate Jacobian at 
+               each point in pts.
+    '''
+    jac = np.empty((m,n))
+    for i in xrange(n):
+        off = np.zeros(n)
+        off[i] = h
+        if mode == 'centered':
+            if o == 2:
+                jac[:, i] = (-.5*f(pt - off) + .5*f(pt + off))/h
+            if o == 4:
+                jac[:, i] = (f(pt-2*off)/12 - 2*f(pt-off)/3 + 2*f(pt+off)/3 - f(pt+2*off)/12)/h
+            if o == 6:
+                jac[:, i] = (-f(pt-3*off)/60 + 3*f(pt-2*off)/20 - 3*f(pt-off)/4 + 
+                          f(pt+3*off)/60 - 3*f(pt+2*off)/20 + 3*f(pt+off)/4)/h
+        if mode == 'forward':
+            if o == 1:
+                jac[:, i] = (-f(pt)+f(pt+off))/h
+            if o == 2:
+                jac[:, i] = (-3*f(pt)/2 + 2*f(pt+off) - f(pt+2*off)/2)/h
+            if o == 3:
+                jac[:, i] = (-11*f(pt)/6 + 3*f(pt+off) - 3*f(pt+2*off)/2 + f(pt+3*off)/3)/h
+        if mode == 'backward':
+            if o == 1:
+                jac[:, i] = -(-f(pt)+f(pt-off))/h
+            if o == 2:
+                jac[:, i] = -(-3*f(pt)/2 + 2*f(pt-off) - f(pt-2*off)/2)/h
+            if o == 3:
+                jac[:, i] = -(-11*f(pt)/6 + 3*f(pt-off) - 3*f(pt-2*off)/2 + f(pt-3*off)/3)/h
+    return jac
+
+def Hessian(f, n, pt, h=1e-5):
+    '''
+    Approximate the Hessian of a function at a given point.
+    Inputs:
+        f -- callable function object
+        n -- integer giving the dimension of the domain of f
+        pt -- flat numpy array giving the point at which to approximate
+        h -- step size for difference scheme
+    Returns:
+        hess -- numpy array giving the approximated Hessian matrix
+    '''
+    hess = np.empty((n,n))
+    off = np.eye(n)*h
+    for i in xrange(n):
+        for j in xrange(n):
+            hess[i,j] = (f(pt+off[i]+off[j])-f(pt + off[i]-off[j]) -
+                         f(x+off[j]-off[i]) + f(pt-off[i]-off[j]))/(4*h**2)
+    return hess
