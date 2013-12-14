@@ -55,7 +55,6 @@ Let $H_k = Q_k^* A Q_k$.
 The recurrence relation for computing $q_{n+1}$ is the same expression that would be used to perform Graham Schmidt orthogonalization to project $A q_n$ orthogonal to the vectors $\lbrace q_0, \dots, q_n \rbrace$.
 This allows for an alternate characterization of the Arnoldi iteration.
 We first choose a normalized random vector $q_0$, then perform the Modified Graham Schmidt algorithm on the vectors $A q_0, A q_1, A q_2, \dots$.
-This process is summed up in Algorithm \ref{alg:arnoldi_iteration}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -63,7 +62,6 @@ This process is summed up in Algorithm \ref{alg:arnoldi_iteration}.
 	\State $m \gets A.shape[0]$					\Comment{Some initialization steps}
 	\State $Q \gets \text{empty}\left(m, k+1\right)$
 	\State $H \gets \text{zeros}\left( k+1, k\right)$
-	\State $z \gets \text{empty}\left(m\right)$
 	\State $q_0 = b$							\Comment{Set $q_0$ equal to $b$.}
 	\State $q_0 /= \|q_0\|_2$						\Comment{Normalize $q_0$.}
 	\For{$j=0$, $j<k$}							\Comment{Perform the actual iteration}
@@ -72,11 +70,10 @@ This process is summed up in Algorithm \ref{alg:arnoldi_iteration}.
 			\State $h_{i,j} = q \cdot q_{j+1}$		\Comment{Set values of $H$}
 			\State $q_{j+1} -= h_{i,j} q_i$
 		\EndFor
-		\If{$|h_{j+1,j}|<tol$}					\Comment{Stop if $\|z\|_2$ is too small.}
-			\State \pseudoli{print} "warning, iteration ended prematurely"
+		\If{$|h_{j+1,j}|<tol$}					\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
 			\State \pseudoli{return} $H[:j+1,:j]$, $Q[:,j]$
 		\EndIf
-		\State $h_{j+1,j} = \|z\|_2$				\Comment{Set the subdiagonal element of $H$ in this column.}
+		\State $h_{j+1,j} = \|z\|_2$				\Comment{Set subdiagonal element of $H$.}
 		\State $q_{j+1} /= h_{j+1,j}$				\Comment{Normalize $q_{j+1}$}
 	\EndFor
 	\State \pseudoli{return} $H$, $Q$
@@ -86,15 +83,14 @@ This process is summed up in Algorithm \ref{alg:arnoldi_iteration}.
 \label{alg:arnoldi_iteration}
 \end{algorithm}
 
+Notice that in Algorithm \ref{alg:arnoldi_iteration}, $k$ is the number of times to multiply by $A$.
+This will result in a dimension $k+1$ Krylov Subspace.
+
 \begin{problem}
 Write a Python function that performs the Arnoldi Iteration given a matrix $A$, a normalized starting vector $b$, a function to multiply a vector on the left by $A$, and a number $n$ of steps to perform.
 Also have it accept a tolerance parameter that defaults to \li{1E-8}.
 Have it return the computed $H_n$ and $Q_n$.
 \end{problem}
-
-% Discuss how it works
-
-% Have them code it as a problem. Do it taking an explicit value for the (maximum?) number of iterations to perform.
 
 % Make a 3D plot showing the projection. Label the initial vector x and Ax.
 
