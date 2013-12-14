@@ -19,7 +19,7 @@ where
 
 A DFA describes a language or set of accepted inputs.  
 If we give a DFA a particular input, it will tell us if that input exists in its language or not.
-Let's look at a simple example in Figure \ref{fig:simple_dfa}.  We assume a two symbol alphabet, \{0, 1\}.  All the other elements of the DFA are shown graphically ($q_1$ is an accept state).
+Let's look at a simple example in Figure \ref{fig:simple_dfa}.  We assume a two symbol alphabet, \{0, 1\}.  All the other elements of the DFA are shown graphically ($q_1$ is an accept state, denoted by the double circle).
 \begin{figure}
 \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
 \node[state,initial](q0) {$q_0$};
@@ -69,7 +69,7 @@ Your function should accept as parameters an input string and a 4-tuple, \li{mac
 \begin{enumerate}
 \item A set with all symbols of the language's alphabet represented as strings.
 \item A dictionary that defines the transition function.
-It should map tuples of the form \li{(m, c)} to values, $n$, to represent the transition $q_m \xrightarrow{c} q_n$ ($m, n \in \mathbb{Z}$ and $c$ is a string).
+It should map tuples of the form \li{(m, c)} to values, $n$, to represent the transition $q_m \xrightarrow{c} q_n$ ($m, n \in \mathbb{Z}$ and $c$ is a string character).
 \item An integer, $i$, representing $q_i$, the initial state.
 \item A set of integers representing the accepting states.
 \end{enumerate}
@@ -109,7 +109,7 @@ Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for des
 (q2) edge node {0} (q3)
 (q3) edge[loop above] node {0,1} (q3);
 \end{tikzpicture}
-\caption{\ref{prob:reprDFA}(b)}
+\caption{\ref{prob:reprDFA}(b) The self-loop on $q_3$ transitions to itself on either a 0 or 1.}
 \end{figure}
 
 \begin{figure}[H]
@@ -181,7 +181,8 @@ NFAs are quite useful though because they can often represent complex languages 
 
 \begin{problem}
 Draw a non-deterministic finite automaton that can match the following language.
-\[L = \setconstruct{w \in L}{w\mbox{ where the number of a's is a multiple of 3, or contains least 4 b's, or where the number of c's is odd}}\]
+
+\emph{Let $w \in L$ where the number of a's is a multiple of 3, or contains least 4 b's, or where the number of c's is odd.}
 \end{problem}
 
 
@@ -195,6 +196,58 @@ The best way to think of regular expressions is the view them as operations on r
 As noted, regular expressions can only represent a language if it is regular.  There do exist languages that are non-regular.  There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.  A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
 
 Regular expressions are especially useful and powerful for find and matching patterns in text.  Many tools can take advantage of the powerful matching features of regular expressions.  You can think of regular expressions as operations on state machines.
+For example, the regular expression $(a^*b)^* b^*a$ could be represented as the NFA in \ref{fig:nfa_union}.
+\begin{figure}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state] (q1) [above right=of q0] {$q_1$};
+\node[state] (q2) [below right=of q1] {$q_2$};
+\node[state] (q3) [right=of q1] {$q_3$};
+\node[state,accepting] (q4) [right=of q3] {$q_4$};
+
+\path[->]
+(q0) edge node {$\epsilon$} (q1)
+(q0) edge node {$\epsilon$} (q2)
+
+(q1) edge[loop above] node {a} (q1)
+(q1) edge node {b} (q3)
+(q3) edge node {$\epsilon$} (q2)
+(q2) edge[loop below] node {b} (q2)
+(q2) edge node {a} (q4);
+\end{tikzpicture}
+\caption{An NFA for the regular expression $(a^*b)^* b^*a$.}
+\label{fig:nfa_union}
+\label{fig:simple_nfa}
+\end{figure}
+Which is simply a union of the NFAs \ref{fig:nfa1} and \ref{fig:nfa2}.
+\begin{figure}
+\centering
+\begin{subfigure}[b]{.5\textwidth}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q1) {$q_1$};
+\node[state,accepting] (q3) [right=of q1] {$q_3$};
+
+\path[->]
+(q1) edge[loop above] node {a} (q1)
+(q1) edge node {b} (q3);
+\end{tikzpicture}
+\caption{NFA for $a^*b$.}
+\label{fig:nfa1}
+\end{subfigure}
+
+\begin{subfigure}[b]{.5\textwidth}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q2) {$q_2$};
+\node[state,accepting] (q4) [right=of q2] {$q_4$};
+
+\path[->]
+(q2) edge[loop above] node {b} (q2)
+(q2) edge node {a} (q4);
+\end{tikzpicture}
+\caption{NFA for $b^*a$.}
+\label{fig:nfa2}
+\end{subfigure}
+\end{figure}
 
 
 
