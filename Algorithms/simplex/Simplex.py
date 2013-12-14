@@ -1,7 +1,4 @@
 import numpy as np
-import copy
-from numpy import matlib
-
 
 def simplex(T):
    # choose the first pivot: this sets exit to
@@ -17,7 +14,7 @@ def createTableau(c, A, b):
     s = m + n + 1;    #m is number of constraints, n is number of variables 
     T = np.zeros((s,s))
     T[0, 1:n+1] = c.T
-    I = np.matlib.identity(n)
+    I = np.eye(n)
     T[1:n+1, 1:n+1] = I.squeeze()
     T[n+1:s, 0] = b.squeeze()
     T[n+1:s, 1:n+1] = -A.squeeze()
@@ -29,7 +26,7 @@ def choosepivot(T):
    for k in range(1,s[0]):
       if T[0][k] > 0:
          finished = False
-         exit
+         break
    if finished == True:
       exitvalue = 1
       return 0,0,exitvalue
@@ -55,7 +52,7 @@ def choosepivot(T):
    return i, j, exitvalue
 
 def pivot(T,i,j):
-   U = copy.copy(T)
+   U = T.copy()
    vector = U[j]
    vector[j] = -1
    m = float(vector[i]/(-1))
