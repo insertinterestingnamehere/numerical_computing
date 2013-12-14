@@ -14,6 +14,84 @@ We will discuss both of these algorithms here.
 
 \section*{The Arnoldi Iteration}
 
+In Lab \ref{lab:Canonical_Transformations} we discussed how orthogonal transformations can be used to transform a matrix to Upper Hessenberg form.
+We were able to find the eigenvalues of such Upper Hessenberg matrices in Lab \ref{lab:EigSolve}.
+A similar approach will be used here.
+The idea is to construct a set of vectors that allow us to roughly approximate the action of a very large matrix on the subspace.
+This involves forming only a portion of the actual Hessenberg reduction of the Hessenberg factorization of the matrix.
+You may recall from lab \ref{lab:QRdecomp} that the Modified Graham-Schmidt algorithm allows us to find an increasing number of orthogonal vectors but does not require that we run the algorithm to is completion to find a full set of them.
+This process of projecting onto successively larger subspaces is called \textbf{The Arnoldi Iteration}.
+The Arnoldi Iteration is outlined in Algorithm \ref{alg:arnoldi_iteration}.
+We will now consider the ideas underlying the Arnoldi Iteration in further detail.
+
+Let $A$ be an extremely large sparse matrix that we do not wish to modify.
+We will assume that we have some sort of method for computing $A v$ for any vector $v$, but we will not make any other assumptions relating to how $A$ is stored or what properties it has.
+Recall from Lab \ref{lab:Canonical_Transformations} that every matrix is orthogonally similar to an Upper Hessenberg matrix, so for matrices $Q$ and $H$ we have that $Q^* A Q = H$.
+
+We would like to compute the columns of $Q$ one-by-one.
+Let $q_k$ be the $k$'th column of $Q$ and $h_{i,j}$ be the $i,j$'th element of $H$.
+We can 
+From matrix multiplication we have that 
+\[A q_n = h_{0, n} q_0 + \dots + h_{n, n} q_n + h_{n+1, n} q_{n+1}\]
+This can be rewritten as
+\[h_{n+1, n} q_{n+1} = A q_n - h_{0,n} q_0 - \dots - h_{n,n} q_n\]
+Since each column of $Q$ has norm $1$, this allows computation of each $q_k$ based on each of the previous columns.
+This recurrence relation does not provide any constraint on the first column of $Q$.
+In practise, if we are searching for eigenvalues we can use a normalized random vector as the first column of $Q$.
+These columns of $Q$ allow compution of partial reductions of $A$ to Hessenberg form without any modification of $A$.
+This can seen as follows:
+
+Let $Q_k$ be the first $k$ columns of $Q$.
+Let $Q_u$ be the remaining columns of $Q$.
+We then have that
+\[H = Q^T A Q =
+\begin{bmatrix}
+Q_k^* A Q_k & Q_k^* A Q_u \\
+Q_u^* A Q_k & Q_u^* A Q_u
+\end{bmatrix}\]
+Since $H$ is Upper Hessenberg, so is the matrix $Q_k^* A Q_k$ in the upper left corner.
+Let $H_k = Q_k^* A Q_k$.
+
+The recurrence relation for computing $q_{n+1}$ is the same expression that would be used to perform Graham Schmidt orthogonalization to project $A q_n$ orthogonal to the vectors $\lbrace q_0, \dots, q_n \rbrace$.
+This allows for an alternate characterization of the Arnoldi iteration.
+We first choose a normalized random vector $q_0$, then perform the Modified Graham Schmidt algorithm on the vectors $A q_0, A q_1, A q_2, \dots$.
+This process is summed up in Algorithm \ref{alg:arnoldi_iteration}.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{arnoldi}{$A, b, Amul, k, tol=1E-8$}
+	\State $m \gets A.shape[0]$					\Comment{Some initialization steps}
+	\State $Q \gets \text{empty}\left(m, k+1\right)$
+	\State $H \gets \text{zeros}\left( k+1, k\right)$
+	\State $z \gets \text{empty}\left(m\right)$
+	\State $q_0 = b$							\Comment{Set $q_0$ equal to $b$.}
+	\State $q_0 /= \|q_0\|_2$						\Comment{Normalize $q_0$.}
+	\For{$j=0$, $j<k$}							\Comment{Perform the actual iteration}
+		\State $q_{j+1} = Amul \left(q_j\right)$		\Comment{Compute $A q_j$}
+		\For{$i=0$, $i<j+1$}					\Comment{Modified Graham Schmidt}
+			\State $h_{i,j} = q \cdot q_{j+1}$		\Comment{Set values of $H$}
+			\State $q_{j+1} -= h_{i,j} q_i$
+		\EndFor
+		\If{$|h_{j+1,j}|<tol$}					\Comment{Stop if $\|z\|_2$ is too small.}
+			\State \pseudoli{print} "warning, iteration ended prematurely"
+			\State \pseudoli{return} $H[:j+1,:j]$, $Q[:,j]$
+		\EndIf
+		\State $h_{j+1,j} = \|z\|_2$				\Comment{Set the subdiagonal element of $H$ in this column.}
+		\State $q_{j+1} /= h_{j+1,j}$				\Comment{Normalize $q_{j+1}$}
+	\EndFor
+	\State \pseudoli{return} $H$, $Q$
+\EndProcedure
+\end{algorithmic}
+\caption{The Arnoldi Iteration}
+\label{alg:arnoldi_iteration}
+\end{algorithm}
+
+\begin{problem}
+Write a Python function that performs the Arnoldi Iteration given a matrix $A$, a normalized starting vector $b$, a function to multiply a vector on the left by $A$, and a number $n$ of steps to perform.
+Also have it accept a tolerance parameter that defaults to \li{1E-8}.
+Have it return the computed $H_n$ and $Q_n$.
+\end{problem}
+
 % Discuss how it works
 
 % Have them code it as a problem. Do it taking an explicit value for the (maximum?) number of iterations to perform.
