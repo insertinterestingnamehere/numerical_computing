@@ -58,8 +58,8 @@ We first choose a normalized random vector $q_0$, then perform the Modified Grah
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\Procedure{arnoldi}{$A, b, Amul, k, tol=1E-8$}
-	\State $m \gets A.shape[0]$					\Comment{Some initialization steps}
+\Procedure{arnoldi}{$b, Amul, k, tol=1E-8$}
+	\State $m \gets b.size$						\Comment{Some initialization steps}
 	\State $Q \gets \text{empty}\left(m, k+1\right)$
 	\State $H \gets \text{zeros}\left( k+1, k\right)$
 	\State $q_0 = b$							\Comment{Set $q_0$ equal to $b$.}
@@ -83,18 +83,62 @@ We first choose a normalized random vector $q_0$, then perform the Modified Grah
 \label{alg:arnoldi_iteration}
 \end{algorithm}
 
+\begin{info}
+To avoid errors involving the casting of complex numbers to real numbers make the datatypes of $H$ and $Q$ complex.
+You will also want to use the complex version of the \li{sqrt} function.
+This function is in the built in \li{cmath} library.
+\end{info}
+
 Notice that in Algorithm \ref{alg:arnoldi_iteration}, $k$ is the number of times to multiply by $A$.
 This will result in a dimension $k+1$ Krylov Subspace.
 
 \begin{problem}
-Write a Python function that performs the Arnoldi Iteration given a matrix $A$, a normalized starting vector $b$, a function to multiply a vector on the left by $A$, and a number $n$ of steps to perform.
+Write a Python function that performs the Arnoldi Iteration given a normalized starting vector $b$, a function to multiply a vector on the left by some matrix $A$, and a number $n$ of steps to perform.
 Also have it accept a tolerance parameter that defaults to \li{1E-8}.
 Have it return the computed $H_n$ and $Q_n$.
 \end{problem}
 
+\begin{info}
+Depending on the matrix $A$, the Arnoldi iteration may end quickly.
+This happens when there is a subspace $G$ that is fixed under left multiplication by $A$.
+In this particular case, the matrix $H_k$ exactly matches the way $A$ acts on $G$.
+This means that the eigenvalues of $H_k$ are eigenvalues of $A$.
+The eigenvectors of $H$ will also be eigenvectors of $A$ after the change of basis defined by $Q_k$.
+\end{info}
+
 % Make a 3D plot showing the projection. Label the initial vector x and Ax.
 
 \section*{Finding Eigenvalues Using Arnoldi Iteration}
+
+It is relatively easy to understand how Arnoldi Iteration finds eigenvalues of a matrix.
+In simple terms, the eigenvalues of the $H_k$ converge to the eigenvalues of $A$.
+The eigenvalues of the $H_k$ are called Ritz Values.
+This can happen very quickly, but, in general, the rate of convergence is dependent upon the matrix $A$.
+This works because each $H_k$ is a kind of lower-dimensional approximation of $A$.
+In adding the projection of $A q_n$ orthogonal to $q_0, \dots, \q_n$ we are really including the only poriton of the space spanned by the image of $q_0, \dots, q_n$ under $A$ that is not already included in their span.
+Generally speaking, the Ritz Values converge the most quickly to the eigenvalues of largest magnitude.
+Convergence is also faster for eigenvalues that are relatively far from the other eigenvalues of $A$.
+Figures \ref{fig:arnoldi_random_eig_conv} and \ref{fig:arnoldi_random_val_conv} show the convergence of the ritz values to the largest eigenvalues of some different matrices.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{rand_eigs_conv.pdf}
+\caption{The convergence of the ritz values to the largest eigenvalues of a matrix with random eigenvalues between $0$ and $1$.}
+\label{fig:arnoldi_random_eig_conv}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{rand_vals_conv.pdf}
+\caption{The convergence of the Ritz Values to the largest eigenvalues of a matrix with random values between $0$ and $1$.
+Matrices of this form generally have a single isolated eigenvalue that is much larger than the rest.
+It can be seen here that the Ritz Values converge to this eigenvalue much more quickly.}
+\label{fig:arnoldi_random_val_conv}
+\end{figure}
+
+\begin{problem}
+Run the Arnoldi Iteration on a random $100 \times 100$ array $A$.
+Use a random vector as a starting point.
+Find $H_{40}$ and compare the $10$ eigenvalues of largest magnitude of $H_{40}$ with the $10$ eigenvalues of largest magnitued of $A$.
+\end{problem}
 
 % Plot how ritz values converge to eigenvalues
 
