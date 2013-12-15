@@ -1,7 +1,7 @@
 import numpy as np
 from cmath import sqrt
 
-# Problem 1
+# arnoldi iteration
 def arnoldi(b, Amul, k, tol=1E-8):
     """Perform 'k' steps of the Arnoldi Iteration for
     sparse array 'A' and starting point 'b'with multiplicaiton
@@ -74,7 +74,7 @@ def fft_eigs():
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
     return H_eigs[:10]
 
-# Problem 3
+# Lanczos Iteration
 def lanczos(b, Amul, k, tol=1E-8):
     """Perform basic Lanczos Iteration given a starting vector 'b',
     a function 'Amul' representing multiplication by some matrix A,
@@ -103,14 +103,14 @@ def lanczos(b, Amul, k, tol=1E-8):
         q0, q1 = q1, z
     return alpha, beta[:-1]
 
-# Needed for problem 4.
+# Needed for tridiagonal eigenvalue problem
 def tri_mul(alpha, beta, u):
     v = alpha * u
     v[:-1] += beta * u[1:]
     v[1:] += beta * u[:-1]
     return v
 
-# Problem 4
+# tridiagonal eigenvalue problem
 def tridiag_eigs():
     # Most of this code is just constructing
     # tridiagonal matrices and calling functions
