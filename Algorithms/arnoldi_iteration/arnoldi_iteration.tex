@@ -159,19 +159,19 @@ Algorithm \ref{alg:lanczos_iteration} is known as the Lanczos Iteration.
 \begin{algorithmic}[1]
 \Procedure{lanczos}{$b, Amul, k, tol=1E-8$}
 	\State $q_0 \gets 0$								\Comment{Some initialization}
-	\State $q_1 \gets \frac{b}{\|b\|_2}$						\Comment{We will use $q_0$ and $q_1$ to store the needed $q_i$}
+	\State $q_1 \gets \frac{b}{\|b\|_2}$
 	\State $\alpha \gets \text{empty}\left(k\right)$
 	\State $\beta \gets \text{empty}\left(k\right)$
 	\State $\beta_{-1} = 0$
 	\For{$j=0$, $j<k$}									\Comment{Perform the iteration.}
 		\State $z \gets Amul\left(q_1\right)$					\Comment{$z$ is a temporary vector to store $q_{i+1}$.}
-		\State $\alpha_i = q_1 \cdot z$
-		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$
+		\State $\alpha_i = q_1 \cdot z$						\Comment{$q_1$ is used to store the previous $q_i$}
+		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$				\Comment{$q_0$ is used to store $q_{i-1}$}
 		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
 			\State \pseudoli{return} $\alpha [: i+1]$, $\beta [: i]$
 		\EndIf
 		\State $z /= \beta_i$
-		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_0$ and $q_1$}
+		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_1$ and $q_0$}
 	\EndFor
 	\State \pseudoli{return} $\alpha$, $\beta [: -1]$
 \EndProcedure
@@ -181,6 +181,7 @@ Algorithm \ref{alg:lanczos_iteration} is known as the Lanczos Iteration.
 \end{algorithm}
 
 \begin{problem}
+\label{prob:lanczos}
 Write a Python function that performs the Lanczos Iteration.
 Have it accept a starting vector $b$, a function $Amul$ that computes $A x$ for any vector $x$, a number $k$ of iterations to perform, and an optional argument $tol$ that defaults to \li{1E-8}.
 \end{problem}
@@ -191,6 +192,36 @@ In imprecise arithmetic it is possible for the $q_i$ to suffer from so much roun
 There are a variety of modifications to the Lanczos Iteration that address this instability.
 The libraries used for Scipy use an algorithm called the Implicitly Restarted Lanczos Method.
 We will not discuss these algorithms in detail here.
+% If needed we could make a separate lab on the Lanczos Iteration and the Implicitly Restarted Lanczos Method.
+% There isn't time or space here for it though.
+
+\begin{problem}
+The following code performs matrix multiplication by a tridiagonal symmetric matrix.
+It accepts vectors $a$ and $b$ and $u$.
+$a$ stores the entries in the main diagonal of the matrix.
+$b$ stores the entries in the first sub/superdiagonal.
+The function returns the image of $u$ under the matrix represented by $a$ and $b$.
+
+\begin{lstlisting}
+def tri_mul(a, b, u):
+    v = a * u
+    v[:-1] += b * u[1:]
+    v[1:] += b * u[:-1]
+    return v
+\end{lstlisting}
+
+Use the Lanczos Iteration function you wrote for Problem \ref{prob:lanczos} to estimate the $5$ largest eigenvalues of a symmetric tridiagonal matrix $A$ with random values in its nonzero diagonals (i.e. make $a$ and $b$) random.
+For demonstration purposes, let $A$ be $1000 \times 1000$.
+Perform $100$ iterations.
+Compare the $5$ eigenvalues of largest absolute value with the $5$ Ritz Values of largest norm.
+How do they compare?
+
+Try running your simulation a few times for different vectors $a$ and $b$.
+You may notice that, occasionally, the largest eigenvalue is repeated in the Ritz Values.
+This happens because of the lack of orthogonality between the vectors used in the Lanczos Iteration.
+These erroneous eigenvaleus are called "ghost eigenvalues."
+They generally converge to actual eigenvalues of the matrix, but they can make the multiplicity of an eigenvalue look higher than it really is.
+\end{problem}
 
 % Have them code a version with a while loop that goes until convergence is reached. Use it to find the norm of random matrices.
 % Point toward use of largest singular values in PCA and LSI in volume 3.

@@ -90,3 +90,41 @@ def lanczos(b, Amul, k, tol=1E-8):
         q0, q1 = q1, z
     return alpha, beta[:-1]
 
+# Needed for problem 4.
+def tri_mul(alpha, beta, u):
+    v = alpha * u
+    v[:-1] += beta * u[1:]
+    v[1:] += beta * u[:-1]
+    return v
+
+# Problem 4
+def tridiag_eigs():
+    # Most of this code is just constructing
+    # tridiagonal matrices and calling functions
+    # they have already written.
+    m = 1000
+    k = 100
+    A = np.zeros((m, m))
+    a = rand(m)
+    b = rand(m-1)
+    np.fill_diagonal(A, a)
+    np.fill_diagonal(A[1:], b)
+    np.fill_diagonal(A[:,1:], b)
+    Amul = lambda u: tri_mul(a, b, u)
+    alpha, beta = lanczos(rand(m), Amul, k)
+    H = np.zeros((alpha.size, alpha.size))
+    np.fill_diagonal(H, alpha)
+    np.fill_diagonal(H[1:], beta)
+    np.fill_diagonal(H[:,1:], beta)
+    H_eigs = eig(H, right=False)
+    H_eigs.sort()
+    H_eigs = H_eigs[::-1]
+    print H_eigs[:10]
+    A = np.zeros((m, m))
+    np.fill_diagonal(A, a)
+    np.fill_diagonal(A[1:], b)
+    np.fill_diagonal(A[:,1:], b)
+    A_eigs = eig(A, right=False)
+    A_eigs.sort()
+    A_eigs = A_eigs[::-1]
+    print A_eigs[:10]
