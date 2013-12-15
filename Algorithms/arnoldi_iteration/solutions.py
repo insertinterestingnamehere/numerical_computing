@@ -1,5 +1,6 @@
 import numpy as np
 from cmath import sqrt
+from pyfftw.interfaces.scipy_fftpack import fft
 
 # arnoldi iteration
 def arnoldi(b, Amul, k, tol=1E-8):
@@ -68,7 +69,7 @@ def fft_eigs():
     m = 2**20
     b = rand(m)
     k = 10
-    H = arnoldi(b, ft.fft, k)
+    H = arnoldi(b, fft, k)
     H_eigs = eig(H[:-1], right=False)
     H_eigs /= sqrt(m)
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
