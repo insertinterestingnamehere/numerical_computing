@@ -122,7 +122,7 @@ Figures \ref{fig:arnoldi_random_eig_conv} and \ref{fig:arnoldi_random_val_conv} 
 
 \begin{figure}
 \includegraphics[width=\textwidth]{rand_eigs_conv.pdf}
-\caption{The convergence of the ritz values to the largest eigenvalues of a matrix with random eigenvalues between $0$ and $1$.}
+\caption{The convergence of the Ritz Values to the largest eigenvalues of a matrix with random eigenvalues between $0$ and $1$.}
 \label{fig:arnoldi_random_eig_conv}
 \end{figure}
 
@@ -138,15 +138,59 @@ It can be seen here that the Ritz Values converge to this eigenvalue much more q
 Run the Arnoldi Iteration on a random $100 \times 100$ array $A$.
 Use a random vector as a starting point.
 Find $H_{40}$ and compare the $10$ eigenvalues of largest magnitude of $H_{40}$ with the $10$ eigenvalues of largest magnitued of $A$.
+Arnoldi Iteration is not the most effective way to work with dense matrices without significant patterns, but this example does illustrate the desired convergence.
 \end{problem}
 
-% Plot how ritz values converge to eigenvalues
-
-% Have them code it. Comment out an option to let them use their own solver. Uncomment that portion once the eigenvalue lab has been reworked.
+% Once the eigenvalue lab has been rewritten, have them use their own solver to find the eigenvalues of the $H_k$.
 
 \section*{Lanczos Iteration}
 
-% Plot some pseudospectra?
+Depending on the symmetry of the problem we may be able to make the Arnoldi Iteration more efficient.
+Consider the case that $A$ is symmetric.
+This means that the matrx $H$ is both Upper Hessenberg and symmetric, so it is tridiagonal.
+Since $H$ is tridiagonal, in theory we should have that $A q_n$ is orthogonal to $q_0, \dots, q_{n-1}$.
+This means that storage of all the columns of $Q_k$ is no longer necessary.
+We can run the entire algorithm while storing only the previous column of $Q$ that we have computed.
+We also can represent $H$ as two vectors: a vector $\alpha$ storing the values along the main diagonal of $H$, and a vector $\beta$ storing the values in the first subdiagonal (the values in the first superdiagonal are the same).
+This change in the way things are stored allows Algorithm \ref{alg:arnoldi_iteration} to be simplified to Algorithm \ref{alg:lanczos_iteration}.
+Algorithm \ref{alg:lanczos_iteration} is known as the Lanczos Iteration.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{lanczos}{$b, Amul, k, tol=1E-8$}
+	\State $q_0 \gets 0$								\Comment{Some initialization}
+	\State $q_1 \gets \frac{b}{\|b\|_2}$						\Comment{We will use $q_0$ and $q_1$ to store the needed $q_i$}
+	\State $\alpha \gets \text{empty}\left(k\right)$
+	\State $\beta \gets \text{empty}\left(k\right)$
+	\State $\beta_{-1} = 0$
+	\For{$j=0$, $j<k$}									\Comment{Perform the iteration.}
+		\State $z \gets Amul\left(q_1\right)$					\Comment{$z$ is a temporary vector to store $q_{i+1}$.}
+		\State $\alpha_i = q_1 \cdot z$
+		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$
+		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
+			\State \pseudoli{return} $\alpha [: i+1]$, $\beta [: i]$
+		\EndIf
+		\State $z /= \beta_i$
+		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_0$ and $q_1$}
+	\EndFor
+	\State \pseudoli{return} $\alpha$, $\beta [: -1]$
+\EndProcedure
+\end{algorithmic}
+\caption{The Lanczos Iteration}
+\label{alg:lanczos_iteration}
+\end{algorithm}
+
+\begin{problem}
+Write a Python function that performs the Lanczos Iteration.
+Have it accept a starting vector $b$, a function $Amul$ that computes $A x$ for any vector $x$, a number $k$ of iterations to perform, and an optional argument $tol$ that defaults to \li{1E-8}.
+\end{problem}
+
+In its most basic form the Lanczos iteration is not very stable.
+In exact arithmetic the vectors $q_i$ are exactly orthogonal, but in the presence of roundoff error this may be absolutely false.
+In imprecise arithmetic it is possible for the $q_i$ to suffer from so much roundoff error that they mey no longer even be \textit{linearly independent}.
+There are a variety of modifications to the Lanczos Iteration that address this instability.
+The libraries used for Scipy use an algorithm called the Implicitly Restarted Lanczos Method.
+We will not discuss these algorithms in detail here.
 
 % Have them code a version with a while loop that goes until convergence is reached. Use it to find the norm of random matrices.
 % Point toward use of largest singular values in PCA and LSI in volume 3.

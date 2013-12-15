@@ -29,12 +29,13 @@ def arnoldi(b, Amul, k, tol=1E-8):
         H[j+1,j] = sqrt(np.inner(Q[:,j+1].conjugate(), Q[:,j+1]))
         # Stop if ||q_{j+1}|| is too small.
         if abs(H[j+1, j]) < tol:
-            # Here I'll copy the arrays to avoid excess memory usage.
-            return np.array(H[:j+1,:j], order='F'), np.array(Q[:,j], order='F')
+            # Here I'll copy the array to avoid excess memory usage.
+            return np.array(H[:j+1,:j], order='F')
         # Normalize q_{j+1}
         Q[:,j+1] /= H[j+1, j]
-    return H, Q
+    return H
 
+# Problem 2
 def ritz_compare():
     # A simple exampe of the convergence of the Ritz values
     # to the eigenvalues of the original matrix.
@@ -46,7 +47,7 @@ def ritz_compare():
     # number of eigvals to print
     view_vals = 10
     # run iteration
-    H = arnoldi(b, A.dot, k)[0]
+    H = arnoldi(b, A.dot, k)
     # compute actual eigenvalues
     A_eigs = eig(A, right=False)
     # sort by magnitude
@@ -59,3 +60,33 @@ def ritz_compare():
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()[::-1]]
     # print eigvals with largest magnitude
     print H_eigs[:view_vals]
+
+# Problem 3
+def lanczos(b, Amul, k, tol=1E-8):
+    """Perform basic Lanczos Iteration given a starting vector 'b',
+    a function 'Amul' representing multiplication by some matrix A,
+    a number 'k' of iterations to perform, and a tolerance 'tol' to
+    determine if the algorithm should stop early."""
+    # Some Initialization
+    # We will use $q_0$ and $q_1$ to store the needed $q_i$
+    q0 = 0
+    q1 = b / sqrt(np.inner(b.conjugate(), b))
+    alpha = np.empty(k)
+    beta = np.empty(k)
+    beta[-1] = 0.
+    # Perform the iteration.
+    for i in xrange(k):
+        # z is a temporary vector to store q_{i+1}
+        z = Amul(q1)
+        alpha[i] = np.inner(q1.conjugate(), z)
+        z -= alpha[i] * q1
+        z -= beta[i-1] * q0
+        beta[i] = sqrt(np.inner(z.conjugate(), z)).real
+        # Stop if ||q_{j+1}|| is too small.
+        if beta[i] < tol:
+            return alpha[:i+1].copy(), beta[:i].copy()
+        z /= beta[i]
+        # Store new q_{i+1} and q_i on top of q0 and q1
+        q0, q1 = q1, z
+    return alpha, beta[:-1]
+
