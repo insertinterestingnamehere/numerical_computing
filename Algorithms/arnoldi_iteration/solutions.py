@@ -35,7 +35,7 @@ def arnoldi(b, Amul, k, tol=1E-8):
         Q[:,j+1] /= H[j+1, j]
     return H
 
-# Problem 2
+# Ritz Value Convergence
 def ritz_compare():
     # A simple exampe of the convergence of the Ritz values
     # to the eigenvalues of the original matrix.
@@ -60,6 +60,19 @@ def ritz_compare():
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()[::-1]]
     # print eigvals with largest magnitude
     print H_eigs[:view_vals]
+
+# Fourier Transform Eigenvalues
+def fft_eigs():
+    # Returns an estimate for the eigenvalues of the
+    # Discrete Fourier Transform.
+    m = 2**20
+    b = rand(m)
+    k = 10
+    H = arnoldi(b, ft.fft, k)
+    H_eigs = eig(H[:-1], right=False)
+    H_eigs /= sqrt(m)
+    H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
+    return H_eigs[:10]
 
 # Problem 3
 def lanczos(b, Amul, k, tol=1E-8):
