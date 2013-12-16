@@ -75,6 +75,13 @@ def fft_eigs():
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
     return H_eigs[:10]
 
+# needed for the polynomial root finding problem
+def companion_multiply(c, u):
+    v = np.empty_like(u)
+    v[0] = - c[0] * u[-1]
+    v[1:] = u[:-1] - c[1:] * u[-1]
+    return v
+
 # Polynomial root finding
 def root_find():
     m = 1000
