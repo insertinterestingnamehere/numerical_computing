@@ -1,7 +1,10 @@
 import numpy as np
+from numpy.random import rand
+from scipy.linalg import eig
 from cmath import sqrt
 from pyfftw.interfaces.scipy_fftpack import fft
 from scipy import sparse as ss
+from scipy.sparse.linalg import eigsh
 
 # arnoldi iteration
 def arnoldi(b, Amul, k, tol=1E-8):
@@ -170,7 +173,7 @@ def tridiag_eigs():
 
 # algebraic connectivity problem
 def verify_connected():
-    # the idea here is to notice that only
+    # The idea here is to notice that only
     # one eigenvalue is nearly equal to 0.
     m = 1000
     d = np.ones(m)
