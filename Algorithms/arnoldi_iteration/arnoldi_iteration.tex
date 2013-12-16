@@ -171,8 +171,7 @@ Finding the roots of a monic polynomial (a polynomial with leading coefficient 1
 0 & 0 & \dots & 0 & -c_0 \\
 1 & 0 & \dots & 0 & -c_1 \\
 \vdots & \vdots & \ddots & \vdots & \vdots \\
-0 & 0 & \dost & 1 & -c_{n-1} \end{bmatrix}
-\end{problem}
+0 & 0 & \dots & 1 & -c_{n-1} \end{bmatrix}\]
 This matrix is called the companion matrix of the polynomial $p$.
 As it happens, every matrix is similar to the companion matrix of its characteristic polynomial, but we won't use that fact here.
 
@@ -244,7 +243,7 @@ Have it accept a starting vector $b$, a function $Amul$ that computes $A x$ for 
 
 In its most basic form the Lanczos iteration is not very stable.
 In exact arithmetic the vectors $q_i$ are exactly orthogonal, but in the presence of roundoff error this may be absolutely false.
-In imprecise arithmetic it is possible for the $q_i$ to suffer from so much roundoff error that they mey no longer even be \textit{linearly independent}.
+In imprecise arithmetic it is possible for the $q_i$ to suffer from so much roundoff error that \textit{they may no longer even be linearly independent}.
 There are a variety of modifications to the Lanczos Iteration that address this instability.
 The libraries used for Scipy use an algorithm called the Implicitly Restarted Lanczos Method.
 We will not discuss these algorithms in detail here.
@@ -276,22 +275,46 @@ How do they compare?
 Try running your simulation a few times for different vectors $a$ and $b$.
 You may notice that, occasionally, the largest eigenvalue is repeated in the Ritz Values.
 This happens because of the lack of orthogonality between the vectors used in the Lanczos Iteration.
-These erroneous eigenvaleus are called "ghost eigenvalues."
+These erroneous eigenvaleus are called ``ghost eigenvalues."
 They generally converge to actual eigenvalues of the matrix, but they can make the multiplicity of an eigenvalue look higher than it really is.
 \end{problem}
 
-\section*{Polynomial root finding}
-
-% Perform Arnoldi iteration on companion matrix. Give them a routine that computes Ax without explicitly constructing it.
-
-% Plot basins of convergence for poynomial root finding.
-
 \section*{Arnoldi Iteration in SciPy}
 
-% Introduce eigs, svds, and eigsh from scipy.sparse.linalg.
+SciPy interfaces with a Fortran library called ARPACK that has good implementations of the Arnoldi and Lanczos algorithms.
+The Arnoldi Iteration is found in \li{scipy.sparse.linalg.eigs}.
+The Implicitly Restarted Lanczos Iteration is found in \li{scipy.sparse.linalg.eigsh}
+These functions allow you to find either the largest or smallest eigenvalues of a sparse or dense matrix.
+The function \li{scipy.sparse.linalg.svds} uses the Implicitly Restarted Lanczos Iteration on $A^* A$ to find the singular values of a matrix.
 
-% Use it to find the Fiedler value to determine whether or not a graph is connected.
+\begin{problem}
+In Lab \ref{lab:MarkovGraph} we discussed how to find the Laplacian Matrix of a graph.
+The second-smallest eigenvalue of a graph is known as the ``Fiedler Value" or the ``algebraic connectivity."
+The algebraic connectivity of a graph is positive if the graph is connected and zero if it is not.
+In general, the multiplicity of the eigenvalue $0$ in the Laplacian matrix of a graph is the number of connected components of that graph.
+The following code constructs the Laplacian matrix of a graph composed of a line of nodes.
+The matrix is stored in \li{dia_matrix} format.
+\begin{lstlisting}
+import scipy.sparse as ss
+m = 1000
+d = np.ones(m)
+d[1:-1] += np.ones(m-2)
+l = ss.diags([-np.ones(m-1), d, -np.ones(m-1)], [-1, 0, 1])
+\end{lstlisting}
+Use the \li{eigsh} function to verify that this graph is connected.
+You should look at documentation for the \li{scipy.sparse} library and find the options you need to use.
+For proper convergence you will want to leave the number of eigenvalues computed at its default value.
 
-% Use it to find norms of matrices.
-
-% Point toward use of largest singular values in PCA and LSI in volume 3.
+The following code constructs the Laplacian matrix the same graph as before except that a single edge has been removed.
+\begin{lstlisting}
+m = 1000
+cut = 500
+d = np.ones(m)
+d[1:-1] += np.ones(m-2)
+d1 = -np.ones(m-1)
+d1[cut] = 0
+d[[cut, cut+1]] =1
+l = ss.diags([d1, d, d1], [-1, 0, 1])
+\end{lstlisting}
+Verify that this graph is not connected.
+\end{problem}

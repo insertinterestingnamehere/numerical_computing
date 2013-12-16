@@ -1,6 +1,7 @@
 import numpy as np
 from cmath import sqrt
 from pyfftw.interfaces.scipy_fftpack import fft
+from scipy import sparse as ss
 
 # arnoldi iteration
 def arnoldi(b, Amul, k, tol=1E-8):
@@ -166,3 +167,26 @@ def tridiag_eigs():
     A_eigs.sort()
     A_eigs = A_eigs[::-1]
     print A_eigs[:10]
+
+# algebraic connectivity problem
+def verify_connected():
+    # the idea here is to notice that only
+    # one eigenvalue is nearly equal to 0.
+    m = 1000
+    d = np.ones(m)
+    d[1:-1] += np.ones(m-2)
+    l = ss.diags([-np.ones(m-1), d, -np.ones(m-1)], [-1, 0, 1])
+    return eigsh(l, which='SM', return_eigenvectors=False)
+
+def verify_disconnected():
+    # The idea here is to notice that two of
+    # the eigenvalues are nearly equal to 0.
+    m = 1000
+    cut = 500
+    d = np.ones(m)
+    d[1:-1] += np.ones(m-2)
+    d1 = -np.ones(m-1)
+    d1[cut] = 0
+    d[[cut, cut+1]] =1
+    l = ss.diags([d1, d, d1], [-1, 0, 1])
+    return eigsh(l, which='SM', return_eigenvectors=False)
