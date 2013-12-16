@@ -31,10 +31,10 @@ def arnoldi(b, Amul, k, tol=1E-8):
         # Stop if ||q_{j+1}|| is too small.
         if abs(H[j+1, j]) < tol:
             # Here I'll copy the array to avoid excess memory usage.
-            return np.array(H[:j+1,:j], order='F')
+            return np.array(H[:j,:j], order='F')
         # Normalize q_{j+1}
         Q[:,j+1] /= H[j+1, j]
-    return H
+    return H[:-1]
 
 # Ritz Value Convergence
 def ritz_compare():
@@ -56,7 +56,7 @@ def ritz_compare():
     # print eigvals with largest magnitude
     print A_eigs[:view_vals]
     # compute Ritz Values
-    H_eigs = eig(H[:-1], right=False)
+    H_eigs = eig(H, right=False)
     # sort by magnitude
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()[::-1]]
     # print eigvals with largest magnitude
@@ -70,10 +70,27 @@ def fft_eigs():
     b = rand(m)
     k = 10
     H = arnoldi(b, fft, k)
-    H_eigs = eig(H[:-1], right=False)
+    H_eigs = eig(H, right=False)
     H_eigs /= sqrt(m)
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
     return H_eigs[:10]
+
+# Polynomial root finding
+def root_find():
+    m = 1000
+    k = 50
+    disp = 5
+    c = rand(m)
+    p = np.poly1d([1] + list(c[::-1]))
+    Cmul = lambda u: companion_multiply(c, u)
+    b = rand(m)
+    H = arnoldi(b, Cmul, k)
+    H_eigs = eig(H, right=False)
+    H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
+    print H_eigs[:disp]
+    roots = p.roots
+    roots = roots[np.absolute(roots).argsort()][::-1]
+    print roots[:disp]
 
 # Lanczos Iteration
 def lanczos(b, Amul, k, tol=1E-8):

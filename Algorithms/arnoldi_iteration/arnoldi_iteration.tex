@@ -71,12 +71,12 @@ We first choose a normalized random vector $q_0$, then perform the Modified Grah
 			\State $q_{j+1} -= h_{i,j} q_i$
 		\EndFor
 		\If{$|h_{j+1,j}|<tol$}					\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
-			\State \pseudoli{return} $H[:j+1,:j]$, $Q[:,j]$
+			\State \pseudoli{return} $H[:j,:j]$, $Q[:,j]$
 		\EndIf
 		\State $h_{j+1,j} = \|z\|_2$				\Comment{Set subdiagonal element of $H$.}
 		\State $q_{j+1} /= h_{j+1,j}$				\Comment{Normalize $q_{j+1}$}
 	\EndFor
-	\State \pseudoli{return} $H$, $Q$
+	\State \pseudoli{return} $H[:-1]$				\Comment{Return $H_{k}$}
 \EndProcedure
 \end{algorithmic}
 \caption{The Arnoldi Iteration}
@@ -163,6 +163,41 @@ By exploiting the symmetries in the problem we were able to perform matrix multi
 \end{problem}
 
 % Once the eigenvalue lab has been rewritten, have them use their own solver to find the eigenvalues of the $H_k$.
+
+\begin{problem}
+Finding the roots of a polynomial can be represented as an eigenvalue problem.
+Finding the roots of a monic polynomial (a polynomial with leading coefficient 1) $p = c_0 + c_1 x + \dots + c_{n-1} x^{n-1} + x^n$ is equivalent to finding the eigenvalues of the matrix
+\[C = \begin{bmatrix}
+0 & 0 & \dots & 0 & -c_0 \\
+1 & 0 & \dots & 0 & -c_1 \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\
+0 & 0 & \dost & 1 & -c_{n-1} \end{bmatrix}
+\end{problem}
+This matrix is called the companion matrix of the polynomial $p$.
+As it happens, every matrix is similar to the companion matrix of its characteristic polynomial, but we won't use that fact here.
+
+Here is some code that, given an array containing the coefficients $c_0, c_1, \dots, c_{n-1}$ for a monic polynomial $p$, performs matrix multiplication by the corresponding companion matrix.
+\begin{lstlisting}
+def companion_multiply(c, u):
+    v = np.empty_like(u)
+    v[0] = - c[0] * u[-1]
+    v[1:] = u[:-1] - c[1:] * u[-1]
+    return v
+\end{lstlisting}
+
+Use the Arnoldi Iteration to estimate the five eigenvalues of largest norm of the companion matrix a monic polynomial with randomly chosen coefficients (the leading coefficient still needs to be 1).
+Do this for a degree $1000$ monic polynomial.
+Run $50$ steps of the Arnoldi Iteration.
+Compare your results with the roots of the polynomial computed using NumPy's \li{poly1d} class.
+This computation can be done like this (where \li{c} is the array of random coefficients for the polynomial)
+\begin{lstlisting}
+p = np.poly1d([1] + list(c[::-1]))
+roots = p.roots
+# Now sort by absolute value from largest to smallest
+roots = roots[np.absolute(roots).argsort()][::-1]
+\end{lstlisting}
+How close are the first few zeros of largest norm?
+\end{problem}
 
 \section*{Lanczos Iteration}
 
@@ -260,12 +295,3 @@ They generally converge to actual eigenvalues of the matrix, but they can make t
 % Use it to find norms of matrices.
 
 % Point toward use of largest singular values in PCA and LSI in volume 3.
-
-
-% Show Ghost Eigenvalues?
-
-% Add another application if there's space.
-
-% Eigvals of DFT computed via the FFT? This one is good because it uses the Lanczos iteration.
-
-% Applications of eigenvalues of discretized representations of differential operators?

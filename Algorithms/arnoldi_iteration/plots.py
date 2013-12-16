@@ -13,7 +13,7 @@ def arnoldi_convergence_plot(A, b, k, view_vals, filename):
     A_eigs = A_eigs[np.absolute(A_eigs).argsort()[::-1]]
     for i in xrange(1, k+1):
         H = arnoldi(b, A.dot, i)
-        H_eigs = eig(H[:-1], right=False)
+        H_eigs = eig(H, right=False)
         H_eigs = H_eigs[np.absolute(H_eigs).argsort()[::-1]]
         difs[:min(view_vals, H_eigs.size),i-1] = np.absolute(H_eigs[:view_vals].real - A_eigs[:min(view_vals,H_eigs.size)].real)
     X = np.arange(2, k+2)
