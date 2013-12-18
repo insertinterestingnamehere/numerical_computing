@@ -1,7 +1,9 @@
 \lab{Algorithms}{IVP Solvers}{IVP Solvers}
 \label{lab:IVP}
 
-\objective{Implement several basic numerical solvers for initial value problems.}
+\objective{Implement several basic numerical solvers for initial value problems, and use them to study harmonic oscillators.}
+
+\section{Solvers for initial value problems}
 
 Consider the initial value problem 
 \begin{eqnarray*}
@@ -132,7 +134,175 @@ Plot the solutions of
 with initial conditions $y(0) = 0, 2, 4, 6, $ and $8$. Use RK4 to compute the solutions. 
 \end{problem}
 
+\pagebreak
+\section{Harmonic Oscillators and Resonance}
 
+Harmonic oscillators show up often in classical mechanics. A few examples include the pendulum (with small displacement), spring-mass systems, and the flow of electric current through various types of circuits. We will begin studying the mathematical model in the context of a spring-mass system.
+%
+%Mathematically,the motion of a  harmonic oscillator is described by an ordinary differential equation of the form \[ay'' + by' + cy = f(t) .\] Usually this equation is accompanied by two initial conditions, $y(0) = y_0$ and $y'(0) = y'_0.$ We will describe the construction of this differential equation in the context of a spring-mass sytem; we will then analyze its mathematical properties using the RK4 algorithm constructed in the last lab. 
+
+Suppose an object with mass $m$ is hung at the end of a vertical spring. The position at which the object hangs is called the \textit{equilibrium position} for the system. Mathematically, a spring-mass system describes the motion of the object for time $t > 0$  if it is displaced from its equilibrium position and given an initial velocity. 
+
+The principal property of a harmonic oscillator is that once the position $y(t)$ leaves its equilibrium position $y = 0$, it experiences a restoring force $F_r = -ky.$ This force pushes $y$ back towards its equilibrium position. For a spring-mass system this is called Hooke's law. Hooke's law describes the system well only if the displacement $y$ is small. The resulting differential equation is given by Newton's law, $F = ma$, giving us 
+\[my'' = -ky.\]
+
+Often there is an additional damping force $F_d$, often due to some type of friction. This force is usually proportional to the velocity of the mass, is always in the opposite direction of velocity, and represents energy leaving the spring-mass system. Thus we have $F_d = -\gamma y', $ where $ \gamma > 0$ is constant. 
+
+We may also need to consider an additional, external force $f(t)$ that is interacting with our spring-mass system.
+
+At this stage, we have a fairly general mathematical model: 
+\begin{eqnarray*}
+F &=& F_r + F_d + f(t),\\
+my'' &=& -ky -\gamma y' + f(t),
+\end{eqnarray*}
+or 
+\[my''+\gamma y' + ky = f(t). \]
+
+We say that the harmonic oscillator is damped if $\gamma > 0$, and undamped if $\gamma =0$. Likewise the harmonic oscillator is forced if $f(t) \not = 0$, and free if $f(t) \equiv 0$. A simple harmonic oscillator is one that is undamped and free. 
+
+\section*{Simple harmonic oscillators}
+An undamped free harmonic oscillator is described by an IVP of the form
+\begin{eqnarray*}
+my'' + ky &=& 0,\\
+y(0) &=& y_0,\\
+y'(0) &=& y_0'.
+\end{eqnarray*} 
+The solution of this IVP is $y = c_1\cos (\omega_0 t) + c_2 \sin (\omega_0 t)$ where $\omega_0 = \sqrt{k/m}$ is the natural frequency of the oscillator and $c_1$ and $c_2$ are determined by applying the initial conditions. This in turn can be written in the form 
+\[y = A\sin (\omega_0 t + \delta) .\]
+
+To solve this IVP using the fourth order Runge Kutta method (RK4), we need to write this system in the form 
+\[z'(t) = f(t,z(t)) \]
+We can do this by letting $z_1 = y, z_2 = y'$. Then we have 
+\[     z'=  \left[\begin{array}{c}z_1 \\z_2\end{array}\right]'  =  \left[\begin{array}{c}z_2 \\\frac{k}{m}z_1\end{array}\right]= f(z).\]
+
+Consider the IVP 
+\begin{eqnarray*}
+y'' + .1y ' +y &=& 0,\,\, 0 \leq x  \leq 20, \\
+y(0) &=&2,\\
+y'(0) &=& 0.
+\end{eqnarray*}
+This can be written as the first order system
+\[ \left[\begin{array}{c}y_1 \\y_2\end{array}\right]' = \left[\begin{array}{c}y_2 \\.1y_2-y_1\end{array}\right],
+\]
+and solved with the following code: 
+\begin{lstlisting}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Implementation of the Runge Kutta fourth order method
+def Runge_Kutta_4(func,a,b,n,y0,dim):
+	x = np.linspace(a,b,n+1); 
+	Y = np.zeros((len(x),dim)); 
+	Y[0,:] = y0
+	
+	h = 1.*(b-a)/n
+	for j in range(0,len(x)-1): 
+		k1 = h*func(x[j],Y[j,:])
+		k2 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k1)
+		k3 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k2)
+		k4 = h*func(x[j+1],Y[j,:]+k3)
+		Y[j+1,:] = Y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
+	return Y
+
+# Definition of f(y) in the 2 dimensional ode y' = f(y) for the equation y'' + .1y' + y = 0.
+def ode_func(x,y): 
+	out = np.array([ y[1] , .1*y[1]-y[0] ])
+	return out
+
+a, b, n, ya = 0.0, 20.0, 100, np.array([2., 0.])
+Y = Runge_Kutta_4(ode_func,a,b,n,ya,2)
+plt.plot(np.linspace(a,b,n+1), Y[:,0], 'k-')
+
+plt.xlabel('x')
+plt.ylabel('y')
+plt.show()
+\end{lstlisting}
+
+
+\begin{problem}
+Use RK4 to solve the IVP
+\begin{eqnarray*}
+my'' + ky &=& 0,\,\, 0 \leq x \leq 20, \\
+y(0) &=& 2, \\
+y'(0) &=& -1,
+\end{eqnarray*} 
+for $m = 1$ and $k =1$.  Plot your solution $y(t)$.  Compare this with the solution of the IVP if  $m = 3$ and $k =1$. Consider: Why does the difference in solutions make sense physically?
+\end{problem}
+
+\section*{Damped free harmonic oscillators}
+We now consider damped free harmonic oscillators. These systems are described by the differential equation
+\[my''(t) +\gamma y'(t) + ky(t) = 0.\]
+For fixed values of $m$ and $k$, it is interesting to study the effect of the damping coefficient $\gamma$. 
+
+The roots of the characteristic equation are \[r_1,r_2 = \frac{-\gamma \pm \sqrt{\gamma^2 -4km}}{2m} .\]
+Note that the real parts of $r_1$ and $r_2$ are always negative, and so any solution $y(t)$ will decay over time due to a dissipation of the system energy. There are several cases to consider for the general solution of this equation: 
+\begin{enumerate}
+\item If $\gamma^2 > 4km$, then the general solution is $y(t) = c_1 e^{r_1t} + c_2e^{r_2t}$. Here the system is said to be $\textit{overdamped}$. Notice from the general solution that there is no oscillation in this case.
+\item If $\gamma^2 = 4km$, then the general solution is $y(t) = c_1 e^{\gamma t/2m} + c_2 te^{\gamma t/2m}$. Here the system is said to be $\textit{critically damped}$. 
+\item If $\gamma^2 < 4km$, then the general solution is 
+\begin{eqnarray*}
+y(t) &=& e^{-\gamma t/2m} \left[c_1\cos(\mu t) + c_2 \sin (\mu t)\right],\\
+&=& R e^{-\gamma t/2m}  \sin (\mu t + \delta),
+\end{eqnarray*}
+where $R$ and $\delta$ are fixed, and $\mu = \sqrt{4km-\gamma^2}/2m.$ This system does oscillate.
+\end{enumerate}
+
+
+
+\begin{problem}
+Use RK4 to solve the IVP
+\begin{eqnarray*}
+y'' +\frac{1}{2} y'+ y &=& 0, \,\, 0 \leq x \leq 20,\\
+y(0) &=& 1, \\
+y'(0) &=& -1,
+\end{eqnarray*} 
+on the interval $[0,20]$. Plot your solution $y(t)$, and find $y(20)$ correct to four decimal places. (Check that the relative error is less than $5e^{-5}$.)  How many subintervals do you need?
+\end{problem}
+
+
+
+\begin{problem}
+Use RK4 to solve the IVP
+\begin{eqnarray*}
+y'' +2.1 y'+ y &=& 0,\,\, 0 \leq x \leq 20,\\
+y(0) &=& 2, \\
+y'(0) &=& -4.
+\end{eqnarray*} 
+Plot your solution $y(t)$, and find $y(20)$ correct to four decimal places. 
+\end{problem}
+
+
+\section*{Forced harmonic oscillators without damping}
+Let's look at the systems described by the differential equation
+\begin{eqnarray}
+my''(t)  + ky(t) &=& F(t). \label{Forced_harm_osc}
+\end{eqnarray}
+In many instances the external force $F(t)$ is periodic, so let us assume that $F(t) = F_0 \cos(\omega t)$. If $\omega_0 = \sqrt{k/m} \not = \omega,$ then the  general solution of \ref{Forced_harm_osc} is given by 
+\[y(t) = c_1 \cos (\omega_0 t) + c_2\sin (\omega_0 t) + \frac{F_0}{m(\omega_0^2 - \omega^2)} \cos (\omega t).\]
+If $\omega_0 = \omega$, then the general solution is 
+\[y(t) = c_1 \cos (\omega_0 t) + c_2\sin (\omega_0 t) + \frac{F_0}{2m\omega_0} t \sin (\omega_0 t).\]
+This last solution contains a term that grows arbitrarily large as $t \to \infty$. If we included damping then the solution would be bounded, but will still be large for small $\gamma$ and $\omega$ close to $\omega_0$. Let us consider physical spring-mass system. \ref{Forced_harm_osc} holds only for small oscillations (this is where Hooke's law is applicable). For larger oscillations, this equation will not hold. However, the fact that the equation predicts large oscillations suggests the spring-mass system could fall apart as a result of the external force.
+
+\begin{problem}
+Use RK4 to solve the IVP
+\begin{eqnarray*}
+2y'' + 2y &=& 2 \cos (x), \,\, 0 \leq x \leq 200,\\
+y(0) &=& 2, \\
+y'(0) &=& -1.
+\end{eqnarray*} 
+Plot your solution $y(t)$, and find $y(200)$ correct to four decimal places. 
+\end{problem}
+
+\begin{problem}
+Use RK4 to solve the IVP
+\begin{eqnarray*}
+2y'' + \gamma y' + 2y &=& 2 \cos (\omega x), \,\, 0 \leq x \leq 200,\\
+y(0) &=& 2, \\
+y'(0) &=& -1.
+\end{eqnarray*} 
+Plot your solution $y(t)$ for $\gamma = .1$ and $\omega =1.1$, and find $y(200)$ correct to four decimal places. 
+Do the same for  $\gamma = .01$ and $\omega =1.01$.
+\end{problem}
 
 %References:
 %
