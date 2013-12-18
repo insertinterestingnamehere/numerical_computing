@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import ode
 
-#--------------------------------------------------------------
 # Good example of Newton's method. Code given in lab.
 def Example2():
 	a, b = 0., 3*np.pi/4.
@@ -46,7 +45,7 @@ def Example2():
 	plt.show()	
 	return
 
-#--------------------------------------------------------------
+
 def Exercise1(): 
 # y'' +4y = -9sin(x), y(0) = 1., y(3*pi/4.) = -(1.+3*sqrt(2))/2., y'(0) = -2
 # Exact Solution: y(x) = cos(2x) + (1/2)sin(2x) - 3sin(x)
@@ -97,8 +96,6 @@ def Exercise1():
 	return 
 
 
-
-#--------------------------------------------------------------
 def Exercise2(t0,t1): 
 # y'' +4y = -9sin(x), y(0) = 1., y(3*pi/4.) = -(1.+3*sqrt(2))/2., y'(0) = -2
 # Exact Solution: y(x) = cos(2x) + (1/2)sin(2x) - 3sin(x)
@@ -148,8 +145,6 @@ def Exercise2(t0,t1):
 	return
 
 
-
-#--------------------------------------------------------------
 def Exercise3(ya,va,nu,t0,t1): 
 	a, b = 0., 120.
 	beta =  0.
@@ -214,8 +209,6 @@ def Exercise3(ya,va,nu,t0,t1):
 	return t2,X,Y[:,0]
 
 
-
-#--------------------------------------------------------------
 # y''=6y**2-6x**4-10, x in [1,3]
 # Solution is y=x**2 + x**(-2), y'(x) = 2x -2x^(-3), y'(1) = 0 
 # Shooting Algorithm: Converges for t0 in [-.1,.25]
@@ -279,8 +272,6 @@ def Exercise4(t):
 	return
 
 
-
-#--------------------------------------------------------------
 # y''(x) = 3 + 2*y/x^2, x  in [1,e], y(1) = 6, y(e)= e^2 + 6/e
 def Exercise5():
 	# Exact Solution: y(x) = x^2*ln(x)+6*x^(-1)
@@ -329,7 +320,6 @@ def Exercise5():
 
 
 
-#--------------------------------------------------------------
 def Cannon_Shooting(t0,t1): 
 	a, b = 0., 6.
 	beta =  0.
@@ -382,6 +372,32 @@ def Cannon_Shooting(t0,t1):
 	return X,Y
 
 
+
+def Cannon(b= 150,ya=0.,va=35.,phi=np.pi/4,nu=0.):
+	g = 9.8067
+	def ode_f(x,y): 
+		# y = [z,v,phi]
+		return np.array([np.tan(y[2]), -(g*np.sin(y[2]) + nu*y[1]**2.)/(y[1]*np.cos(y[2])), 
+			-g/y[1]**2.])
+	
+	
+	a= 0.
+	abstol,reltol= 1e-4,1e-4
+	
+	dim, T = 3, np.linspace(a,b,801)
+	example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol)
+	example.set_initial_value(np.array([ya,va,phi]),a)
+	Y = np.zeros((len(T),dim))
+	Y[0,:] = np.array([0.,.5,np.pi/4.])
+	for j in range(1,len(T)): 
+		Y[j,:] = example.integrate(T[j])
+		if Y[j,0]<(-1e-3): break
+	
+	return T, T[:j],Y[:j,0]
+
+
+
+
 # Exercises in Lab
 
 
@@ -392,7 +408,7 @@ def Cannon_Shooting(t0,t1):
 # Exercise2(3.,-2.) 
 # Exercise2(3.,1.)
 
-Exercise4(.2)
+# Exercise4(.2)
 
 # phi1,X,Y = Exercise3(0.,35., 0.,np.pi/3.5,np.pi/3.)
 # plt.plot(X,Y,'-k')
@@ -413,3 +429,11 @@ Exercise4(.2)
 # plt.plot(X,Y[:,0],'-k')
 # plt.plot(X1,Y1[:,0],'-k')
 # plt.show()
+
+
+T,X,Y = Cannon(nu = 0.,va = 45,phi=np.pi/3,b=200)
+T,X1,Y1 = Cannon(nu = 0.0003,va = 45,phi=np.pi/3,b=200)
+plt.plot(X,Y,'-k')
+plt.plot(X1,Y1,'-r')
+plt.plot(T,np.zeros(T.shape),'-k')
+plt.show()
