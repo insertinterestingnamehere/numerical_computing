@@ -60,19 +60,34 @@ def Runge_Kutta_4(func,a,b,n,y0,dim):
 	return Y
 
 
-# Definition of f(y) in the 2 dimensional ode y' = f(y) for a harmonic oscillator
-def harmonic_oscillator_ode(x,y,m,gamma,k,F): 
-	return np.array([y[1] ,-1.*gamma/m*y[1]-1.*k/m*y[0] + F(x) ])
-	
+def ode_f(x,y): 
+	out = 1.*y + 3. - 1.*x
+	return np.array([out])
 
 
+def ode_f1(x,y):
+	out = 1.*y -2.*x + 4.
+	return np.array([out])
 
 
+def ode_f2(x,y):
+	out = -1.*y+6.+2.*x
+	return np.array([out])
 
-def ode_f(x,y): return np.array([1.*y + 3. - 1.*x])
+
+def ode_f3(x,y): 
+	out = np.sin(y)
+	return np.array([out])
 
 
-def ode_f2(x,y): return np.array([-1.*y+6.+2.*x])
+def f1(x,ya):
+	out = -2. + 2.*x + (ya + 2.)*np.exp(x)
+	return out
+
+
+def f2(x,ya):
+	out = 4. + 2.*x + (ya - 4.)*np.exp(-x)
+	return out
 
 
 def function(x,g,ya):
