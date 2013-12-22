@@ -150,30 +150,32 @@ with initial conditions $y(0) = 0, 2, 4, 6, $ and $8$. Use RK4 to compute the so
 
 Harmonic oscillators show up often in classical mechanics. A few examples include the pendulum (with small displacement), spring-mass systems, and the flow of electric current through various types of circuits. 
 A harmonic oscillator is described by an ordinary differential equation of the form \[my'' + \gamma y' + ky = f(t) .\] The initial conditions, $y(0) = y_0$ and $y'(0) = y'_0$ determine a unique solution. 
-% We will begin studying the mathematical model in the context of a spring-mass system.
-% We will describe the construction of this mathematical model in the context of a spring-mass sytem; we will then analyze its mathematical properties using the RK4 algorithm constructed in the last lab. 
+We will describe the construction of this mathematical model in the context of a spring-mass system.
 
-Suppose an object with mass $m$ is hung at the end of a vertical spring. The position at which the object hangs is called the \textit{equilibrium position} for the system. Mathematically, a spring-mass system describes the motion of the object for time $t > 0$  if it is displaced from its equilibrium position and given an initial velocity. 
+Suppose an object with mass $m$ is placed at the end of a horizontal spring. The position of the object is called the \textit{equilibrium position} for the system.
+If the object is displaced from its equilibrium position and given an initial velocity,  
+it will act like a harmonic oscillator.
+The principal property of a harmonic oscillator is that once the quantity $y(t)$ leaves its equilibrium value $y = 0$, it experiences a restoring force $F_r = -ky.$ This force pushes $y$ back towards its equilibrium. Hooke's law says that this holds true for a 
+spring-mass system if the displacement $y$ is small.
 
-The principal property of a harmonic oscillator is that once the position $y(t)$ leaves its equilibrium position $y = 0$, it experiences a restoring force $F_r = -ky.$ This force pushes $y$ back towards its equilibrium position. For a spring-mass system this is called Hooke's law. Hooke's law describes the system well only if the displacement $y$ is small. The resulting differential equation is given by Newton's law, $F = ma$, giving us 
-\[my'' = -ky.\]
-
-Often there is an additional damping force $F_d$, often due to some type of friction. This force is usually proportional to the velocity of the mass, is always in the opposite direction of velocity, and represents energy leaving the spring-mass system. Thus we have $F_d = -\gamma y', $ where $ \gamma > 0$ is constant. 
-
+Often there is an additional damping force $F_d$, often due to some type of friction. This force is usually proportional to the $y'$, is always in the opposite direction of $y'$, and represents energy leaving the system. 
+Thus we have $F_d = -\gamma y', $ where $ \gamma \geq 0$ is constant. 
 We may also need to consider an additional, external force $f(t)$ that is interacting with our spring-mass system.
+ 
 
-At this stage, we have a fairly general mathematical model: 
+By using Newton's law we obtain
+% At this stage, we have a fairly general mathematical model: 
 \begin{eqnarray*}
-F &=& F_r + F_d + f(t),\\
+F = ma &=&= F_r + F_d + f(t),\\
 my'' &=& -ky -\gamma y' + f(t),
 \end{eqnarray*}
 or 
 \[my''+\gamma y' + ky = f(t). \]
 
-We say that the harmonic oscillator is damped if $\gamma > 0$, and undamped if $\gamma =0$. Likewise the harmonic oscillator is forced if $f(t) \not = 0$, and free if $f(t) \equiv 0$. A simple harmonic oscillator is one that is undamped and free. 
+% We say that the harmonic oscillator is damped if $\gamma > 0$, and undamped if $\gamma =0$. Likewise the harmonic oscillator is forced if $f(t) \not = 0$, and free if $f(t) \equiv 0$. A simple harmonic oscillator is one that is undamped and free. 
 
 \section*{Simple harmonic oscillators}
-An undamped free harmonic oscillator is described by an IVP of the form
+A simple harmonic oscillator is a harmonic oscillator that is not damped ($\gamma =0$), and is free ($f(t) \equiv 0$) rather than forced ($f(t) \not = 0$). A simple harmonic oscillator can described by the IVP
 \begin{eqnarray*}
 my'' + ky &=& 0,\\
 y(0) &=& y_0,\\
@@ -187,48 +189,48 @@ To solve this IVP using the fourth order Runge Kutta method (RK4), we need to wr
 We can do this by letting $z_1 = y, z_2 = y'$. Then we have 
 \[     z'=  \left[\begin{array}{c}z_1 \\z_2\end{array}\right]'  =  \left[\begin{array}{c}z_2 \\\frac{k}{m}z_1\end{array}\right]= f(z).\]
 
-Consider the IVP 
-\begin{eqnarray*}
-y'' + .1y ' +y &=& 0,\,\, 0 \leq x  \leq 20, \\
-y(0) &=&2,\\
-y'(0) &=& 0.
-\end{eqnarray*}
-This can be written as the first order system
-\[ \left[\begin{array}{c}y_1 \\y_2\end{array}\right]' = \left[\begin{array}{c}y_2 \\.1y_2-y_1\end{array}\right],
-\]
-and solved with the following code: 
-\begin{lstlisting}
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Implementation of the Runge Kutta fourth order method
-def Runge_Kutta_4(func,a,b,n,y0,dim):
-	x = np.linspace(a,b,n+1); 
-	Y = np.zeros((len(x),dim)); 
-	Y[0,:] = y0
-	
-	h = 1.*(b-a)/n
-	for j in range(0,len(x)-1): 
-		k1 = h*func(x[j],Y[j,:])
-		k2 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k1)
-		k3 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k2)
-		k4 = h*func(x[j+1],Y[j,:]+k3)
-		Y[j+1,:] = Y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
-	return Y
-
-# Definition of f(y) in the 2 dimensional ode y' = f(y) for the equation y'' + .1y' + y = 0.
-def ode_func(x,y): 
-	out = np.array([ y[1] , .1*y[1]-y[0] ])
-	return out
-
-a, b, n, ya = 0.0, 20.0, 100, np.array([2., 0.])
-Y = Runge_Kutta_4(ode_func,a,b,n,ya,2)
-plt.plot(np.linspace(a,b,n+1), Y[:,0], 'k-')
-
-plt.xlabel('x')
-plt.ylabel('y')
-plt.show()
-\end{lstlisting}
+% Consider the IVP 
+% \begin{eqnarray*}
+% y'' + .1y ' +y &=& 0,\,\, 0 \leq x  \leq 20, \\
+% y(0) &=&2,\\
+% y'(0) &=& 0.
+% \end{eqnarray*}
+% This can be written as the first order system
+% \[ \left[\begin{array}{c}y_1 \\y_2\end{array}\right]' = \left[\begin{array}{c}y_2 \\.1y_2-y_1\end{array}\right],
+% \]
+% and solved with the following code: 
+% \begin{lstlisting}
+% import numpy as np
+% import matplotlib.pyplot as plt
+% 
+% # Implementation of the Runge Kutta fourth order method
+% def Runge_Kutta_4(func,a,b,n,y0,dim):
+% 	x = np.linspace(a,b,n+1); 
+% 	Y = np.zeros((len(x),dim)); 
+% 	Y[0,:] = y0
+% 	
+% 	h = 1.*(b-a)/n
+% 	for j in range(0,len(x)-1): 
+% 		k1 = h*func(x[j],Y[j,:])
+% 		k2 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k1)
+% 		k3 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k2)
+% 		k4 = h*func(x[j+1],Y[j,:]+k3)
+% 		Y[j+1,:] = Y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
+% 	return Y
+% 
+% # Definition of f(y) in the 2 dimensional ode y' = f(y) for the equation y'' + .1y' + y = 0.
+% def ode_func(x,y): 
+% 	out = np.array([ y[1] , .1*y[1]-y[0] ])
+% 	return out
+% 
+% a, b, n, ya = 0.0, 20.0, 100, np.array([2., 0.])
+% Y = Runge_Kutta_4(ode_func,a,b,n,ya,2)
+% plt.plot(np.linspace(a,b,n+1), Y[:,0], 'k-')
+% 
+% plt.xlabel('x')
+% plt.ylabel('y')
+% plt.show()
+% \end{lstlisting}
 
 
 \begin{problem}
