@@ -118,7 +118,6 @@ def Fig4():
 	return 
 
 
-
 def HOFig1(): 
 	a, b, ya = 0.0, 50.0, np.array([2., 0.])		# Parameters
 	
@@ -139,7 +138,6 @@ def HOFig1():
 	plt.savefig('HOFig1.pdf')
 	plt.clf()
 	return 
-
 
 
 def HOFig2(): 
@@ -165,7 +163,6 @@ def HOFig2():
 	plt.savefig('HOFig2.pdf')
 	plt.clf()
 	return 
-
 
 
 def HOProb1(): 
@@ -198,7 +195,6 @@ def HOProb1():
 	return 
 
 
-
 def HOProb2(): 
 # Parameters
 	a, b, ya = 0.0, 20.0, np.array([1., -1.])
@@ -223,7 +219,6 @@ def HOProb2():
 	plt.clf()
 	return
 
- 
 
 def HOProb3(): 
 # Parameters
@@ -248,7 +243,6 @@ def HOProb3():
 	plt.savefig('HOProb3.pdf')
 	plt.clf()
 	return
-
 
 
 def HOProb4(): 
@@ -276,7 +270,6 @@ def HOProb4():
 	return
 
  
-
 def HOProb5(): 
 # Parameters: Interval = [a,b], n = number of subintervals, ya = y(a) 
 	a, b, n, ya = 0.0, 200.0, 4000, np.array([2., -1.])

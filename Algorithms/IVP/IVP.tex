@@ -7,38 +7,45 @@
 
 Consider the initial value problem 
 \begin{eqnarray*}
-y' &=& f(x,y), a \leq x \leq b, \\
-y(a) &=& y_0.
+y' &=& f(x,y),\,\, a \leq x \leq b, \\
+y(a) &=& y_0
 \end{eqnarray*}
-A solution is a differentiable function $y(x)$ that satisfies the equation $y' = f(x,y)$ on the interval $[a,b]$ and for which $y(a) = y_0$.  There are many initial value problems (IVPs) where it is impossible to find a closed form expression for the solution. In these cases especially it is important to be able to use various methods of numerical approximation to study a solution which we know does exist. 
+where $f$ is a continuous function. A solution is a continuously differentiable function $y(x)$ that satisfies the equation $y' = f(x,y)$ on the interval $[a,b]$ and for which $y(a) = y_0$.  
+
+
+There are many initial value problems (IVPs) where it is impossible to find a closed form (analytic) expression for the solution. 
+For other IVPs there is a closed form expression for the solution, but it may be difficult to interpret. 
+In either case, we can usually make good use of various methods of numerical approximation to study the solution. (It is still important to know mathematically that a solution exists, even when we cannot find an explicit solution!)
 
 Most methods require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. We then look for values $y_0,y_1, \hdots, y_n$ that approximate our solution ( so $y_i \approx y(x_i)$).  
 
-Perhaps the simplest way to find the values $y_i$ is to use Taylor's theorem. For each $i, 1 \leq i \leq n$, 
+Consider the following use of Taylor's theorem: For each $i, 1 \leq i \leq n$, we have
+\[
+y(x_{i+1}) = y(x_{i}) + h y'(x_i) + \frac{h^2}{2} y''(\xi_i)\text{ for some }\xi_i \in [x_i,x_{i+1}].
+\]
+For small values of $h$, the quantity $\frac{h^2}{2} y''(\xi_i)$ will be negligible ($h^2$ is much smaller than $h$), and so we will have
 \begin{eqnarray*}
-y(x_{i+1}) &=& y(x_{i}) + h y'(x_i) + \frac{h^2}{2} y''(\xi_i), \xi_i \in [x_i,x_{i+1}], \\
-y(x_{i+1}) &=& y(x_{i}) + h f(x_i,y(x_i)) + \frac{h^2}{2} y''(\xi_i),\\
-y(x_{i+1}) &\approx & y(x_{i}) + h f(x_i,y(x_i)) \text{ for small } h .
+y(x_{i+1}) &\approx& y(x_{i}) + h y'(x_i)  ,\\
+&\approx & y(x_{i}) + h f(x_i,y(x_i)).
 \end{eqnarray*}
-This approximation leads to a first order method called Euler's method: 
-\begin{enumerate}
-\item Let $y_0 = y(a)$. 
-\item For $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$. 
-\end{enumerate}
+This approximation leads to a first order ($\mathcal{O}(h^1)$) method called Euler's method: Let $y_0 = y(a)$, and for $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$. 
+% \begin{enumerate}
+% \item Let $y_0 = y(a)$. 
+% \item For $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$. 
+% \end{enumerate}
 
 We can also use Taylor's theorem as follows: 
 \begin{eqnarray*}
-y(x_{i}) &=& y(x_{i+1}) - h y'(x_{i+1}) + \frac{h^2}{2} y''(\xi_i), \xi_i \in [x_i,x_{i+1}], \\
-y(x_{i}) &=& y(x_{i+1}) + h f(x_{i+1},y(x_{i+1})) + \frac{h^2}{2} y''(\xi_i),\\
+y(x_{i}) &=& y(x_{i+1}) - h y'(x_{i+1}) + \frac{h^2}{2} y''(\xi_i) \text{ for some } \xi_i \in [x_i,x_{i+1}], \\
 y(x_{i+1}) &\approx & y(x_{i}) + h f(x_{i+1},y(x_{i+1}))  \text{ for small } h .
 \end{eqnarray*}
-This approximation leads to backwards Euler's method, another first order method: 
-\begin{enumerate}
-\item Let $y_0 = y(a)$. 
-\item For $i = 0, 1, \hdots, n-1$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$. 
-\end{enumerate}
+This approximation leads to the backwards Euler method, another first order method: Let $y_0 = y(a)$ and for $i = 0, 1, \hdots, n-1$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$.
+% \begin{enumerate}
+% \item Let $y_0 = y(a)$. 
+% \item For $i = 0, 1, \hdots, n-1$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$. 
+% \end{enumerate}
 
-Note that for both the Euler and backwards Euler methods, only $x_i, y_i,$ and $f(x_i,y_i)$ are needed to find $y_{i+1}$. Because of this these are called \textit{one-step methods}. 
+Note that for both the Euler and backwards Euler methods, only $y_i, f, $ and other points in the interval $[x_i, x_{i+1}]$ are needed to find $y_{i+1}$. Because of this these are called \textit{one-step methods}. 
 
 
 
@@ -72,7 +79,7 @@ Let us look for a second order method of the form
 \item $y_0 = y(a)$,
 \item $y_{i+1} = y_i + a f(x_i+b, y_i+c)$.
 \end{enumerate}
-By expanding $a f(x+b, y+c)$ with Taylor's theorem and matching constants with 
+By expanding $a f(x+b, y+c)$ with Taylor's theorem and matching constants in the equation
 \begin{eqnarray*}
 f(x,y) + \frac{h}{2}f'(x,y) &=& f(x,y) + \frac{h}{2}\frac{\partial f}{\partial x}(x,y) +  + \frac{h}{2}\frac{\partial f}{\partial y}(x,y) \cdot f(x,y),
 \end{eqnarray*}
@@ -116,9 +123,9 @@ For many differential equations $y' = f(x,y)$ there is no closed form expression
 y'(x) &=& \sin y(x), \\
 y(0) &=& y_0.
 \end{eqnarray*}
-This IVP has an implicit solution given by 
+This IVP does have solution, which is given implicitly by 
 \[x = \ln \left|\frac{\cos y_0 + \cot y_0}{\csc y + \cot y} \right|.\]
-In this case, and many others, to understand the general solution of a ordinary differential equation it is often easier to use an IVP solver to plot several integral curves for various initial values. For example, it is easy to show that this differential equation has constant solutions $y_n(x) = n \pi, n \in \mathbb{N}$. Knowing this, and plotting several integral curves as in the following figure, it is easy to see how solutions of this IVP will behave.
+In this case, and many others, to understand the general solution of a ordinary differential equation it is often easier to use an IVP solver to plot several integral curves for various initial values. For example, it is easy to show that this differential equation has constant solutions $y_n(x) = n \pi, n \in \mathbb{N}$. Knowing this, and after plotting several integral curves as in Figure \ref{ivp:int_curves}, it is easy to see how solutions of this IVP will behave.
 
 
 \begin{figure}
