@@ -79,6 +79,7 @@ You function should return true if the given input string is an element of the l
 
 \begin{problem}
 Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for describing a DFA.
+
 \begin{figure}[H]
 \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
 \node[state,initial,accepting] (q0) {$q_0$};
@@ -90,7 +91,7 @@ Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for des
 (q0) edge[bend left] node {b} (q1)
 (q1) edge[bend left] node {b} (q0);        
 \end{tikzpicture}
-\caption{\ref{prob:reprDFA}(a)}
+\caption*{\ref{prob:reprDFA}(a)}
 \end{figure}
 
 \begin{figure}[H]
@@ -109,7 +110,7 @@ Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for des
 (q2) edge node {0} (q3)
 (q3) edge[loop above] node {0,1} (q3);
 \end{tikzpicture}
-\caption{\ref{prob:reprDFA}(b) The self-loop on $q_3$ transitions to itself on either a 0 or 1.}
+\caption*{\ref{prob:reprDFA}(b) The self-loop on $q_3$ transitions to itself on either a 0 or 1.}
 \end{figure}
 
 \begin{figure}[H]
@@ -130,6 +131,7 @@ Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for des
 (q3) edge node {0} (q2)
 (q4) edge node {0,1} (q2);
 \end{tikzpicture}
+\caption*{\ref{prob:reprDFA}(c)}
 \end{figure}
 \label{prob:reprDFA}
 \end{problem}
@@ -196,18 +198,18 @@ The best way to think of regular expressions is the view them as operations on r
 As noted, regular expressions can only represent a language if it is regular.  There do exist languages that are non-regular.  There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.  A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
 
 Regular expressions are especially useful and powerful for find and matching patterns in text.  Many tools can take advantage of the powerful matching features of regular expressions.  You can think of regular expressions as operations on state machines.
-For example, the regular expression $(a^*b)^* b^*a$ could be represented as the NFA in \ref{fig:nfa_union}.
+For example, the regular expression $(a^*b)^* b^*a$ could be represented as the NFA in \ref{fig:nfa_concat}.
 \begin{figure}
 \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
 \node[state,initial] (q0) {$q_0$};
-\node[state] (q1) [above right=of q0] {$q_1$};
-\node[state] (q2) [below right=of q1] {$q_2$};
+\node[state] (q1) [right=of q0] {$q_1$};
+\node[state] (q2) [right=of q3] {$q_2$};
 \node[state] (q3) [right=of q1] {$q_3$};
-\node[state,accepting] (q4) [right=of q3] {$q_4$};
+\node[state,accepting] (q4) [right=of q2] {$q_4$};
 
 \path[->]
 (q0) edge node {$\epsilon$} (q1)
-(q0) edge node {$\epsilon$} (q2)
+(q0) edge[bend right] node {$\epsilon$} (q2)
 
 (q1) edge[loop above] node {a} (q1)
 (q1) edge node {b} (q3)
@@ -216,10 +218,10 @@ For example, the regular expression $(a^*b)^* b^*a$ could be represented as the 
 (q2) edge node {a} (q4);
 \end{tikzpicture}
 \caption{An NFA for the regular expression $(a^*b)^* b^*a$.}
-\label{fig:nfa_union}
+\label{fig:nfa_concat}
 \label{fig:simple_nfa}
 \end{figure}
-Which is simply a union of the NFAs \ref{fig:nfa1} and \ref{fig:nfa2}.
+Which is simply a concatenation of the NFAs \ref{fig:nfa1} and \ref{fig:nfa2}.
 \begin{figure}
 \centering
 \begin{subfigure}[b]{.5\textwidth}
@@ -249,8 +251,65 @@ Which is simply a union of the NFAs \ref{fig:nfa1} and \ref{fig:nfa2}.
 \end{subfigure}
 \end{figure}
 
+\begin{problem}
+For part of Problem \ref{prob:reprDFA}, write a  regular expression that is equivalent to state machine.
+\end{problem}
 
+Because of a regular expression's ability to compactly represent complex state machines, 
+they are very useful in matching patterns in a string (both trivial and non-trivial).
+Instead of matching exact strings (a standard string search find and replace), the regular expression matches the form or pattern of a string (like a formatted date or email address pattern).
+For example, we can use a regular expression to match phone numbers, email addresses, HTTP addresses.
+
+There exist many libraries that implement regular expression matching.
+Most programming languages also have their own regular expression library.
+Unfortunately, the syntax for regular expressions may be slightly different in each implementation. 
+There is no universal standard for all regular expressions across all platforms. 
+However, a common syntax with a few variations is very widely used, so most regular expression patterns can be used with any library.
 
 \begin{warn}
-Theoretically, regular expressions have a linear runtime.  However, because of more advanced features that many regular expression libraries have, poorly written regular expressions can have exponential runtime!  Profiling regular expressions is tricky because of their syntax.  A single character or two  could mean the difference between a fast regular expression and a regular expression that has practically infinite runtime (depending on the length of the input).
+Theoretically, regular expressions have a linear runtime.  However, because of more advanced features that many regular expression libraries have, poorly written regular expressions can have exponential runtime!  Profiling regular expressions is tricky because of their syntax.  A single character or two  could mean the difference between a fast regular expression and a regular expression that has practically infinite runtime for long inputs.
 \end{warn}
+
+\section*{Using Regular Expressions in Python}
+The Python Standard Library includes a module that will handle regular expressions.
+You can read the documentation for the module at \url{http://docs.python.org/2/library/re.html}.
+We begin by importing the \li{re} module from the standard library.
+\begin{lstlisting}
+>>> import re
+>>> m = re.match(r"hello", "hello world!")
+>>> type(m)
+_sre.SRE_Match
+\end{lstlisting}
+We have just performed our first match!  As you can see, \li{re.match} returns an \li{SRE_Match} object (or MatchObject).
+If there was not match to the regular expression, \li{None} is returned.
+The MatchObject object has several methods and attributes that give us information about the match.
+We mention a few here, but all of them are explained in the standard library documentation.
+To view what a regular expression matched, we can use the \li{.group()} method.
+\begin{lstlisting}
+>>> m = re.match(r"(.*) (.*) (.*)", "These are a lot of words!")
+>>> m.group()
+'These are a lot of words!'
+>>> m.groups()
+('These are a lot', 'of', 'words!')
+>>> m.group(1)
+'These are a lot'
+>>> m.group(3)
+'words!'
+\end{lstlisting}
+As you can see, we matched the entire string.  Our regular expression split the string into 3 groups.
+We can access all the groups with \li{.groups()} or individual subgroups with \li{.group()}.
+We can know the span of the group with the \li{.span()} method.
+\begin{lstlisting}
+>>> m.span(1)
+(0, 15)
+>>> m.span(3)
+(19, 25)
+>>> m.string[19:25]
+'words!'
+>>> m.regs #gives the span of each group
+((0, 25), (0, 15), (16, 18), (19, 25))
+\end{lstlisting}
+
+
+
+
