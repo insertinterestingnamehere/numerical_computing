@@ -17,7 +17,18 @@ There are many initial value problems (IVPs) where it is impossible to find a cl
 For other IVPs there is a closed form expression for the solution, but it may be difficult to interpret. 
 In either case, we can usually make good use of various methods of numerical approximation to study the solution. (It is still important to know mathematically that a solution exists, even when we cannot find an explicit solution!)
 
-Most methods require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. We then look for values $y_0,y_1, \hdots, y_n$ that approximate our solution ( so $y_i \approx y(x_i)$).  
+
+Consider the initial value problem 
+\begin{eqnarray*}
+y'(x) &=& \sin y(x), \\
+y(0) &=& y_0.
+\end{eqnarray*}
+This IVP does have solution, which is given implicitly by 
+\[x = \ln \left|\frac{\cos y_0 + \cot y_0}{\csc y + \cot y} \right|.\]
+In this case, to understand the general solution it helps to use an IVP solver to plot the integral curves for some initial values. It is easy to show that this differential equation has constant solutions $y_n(x) = n \pi, n \in \mathbb{N}$. Knowing this, and after plotting several integral curves (see Figure \ref{ivp:int_curves} ), it is obvious how solutions of this IVP will behave.
+
+
+Numerical methods for solving intial value problems require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. We then look for values $y_0,y_1, \hdots, y_n$ that approximate our solution ( so $y_i \approx y(x_i)$).  
 
 Consider the following use of Taylor's theorem: For each $i, 1 \leq i \leq n$, we have
 \[
@@ -66,8 +77,8 @@ The solution of the IVP
 y' + y &=& 2-2x,\,\, 0 \leq x \leq 2, \\
 y(0) &=& 0,
 \end{eqnarray*}
-is given by $y(x) = 4-2x -4e^{-x}$. Use Euler's method to numerically approximate the solution
-with step sizes $h = 0.4, 0.2$, and $0.1.$ Plot your results using \li{matplotlib}.
+is given by $y(x) = 4-2x -4e^{-x}$. 
+Use Euler's method to numerically approximate the solution with step sizes $h = 0.4, 0.2$, and $0.1.$ Plot your results.
 \end{problem}
 
 
@@ -83,7 +94,7 @@ By expanding $a f(x+b, y+c)$ with Taylor's theorem and matching constants in the
 \begin{eqnarray*}
 f(x,y) + \frac{h}{2}f'(x,y) &=& f(x,y) + \frac{h}{2}\frac{\partial f}{\partial x}(x,y) +  + \frac{h}{2}\frac{\partial f}{\partial y}(x,y) \cdot f(x,y),
 \end{eqnarray*}
-we find that $a = 1, b = h/2,$ and $c = h/2$. This method is called the Midpoint method. IVP solvers with this general form are called \textit{Runge-Kutta methods}. Another second order (Runge-Kutta) method is the modified Euler method: 
+we find that $a = 1, b = h/2,$ and $c = h/2$. This method is called the Midpoint method. IVP solvers with this general form are called \textit{Runge-Kutta methods}. Another second order Runge-Kutta method is the modified Euler method: 
 \begin{enumerate}
 \item $y_0 = y(a)$,
 \item $y_{i+1} = y_i + \frac{h}{2}[ f(x_i, y_i) + f(x_{i+1}, y_i+ hf(x_i, y_i))]$ for $i = 0,1,\hdots, n-1$. 
@@ -118,14 +129,7 @@ y(0) &=& 0.
 Use Euler's method, the Midpoint method, and RK4 to approximate the value of the solution at $x = 2$, with a stepsize of $h = 0.2, 0.1,$ and $0.05 $. Find the relative error of each approximation.
 \end{problem}
 
-For many differential equations $y' = f(x,y)$ there is no closed form expression. Even when there is a closed form expression, it may be difficult to interpret. Consider the initial value problem 
-\begin{eqnarray*}
-y'(x) &=& \sin y(x), \\
-y(0) &=& y_0.
-\end{eqnarray*}
-This IVP does have solution, which is given implicitly by 
-\[x = \ln \left|\frac{\cos y_0 + \cot y_0}{\csc y + \cot y} \right|.\]
-In this case, and many others, to understand the general solution of a ordinary differential equation it is often easier to use an IVP solver to plot several integral curves for various initial values. For example, it is easy to show that this differential equation has constant solutions $y_n(x) = n \pi, n \in \mathbb{N}$. Knowing this, and after plotting several integral curves as in Figure \ref{ivp:int_curves}, it is easy to see how solutions of this IVP will behave.
+
 
 
 \begin{figure}
@@ -144,9 +148,10 @@ with initial conditions $y(0) = 0, 2, 4, 6, $ and $8$. Use RK4 to compute the so
 \pagebreak
 \section{Harmonic Oscillators and Resonance}
 
-Harmonic oscillators show up often in classical mechanics. A few examples include the pendulum (with small displacement), spring-mass systems, and the flow of electric current through various types of circuits. We will begin studying the mathematical model in the context of a spring-mass system.
-%
-%Mathematically,the motion of a  harmonic oscillator is described by an ordinary differential equation of the form \[ay'' + by' + cy = f(t) .\] Usually this equation is accompanied by two initial conditions, $y(0) = y_0$ and $y'(0) = y'_0.$ We will describe the construction of this differential equation in the context of a spring-mass sytem; we will then analyze its mathematical properties using the RK4 algorithm constructed in the last lab. 
+Harmonic oscillators show up often in classical mechanics. A few examples include the pendulum (with small displacement), spring-mass systems, and the flow of electric current through various types of circuits. 
+A harmonic oscillator is described by an ordinary differential equation of the form \[my'' + \gamma y' + ky = f(t) .\] The initial conditions, $y(0) = y_0$ and $y'(0) = y'_0$ determine a unique solution. 
+% We will begin studying the mathematical model in the context of a spring-mass system.
+% We will describe the construction of this mathematical model in the context of a spring-mass sytem; we will then analyze its mathematical properties using the RK4 algorithm constructed in the last lab. 
 
 Suppose an object with mass $m$ is hung at the end of a vertical spring. The position at which the object hangs is called the \textit{equilibrium position} for the system. Mathematically, a spring-mass system describes the motion of the object for time $t > 0$  if it is displaced from its equilibrium position and given an initial velocity. 
 
