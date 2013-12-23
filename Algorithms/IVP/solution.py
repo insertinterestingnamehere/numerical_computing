@@ -45,34 +45,23 @@ def Heun(func,a,b,n,y0):
 
 
 # Implementation of the Runge Kutta fourth order method
-def Runge_Kutta_4(func,a,b,n,y0,dim):
-	x = np.linspace(a,b,n+1); 
-	Y = np.zeros((len(x),dim)); 
-	Y[0,:] = y0
+def RK4(func,a,b,n,y0,dim):
+	x, y = np.linspace(a,b,n+1), np.zeros( (n+1,dim) )
+	y[0,:], h = y0, 1.*(b-a)/n
 	
-	h = 1.*(b-a)/n
 	for j in range(0,len(x)-1): 
-		k1 = h*func(x[j],Y[j,:])
-		k2 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k1)
-		k3 = h*func(x[j]+h/2.,Y[j,:]+(1/2.)*k2)
-		k4 = h*func(x[j+1],Y[j,:]+k3)
-		Y[j+1,:] = Y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
-	return Y
+		k1 = h*func(x[j],y[j,:])
+		k2 = h*func(x[j]+h/2.,y[j,:]+(1/2.)*k1)
+		k3 = h*func(x[j]+h/2.,y[j,:]+(1/2.)*k2)
+		k4 = h*func(x[j+1],y[j,:]+k3)
+		y[j+1,:] = y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
+	return y
 
 
 # Definition of f(y) in the 2 dimensional ode y' = f(y) for a harmonic oscillator
 def harmonic_oscillator_ode(x,y,m,gamma,k,F): 
 	return np.array([y[1] ,-1.*gamma/m*y[1]-1.*k/m*y[0] + F(x) ])
 	
-
-
-
-
-
-def ode_f(x,y): return np.array([1.*y + 3. - 1.*x])
-
-
-def ode_f2(x,y): return np.array([-1.*y+6.+2.*x])
 
 
 def function(x,g,ya):
