@@ -4,87 +4,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-def Example1():
+def Example():
 	a, ya, b = 0., 2., 1.6
+	def ode_f(t,y): return np.array([-1.*y+6.+2.*t])
 	
-	def ode_f(t,y):
-		out = -1.*y+6.+2.*t
-		return np.array([out])
 	
 	example = ode(ode_f)
-	
-	example.set_integrator('dopri5',atol=1e-5) 
-	example.set_initial_value(ya,a) 
-	example.integrate(b)
-	return example.integrate(b)[0]
-
-
-def Example2(): 
-	a, ya, b = 0., 2., 1.6
-	
-	def ode_f(t,y):
-		out = -1.*y+6.+2.*t
-		return np.array([out])
+	example.set_integrator('dopri5',atol=1e-5).set_initial_value(ya,a)
+	print example.integrate(b)[0]
 	
 	example = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
 	example.set_initial_value(ya,a) 
 	
-	t = np.linspace(a,b,51)
-	dim=1
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
+	dim, t = 1, np.linspace(a,b,51)
+	Y = np.zeros((len(t),dim))
+	Y[0,:] = ya
+	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
 	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
-	
-	plt.plot(t,Y[:,0],'-k')
-# 	plt.show()
-	plt.clf()
-	
-	return 
+	# plt.plot(t,Y[:,0],'-k',linewidth=2.0)
+	# plt.show()
+	# plt.clf()
+	return t, Y.T[0]
 
 
-def Example3(): 
+def AnotherExample(): 
 	a, b, ya = 0., 10., 0.
 	m = 3.
-	def ode_f(t,y):
-		out = m-(1/m)*(y+.5*t**2.)
-		return np.array([out])
+	def ode_f(t,y): return np.array([m-(1/m)*(y+.5*t**2.)])
+	
 # 	Exact Solution is y = m*t-.5*t**2.
 	
 	example = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
 	example.set_initial_value(ya,a) 
 	
-	t = np.linspace(a,b,51)
-	dim=1
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
-	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
+	dim, t = 1, np.linspace(a,b,51)
+	Y = np.zeros((len(t),dim))
+	Y[0,:] = ya
+	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
 	
 	plt.plot(t,Y[:,0],'-k')
-# 	plt.show()
+	plt.show()
 	plt.clf()
-	
 	return 
 
 
 def Exercise1(): 
 	a, b, ya = 0., 16.,np.array([0,1,-2])
 	
-	def ode_f(t,y):
-		out = np.array([y[1],y[2], -.2*(y[1] + 2.*y[0])])
-		return out
+	def ode_f(t,y): return np.array([y[1],y[2], -.2*(y[1] + 2.*y[0])])
 	
 	example = ode(ode_f).set_integrator('dopri5',atol=1e-8) 
 	example.set_initial_value(ya,a) 
 	
-	t = np.linspace(a,b,201)
-	dim=3
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
-	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
+	dim, t = 3, np.linspace(a,b,201)
+	Y = np.zeros((len(t),dim))
+	Y[0,:] = ya
+	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
 	
 	plt.plot(t,Y[:,0],'-k')
 	plt.show()
@@ -92,24 +67,16 @@ def Exercise1():
 	return 
 
 
-def Exercise2(): 
-	beta = .5#.340		# average number of infectious contacts per day
-	gamma = .25#.333	# 1./(average length of time in the infectious phase)	
-				#b = 1600
-	def SIR_ode(t,y): 
-		return np.array([ -beta*y[0]*y[1], beta*y[0]*y[1]-gamma*y[1], gamma*y[1] ])
+def Exercise2_4(a,b,beta, gamma,ya): 
+	def SIR_ode(t,y): return np.array([ -beta*y[0]*y[1], beta*y[0]*y[1]-gamma*y[1], gamma*y[1] ])
 	
-	a, b = 0., 100.
-	ya = np.array([1.-(6.25e-7), 6.25e-7,0.])
 	example = ode(SIR_ode).set_integrator('dopri5',atol=1e-8,rtol=1e-8) 
 	example.set_initial_value(ya,a) 
 	
-	t = np.linspace(a,b,501)
-	dim=3
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
-	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
+	dim, t = 3, np.linspace(a,b,501)
+	Y = np.zeros((len(t),dim))
+	Y[0,:] = ya
+	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
 	
 	plt.plot(t,Y[:,0],'-k',label='Susceptible')
 	plt.plot(t,Y[:,2],'-b',label='Recovered')
@@ -120,80 +87,108 @@ def Exercise2():
 	plt.ylabel('Proportion of Population',fontsize=16)
 	plt.show()
 # 	plt.clf()
-	return
+	return t, Y
 
 
-def Exercise3(): 
-# 	beta = .340		# beta = average number of infectious contacts per day
-# 	gamma = .333	# gamma = 1./(average length of time in the infectious phase)	
-				#b = 1600
-	beta = 2.#1/1.
-	gamma = 1.#1/7.
-	a, b = 0., 50.
+def Exercise5():
+	##########################################################
+	########	Initial Stats: 	Age (y),    Gender		
+	########					Height (m), Body Weight (kg)	
+	########					Time (d)						
+	##########################################################
+	age, sex =  38. , 'female'
+	H, BW    =  1.73, 72.7
+	T		 =  5*7*52.          
 	
-	def SIR_ode(t,y): 
-		return np.array([ -beta*y[0]*y[1], beta*y[0]*y[1]-gamma*y[1], gamma*y[1] ])
+	# ##########################################################################
+	# Future Physical Activity Level and Energy Intake = Diet/Lifestyle Change  
+	############################################################################
+	PALf = 1.5
+	EIf  = 2025.
 	
-	ya = np.array([1.-(1.67e-6), 1.67e-6,0.])
-	example = ode(SIR_ode).set_integrator('dopri5',atol=1e-8,rtol=1e-8) 
-	example.set_initial_value(ya,a) 
+	def EI(t): return EIf
 	
-	t = np.linspace(a,b,501)
-	dim=3
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
+	def PAL(t): return PALf
 	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
 	
-	plt.plot(t,Y[:,0],'-k',label='Susceptible')
-	plt.plot(t,Y[:,2],'-b',label='Recovered')
-	plt.plot(t,Y[:,1],'-r',label='Infected')
-	plt.axis([a,b,-.1,1.1])
-	plt.legend(loc=1)
-	plt.xlabel('T (days)',fontsize=16)
-	plt.ylabel('Proportion of Population',fontsize=16)
+	########################################
+	#####        Call the IVP Solver     
+	########################################
+	from solution import fat_mass, compute_weight_curve
+	F = fat_mass(BW,age,H,sex)
+	L = BW-F
+	t,y = compute_weight_curve(F,L,T,EI,PAL)
+	
+	####################################
+	#####        Plot the Results
+	####################################
+	fig, ax = plt.subplots()
+	plt.plot(t,2.2*y[:,0],'-b',label='Fat',linewidth=2.0)
+	plt.plot(t,2.2*y[:,1],'-g',label='Lean',linewidth=2.0)
+	plt.plot(t,2.2*(y[:,0]+y[:,1]),'-r',label='Total',linewidth=2.0)
+	plt.legend(loc=1)# Upper right placement
+	plt.xlabel('days',fontsize=16)
+	plt.ylabel('lbs',fontsize=16)
+	plt.axis([0, np.max(t),20, 180])
+	
+	plt.plot(t, 2.2*25*H**2*np.ones(t.shape),'-.k')  # High end of normal weight range
+	plt.plot(t, 2.2*20*H**2*np.ones(t.shape),'-.k')  # Low end of normal weight range
+	
+	from matplotlib.ticker import MultipleLocator
+	majorLocator   = MultipleLocator(200)
+	ax.xaxis.set_major_locator(majorLocator)
+	plt.savefig('weightloss.pdf')
 	plt.show()
-# 	plt.clf()
-	return
+	return 
 
 
-def Exercise4(): 
-	beta = .3		# beta = average number of infectious contacts per day
-	gamma = 1/4.	# gamma = 1./(average length of time in the infectious phase)	
-				#b = 1600
-				
-	a, b = 0., 400.
-	
-	def SIR_ode(t,y): 
-		return np.array([ -beta*y[0]*y[1], beta*y[0]*y[1]-gamma*y[1], gamma*y[1] ])
-	
-	ya = np.array([1.-(1.67e-6), 1.67e-6,0.])
-	example = ode(SIR_ode).set_integrator('dopri5',atol=1e-8,rtol=1e-8) 
-	example.set_initial_value(ya,a) 
-	
-	t = np.linspace(a,b,501)
-	dim=3
-	Y = np.zeros((len(t),dim)); Y[0,:] = ya
-	
-	for j in range(1,len(t)): 
-		Y[j,:] = example.integrate(t[j])  
-	
-	plt.plot(t,Y[:,0],'-k',label='Susceptible')
-	plt.plot(t,Y[:,2],'-b',label='Recovered')
-	plt.plot(t,Y[:,1],'-r',label='Infected')
-	plt.axis([a,b,-.1,1.1])
-	plt.legend(loc=1)
-	plt.xlabel('T (days)',fontsize=16)
-	plt.ylabel('Proportion of Population',fontsize=16)
-	plt.show()
-# 	plt.clf()
-	return
 
-# Exercise1()
-# Exercise2()
-Exercise3()
-# Exercise4()
-		
-# Example1()
-# Example2()
-# Example3()
+
+# Ans =Example()
+# print Ans[0]; print Ans[1]
+# AnotherExample()
+
+###########################################################################
+######      THE SIR MODEL
+######      beta  = average number of infectious contacts per day
+######      gamma = 1./(average length of time in the infectious phase)
+###########################################################################
+
+# beta, gamma = 2., 1.
+# a, b, ya = 0., 50., np.array([1.-(1.67e-6), 1.67e-6,0.])
+
+# beta, gamma = .340, .333
+# a, b, ya = 0., 1600., np.array([1.-(6.25e-7), 6.25e-7,0.])
+
+# beta, gamma = 0.5, 0.25   # Exercise 2 
+# a, b, ya = 0., 100., np.array([1.-(6.25e-7), 6.25e-7,0.])
+
+# beta, gamma = 1., 1./3.   # Exercise 3a
+# a, b, ya = 0., 50., np.array([1.-(1.667e-6), 1.667e-6,0.])
+
+# beta, gamma = 1., 1./7.   # Exercise 3b
+# a, b, ya = 0., 50., np.array([1.-(1.667e-6), 1.667e-6,0.])
+
+# beta, gamma = 3./10., 1./4.   # Exercise 4
+# a, b, ya = 0., 400., np.array([1.-(1.667e-6), 1.667e-6,0.])
+
+###########################################################################
+
+# t,Y = Exercise2_4(a,b,beta, gamma,ya)
+# print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])                    
+
+
+Exercise5()
+
+
+
+
+
+
+
+
+
+
+
+
+

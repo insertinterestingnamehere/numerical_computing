@@ -10,48 +10,46 @@ We will demonstrate how to solve the initial value problem
 y'(t) &=& 6+2t-y, \\
 y(0) &=& 2,
 \end{eqnarray*}
-using \li{dopri5}. We start with importing several useful modules and defining the ode.  The \li{ode} class is imported from the \li{scipy.integrate} module. This class functions as an interface to several numerical ode methods, one of which is \li{dopri5}. These other methods can be useful in certain situations; however, \li{dopri5} is a good solver to try on new problems. 
+using \li{dopri5}. We start with importing several useful modules and defining the ode. 
+The \li{ode} class is imported from the \li{scipy.integrate} module. 
+This class functions as an interface to several numerical ode methods, one of which is \li{dopri5}. 
+These other methods can be useful in certain situations; however, \li{dopri5} is a good solver to try on new problems. 
+
+
+
+We create an instance of the \li{ode} class and initialize it using the \li{set_integrator} and \li{set_initial_value} methods. 
+Useful parameters are \li{atol} and \li{rtol}, which set the maximum allowed absolute and relative tolerances for the solution. 
+Other parameters and methods are explained in the documentation for \li{scipy}.  
+Here the method solves for $y(1.6)$:
 
 \begin{lstlisting}
 from scipy.integrate import ode
 import numpy as np
 import matplotlib.pyplot as plt
 
-def ode_f(t,y):
-	out = -1.*y+6.+2.*t
-	return np.array([out])
-\end{lstlisting}
-
-We create an instance of the \li{ode} class and initialize it using the \li{set_integrator} and \li{set_initial_value} methods. Useful parameters are \li{atol} and \li{rtol}, which set the maximum allowed absolute and relative tolerances for the solution. Other parameters and methods are explained in the documentation for \li{scipy}.  Here the method solves for $y(1.6)$:
-
-\begin{lstlisting}
 a, ya, b = 0., 2., 1.6
+def ode_f(t,y): return np.array([-1.*y+6.+2.*t])
 
-example = ode(ode_f)
-
-example.set_integrator('dopri5',atol=1e-5) 
-example.set_initial_value(ya,a) 
-example.integrate(b)
+ode_object = ode(ode_f)
+ode_object.set_integrator('dopri5',atol=1e-5) 
+ode_object.set_initial_value(ya,a) 
+print ode_object.integrate(b)
 \end{lstlisting}
 
 Alternatively, let us solve for $y$ on a evenly spaced mesh, and then plot the results.
 %# The output of this function must have the shape (dim,), where dim
 %# is the dimension of the system.
 \begin{lstlisting}
-a, ya, b = 0., 2., 1.6
-example = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
-example.set_initial_value(ya,a) 
+ode_object = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
+ode_object.set_initial_value(ya,a) 
 
-t = np.linspace(a,b,51)
-dim=1
-Y = np.zeros((len(t),dim)); Y[0,:] = ya
-
-for j in range(1,len(t)): 
-	Y[j,:] = example.integrate(t[j])  
+dim, t = 1, np.linspace(a,b,51)
+Y = np.zeros((len(t),dim))
+Y[0,:] = ya
+for j in range(1,len(t)): Y[j,:] = ode_object.integrate(t[j])  
 
 plt.plot(t,Y[:,0],'-k')
 plt.show()
-
 \end{lstlisting}
 
 
@@ -93,8 +91,8 @@ Solve the IVP
 \frac{dS}{dt} &=&-\frac{1}{2} IS ,\\
 \frac{dI}{dt} &=& \frac{1}{2} I S-\frac{1}{4} I, \\
 \frac{dR}{dt} &=&\frac{1}{4} I,\\
-S(0) &=& 1,\\
-I(0) &=& 6.25*10^{-7},\\
+S(0) &=& 1-6.25\cdot10^{-7},\\
+I(0) &=& 6.25\cdot10^{-7},\\
 R(0) &=&0,
 \end{eqnarray*}
 on the interval $[0,100]$.
