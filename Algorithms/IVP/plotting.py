@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import ode
-from solution import Euler, Midpoint, RK4
+from solution import Euler, Midpoint, RK4, harmonic_oscillator_ode
 import solution
 
 def Fig1(): 
@@ -35,7 +35,7 @@ def Fig1():
 
 
 def Fig2():
-# Plot #4: Integral curves for y' = sin y using dopri5 
+# Integral curves for y' = sin y using dopri5 
 	a, b, n = 0.0, 5.0, 50
 	k, x= n//10, np.linspace(a,b,n+1)
 	def ode_f3(x,y): return np.array([np.sin(y)])
@@ -92,7 +92,8 @@ def Fig3():
 	# plt.title("loglog plot of relative error in approximation of $y(2)$.")
 	plt.legend(loc='best')
 	plt.savefig('Fig3.pdf')
-	plt.show()
+	# plt.show()
+	plt.clf()
 	return
 
 
@@ -117,8 +118,8 @@ def Exercise1():
 	plt.legend(loc='best')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	# plt.savefig('Exercise1.pdf')
-	plt.show()
+	plt.savefig('Exercise1.pdf')
+	# plt.show()
 	plt.clf()
 	return
 
@@ -155,7 +156,9 @@ def Exercise3():
 	plt.ylabel("Relative Error", fontsize = 16)
 	plt.title("loglog plot of relative error in approximation of $y(2)$.")
 	plt.legend(loc='best')
+	plt.savefig("Exercise3.pdf")
 	# plt.show()
+	plt.clf()
 	return
 
 
@@ -173,18 +176,19 @@ def Exercise4():
 	plt.legend(loc='best')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.show()
-	# plt.savefig('Exercise4.pdf')
+	# plt.show()
+	plt.savefig('Exercise4.pdf')
 	plt.clf()
 	return
 
 
 def HOFig1(): 
+	# Example comparing damped with nondamped harmonic oscillator
 	a, b, ya = 0.0, 50.0, np.array([2., 0.])		# Parameters
 	
 	m , gamma, k, F = 1, .125, 1,lambda x: 0
 	func = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y = solution.RK4(func,a,b,600,ya,2) # 2 dimensional system
+	Y = solution.RK4(func,a,b,600,ya,dim=2) # 2 dimensional system
 	plt.plot(np.linspace(a,b,601), Y[:,0], 'k',linestyle='-')
 	
 	m , gamma, k, F = 1., 0., 1.,lambda x: 0.
@@ -193,15 +197,16 @@ def HOFig1():
 	plt.plot(np.linspace(a,b,601), Y[:,0], 'k-',linestyle='--')
 	
 	plt.axhline(color='k',linestyle='-')
-# 	plt.legend(loc='best')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('HOFig1.pdf')
+	# plt.savefig('HOFig1.pdf')
+	# plt.show()
 	plt.clf()
 	return 
 
 
 def HOFig2(): 
+	# Computes relative error for nondamped oscillator
 	a, b, n, ya = 0.0, 20.0, 100,np.array([2., 0.])		# Parameters
 	
 	m , gamma, k, F = 1., 0., 1.,lambda x: 0.
@@ -221,12 +226,13 @@ def HOFig2():
 # 	plt.legend(loc='best')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('HOFig2.pdf')
+	# plt.savefig('HOFig2.pdf')
+	# plt.show()
 	plt.clf()
 	return 
 
 
-def HOProb1(): 
+def Exercise5(): 
 # Parameters
 	a, b, ya = 0.0, 20.0, np.array([2., -1.])
 	
@@ -243,7 +249,8 @@ def HOProb1():
 	###################################################
 	#	Computing relative error of approximation     #
 	m , gamma, k, F = 3., 0., 1.,lambda x: 0.
-	Y_coarse = solution.RK4(func1,a,b,400,ya,2)
+	# Need about 70 subintervals to get Relative error< 5*10^{-5}
+	Y_coarse = solution.RK4(func1,a,b,70,ya,2)
 	
 	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
 	print "Relative Error = ", Relative_Error
@@ -251,126 +258,61 @@ def HOProb1():
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('HOProb1.pdf')
+	plt.savefig('Exercise5.pdf')
+	# plt.show()
 	plt.clf()
 	return 
 
 
-def HOProb2(): 
-# Parameters
-	a, b, ya = 0.0, 20.0, np.array([1., -1.])
+def Exercise6(): 
+	a, b, ya = 0.0, 20.0, np.array([1., -1.])		# Parameters
+	# Needs about 180 subintervals to achieve Rel Error < 5*10**(-5)
 	
-# Damped Oscillator
-	m , gamma, k, F = 1., .5, 1.,lambda x: 0.
-	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y1 = solution.RK4(func1,a,b,800,ya,2) # 2 dimensional system
-	plt.plot(np.linspace(a,b,801), Y1[:,0], '-k')#,linestyle='-')
+# Damped Oscillators
+	def plot_function(param,color):
+		func = lambda x,y: harmonic_oscillator_ode(x,y,m=1.,gamma=param,k=1.,F=lambda x: 0.)
+		Y = RK4(func,a,b,800,ya,dim=2) 
+		plt.plot(np.linspace(a,b,801), Y[:,0], color,linestyle='-',linewidth=2.0)
+		Relative_Error = np.abs( Y[-1,0] - RK4(func,a,b,180,ya,2)[-1,0] )/np.abs(Y[-1,0])
+		print "Relative Error = ", Relative_Error
+		return
 	
-###################################################
-#	Computing relative error of approximation     #
+	plot_function(.5,'k')
+	plot_function(1.,'b')
 	
-	Y_coarse = solution.RK4(func1,a,b,400,ya,2)
-	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
-	print "Relative Error = ", Relative_Error
-###################################################
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('HOProb2.pdf')
+	plt.savefig('Exercise6.pdf')
+	# plt.show()
 	plt.clf()
 	return
 
 
-def HOProb3(): 
-# Parameters
-	a, b, ya = 0.0, 20.0, np.array([2., -4.])
-	
-# Damped Oscillator
-	
-	m , gamma, k, F = 1., 2.1, 1.,lambda x: 0.
-	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y1 = solution.RK4(func1,a,b,800,ya,2) # 2 dimensional system
-	plt.plot(np.linspace(a,b,801), Y1[:,0], 'k',linestyle='-')
-###################################################
-#	Computing relative error of approximation     #
-	
-	Y_coarse = solution.RK4(func1,a,b,400,ya,2)
-	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
-	print "Relative Error = ", Relative_Error
-###################################################
-	plt.axhline(color='k',linestyle='-')
-	plt.xlabel('x')
-	plt.ylabel('y')
-	plt.savefig('HOProb3.pdf')
-	plt.clf()
-	return
-
-
-def HOProb4(): 
+def Exercise7(): 
 # Parameters: Interval = [a,b], n = number of subintervals, ya = y(a) 
-	a, b, n, ya = 0.0, 200.0, 4000, np.array([2., -1.])
+	a, b, n, ya = 0.0, 40.0, 600, np.array([2., -1.])
+	m, k = 2., 2. 
 	
-# Eqn for a Forced Oscillator without Damping: m*y'' + k*y = F(x)
+# A Forced Oscillator with Damping: m*y'' + gamma*y' + k*y = F(x)
+# Requires about 300 subintervals for Rel Error < 5*10**(-5)
+	def print_func(gamma, omega,color):
+		func = lambda x,y: harmonic_oscillator_ode(x,y,m,gamma,k,lambda x: 2.*np.cos(omega*x))
+		Y = RK4(func,a,b,n,ya,dim=2) 
+		plt.plot(np.linspace(a,b,n+1), Y[:,0], color,linestyle='-',linewidth=2.0)
+		Relative_Error = np.abs(Y[-1,0] - RK4(func,a,b,n/2,ya,2)[-1,0])/np.abs(Y[-1,0])
+		print "Relative Error = ", Relative_Error
+		return
 	
-	m , gamma, k, omega, F = 2., .00, 2.,1.,lambda x: 2.*np.cos(omega*x)
-	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y1 = solution.RK4(func1,a,b,n,ya,2) # 2 dimensional system
-	plt.plot(np.linspace(a,b,n+1), Y1[:,0], 'k',linestyle='-')
-###################################################
-#	Computing relative error of approximation     #
+	print_func(.5,1.5,'k')
+	print_func(.1,1.1,'b')
+	print_func(0.,1.,'g')
 	
-	Y_coarse = solution.RK4(func1,a,b,n/2,ya,2)
-	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
-	print "Relative Error = ", Relative_Error
-###################################################
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('HOProb4.pdf')
-	plt.clf()
-	return
-
- 
-def HOProb5(): 
-# Parameters: Interval = [a,b], n = number of subintervals, ya = y(a) 
-	a, b, n, ya = 0.0, 200.0, 4000, np.array([2., -1.])
-	
-# Eqn a for a Forced Oscillator with Damping: m*y'' + gamma*y' + k*y = F(x)
-	
-	m , gamma, k, omega, F = 2., .1, 2.,1.1,lambda x: 2.*np.cos(omega*x)
-	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y1 = solution.RK4(func1,a,b,n,ya,2) # 2 dimensional system
-	plt.plot(np.linspace(a,b,n+1), Y1[:,0], 'k',linestyle='-')
-###################################################
-#	Computing relative error of approximation     #
-	
-	Y_coarse = solution.RK4(func1,a,b,n/2,ya,2)
-	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
-	print "Relative Error = ", Relative_Error
-###################################################
-	plt.axhline(color='k',linestyle='-')
-	plt.xlabel('x')
-	plt.ylabel('y')
-	plt.savefig('HOProb5a.pdf')
-	plt.clf()
-	
-# Eqn b for a Forced Oscillator with Damping: m*y'' + gamma*y' + k*y = F(x)
-	n = 10000
-	m , gamma, k, omega, F = 2., .01, 2.,1.01,lambda x: 2.*np.cos(omega*x)
-	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
-	Y1 = solution.RK4(func1,a,b,n,ya,2) # 2 dimensional system
-	plt.plot(np.linspace(a,b,n+1), Y1[:,0], 'k',linestyle='-')
-###################################################
-#	Computing relative error of approximation     #
-	
-	Y_coarse = solution.RK4(func1,a,b,n/2,ya,2)
-	Relative_Error = np.abs(Y_coarse[-1,0] - Y1[-1,0])/np.abs(Y1[-1,0])
-	print "Relative Error = ", Relative_Error
-###################################################
-	plt.axhline(color='k',linestyle='-')
-	plt.xlabel('x')
-	plt.ylabel('y')
-	plt.savefig('HOProb5b.pdf')
+	plt.savefig('Exercise7.pdf')
+	# plt.show()
 	plt.clf()
 	return 
 
@@ -378,59 +320,17 @@ def HOProb5():
 
 
 	
-# Fig1()
-# Fig2()
+Fig1()
+Fig2()
 Fig3()
 
+# Exercise1()
+# Exercise2()
 # Exercise3()
-# 
-# HOProb1()
-# HOProb2()
-# HOProb3()
-# HOProb4()
-# HOProb5()
-# 
+# Exercise4()
+# Exercise5()
+# Exercise6()
+# Exercise7()
+
 # HOFig1()
 # HOFig2()
-
-# 
-# def Fig3(): 
-# # Plot #2: Integral curves for f1(x). Text Example (f1).
-# 	a , b, n = 0.0,  1.6,  200
-# 	h, k, x = (b-a)/n, int(n/40), np.linspace(a,b,n+1)
-# 	def f1(x,ya): return -2. + 2.*x + (ya + 2.)*np.exp(x)
-# 	
-# 	plt.plot(x, solution.function(x,f1,0.0), 'k-')
-# 	plt.plot(x, solution.function(x,f1,-1.0), 'k-')
-# 	plt.plot(x[::k], solution.function(x,f1,-2.0)[::k], 'k*-', label='Particular solution for 'r"$y'-y=-2x+4 $.")
-# 	plt.plot(x, solution.function(x,f1,-3.0), 'k-')
-# 	plt.plot(x, solution.function(x,f1,-4.0), 'k-')
-# 	plt.plot(x, solution.function(x,f1,-5.0), 'k-')
-# 	plt.legend(loc='best')
-# 	plt.xlabel('x')
-# 	plt.ylabel('y')
-# 	plt.savefig('Fig2.pdf')
-# 	# plt.show()
-# 	plt.clf()
-# 	return
-# 
-# 
-# def Exercise4(): 
-# # Plot #3: Integral curves for f2(x).
-# 	a , b, n = 0.0,  1.6,  200
-# 	k, x = int(n/20), np.linspace(a,b,n+1)
-# 	def f2(x,ya): return 4. - 2.*x + (ya - 4.)*np.exp(-x)
-# 	
-# 	
-# 	plt.plot(x, solution.function(x,f2,0.0), 'k-')
-# 	plt.plot(x, solution.function(x,f2,2.0), 'k-')
-# 	plt.plot(x[::k], solution.function(x,f2,4.0)[::k], 'k*-', label='Particular solution for 'r"$y' +y =  - 2x + 2 $.")
-# 	plt.plot(x, solution.function(x,f2,6.0), 'k-')
-# 	plt.plot(x, solution.function(x,f2,8.0), 'k-')
-# 	plt.legend(loc='best')
-# 	plt.xlabel('x')
-# 	plt.ylabel('y')
-# 	# plt.show()
-# 	plt.savefig('Fig3.pdf')
-# 	plt.clf()
-# 	return 
