@@ -91,8 +91,30 @@ Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't 
 
 %we still have curve fitting
 %least squares programming -- but it seems that it's already been done in Volume One
-Scipy also has functions to do curve fitting using least squares.
+Scipy also has functions to do curve fitting with the \li{opt.curve_fit} function. Just pass it data and a function to which to fit it to. The function should take in the independent variable as it's first argument and values for the fitting paramaters as subsequent arguments.
+Examine the following example from the scipy.optimization online documentation.
+\begin{lstlisting}
+import numpy as np
+import scipy.optimization as opt
 
+#the function with which to create the data and later fit it
+def func(x,a,b,c):
+    return a*np.exp(-b*x) + c
+
+#create the exact and random data
+x = np.linspace(0,4,50)
+y = func(x,2.5,1.3,0.5)
+yn = y + 0.2*np.random.normal(size=len(x));
+
+#perform the fit
+popt, pcov = curve_fit(func,x,yn)
+\end{lstlisting}
+\li{popt} now contains the fitted parameters and \li{pcov} the covariance of the fit.
+\begin{figure}
+\includegraphics[width=\textwidth]{curve_fit.pdf}
+\caption{Randomized data graphed with the curve using the fitted parameters:$a=2.72$,  $b=1.31$, and $c=0.45$ }
+\label{opt:curve_fit}
+\end{figure}
 \begin{problem}
 Use the \li{opt.curve_fit} function to fit a heating curve to data obtained from a temperature sensitive diode embeded in a cylindrical aluminum block. The temperature in the block was measured as it warmed from 290K up to 370K using a heating coil wound around the block attached to a copper rod which sat in a cooling bath of liquid nitrogen. 
 Newton's law of cooling has the following form:
