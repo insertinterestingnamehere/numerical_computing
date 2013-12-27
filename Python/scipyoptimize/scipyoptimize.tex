@@ -7,8 +7,8 @@ This lab will introduce some of the basic types of algorithms included.
 
 You can learn about all of the functions at \url{http://docs.scipy.org/doc/scipy/reference/optimize.html}.
 
-First we will test out a few of the optimization algorithms on the Rosenbrock Function, which satisfies the equation $f(x,y) = (1-x)^2 + 100(y-x^2)^2$.
-The Rosenbrock fuction is a common optimization algorithm checking function, so it is included in the optimize package, as well as its jacobian(\li{rosen_der} \emph{I think}) and its hessian.
+First we will test out a few of the minimization algorithms on the Rosenbrock Function, which satisfies the equation $f(x,y) = (1-x)^2 + 100(y-x^2)^2$.
+The Rosenbrock fuction is a common optimization algorithm checking function, so it is included in the optimize package, as well as its gradient (\li{rosen_der}) and its hessian (\li{rosen_hess}).
 
 \begin{figure}
 \includegraphics[width=\textwidth]{Rosenbrock.pdf}
@@ -18,7 +18,7 @@ The Rosenbrock fuction is a common optimization algorithm checking function, so 
 
 We will use the \li{scipy.optimize.minimize} function and test each of its algorithms (under "method" on the online documentation page for \li{minimize}). Note that there are also several functions such as \li{fmin} and \li{fmin_powell}. These are equivalent to functions accsessed with the \li{minimize} function.
 
-Note that for some algorithms, you'll need the gradient and/or hessian.
+Note that for some algorithms, you'll need the jacobian (use \li{rosen_der}) and/or hessian.
 You may recognize some of these algorithms, and several of them will be discussed in greater detail later. For this lab, you do not need to understand how they work.
 
 \begin{problem}
@@ -89,6 +89,33 @@ Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't 
 
 \end{problem}
 
+The \li{optimization} package also has functions for root finding, for scalar functions and for multidimensional functions. The following example taken from the online documentation solves the following multidimensional system using \li{opt.root}.
+
+\[
+\begin{bmatrix}
+	0 \\
+	0
+\end{bmatrix} = \begin{bmatrix}
+	x_{0} + 1/2 ( x_{0} - x_{1} )^{3} - 1 \\
+	1/2(x_{1}-x_{0})^{3} + x_{1}
+\end{bmatrix}.
+\]
+
+\begin{lstlisting}
+def func(x):
+    return [x[0] + 0.5 * (x[0] - x[1])**3 -1.0,
+            0.5 * ( x[1] - x[0])**3 + x[1]]
+def jac(x):
+    return np.array([[1 + 1.5 * (x[0] - x[1])**2,
+                    -1.5 * (x[0] - x[1])**2],
+                    [-1.5 * (x[1] - x[0])**2,
+                    1 + 1.5 * (x[1] - x[0])**2]])
+sol = opt.root(func, [0, 0], jac=jac, method='hybr')
+print sol.x
+print func(sol.x)
+\end{lstlisting}
+
+As with \li{opt.minimize}, \li{opt.root} has more than one algorithm for root finding. Here we use the \li{hybr} method, or the Powell hybrid method. There are also several algorithms for scalar root finding. See the online documentation for more.
 %we still have curve fitting
 %least squares programming -- but it seems that it's already been done in Volume One
 Scipy also has functions to do curve fitting with the \li{opt.curve_fit} function. Just pass it data and a function to which to fit it to. The function should take in the independent variable as it's first argument and values for the fitting paramaters as subsequent arguments.
@@ -131,8 +158,6 @@ From the heat capacity you obtained in the fit you can calculate the specific he
 \caption{The black line is actually the data from \li{heating.txt} plotted as a scatter plot. It appears as a line because the data is very dense. The blue line is a fitted line. }
 \label{opt:HeatingFit}
 
-%minimizing scalar functions
-
-%root finding
+The \li{optimization} package also has many other useful functions, several 
 
 
