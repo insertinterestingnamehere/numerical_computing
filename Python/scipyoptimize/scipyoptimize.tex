@@ -2,13 +2,12 @@
 \label{lab:Optimization1}
 \objective{Introduce some of the basic optimization functions available in \li{scipy.optimize}}
 
-The Optimize package in Scipy has several types of optimizing algorithms.
-This lab will introduce some of the basic types of algorithms included.
+The Optimize package in Scipy has several functions for minimizing, root finding, and curve fitting. The following chapters will be mostly concerned with minimization, but here we will cover several of the functions in \li{scipy.optimize}.
 
 You can learn about all of the functions at \url{http://docs.scipy.org/doc/scipy/reference/optimize.html}.
 
-First we will test out a few of the optimization algorithms on the Rosenbrock Function, which satisfies the equation $f(x,y) = (1-x)^2 + 100(y-x^2)^2$.
-The Rosenbrock fuction is a common optimization algorithm checking function, so it is included in the optimize package, as well as its jacobian(\li{rosen_der} \emph{I think}) and its hessian.
+First we will test out a few of the minimization algorithms on the Rosenbrock Function, which is defined as $f(x,y) = (1-x)^2 + 100(y-x^2)^2$.
+The Rosenbrock fuction is a common optimization algorithm checking function, so it is included in the optimize package, as well as its gradient (\li{rosen_der}) and its hessian (\li{rosen_hess}).
 
 \begin{figure}
 \includegraphics[width=\textwidth]{Rosenbrock.pdf}
@@ -16,9 +15,9 @@ The Rosenbrock fuction is a common optimization algorithm checking function, so 
 \label{opt:rosenbrock}
 \end{figure}
 
-We will use the \li{scipy.optimize.minimize} function and test each of its algorithms (under "method" on the online documentation page for \li{minimize}). Note that there are also several functions such as \li{fmin} and \li{fmin_powell}. These are equivalent to functions accsessed with the \li{minimize} function.
+We will use the \li{scipy.optimize.minimize} function and test each of its algorithms (under "method" on the online documentation page for \li{minimize}). Note that there are also several functions such as \li{fmin} and \li{fmin_powell}. These are equivalent to using the \li{minimize} function with the specified method.
 
-Note that for some algorithms, you'll need the gradient and/or hessian.
+Note that for some algorithms, you'll need the jacobian (use \li{rosen_der}) and/or hessian.
 You may recognize some of these algorithms, and several of them will be discussed in greater detail later. For this lab, you do not need to understand how they work.
 
 \begin{problem}
@@ -46,8 +45,8 @@ Where
 r = \sqrt{(x-4)^2 + y^2}
 \]
 Essentially this is a wavey crater offset from the origin by 1 along the $x$ axis.
-\begin{figure}%sorry, this is a really bad picture using mathmatica. Python was being difficult graphing it
-\includegraphics[width=\textwidth]{MultiMin.pdf}
+\begin{figure}
+\includegraphics[width=\textwidth]{ManyMinima.pdf}
 \caption{$z = r^2 (1+ 2sin(4r)^2)$}
 \label{opt:muiltmin}
 \end{figure}
@@ -89,17 +88,75 @@ Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't 
 
 \end{problem}
 
+The \li{optimization} package also has functions for root finding, for scalar functions and for multidimensional functions. The following example taken from the online documentation solves the following multidimensional system using \li{opt.root}.
+
+\[
+\begin{bmatrix}
+	0 \\
+	0
+\end{bmatrix} = \begin{bmatrix}
+	x_{0} + 1/2 ( x_{0} - x_{1} )^{3} - 1 \\
+	1/2(x_{1}-x_{0})^{3} + x_{1}
+\end{bmatrix}.
+\]
+
+\begin{lstlisting}
+def func(x):
+    return [x[0] + 0.5 * (x[0] - x[1])**3 -1.0,
+            0.5 * ( x[1] - x[0])**3 + x[1]]
+def jac(x):
+    return np.array([[1 + 1.5 * (x[0] - x[1])**2,
+                    -1.5 * (x[0] - x[1])**2],
+                    [-1.5 * (x[1] - x[0])**2,
+                    1 + 1.5 * (x[1] - x[0])**2]])
+sol = opt.root(func, [0, 0], jac=jac, method='hybr')
+print sol.x
+print func(sol.x)
+\end{lstlisting}
+
+As with \li{opt.minimize}, \li{opt.root} has more than one algorithm for root finding. Here we use the \li{hybr} method, or the Powell hybrid method. There are also several algorithms for scalar root finding. See the online documentation for more.
 %we still have curve fitting
 %least squares programming -- but it seems that it's already been done in Volume One
-Scipy also has functions to do curve fitting.
+Scipy also has functions to do curve fitting with the \li{opt.curve_fit} function. Just pass it data and a function to which to fit it to. The function should take in the independent variable as it's first argument and values for the fitting paramaters as subsequent arguments.
+Examine the following example from the scipy.optimization online documentation.
+\begin{lstlisting}
+import numpy as np
+import scipy.optimization as opt
 
+#the function with which to create the data and later fit it
+def func(x,a,b,c):
+    return a*np.exp(-b*x) + c
+
+#create the exact and random data
+x = np.linspace(0,4,50)
+y = func(x,2.5,1.3,0.5)
+yn = y + 0.2*np.random.normal(size=len(x));
+
+#perform the fit
+popt, pcov = curve_fit(func,x,yn)
+\end{lstlisting}
+\li{popt} now contains the fitted parameters and \li{pcov} the covariance of the fit.
+\begin{figure}
+\includegraphics[width=\textwidth]{curve_fit.pdf}
+\caption{Randomized data graphed with the curve using the fitted parameters:$a=2.72$,  $b=1.31$, and $c=0.45$ }
+\label{opt:curve_fit}
+\end{figure}
 \begin{problem}
-Use the \li{opt.curve_fit} function to fit a heating curve to 
+Use the \li{opt.curve_fit} function to fit a heating curve to data obtained from a temperature sensitive diode embeded in a cylindrical aluminum block. The temperature in the block was measured as it warmed from 290K up to 370K using a heating coil wound around the block attached to a copper rod which sat in a cooling bath of liquid nitrogen. 
+Newton's law of cooling has the following form:
+\[
+T = T_{\infty} + \frac{P}{\gamma}+Ke^{\frac{\gamma t}{C}}
+\]\
+Where $T$ is the temperature, $t$ the time, $P$ the power used to warm it (which here was 59.43 watts), $T_{\infty}$ which was the ambiental temperature (290K), $\gamma$ a coefficient of heat tranfer through the copper rod, $C$ the total heat capacity of the block, and $K$ a constant coeffient the depends on the initial conditions. Use \li{opt.curve_fit} to find a fit to the data using $\gamma$, $C$, and $K$ as the fitting paramaters. Just so that you know that you are getting realistic values, $\gamma$ should be on the order of $10^{-1}$, $C$ on the order of $10^{2}$, and $K$ should be negative on the order of $10^{2}$.
+
+From the heat capacity you obtained in the fit you can calculate the specific heat capacity of the aluminum block by dividing the heat capacity by the mass of the block (about 300g). Is it close to the expirementally measured specific heat capacity of aluminum of 0.900 J/g K? From $\gamma$ you can also calculate the thermal conductivity of the copper rod using the formula $k=\gamma L/A$ where $L$ and $A$ are the length ($25.6mm$) and the cross-sectional area ($71.24mm^{3}$) of the rod. How does it compare to the expirementally measured thermal conductivity of $401 W/(m \dot K)$? Look at the covariance you got from the fit. Is the error due to the fit, noise in the data, or an error in the expiremental setup?
 \end{problem}
 
+\begin{figure}
+\includegraphics[width=\textwidth]{HeatingFit.pdf}
+\caption{The black line is actually the data from \li{heating.txt} plotted as a scatter plot. It appears as a line because the data is very dense. The blue line is a fitted line. }
+\label{opt:HeatingFit}
 
-%minimizing scalar functions
-
-%root finding
+The \li{optimization} package has many other useful functions. See the online documentation for more.
 
 
