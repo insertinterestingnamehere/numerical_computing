@@ -90,37 +90,22 @@ def Exercise2_4(a,b,beta, gamma,ya):
 	return t, Y
 
 
-def Exercise5():
-	##########################################################
-	########	Initial Stats: 	Age (y),    Gender		
-	########					Height (m), Body Weight (kg)	
-	########					Time (d)						
-	##########################################################
-	age, sex =  38. , 'female'
-	H, BW    =  1.73, 72.7
-	T		 =  5*7*52.          
-	
-	# ##########################################################################
-	# Future Physical Activity Level and Energy Intake = Diet/Lifestyle Change  
-	############################################################################
-	PALf = 1.5
-	EIf  = 2025.
-	
-	def EI(t): return EIf
-	
-	def PAL(t): return PALf
-	
-	
-	########################################
-	#####        Call the IVP Solver     
+def weightloss_calculator(age, sex, H, BW, T, (PAL,EI) ):
+	# Initial stats
+	# Age (y), Gender	('male' or 'female'), Height (m), Body Weight (kg)	
+	# Time (d)
+	# 	
+	# Diet/Lifestyle Change
+	# (PAL, EI) = Future Physical Activity Level and Energy Intake
+	#
+	# Call the IVP Solver     
 	########################################
 	from solution import fat_mass, compute_weight_curve
 	F = fat_mass(BW,age,H,sex)
 	L = BW-F
 	t,y = compute_weight_curve(F,L,T,EI,PAL)
 	
-	####################################
-	#####        Plot the Results
+	# Plot the Results
 	####################################
 	fig, ax = plt.subplots()
 	plt.plot(t,2.2*y[:,0],'-b',label='Fat',linewidth=2.0)
@@ -141,6 +126,54 @@ def Exercise5():
 	plt.show()
 	return 
 
+
+def Exercise5():
+	age, sex =  38. , 'female'
+	H, BW    =  1.73, 72.7
+	T		 =  5*7*52.   # Long time frame       
+	
+	# PAL, EI = 1.5, 2025.
+	PALf, EIf = 1.5, 2025
+	def EI(t): return EIf
+	
+	def PAL(t): return PALf
+	
+	weightloss_calculator(age, sex, H, BW, T, (PAL,EI) )
+	return 
+
+
+def Exercise6():
+	age, sex =  38. , 'female'
+	H, BW    =  1.73, 72.7
+	T		 =  5*7*52.   # Long time frame       
+	
+	PALf, EIf = 1.4, 1850
+	def EI(t): return EIf
+	
+	def PAL(t): return PALf
+	
+	weightloss_calculator(age, sex, H, BW, T, (PAL,EI) )	
+	return 
+
+
+def Exercise7():
+	age, sex =  38. , 'female'
+	H, BW    =  1.73, 72.7
+	T		 =  16*7*15.   # Long time frame       
+	
+	PALf, EIf = 1.5, 2025
+	def EI(t): 
+		if t<16*7*1.: return 1600
+		else: return EIf
+	
+	
+	def PAL(t): 
+		if t<16*7*1.: return 1.7
+		else: return PALf
+	
+	
+	weightloss_calculator(age, sex, H, BW, T, (PAL,EI) )	
+	return
 
 
 
@@ -178,7 +211,9 @@ def Exercise5():
 # print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])                    
 
 
-Exercise5()
+# Exercise5()
+# Exercise6()
+Exercise7()
 
 
 

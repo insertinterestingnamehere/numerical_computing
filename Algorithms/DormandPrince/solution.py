@@ -48,25 +48,6 @@ K 			= 0
 # 	return out
 # 
 
-def compute_weight_curve(F,L,T,EI,PAL): 
-	y0 = np.array([F,L])
-	ode_f = lambda t,y: weight_step(t,y,EI,PAL)
-	ode_object = ode(ode_f).set_integrator('dopri5',rtol=1e-6,atol=1e-8) 
-	ode_object.set_initial_value( y0, 0.) 
-
-	t = np.linspace(0.,T,151)
-	y = np.zeros((len(t),len(y0))); 
-	y[0,:] = y0
-
-	for j in range(1,len(t)): y[j,:] = ode_object.integrate(t[j])  
-	return t,y
-
-def weight_step(t,y,EI,PAL):
-	F, L = y[0], y[1]
-	p = Forbes(F)
-	EB = EnergyBalance(F,L,EI(t),PAL(t))
-	return np.array([(1-p)*EB/c.rho_F,p*EB/c.rho_L]) 
-
 # def generic_RMR(BW,age,H,sex): 
 # # 
 # # Mufflin equation
@@ -85,27 +66,46 @@ def weight_step(t,y,EI,PAL):
 # 	K = (1./PAL-c.beta_AT)*EI-c.gamma_L*L-c.gamma_F*F-((c.eta_F/c.rho_F)*(1-p)+(c.eta_L/c.rho_L)*p+1./PAL)*EB
 # 	return K
 
-def Forbes(F):
-	C1 = c.C*c.rho_L/c.rho_F
-	out = 1.*C1/(C1+F)
-	return out
-
-# Compare with Forbes and Mufflin
-# Estimated initial body fat mass
-# Jackson AS et al., Int J Obes Relat Metab Disord. 2002 Jun;26(6):789-96
-# 
 
 def fat_mass(BW,age,H,sex):
 	BMI = BW/H**2.
-	if sex=='male': 
-		out = BW*(-103.91 + 37.31*np.log(BMI)+0.14*age)/100
-	else:
-		out = BW*(-102.01 + 39.96*np.log(BMI)+0.14*age)/100
-	return out
+	if sex=='male': return BW*(-103.91 + 37.31*np.log(BMI)+0.14*age)/100
+	else: return BW*(-102.01 + 39.96*np.log(BMI)+0.14*age)/100
+
+
+def compute_weight_curve(F,L,T,EI,PAL): 
+	y0 = np.array([F,L])
+	ode_f = lambda t,y: weight_odes(t,y,EI,PAL)
+	ode_object = ode(ode_f).set_integrator('dopri5',rtol=1e-6,atol=1e-8) 
+	ode_object.set_initial_value( y0, 0.) 
 	
+	t = np.linspace(0.,T,151)
+	y = np.zeros((len(t),len(y0))); 
+	y[0,:] = y0
+	
+	for j in range(1,len(t)): y[j,:] = ode_object.integrate(t[j])  
+	return t,y
+
+
+def weight_odes(t,y,EI,PAL):
+	F, L = y[0], y[1]
+	p, EB = Forbes(F), EnergyBalance(F,L,EI(t),PAL(t))
+	return np.array([(1-p)*EB/c.rho_F,p*EB/c.rho_L]) 
+
+
 def EnergyBalance(F,L,EI,PAL):
 	p = Forbes(F)
 	a1 = (1./PAL-c.beta_AT)*EI - K - c.gamma_F*F - c.gamma_L*L
 	a2 = (1-p)*c.eta_F/c.rho_F + p*c.eta_L/c.rho_L+1./PAL
-	EB = a1/a2
-	return EB
+	return a1/a2
+
+
+def Forbes(F):
+	C1 = c.C*c.rho_L/c.rho_F
+	return 1.*C1/(C1+F)
+
+
+# Compare with Forbes and Mufflin
+# Estimated initial body fat mass
+# Jackson AS et al., Int J Obes Relat Metab Disord. 2002 Jun;26(6):789-96
+#

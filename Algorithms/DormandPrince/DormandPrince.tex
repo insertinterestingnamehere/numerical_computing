@@ -114,3 +114,193 @@ Suppose that, in a city of approximately three million, five have recently enter
 
 Each of those individuals will make three contacts every ten days that will spread the disease, and average of four days is spent in the infectious state. Find the solution of the corresponding SIR equations. Choose an appropriate time interval and plot your results.
 \end{problem}
+
+
+\section*{A Weightloss Model}
+Here we will look at a model of weight change based on basic thermodynamics and kinematics.
+The main idea behind weight change is simple.  If a persons energy intake is more than their energy expended, then they gain weight.  If their intake is less, then they lose weight.
+Let \emph{energy balance}, denoted $EB$, be the difference between \emph{energy intake} $EI$ and \emph{energy expenditure} $EE$, that is,
+\begin{equation}
+\label{EB}
+EB = EI - EE.
+\end{equation}
+When the energy intake exceeds the energy expended, the balance is positive and weight is gained.  Correspondingly, if the amount of energy expended exceeds the energy intake, the balance is negative and weight is lost.
+
+
+Ones body weight at time $t$ is the sum of the weight of their fat and lean tissue; that is,  $BW(t) = F(t) + L(t).$ These quantities can be described by the compartmental model
+\begin{subequations}
+\label{compartment}
+\begin{align}
+\rho_F \dfrac{dF(t)}{dt} &= (1-p(t)) EB(t),\label{compartment:a}\\
+\rho_L \dfrac{dL(t)}{dt} &= p(t) EB(t),\label{compartment:b}
+\end{align}
+\end{subequations}
+where $p(t)$ and $1-p(t)$ represent the proportion of the energy balance ($EB(t)$) that results in a change in the quantity of lean or fatty tissue, respectively. Constants $\rho_L$ and $\rho_F$ represent the energy density of lean and fatty tissue (about $1800$ and $9400$ kcal/kg).
+
+Next we need to find expressions for $p(t)$ and $EB(t)$ in terms of $L$ and $F$ (the dependent variables), $PAL$ and $EI$ (possibly varying parameters), and other constant parameters.
+
+ The proportion $p(t)$ will vary with $F$ and $L$; from Forbes' Law \cite{Fo.2} we have that
+\begin{equation}
+\label{Forbes}
+\dfrac{dF}{dL} = \dfrac{F}{10.4}.
+\end{equation}
+Hence,
+\[
+\dfrac{F}{10.4} = \dfrac{dF}{dL} = \dfrac{dF/dt}{dL/dt} = \dfrac{\dfrac{(1-p(t)) EB(t)}{\rho_F}}{\dfrac{p(t) EB(t)}{\rho_L}} = \dfrac{\rho_L}{\rho_F} \dfrac{1-p(t)}{p(t)}.
+\]
+Solving for $p(t)$ gives Forbes' equation
+\begin{equation}
+\label{Forbes2}
+p(t) = \dfrac{C}{C+F(t)}\quad\mbox{where}\quad C=10.4\dfrac{\rho_L}{\rho_F}.
+\end{equation}
+
+
+We will use two expressions for energy expenditure (EE). First, we have the formula
+\begin{equation}
+\label{EE0}
+EE = PAL \times RMR,
+\end{equation}
+where $PAL$ is your physical activity level and $RMR$ your resting metabolic rate.
+Your resting metabolic rate can be determined by using the Mifflin equation. This equation is an estimate based on a population study and is widely used in the literature. It takes into account your gender, age (A) in years, and height (H) in meters:
+\begin{equation}
+\label{RMR}
+RMR = \begin{cases} 9.99 W + 625 H + 5 A + 5 & \mbox{if male}\\ 9.99 W + 625 H + 5 A -161 & \mbox{if female.}\end{cases}
+\end{equation}  
+Your physical activity level can be determined by using the table below.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+1.40--1.69 & People who are sedentary and do not exercise regularly, spend \\
+& most of their time sitting, standing, with little body displacement
+\\
+\hline
+1.70--1.99 & People who are active, with frequent body displacement throughout  \\
+& the day or who exercise frequently\\
+\hline
+2.00--2.40 & People who engage regularly in strenuous work or exercise for \\
+& several hours each day\\
+\hline
+\end{tabular}
+\caption{This is a rough guide for physical activity level (PAL).  
+% For more detailed estimates, see \cite{Heym} and Appendix \ref{PAL_appendix}.
+}
+\end{center}\label{PAL_table}
+\end{table}
+
+
+
+
+The second expression for energy expenditure comes from decomposing more precisely the different ways that energy is expended:
+\begin{equation}
+\label{EE}
+EE = \underbrace{\delta BW}_\text{\parbox{1cm}{physical\\activity}} + \underbrace{\beta_{tef} EI}_\text{\parbox{1cm}{thermic\\effect of\\eating}} + \underbrace{\beta_{at} EI + \gamma_F F + \gamma_L L + \eta_F \dfrac{dF}{dt} + \eta_L \dfrac{dL}{dt}  + K}_\text{resting metabolic rate (RMR)},
+\end{equation}
+where $\gamma_F = 22$ kcal/kg/d, $\gamma_L = 3.2$ kcal/kg/d, $\eta_F = 180$ kcal/kg, and $\eta_L = 230$ kcal/kg; see \cite{Hall.2, Hall.4}.  Further, we let $\beta_{tef}=0.10$ and $\beta_{at}=0.14$ denote the coefficients for the thermic effect of feeding and adaptive thermogenesis, respectively.  The parameter $\delta$ is the coefficient representing the amount of energy expended from physical activity per kilogram of body mass.  Notice that $\gamma_L$ is significantly larger than $\gamma_F$.  This means that lean tissue metabolizes energy much faster than fatty tissue.  As a result, there are instances where one may want to increase their lean body mass through resistance training so that they are better able to support a higher caloric intake without significant weight gain.  Finally, we remark that the constant $K$ can be tuned to an individual's body type directly through RMR and fat measurement, and is assumed to remain constant over time.
+
+% Assumptions made/Areas to improve: 
+% include more accurate approximation of PAL (given in appendix), BMI (show to vary with race), account for variation in body type.
+
+Thus, since the input $EI$ is assumed to be known, we can use \eqref{EE} and \eqref{Forbes2} to write \eqref{compartment} in terms of $F$ and $L$, thus allowing us to close the system of ordinary differential equations (ODEs).  
+
+Specifically, we have
+\begin{align*}
+RMR(t) = \frac{EE}{PAL}&= K + \gamma_F F(t) + \gamma_L L(t) + \eta_F \dfrac{dF}{dt} + \eta_L \dfrac{dL}{dt}  + \beta_{at} EI\\
+% &= K + \gamma_F F(t) + \gamma_L L(t) + \dfrac{\eta_F}{\rho_F} (1-p(t)) EB(t) + \dfrac{\eta_L}{\rho_L} p(t) EB(t)  + \beta_{at} EI,\\
+\dfrac{1}{PAL}\left(EE - EI + EI \right) &= K + \gamma_F F(t) + \gamma_L L(t) \\
+&+ \left(\dfrac{\eta_F}{\rho_F} (1-p(t)) + \dfrac{\eta_L}{\rho_L} p(t) \right) EB(t) + \beta_{at} EI.\\
+\left(\dfrac{1}{PAL}-\beta_{at}\right) EI &= K + \gamma_F F(t) + \gamma_L L(t) \\
+&+ \left(\dfrac{\eta_F}{\rho_F} (1-p(t)) + \dfrac{\eta_L}{\rho_L} p(t) + \dfrac{1}{PAL}\right) EB(t).
+\end{align*}
+% Thus,
+% \[
+% \left(\dfrac{1}{PAL}-\beta_{at}\right) EI = K + \gamma_F F(t) + \gamma_L L(t) + \left(\dfrac{\eta_F}{\rho_F} (1-p(t)) + \dfrac{\eta_L}{\rho_L} p(t) + \dfrac{1}{PAL}\right) EB(t).
+% \]
+Solving for $EB(t)$ in the last equation yields
+\begin{equation}
+\label{EB2}
+EB(t) = \dfrac{\left( \dfrac{1}{PAL} - \beta_{at} \right) EI - K - \gamma_F F(t) - \gamma_L L(t)}{\dfrac{\eta_F}{\rho_F} (1-p(t)) + \dfrac{\eta_L}{\rho_L} p(t) + \dfrac{1}{PAL}}.
+\end{equation}
+% To find $K$, we note that
+% \begin{equation}
+% \label{K}
+% K = \left(\dfrac{1}{PAL}-\beta_{at}\right) EI - \gamma_F F(t) - \gamma_L L(t) - \eta_F \dfrac{dF}{dt} - \eta_L \dfrac{dL}{dt}  - \dfrac{1}{PAL} EB.
+% \end{equation}
+In equilibrium ($EB = 0$), this gives us
+\begin{equation}
+\label{K2}
+K = \left(\dfrac{1}{PAL}-\beta_{at}\right) EI - \gamma_F F - \gamma_L L.
+\end{equation}
+Thus, for a subject who has maintained the same weight for a while, one can determine $K$ by using \eqref{K2}, if they know their average caloric intake and amount of fat (assume $L=BW-F$). The function \li{weight_odesystem} in the following code implements \eqref{compartment}.
+
+
+\begin{lstlisting}
+class c: pass
+
+# 
+# Fixed Constants
+# 
+c.rho_F		= 9400.   # 
+c.rho_L		= 1800.   #
+c.gamma_F	= 3.2     # 
+c.gamma_L	= 22.     # 
+c.eta_F		= 180.    # 
+c.eta_L		= 230.    # 
+c.C			= 10.4    # Forbes constant
+c.beta_AT	= 0.14    # Adaptive Thermogenesis
+c.beta_TEF	= 0.1     # Thermic Effect of Feeding
+
+K 			= 0
+
+def weight_odesystem(t,y,EI,PAL):
+	F, L = y[0], y[1]
+	p, EB = Forbes(F), EnergyBalance(F,L,EI,PAL)
+	return np.array([(1-p)*EB/c.rho_F,p*EB/c.rho_L]) 
+
+def EnergyBalance(F,L,EI,PAL):
+	p = Forbes(F)
+	a1 = (1./PAL-c.beta_AT)*EI - K - c.gamma_F*F - c.gamma_L*L
+	a2 = (1-p)*c.eta_F/c.rho_F + p*c.eta_L/c.rho_L+1./PAL
+	return a1/a2
+
+def Forbes(F):
+	C1 = c.C*c.rho_L/c.rho_F
+	return 1.*C1/(C1+F)
+
+def fat_mass(BW,age,H,sex):
+	BMI = BW/H**2.
+	if sex=='male': 
+		return BW*(-103.91 + 37.31*np.log(BMI)+0.14*age)/100
+	else: 
+		return BW*(-102.01 + 39.96*np.log(BMI)+0.14*age)/100
+	
+\end{lstlisting}
+
+
+
+\begin{problem}
+Consider the initial value problem
+\begin{subequations}
+% \label{compartment}
+\begin{align*}
+\rho_F \dfrac{dF(t)}{dt} &= (1-p(t)) EB(t),\\ %\label{compartment:a}\\
+\rho_L \dfrac{dL(t)}{dt} &= p(t) EB(t),\\%\label{compartment:b}
+F(0) &= F_0, \\
+L(0) &= L_0.
+\end{align*}
+\end{subequations}
+
+To solve this IVP for a specific individual we need initial conditions $F_0$ and $L_0.$ The function \li{fat_mass} given earlier calculates these values based on an individual's body weight (kg), age, height (meters), and gender. ($L = BW - F$.)
+
+\end{problem}
+
+
+
+
+
+
+
+
+
+
+
