@@ -7,7 +7,7 @@ The Optimize package in Scipy has several functions for minimizing, root finding
 You can learn about all of the functions at \url{http://docs.scipy.org/doc/scipy/reference/optimize.html}.
 
 First we will test out a few of the minimization algorithms on the Rosenbrock Function, which is defined as $f(x,y) = (1-x)^2 + 100(y-x^2)^2$.
-The Rosenbrock fuction is a common optimization algorithm checking function, so it is included in the optimize package, as well as its gradient (\li{rosen_der}) and its hessian (\li{rosen_hess}).
+The Rosenbrock function is a common optimization algorithm checking function, so it is included in the optimize package, as well as its gradient (\li{rosen_der}) and its hessian (\li{rosen_hess}).
 
 \begin{figure}
 \includegraphics[width=\textwidth]{Rosenbrock.pdf}
@@ -22,15 +22,20 @@ You may recognize some of these algorithms, and several of them will be discusse
 
 \begin{problem}
 
-Import the \li{scipy.optimize} module as \li{opt}. Now use the \li{opt.minimize} function to find the minimimum of the Rossenbrock function, found as \li{opt.rosen}. Test each of the algorithms. Part of the output of \li{opt.minimize} is the number of iterations each algorithm took. Which finds the minimum the fastest? Do any of the algorithms fail to find the (correct) minimum of the Rossenbrock?
-Make sure to start with the same initial guess in all of them. As an example we'll minimize the Rossenbrock with the Nelder-Mead method.
+Import the \li{scipy.optimize} module as \li{opt}. Now use the \li{opt.minimize} function to find the minimimum of the Rosenbrock function, found as \li{opt.rosen}. Test 'Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'Anneal', 'L-BFGS-B', 'TNC', 'COBYLA', 'SLSQP'. 
+
+Newton-CG takes in the jacobian and can take in the hessian. Test it with and with out the hessian. Part of the output of \li{opt.minimize} is the number of iterations each algorithm took (sometimes outputted as \li{nit}). Start with the initial guess $x0=np.array([4., -2.5])$  Which algorithm took the least number of iterations?  Which of the algorithms fail to find the (correct) minimum of the Rosenbrock?
+
+As an example we'll minimize the Rosenbrock with the Nelder-Mead method.
 
 \begin{lstlisting}
-x0 = np.array([1.3, 0.7, 0.8, 1.9, 1.2])
+x0 = np.array([4., -2.5])
 opt.minimize(opt.rosen, x0, method='nelder-mead', options={'xtol': 1e-8, 'disp': True})
 \end{lstlisting}
 
-\emph{Extra: How would you maximize the Rossenbrock function?}
+As your solution print out which algorithm took the least iterations and which ones failed to find the (correct) minimum.
+
+%\emph{Extra: How would you maximize the Rosenbrock function?}
 \end{problem}
 
 When are optimizing functions, it is easiest when we are dealing with convex functions, as they only have one global minimum. However, this is frequently not the case, and sometimes we need pick the global minimum out of many local minima.
@@ -44,13 +49,13 @@ Where
 \[
 r = \sqrt{(x-4)^2 + y^2}
 \]
-Essentially this is a wavey crater offset from the origin by 1 along the $x$ axis.
+Essentially this is a wavy crater offset from the origin by 1 along the $x$ axis.
 \begin{figure}
 \includegraphics[width=\textwidth]{ManyMinima.pdf}
 \caption{$z = r^2 (1+ 2sin(4r)^2)$}
 \label{opt:muiltmin}
 \end{figure}
-This function has many local minima which we will see proves difficult for the minimization algorithms.
+This function has many local minima that we will see proves difficult for the minimization algorithms.
 
 For example, if we use the \li{opt.fmin} function (which employs the Neader-Mead method, otherwise known as the downhill simplex method) the algorithm fails to find the global maximum, and instead comes to rest on a local maximum.
 \begin{lstlisting}
@@ -76,15 +81,15 @@ Optimization terminated successfully.
 \end{lstlisting}
 
 However, scipy does have some tools to help us with these problems. Specifically, we can use the \li{opt.basinhopping} function. 
-Conceptually, most of the minimizing algorithms use to derivitive the function to search for the downhill direction of the function and make guesses downhill. Often they overshoot the minimum and come back. You can think of it as a ball rolling down a hill that slowly loses momentum as is overshoots the valleys and goes up the hill sides. Eventually the ball comes to rest at the bottom of a valley - hopefully the lowest valley. However, if there are many valleys (or loval minima) the ball can get stuck in one that's not the lowest valley.
-The \li{opt.basinhopping} algorithim uses the same minimizing functions (in fact, you can tell it whatever minimizing algorithm you can pass to \li{opt.minimize}). However, once it settles on a minimum, the basinhopping algorithm pops it out of the this minimum (depending on how we set the "hopping" distance)  and hopefully out of the minimum its stuck it. If the new minimum it finds is even smaller than the last, it starts over with the new minimum.
+Conceptually, most of the minimizing algorithms use to derivative the function to search for the downhill direction of the function and make guesses downhill. Often they overshoot the minimum and come back. You can think of it as a ball rolling down a hill that slowly loses momentum as is overshoots the valleys and goes up the hill sides. Eventually the ball comes to rest at the bottom of a valley - hopefully the lowest valley. However, if there are many valleys (or local minima) the ball can get stuck in one that's not the lowest valley.
+The \li{opt.basinhopping} algorithm uses the same minimizing functions (in fact, you can tell it whatever minimizing algorithm you can pass to \li{opt.minimize}). However, once it settles on a minimum, the basinhopping algorithm pops it out of the this minimum (depending on how we set the "hopping" distance)  and hopefully out of the minimum its stuck it. If the new minimum it finds is even smaller than the last, it starts over with the new minimum.
 
 \emph{Only Scipy Version 0.12+ has \li{opt.basinhopping}, in earlier versions, such as 0.11 you won't find it}
 %I've seen a real cool animation of this -feasible to do in python?
 \begin{problem}
 
-Look at the documentation for the \li{opt.basinhopping} function online and use it to find the global minimum of our function with the same \li{x0}. Use the same \li{Nelder-Mead} algorithim with the same \li{xtol}. You will need to pass into the \li{opt.basinhopping} function a dictionary within a dictionary for the arguments of the minimizing algorithm to get all these options in.
-Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't it find the minimum the second time?
+Look at the documentation for the \li{opt.basinhopping} function online and use it to find the global minimum of our function with the same \li{x0}. Use the same \li{Nelder-Mead} algorithm with the same \li{xtol}. Call it with \li{opt.basinhopping(multimin,x0,stepsize=0.5,minimizer_kwargs=\{'method':'nelder-mead'\})}.
+Try it first with \li{stepsize=0.5} and then with \li{setsize=0.2}. Why doesn't it find the minimum the second time? Return the minimum value the function returns with \li{setsize=0.2}.
 
 \end{problem}
 
@@ -114,10 +119,28 @@ print sol.x
 print func(sol.x)
 \end{lstlisting}
 
+\begin{problem}
+Find the roots of
+\[
+\begin{bmatrix}
+	0 \\
+	0 \\
+	0
+\end{bmatrix} = \begin{bmatrix}
+	-x+y+z \\
+	1+x^3-y^2+z^3\\
+	-2-x^2+y^2+z^2
+\end{bmatrix}.
+\]
+Return the values of $x,y,z$ as an array.
+\end{problem}
+
+
+
 As with \li{opt.minimize}, \li{opt.root} has more than one algorithm for root finding. Here we use the \li{hybr} method, or the Powell hybrid method. There are also several algorithms for scalar root finding. See the online documentation for more.
 %we still have curve fitting
 %least squares programming -- but it seems that it's already been done in Volume One
-Scipy also has functions to do curve fitting with the \li{opt.curve_fit} function. Just pass it data and a function to which to fit it to. The function should take in the independent variable as it's first argument and values for the fitting paramaters as subsequent arguments.
+Scipy also has functions to do curve fitting with the \li{opt.curve_fit} function. Just pass it data and a function to which to fit it to. The function should take in the independent variable as it's first argument and values for the fitting parameters as subsequent arguments.
 Examine the following example from the scipy.optimization online documentation.
 \begin{lstlisting}
 import numpy as np
@@ -142,14 +165,16 @@ popt, pcov = curve_fit(func,x,yn)
 \label{opt:curve_fit}
 \end{figure}
 \begin{problem}
-Use the \li{opt.curve_fit} function to fit a heating curve to data obtained from a temperature sensitive diode embeded in a cylindrical aluminum block. The temperature in the block was measured as it warmed from 290K up to 370K using a heating coil wound around the block attached to a copper rod which sat in a cooling bath of liquid nitrogen. 
+Use the \li{opt.curve_fit} function to fit a heating curve to data obtained from a temperature sensitive diode embedded in a cylindrical aluminum block. The data is in heating.txt. The first column is time and the second column is temperature in Calvin. The temperature in the block was measured as it warmed from 290K up to 370K using a heating coil wound around the block attached to a copper rod which sat in a cooling bath of liquid nitrogen. 
 Newton's law of cooling has the following form:
 \[
 T = T_{\infty} + \frac{P}{\gamma}+Ke^{\frac{\gamma t}{C}}
 \]\
-Where $T$ is the temperature, $t$ the time, $P$ the power used to warm it (which here was 59.43 watts), $T_{\infty}$ which was the ambiental temperature (290K), $\gamma$ a coefficient of heat tranfer through the copper rod, $C$ the total heat capacity of the block, and $K$ a constant coeffient the depends on the initial conditions. Use \li{opt.curve_fit} to find a fit to the data using $\gamma$, $C$, and $K$ as the fitting paramaters. Just so that you know that you are getting realistic values, $\gamma$ should be on the order of $10^{-1}$, $C$ on the order of $10^{2}$, and $K$ should be negative on the order of $10^{2}$.
+Where $T$ is the temperature, $t$ the time, $P$ the power used to warm it (which here was 59.43 watts), $T_{\infty}$ which was the ambiental temperature (290K), $\gamma$ a coefficient of heat transfer through the copper rod, $C$ the total heat capacity of the block, and $K$ a constant coeffient that depends on the initial conditions. Use \li{opt.curve_fit} to find a fit to the data using $\gamma$, $C$, and $K$ as the fitting parameters. Just so that you know that you are getting realistic values, $\gamma$ should be on the order of $10^{-1}$, $C$ on the order of $10^{2}$, and $K$ should be negative on the order of $10^{2}$. Return your values for $\gamma$, $C$, and $K$.
 
+\begin{comment}
 From the heat capacity you obtained in the fit you can calculate the specific heat capacity of the aluminum block by dividing the heat capacity by the mass of the block (about 300g). Is it close to the expirementally measured specific heat capacity of aluminum of 0.900 J/g K? From $\gamma$ you can also calculate the thermal conductivity of the copper rod using the formula $k=\gamma L/A$ where $L$ and $A$ are the length ($25.6mm$) and the cross-sectional area ($71.24mm^{3}$) of the rod. How does it compare to the expirementally measured thermal conductivity of $401 W/(m \dot K)$? Look at the covariance you got from the fit. Is the error due to the fit, noise in the data, or an error in the expiremental setup?
+\end{comment}
 \end{problem}
 
 \begin{figure}
