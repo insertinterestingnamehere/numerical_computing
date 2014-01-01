@@ -95,21 +95,21 @@ prob3=Problem3Real()
 x,y=sol.Problem1()
 
 if(np.allclose(prob11,x) and np.allclose(prob12,y)):
-	print("Problem1 Passed")
+    print("Problem1 Passed")
 else:
-	print("Problem1 Falied")
+    print("Problem1 Falied")
 
 
 x=sol.Problem2()
 
 if(np.allclose(prob2,x)):
-	print("Problem2 Passed")
+    print("Problem2 Passed")
 else:
-	print("Problem2 Falied")
+    print("Problem2 Falied")
 
 x=sol.Problem3()
 
 if(np.allclose(prob3,x)):
-	print("Problem3 Passed")
+    print("Problem3 Passed")
 else:
-	print("Problem3 Falied")
+    print("Problem3 Falied")
