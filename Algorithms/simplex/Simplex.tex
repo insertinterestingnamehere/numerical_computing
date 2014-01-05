@@ -1,5 +1,5 @@
 \lab{Algorithms}{Simplex Method}{Simplex Method}
-\objective{In this lab, you will write your own implementation of the Simplex method for solving linear optimization problems.}
+\objective{Write your own Simplex solver that can solve standard maximization linear programs.}
 \label{lab:Simplex}
 
 The Simplex Algorithm is one of the most notable algorithms invented in the last 100 years.
@@ -11,28 +11,198 @@ The Simplex Algorithm accepts a linear program in standard form.
 A linear program can always be expressed in linear form.
 If a linear program is of the following format, it is said to be in standard form.
 \begin{align*}
-\mbox{maximize}\qquad & c^T x \\
-\mbox{subject to}\qquad & A x \leq b \\
+\text{maximize}\qquad & c^T x \\
+\text{subject to}\qquad & A x \leq b \\
  & x \geq 0
 \end{align*}
-We can also use the notation $\max\{c^Tx: Ax \leq b \land x \geq 0\}$.  We will use
 
+Such a linear program defines a region in space called the feasible region.
+All points in this feasible region satisfy all the constraints.
+The Simplex algorithm moves along the vertices of the feasible region searching for an optimal point.
+It does this by moving along the edges of the feasible region in such a way that the objective function is always increased.
 
+To write a Simplex solver is largely straight forward.
+We write a function to perform each step of the Simplex algorithm.
+To become familiar with the execution of the Simplex algorithm, it is helpful to work several examples by hand.
 
-%TODO:
-% * Use a more pedagogical explanation of simplex algorithm
-% * Make each function (or part) of simplex algorithm a seperate problem
-% * Explain the tableau method of storing the linear program and its constraints
+\section*{The Simplex Solver}
+Our program will be more lengthy than many other lab exercises and will consist of a collection of functions working together to produce a final result.
+It is important to clearly define the task of each function and how all the functions will work together.
+If this program is written haphazardly, it will be much longer and harder to read than it needs to be.
+We will walk you through the steps of implementation as a Python class.
+Since the Simplex algorithm assumes that all the variables are non-negative, we do not need any special logic for it.
 
-\section*{Simplex}
-In this lab you will write your own implementation of the Simplex method for solving linear optimization problems.
-Your function should have the following signature
+For demonstration purposes, we will use the following linear program.
+\begin{align*}
+\text{maximize}\qquad & 3x_1 + 2x_2 \\
+\text{subject to}\qquad 
+& x_1 - x_2 \leq 2 \\
+& 3x_1 + x_2 \leq 5 \\
+& 4x_1 + 3x_2 \leq 7 \\
+& x_1, x_2 \geq 0.
+\end{align*}
+
+\subsection{Accepting a Linear Program}
+The first task that we must perform determining if we can even use the Simplex algorithm.
+To do this, we assume that the linear program is presented to us in standard form.
+We need to check that this linear program is even feasible (has a feasible region).
+
+\begin{problem}
+Write a Python class that will accept a linear program and check its feasibility.
+You may implement the feasibility check directly into the class initialization method, or use a separate class method.
+To simplify the implementation of your solver, we only check feasibility at the origin.
+If the linear program is unfeasible at the origin, alert the user that Simplex might not work as expected.
+Your class might have the following structure, where the linear program is accepted in the initialization method.
 \begin{lstlisting}
->>> x,fval,exit = linprog(c, A, b)
+class SimplexSolver(object):
+    def __init__(self, c, A, b):
+        if infeasible:
+            print "LP is infeasible"
 \end{lstlisting}
-The function should solve the linear program
+\label{prob:initsolver}
+\end{problem}
+
+\subsection{Adding Slack Variables}
+When adding slack variables, it is useful represent all of your variables in a convenient way.
+One effective way is to refer to a variable by its subscript.  
+We would use the integer 0 to refer to the variable $x_0$, the integer 1 to refer to $x_1$, and so on.
+There should be some way to track which variables are basic and which variables are non-basic.
+A useful representation for the variables is a Python list, where the elements of the list are integers.
+Since we know how many basic variables we have, we can partition the list so that all the basic variables are kept in the first $n$ locations, and all the non-basic variables are stored at the end of the list.
+Swapping two elements of list can be done in a single, efficient line of Python code
+\begin{lstlisting}
+L = [0, 1, 2, 3, 4]
+L[1], L[3] = L[3], L[1]
+\end{lstlisting}
+
+\begin{problem}
+For your solver, design and implement a way to store and track all of the basic and non-basic variables.
+
+\emph{Hint: Using integers that represent the index of each variable is useful for Problem \ref{prob:blands}.}
+\label{prob:slackvars}
+\end{problem}
+
+\subsection{Creating a Tableau}
+After we have determined that our program is feasible, we need to create the tableau that will be used in the Simplex algorithm.
+You may structure the tableau to suit your specific implementation.
+Remember that your Tableau will need to include in some way the slack variables that you created in Problem \ref{prob:slackvars}.
+
+There are many different ways to build your tableau.
+One way is to mimic the tableau that likely be used when solving Simplex problems by hand.
+This is a very simple easy to build tableau.
+\begin{equation}
+T = \begin{bmatrix}
+    0 & -c^T & 1  \\
+    b & A 
+    \end{bmatrix}
+\label{eqn:hand_tab}
+\end{equation}
+For our example problem, the initial tableau would look
+\begin{equation*}
+T = \begin{bmatrix}
+    0 & 4 & 2 & 1 \\
+    5 & -1 & 0 & 0 \\
+    25 & -4 & -1 & 0 \\
+    125 & -8 & -4 & -1
+    \end{bmatrix}
+\end{equation*}
+
+The advantage of using this kind of tableau is that it is easy to check your program by hand.
+The disadvantage is that pivot operations require careful bookkeeping to track the variables and constraints.
+
+We can also use a tableau of the following format (such that $T$ is a square matrix of size $s \times s$ 
+where $s$ is the sum of the number of variables and the number of constraints plus 1).
+\begin{equation}
+T = \begin{bmatrix}
+    0 & c^T   & 0 & \cdots & 0 \\
+    0 & I_n & \boldsymbol{0} & \cdots & \boldsymbol{0} \\
+    b & -A  & \boldsymbol{0} & \cdots & \boldsymbol{0}
+\end{bmatrix}
+\label{eqn:matrix_tab}
+\end{equation}
+The advantage of this form of tableau is all the pivot bookkeeping is built into the matrix.
+For our example problem, the initial tableau of this form would look
+\begin{equation*}
+T = \begin{bmatrix}
+        0 & 3 & 2 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 0 & 0 & 0 \\
+        2 &-1 & 1 & 0 & 0 & 0 \\
+        5 &-3 &-1 & 0 & 0 & 0 \\
+        7 &-4 &-3 & 0 & 0 & 0
+\end{bmatrix}
+\end{equation*}
+
+\begin{problem}
+Add a method to your Simplex solver that will create the tableau that you will use.
+Using a NumPy array to represent your tableau will simplify several parts of the Simplex algorithm
+Your class may have the following structure at this point
+\begin{lstlisting}
+class SimplexSolver(object):
+    def __init__(self, c, A, b):
+        if infeasible:
+            print "LP is infeasible"
+            
+        self.makeTableau()
+        
+    def makeTableau(self):
+        pass
+\end{lstlisting}
+\label{prob:maketableau}
+\end{problem}
+
+\subsection{Pivoting}
+Pivoting is the mechanism that really makes Simplex useful.
+The method of pivoting swaps basic and nonbasic variables.
+Depending on how you store your variables, you may need to modify different a few different parts of your solver to reflect this swapping.
+When initiating a pivot, you need to determine what variables will be swapped.
+To calculate binding 
+
+In the tableau representation, you find a specific element to pivot on and the row and column that contain that pivot element are the variables that need to be swapped.
+
+Gaussian elimination is used to reduce the constraints so that the columns we just used in pivoting is the an elementary vector.
 
 
+If we are using the tableau representation in equation \ref{eqn:matrix_tab}, pivot operations are reduced to a simple matrix equation:
+\[T = T + T_m \otimes T_n,\]
+where $T_m$ is the column corresponding to the variable entering the basis and $T_n$ is a normalized vector corresponding to the variable leaving the basis.  The result of the equation is the new tableau.
+
+
+\begin{problem}
+Write a method that will determine the pivot row and pivot column according to Bland's Rule.
+\begin{definition}[Bland's Rule]
+Choose the nonbasic variable with the smallest index that has a positive coefficient in the objective function
+as the leaving variable.  Choose the basic variable with the smallest index among all the binding basic variables.
+\end{definition}
+
+Bland's Rule is important in avoiding cycles when performing pivots.
+This rule guarantees that a feasible Simplex problem will terminate in a finite number of pivots.
+\label{prob:blands}
+\end{problem}
+
+\begin{problem}
+Add methods that your Simplex solver that will perform a single pivot operation from start to completion.
+You pivoting method should check for unboundedness.  
+If during pivoting, the system becomes unbounded, return an exception to the user.
+\end{problem}
+
+\subsection{Reading the Tableau}
+When your solver has reached a maximal point, it would be nice if the user doesn't have to extract the maximal solution from the tableau.
+
+\begin{problem}
+Write an additional method in your solver that will return the maximal solution in the format: \li{(max value, basic variables, nonbasic variables)}, where the basic and nonbasic variables are represented as two dictionaries that map the subscript of the variable to its corresponding value.
+For example, the tuple \li{(55.0, \{0: .5, 3: .33333\}, \{1: 0, 2: 0\})} represents the solution to the system 
+where maximal value of the objective function is $55.0$ and the 
+basic variables are $x_0=.5$ and $x_3=.33333$ and the nonbasic variables are $x_1, x_2$ which are both zero.
+The correct format of this tuple is critical as this tuple of information will be used judge if your solver works!
+\end{problem}
+
+
+
+
+
+
+%-------------------------------------------------------
 where $c \in \mathbb{R}^n$ is a column vector, $b \in \mathbb{R}^m$ is a row vector, and $A \in \mathbb{R}^{m \times n}$.
 The output $x$ is the optimal point and the optimal value is {\tt fval}.
 The output {\tt exit} is one of the following values:
@@ -44,37 +214,6 @@ The output {\tt exit} is one of the following values:
 If either of the two error events occur, you should return \li{None} for the values of \li{x} and \li{fval}.
 
 You are free to implement {\tt linprog} any way you see fit, provided it satisfies the above requirements (you cannot just call an existing lp solver however, and you must use the Simplex method!).
-
-\section*{Code Organization}
-TODO: Clean
-
-This is a relatively large program, so you'll want to break it up into function.
-Below is a list of possible functions.
-Here are some of the functions you might want to use.
-\emph{Tableau} will refer to the Simplex tableau in this lab to avoid confusion with a Python dictionary and will be represented by {\tt T}  in the code.
-
-\begin{lstlisting}
->>> T = createtableau(c,A,b)
->>> exit = isfeasible(T)
->>> exit = simplex(T)
->>> i,j,exit = choosepivot(T)
->>> pivot(T,i,j)
-\end{lstlisting}
-
-By breaking the program into so many functions, the entire program is only about 150 lines, including comments.
-The {\tt simplex} function is just a few lines:
-
-TODO: put elsewhere?
-
-\begin{lstlisting}
->>> def simplex(T):
->>>    # choose the first pivot: this sets exit to 1 if finished or 3 if unbounded
->>>    i, j, exit = choosepivot(T)
->>>    while exit == 0:
->>>        pivot(T,i,j)
->>>        i, j, exit = choosepivot(T)
-\end{lstlisting}
-The {\tt linprog} function is also pretty short, since it just calls other functions and then gets the return value.
 
 \section*{Tableau Representation}
 
