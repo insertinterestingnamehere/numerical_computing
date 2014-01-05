@@ -9,6 +9,10 @@
 
 // TODO add thorough comments.
 
+// TODO Add an apply template for the Permuation class that calls
+//  the apply template of each of its Cycles (in reverse order).
+//  Add that template to the Cython wrapper with the corresponding syntax.
+
 // TODO use default constructor when possible.
 
 // TODO Check for length 0 stuff in print reduce method and multiply method.
