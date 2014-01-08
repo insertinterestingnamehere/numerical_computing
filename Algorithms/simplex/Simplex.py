@@ -96,14 +96,14 @@ class SimplexSolver(object):
         row_pivot = self.b.argmin()
         x0 = self.vars.index(0)
         print "Vars: ",self.vars
-        print "Pivot row: ",self.vars[row_pivot]
-        print "Pivot col: ",self.vars[x0]
+        print "Pivot row: {} {}".format(self.vars[row_pivot], row_pivot)
+        print "Pivot col: {} {}".format(self.vars[x0], x0)
         self.vars[x0], self.vars[row_pivot] = self.vars[row_pivot], self.vars[x0]
         print "new vars: ",self.vars
-        self._reduceform(row_pivot, 0)
+        self._reduceform(row_pivot + 1, 1)
         print "First pivot"
         print self.tab
-        #continue with regular pivoting
+        ##continue with regular pivoting
         print self.getState()
         print "Solving..."
         
@@ -182,6 +182,7 @@ class SimplexSolver(object):
     def _reduceform(self, row, col):
         r'''Reduces col to elementary vector using where row has the unitary element'''
         
+        print "Reducing row {} col {}".format(row, col)
         #divide row by tab[row,col]
         #this gets the one
         self.tab[row] /= self.tab[row, col]
