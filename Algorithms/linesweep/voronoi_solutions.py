@@ -3,7 +3,7 @@ import scipy.spatial as st
 from matplotlib import pyplot as plt
 from math import sqrt
 import heapq as hq
-from markov_solutions import findpath
+#from markov_solutions import findpath
 from edge_intersections import edge_intersections, inside
 
 # farthest point problem
@@ -15,10 +15,11 @@ def farthest(pts, xlims, ylims, n):
     KD = st.cKDTree(pts)
     Q = [(KD.query(pt)[0],pt) for pt in V.vertices if ins(pt)]
     Q += [(KD.query(pt)[0],pt) for pt in edge_intersections(V, xlims, ylims)[0]]
+    Q += [(KD.query(pt)[0],(x,y)) for x in xlims for y in ylims]
     return np.array([pair[1] for pair in hq.nlargest(n,Q)])
 
 # obstacle navegation problem
-
+# this problem is commented out
 def make_adj(V, xlims, ylims, threshold):
     ins = lambda pt: inside(pt, xlims, ylims)
     size = V.vertices.shape[0]
