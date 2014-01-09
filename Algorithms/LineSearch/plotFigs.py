@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 
 import numpy as np
 from scipy import linalg as la
+from scipy import optimize as opt
 
 def newtonsMethod1d(f, df, ddf, x, niter=10):
     '''
@@ -129,7 +130,58 @@ def comparison():
     plt.plot(pts2[:,0], pts2[:,1], '*-')
     plt.savefig('comparison.pdf')
     plt.clf()
+def gaussNewton(f, Df, Jac, r, x, niter=10, backtrack=True):
+    '''
+    Solve a nonlinear least squares problem with Gauss-Newton method.
+    Inputs:
+        f -- the objective function
+        Df -- gradient of f
+        Jac -- jacobian of residual vector
+        r -- the residual vector
+        x -- initial point
+        niter -- integer giving the number of iterations
+    Returns:
+        the minimizer
+    '''
+    a=0
+    for i in xrange(niter):
+        #print i
+        J = Jac(x)
+        g = J.T.dot(r(x))
+        #print J.T.dot(J)
+        p = la.solve(J.T.dot(J), -g)
+        slope = (g*p).sum()
+        if backtrack:
+            a = backtracking(f, slope, x, p)
+        else:
+            a = opt.line_search(f, Df, x, p)[0]  
+        x += a*p
+        print x, f(x), a
+    return x
+y =  3*np.sin(0.5*np.arange(10))+ 0.5*np.random.randn(10)
+def model(x, t):
+    return x[0]*np.sin(x[1]*t)
+def residual(x):
+    return model(x, np.arange(10)) - y
+def jac(x):
+    ans = np.empty((10,2))
+    ans[:,0] = np.sin(x[1]*np.arange(10))
+    ans[:,1] = x[0]*np.arange(10)*np.cos(x[1]*np.arange(10))
+    return ans
+def objective(x):
+    return .5*(residual(x)**2).sum()
+def grad(x):
+    return jac(x).T.dot(residual(x))
+x0 = np.array([2.5,.6])
+x = gaussNewton(objective, grad, jac, residual, x0, niter=10, backtrack=False)
+def gaussNewton():
+    ax1,= plt.plot(np.arange(10), y, '*')
+    ax2, = plt.plot(np.linspace(0,10,100), 3*np.sin(.5*np.linspace(0,10,100)), '--')
+    ax3, =plt.plot(np.linspace(0,10,100), x[0]*np.sin(x[1]*np.linspace(0,10,100)))
+    plt.legend([ax1, ax2, ax3], ['data', 'generating curve', 'fitted curve'])
+    plt.savefig('gaussNewton.pdf')
+    plt.clf()
 
-
-newton()
-comparison()
+#newton()
+#comparison()
+gaussNewton()
