@@ -2,9 +2,9 @@ import numpy as np
 from operator import itemgetter
 
 def kruskal(edges):
-	# Note: the comments here match the pseudocode in the lab.
-	# Please keep this in mind when making any changes.
-	#
+    # Note: the comments here match the pseudocode in the lab.
+    # Please keep this in mind when making any changes.
+    #
     # Initialize an empty list of edges for the MST.
     tree = []
     # Make a dictionary that points each node

@@ -1,71 +1,73 @@
-import scipy as sp
+import numpy as np
 
-def cdiff(f, xpts, vary=[0], accur=2, degree=1, tol=1e-5):
-    if accur not in [2,4,6]:
-        raise ValueError("Invalid accuracy.  Must be 2, 4, or 6")
-    if degree not in [1,2]:
-        raise ValueError("Only degrees 1 and 2 are defined")
-
-    #cdiff = lambda ccfs, hcfs, xval: sum([c*f(x+h*tol) for c,h,x in zip(ccfs, hcfs, [xval]*len(ccfs))])/(tol**float(degree))
-    cdiff = lambda co, ho, xvals, i: sp.sum([c*f(*(sp.asarray([x+h*tol if index in i else x for (x,index) in zip(xvals, range(len(xvals)))]))) for c,h in zip(co, ho)], axis=0)/(tol**float(degree))
-
-    if degree==1:
-        if accur==2:
-            return cdiff([-1.0/2,0,1.0/2], [-1,0,1],xpts,vary)
-        if accur==4:
-            return cdiff([1.0/12,-2.0/3,0,2.0/3,-1.0/12], [-2,-1,0,1,2],xpts,vary)
-        if accur==6:
-            return cdiff([-1.0/60,3.0/20,-3.0/4,0,3.0/4,-3.0/20,1.0/60],[-3,-2,-1,0,1,2,3],xpts,vary)
-    if degree==2:
-        if accur==2:
-            return cdiff([1,-2,1],[-1,0,1],xpts,vary)
-        if accur==4:
-            return cdiff([-1.0/12,4.0/3,-5.0/2,4.0/3,-1.0/12],[-2,-1,0,1,2],xpts,vary)
-        if accur==6:
-            return cdiff([1.0/90,-3.0/20,3.0/2,-49.0/18,3.0/2,-3.0/20,1.0/90],[-3,-2,-1,0,1,2,3],xpts,vary)
-
-def fbdiff(f, xpts, vary=0, accur=1, degree=1, direction='f',tol=1e-5):
-    """Computer forward difference using coefficients from taylor series"""
-    if accur not in [1,2,3]:
-        raise ValueError("Invalid accuracy.  Must be 1, 2, or 3")
-    if degree not in [1,2]:
-        raise ValueError("Only degrees 1 and 2 are defined")
-    if direction not in ['f', 'b']:
-        raise ValueError("Invalid direction.  Must be 'f'orward or 'b'ackward")
-
-    #fdiff = lambda ccfs, hcfs, xval: sum([c*f(x+h*tol) for c,h,x in zip(ccfs, hcfs, [xval]*len(ccfs))])/(tol**float(degree))
-    #fdiff = lambda co, ho, xvals: sp.sum([c*f(*(sp.asarray(xvals)+h*tol)) for c,h in zip(co, ho)],axis=0)/(tol**float(degree))
-    fdiff = lambda co, ho, xvals, i: sp.sum([c*f(*(sp.asarray([x+h*tol if index in i else x for (x,index) in zip(xvals, range(len(xvals)))]))) for c,h in zip(co, ho)], axis=0)/(tol**float(degree))
-
-    if degree==1:
-        if accur==1:
-            if direction is 'f':
-                return fdiff([-1,1],[0,1],xpts,vary)
-            else:
-                return fdiff([1,-1],[0,-1],xpts,vary)
-        if accur==2:
-            if direction is 'f':
-                return fdiff([-3.0/2,2,-1.0/2],[0,1,2],xpts,vary)
-            else:
-                return fdiff([3.0/2,-2,1.0/2],[0,-1,-2],xpts,vary)
-        if accur==3:
-            if direction is 'f':
-                return fdiff([-11.0/6,3,-3.0/2,1.0/3],[0,1,2,3],xpts,vary)
-            else:
-                return fdiff([11.0/6,-3,3.0/2,-1.0/3],[0,-1,-2,-3],xpts,vary)
-    if degree==2:
-        if accur==1:
-            if direction is 'f':
-                return fdiff([1,-2,1],[0,1,2],xpts,vary)
-            else:
-                return fdiff([-1,2,-1],[0,-1,-2],xpts,vary)
-        if accur==2:
-            if direction is 'f':
-                return fdiff([2,-5,4,-1],[0,1,2,3],xpts,vary)
-            else:
-                return fdiff([-2,5,-4,1],[0,-1,-2,-3],xpts,vary)
-        if accur==3:
-            if direction is 'f':
-                return fdiff([35.0/12,-26.0/3,19.0/2,-14.0/3,11.0/12],[0,1,2,3,4],xpts,vary)
-            else:
-                return fdiff([-35.0/12,26.0/3,-19.0/2,14.0/3,-11.0/12],[0,-1,-2,-3,-4],xpts,vary)
+def numDer(f, pts, mode='centered', d=1, o=2, h=1e-5):
+    '''
+    Approximate the derivative of a function at an array of points.
+    Inputs:
+        f -- a callable function whose derivative we will approximate
+        pts -- numpy array of points at which to approximate the derivative
+        mode -- specifies the type of difference scheme. Should take values in
+                ['centered', 'backward', 'forward'].
+        d -- the order of the derivative. Should take values in [1,2]
+        o -- order of approximation. If mode = 'centered', should take values
+             [2,4,6], otherwise should take values in [1,2,3]
+        h -- the size of the difference step
+    Returns:
+        app -- array the same shape as pts, giving the approximate derivative at 
+               each point in pts.
+    '''
+    # this implementation has the difference coefficients hard-coded in.
+    # it is fairly straight-forward, contains a bit of code duplication
+    # initialize an array that will hold the approximations
+    app = np.empty(pts.shape)
+    if mode == 'centered':
+        if d == 1:
+            if o == 2:
+                app[:] = (-.5*f(pts - h) + .5*f(pts + h))/h
+            if o == 4:
+                app[:] = (f(pts-2*h)/12 - 2*f(pts-h)/3 + 2*f(pts+h)/3 - f(pts+2*h)/12)/h
+            if o == 6:
+                app[:] = (-f(pts-3*h)/60 + 3*f(pts-2*h)/20 - 3*f(pts-h)/4 + 
+                          f(pts+3*h)/60 - 3*f(pts+2*h)/20 + 3*f(pts+h)/4)/h
+        if d == 2:
+            if o == 2:
+                app[:] = (f(pts - h) - 2*f(pts) + f(pts + h))/h**2
+            if o == 4:
+                app[:] = (-f(pts-2*h)/12 + 4*f(pts-h)/3 - 5*f(pts)/2 + 4*f(pts+h)/3 
+                          - f(pts+2*h)/12)/h**2
+            if o == 6:
+                app[:] = (f(pts-3*h)/90 - 3*f(pts-2*h)/20 + 3*f(pts-h)/2 - 49*f(pts)/18 + 
+                          f(pts+3*h)/90 - 3*f(pts+2*h)/20 + 3*f(pts+h)/2)/h**2
+    if mode == 'forward':
+        if d==1:
+            if o == 1:
+                app[:] = (-f(pts)+f(pts+h))/h
+            if o == 2:
+                app[:] = (-3*f(pts)/2 + 2*f(pts+h) - f(pts+2*h)/2)/h
+            if o == 3:
+                app[:] = (-11*f(pts)/6 + 3*f(pts+h) - 3*f(pts+2*h)/2 + f(pts+3*h)/3)/h
+        if d == 2:
+            if o == 1:
+                app[:] = (f(pts) - 2*f(pts+h) + f(pts+2*h))/h**2
+            if o == 2:
+                app[:] = (2*f(pts) - 5*f(pts+h) + 4*f(pts+2*h) - f(pts+3*h))/h**2
+            if o == 3:
+                app[:] = (35*f(pts)/12 - 26*f(pts+h)/3 + 19*f(pts+2*h)/2 - 
+                          14*f(pts+3*h)/3 + 11*f(pts+4*h)/12)/h**2
+    if mode == 'backward':
+        if d==1:
+            if o == 1:
+                app[:] = -(-f(pts)+f(pts-h))/h
+            if o == 2:
+                app[:] = -(-3*f(pts)/2 + 2*f(pts-h) - f(pts-2*h)/2)/h
+            if o == 3:
+                app[:] = -(-11*f(pts)/6 + 3*f(pts-h) - 3*f(pts-2*h)/2 + f(pts-3*h)/3)/h
+        if d == 2:
+            if o == 1:
+                app[:] = (f(pts) - 2*f(pts-h) + f(pts-2*h))/h**2
+            if o == 2:
+                app[:] = (2*f(pts) - 5*f(pts-h) + 4*f(pts-2*h) - f(pts-3*h))/h**2
+            if o == 3:
+                app[:] = (35*f(pts)/12 - 26*f(pts-h)/3 + 19*f(pts-2*h)/2 - 
+                          14*f(pts-3*h)/3 + 11*f(pts-4*h)/12)/h**2
+    return app
