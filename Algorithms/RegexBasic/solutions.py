@@ -1,24 +1,13 @@
-# p1 \{\(~!@#\$%\^&\*_\+\)\}\.
-    # proof: python regex_bulk.py   \{\(~!@#\$%\^&\*_\+\)\}\.   {(~!@#$%^&*_+)}.
-# p2 ^(Book|Mattress|Grocery) (store|supplier)$
-# p3 ^[^d-w]$
+# This document is correct, but not too robust
+# TODO add latex \label s
+
+# p1 \^\{\(!%\.\*_\)\}\&
+    # proof: >>> bool(re.match(r"\^\{\(!%\.\*_\)\}\&", "^{(!%.*_)}&"))
+# p2 The string "two fish" and any string starting with "one"
+# p3 ^(Book|Mattress|Grocery) (store|supplier)$
+# p4 ^[^d-w]$
     # proof: python regex_bulk.py   ^[^d-w]$    a b c d w x y z ag dg wg zg
-# p4 ^[a-zA-Z_]\w\w\(\)$
-    # proof: python regex_bulk.py   ^[a-zA-Z_]\w\w\(\)$    cat() Hb3() C9T() _18() ___() 3bH() fish() _() cat(mouse) ab*()
-# p5 ^[a-zA-Z_]\w*\(\)$
-# p6 ^[a-zA-Z_]\w*\(([a-zA-Z_]\w*(,\s*[a-zA-Z_]\w*)*)?\)$
-    # proof: 
-import re
-
-
-pattern = re.compile(r"^[a-zA-Z_]\w*\(([a-zA-Z_]\w*(,\s*[a-zA-Z_]\w*)*)?\)$")
-strings_to_match = ["compile(pattern, string)", "sleep()", "a113(_7h,        stuff)", "do_problem(error, )", "err*r(gamma)", "sleep()()"] 
-
-def print_case(s):
-    if pattern.match(s):  # This is where the work happens
-        prefix = "Match:   \t"
-    else:
-        prefix = "No match:\t"
-    print prefix, s
-
-map(print_case, strings_to_match)
+# p5 is_valid = lambda string: len(string)==5 and bool(re.match(r"^[a-zA-Z_]\w\w\w\w$", string))
+# p6 see match_function_definition.py
+# p7 see match_function_definition.py
+# p8 see match_function_definition.py

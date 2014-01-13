@@ -2,7 +2,7 @@
 import scipy as sp
 import numpy as sp
 from matplotlib import pyplot as plt
-from scipy import signal
+from scipy.signal import fftconvolve
 
 def getFrame(m):
     coeffs = []
@@ -53,59 +53,50 @@ def getDetail(m):
 	long, and so either the first or last element should be omitted.
 '''
 
-''' Single level wavelet decomposition.
-	of the given signal wrt the given low-pass and hi-pass filters.
-	Parameters: signal is a 1D array. lo_d and hi_d are 1D arrays, the 
-	low-pass and high-pass decomposition filters, respectively. 
-	Returns: list of two 1D arrays, the approximation and detail
-	coefficients, respectively.
-	'''
-def dwt_pass(signal, lo_d, hi_d):
-	a = sp.signal.fftconvolve(signal, lo_d)[1:]
-	d = sp.signal.fftconvolve(signal, hi_d)[1:]
-	return [a[::2],d[::2]]
+def dwt(f, lo, hi):
+    '''
+    Compute the discrete wavelet transform of f with respect to 
+    the wavelet filters lo and hi.
+    Inputs:
+        f -- numpy array corresponding to the signal
+        lo -- numpy array giving the lo-pass filter
+        hi -- numpy array giving the hi-pass filter
+    Returns:
+        list of the form [A, D1, D2, ..., Dn] where each entry
+        is a numpy array. These are the approximation frame (A)
+        and the detail coefficients.
+    '''
+    ans = []
+    frame = f
+    while len(frame) >= len(lo):
+        detail = fftconvolve(frame, hi, mode='full')[1:][::2]
+        frame = fftconvolve(frame, lo, mode='full')[1:][::2]
+        ans.append(detail)
+    ans.append(frame)
+    ans.reverse()
+    return ans
 
-''' Full wavelet decomposition.
-	Parameters: signal is a 1D array to be decomposed. lo_d and hi_d
-	are the decomposition filters.
-	Returns: a list of 1D arrays starting with the final level of 
-	approximation coefficients followed by the detail coefficients 
-	working back up to the first level.
-	'''
-def dwt(signal, lo_d, hi_d):
-	length = len(signal)
-	result = []
-	sig = signal
-	while(length >= len(lo_d)):
-		sig,details = dwt_pass(sig,lo_d,hi_d)
-		result.append(details)
-		length/=2
-	result.append(sig)
-	result.reverse()
-	return result
-
-''' Single level wavelet reconstruction.
-	Parameters: coeffs is a list of two 1D arrays, the approximation and 
-	detail coefficients, respectively. lo_r and hi_r are the low-pass and
-	high-pass reconstruction filters, respectively. 
-	returns: a 1D array, the reconstructed signal
-	'''
-def idwt_pass(coeffs,lo_r,hi_r):
-	up1 = sp.zeros(2*len(coeffs[0]))
-	up2 = sp.zeros(2*len(coeffs[1]))
-	up1[::2], up2[::2] = coeffs 
-	return sp.signal.fftconvolve(up1,lo_r)[:-1] + sp.signal.fftconvolve(up2,hi_r)[:-1]
-
-''' Full wavelet reconstruction.
-	Parameters: coeffs is a list of 1D arrays starting first with the last level of 
-	approximation coefficients, then followed by the detail coefficients working back
-	up to level 1. lo_r and hi_r are the reconstruction filters, as usual.
-	Returns: a 1D array, the reconstructed signal
-	'''
-def idwt(coeffs,lo_r,hi_r):
-	result = coeffs[0]
-	for i in xrange(len(coeffs)-1):
-		args = [result,coeffs[i+1]]
-		result = idwt_pass(args,lo_r,hi_r)
-	return result
-
+def idwt(t, lo, hi):
+    '''
+    Compute the inverse discrete wavelet transform of a list of 
+    transform coefficients with respect to the wavelet filters
+    lo and hi.
+    Inputs:
+        t -- a list containing the frame and detail coefficients of
+             a signal, corresponding to the output of dwt.
+        lo -- numpy array giving the lo-pass filter
+        hi -- numpy array giving the hi-pass filter     
+    Outputs:
+        f -- a numpy array giving the recovered signal.
+    '''
+    f = t[0]
+    for i in xrange(len(t)-1):
+        det = t[i+1]
+        frame = np.zeros(len(f)*2)
+        frame[::2] = f
+        frame = fftconvolve(frame, lo, mode='full')[:-1]
+        detail = np.zeros(len(det)*2)
+        detail[::2] = det
+        detail = fftconvolve(detail, hi, mode='full')[:-1]
+        f = detail + frame
+    return f

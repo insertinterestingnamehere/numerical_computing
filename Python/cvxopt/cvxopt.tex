@@ -8,12 +8,98 @@ You can learn about more about cvxopt at
 
 \section*{Linear Programs}
 
-Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
+%%Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
+CVXOPT is a convex solver. In this lab we will focus on linear and quadratic programming.
+Linear programs are of the form, 
+
+\begin{lstlisting}[mathescape]
+min $c^Tx$
+subject to $Gx \leq h$
+	       $Ax    = b$
+\end{lstlisting}
+
+cvxopt uses the notation
+
+\begin{lstlisting}[mathescape]
+min $c^Tx$
+subject to $Gx +s = h$
+	        $Ax    = b$
+	        $s     \geq 0$
+\end{lstlisting}
+
+Note that $Gx +s = h$ with $s  \geq 0$ is equivalent to $Gx \leq h$
+
+Cvxopt also solves the dual problem
+
+\begin{lstlisting}[mathescape]
+min $-h^Tz - b^Ty$
+subject to $G^Tz +A^Ty + c = 0$
+	        $z     \geq 0$
+\end{lstlisting}
+
+Consider the following problem.
+\begin{align*}
+\text{minimize } &-4x_1-5x_2 \\
+\text{subject to } &x_1+2x_2 \leq 3 \\
+	        &2x_1+x_2 \leq 3 \\
+		&x_1 \geq 0 \\
+		&x_2 \geq 0 
+\end{align*}
+All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt.
+Numpy arrays can be converted to matrix by
+
+\begin{lstlisting}
+a=np.array([[11,7],[2,5],[8,9]])
+A=matrix(a)
+print A
+[ 11   7]
+[  2   5]
+[  8   9]
+\end{lstlisting}
+Or you can change a list into a matrix by
+\begin{lstlisting}
+B=matrix([[11,7],[2,5],[8,9]])
+print B
+[ 11   2   8]
+[  7   5   9]
+\end{lstlisting}
+
+Notice that creating a matrix with a Numpy array gives you the transpose of what it would be if you created it with a list.
+
+The follow code will solve the problem. Type it in and see what it prints out.
+\begin{lstlisting}
+>>> from cvxopt import matrix, solvers
+>>> c = matrix([-4., -5.])
+>>> G = matrix([[1., 2., -1., 0.],[2., 1., 0., -1.]])
+>>> h = matrix([ 3., 3., 0., 0.])
+>>> sol = solvers.lp(c,G,h)  
+>>> print sol['x']
+>>> print sol['primal objective']
+\end{lstlisting}
+Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information.
+All we really care about right now are the values of $x$ and the objective value.
+
+So \li{c} is what you are trying to minimize and corresponds to minimize $-4x_1-5x_2$. The columns of \li{G} with the corresponding entry is \li{h} make up the constraints. So the first column of \li{G} and the first entry of \li{h} is the constraint $x_1+2x_2 \leq 3$. The last column of \li{G} with the last entry of \li{h} is the constraint $x_2 \geq 0$. Note that $x_2 \geq 0$ is equivalent to $-x_2 \leq 0$, it is a good principle to get in mind, when you have an $\geq$ you can put it in to $G$ and $h$ after multiplying by $-1$. Also note that minimize $-4x_1-5x_2$ is the same as maximize $4x_1+5x_2$
+
+\begin{problem}
+
+Solve the following convex optimization problem
+\begin{align*}
+\text{minimize } &2x_1+x_2+3x_3 \\
+\text{subject to } &x_1+2x_2 \geq 3 \\
+	        &2x_1+x_2+3x_3 \geq 10 \\
+		&x_1 \geq 0 \\
+		&x_2 \geq 0 \\
+		&x_3 \geq 0
+\end{align*}
+\end{problem}
+
+\section*{Transportation}
 
 Consider the following transportation problem:
 A piano company needs to transport thirteen pianos from their three  supply centers (1,2, and 3) to two demand centers (4 and 5).
 Transporting a piano from a supply center to a demand center incurs a cost, listed in the table below.
-The company want to minimize shipping costs for the pianos.
+The company wants to minimize shipping costs for the pianos.
 How many pianos should each supply center send each demand center?
 
 \begin{table}[h]
@@ -72,39 +158,12 @@ The objective function is the number of pianos shipped from each location multip
 $4p + 7q + 6r + 8s + 8t + 9u$
 \end{center}
 
-We can solve this program using cvxopt, which uses the notation
+There a several ways to solve the linear program. Now note that you want all your answers to be integers, that turns out to be an NP-hard problem and there is a whole field devoted to that called integer linear programming which is beyond the scope of this lab. For this problem the linear programming solutions are equivalent. 
 
-\begin{lstlisting}[mathescape]
-min $c^Tx$
-subject to $Gx +s = h$
-	   $Ax    = b$
-	   $s     \geq 0$
-\end{lstlisting}
-
-Cvxopt also solves the dual problem
-
-\begin{lstlisting}[mathescape]
-min $-h^Tz - b^Ty$
-subject to $G^Tz +A^Ty + c = 0$
-	   $z     \geq 0$
-\end{lstlisting}
-
-All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt.
-Numpy arrays can be converted to matrix by
-
-\begin{lstlisting}
->>> a = numpy.array([[11,2],[2,5]])
->>> A = matrix(a)
-\end{lstlisting}
-
-There a several ways to solve the linear program. 
-
-\section*{Example}
 Here, $G$ and $h$ constrain the variables to be non-negative.
 The entries are negative because cvxopt uses the format $Gx \leq h$.
 $A$ and $b$ represent the supply and demand constraints.
-Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information.
-All we really care about right now are the values of $x$ and the objective value.
+
 
 \begin{lstlisting}
 >>> from cvxopt import matrix, solvers
@@ -129,14 +188,17 @@ All we really care about right now are the values of $x$ and the objective value
 >>> print sol['primal objective']
 \end{lstlisting}
 
-\textbf{Problem 1}
-
 Run the example.
-What happens?
+
+You will notice that the problem does not find an optimal solution. TODO why is that.
 
 We can fix the problem by including the supply demand constraints in the $G$ matrix.
-
+\begin{problem}
+Solve the problem by putting the supply and demand constraints in $G$ matrix similar to the first example problem. Return the optimal values for $x$ and the primal objective.
+\end{problem}
+\begin{comment}
 \section*{Example}
+
 Why are all of the terms in $G$ and $h$ non-positive?
 
 \begin{lstlisting}
@@ -208,46 +270,50 @@ Choose one of these methods and compare the optimal values for the integer linea
 \textbf{Problem 3}
 Create the dual problem for the linear program and solve. 
 Compare your answer to the dual value cvxopt returned. 
-
-\section*{Programmming}
+\end{comment}
+\section*{Quadratic Programmming}
 
 The quadratic programming setup is similar to the linear programming.
 However, it does not have to be constrained.
-$G, h, A$, and $b$ are optional
+Thus $G, h, A$, and $b$ are optional.
 
 \begin{lstlisting}[mathescape]
 minimize $\frac{1}{2}x^TQx + p^Tx$
 subject to $Gx\leq h$
-	$Ax = b$.
+	        $Ax = b$.
 \end{lstlisting}
 
-\section*{Example}
-Find the minimum of 
+Where $Q$ has to be a symmetric matrix.
+
+For example, find the minimum of 
 \begin{equation}
 f(x,y) = 2x^2 +2xy + y^2 +x -y
 \end{equation}
 \begin{lstlisting}
->>> Q = matrix([ [4., 2.], [2., 2.] ])
+>>> Q = matrix([[4., 2.], [2., 2.]])
 >>> p = matrix([1., -1.])
->>> G = matrix([[1., 0.], [0., -1.]])
->>> h = matrix([0.,0.])
->>> sol=solvers.qp(Q, p, G, h)
+>>> sol=solvers.qp(Q, p)
 >>> print(sol['x'])
 >>> print sol['primal objective']
 \end{lstlisting}
+Notice that you double the coefficients of the single variable squared terms ($2x^2$ becomes a 4 and $y^2$ becomes a 2  in the $Q$ matrix) and the coefficients of multivariate terms stay the same but are put twice in the matrix. ($2xy$ is the 2's in the upper right hand corner and the bottom left hand corner of $Q$).
 
-\textbf{Problem 4}
-Find the minimizer and minimum of 
+\begin{problem}
+Find the minimizer and minimum of
 \begin{equation}
-f(x) = \frac{1}{2}x^tQx - x^Tp
+g(x,y,z) = \frac{3}{2}x^2 +2xy + xz+ 2y^2 +2yz+\frac{3}{2}z^2+3x + z
+\end{equation}
+\begin{comment} 
+\begin{equation}
+f(x) = \frac{1}{2}x^TQx - x^Tp
 \end{equation}
 where 
 
 \begin{center}
 $Q =
 \begin{bmatrix}
-3 & 0 & 1\\
-0 & 4 & 2\\
+3 & 2 & 1\\
+2 & 4 & 2\\
 1 & 2 & 3\\
 \end{bmatrix}
 $
@@ -259,3 +325,58 @@ and $p =
 \end{bmatrix}
 $
 \end{center}
+\end{comment}
+\end{problem}
+\section*{Allocation Models}
+A simple form of a linear program is an allocation model. An allocation model is a model how to divide or allocate a valuable resource among competing needs. The following example is taken from "Optimization in Operations Research" by Ronald L. Rardin. %%pg 132
+
+The U.S. Forest service has used an allocation models to address the task of managing national forestland. Models of a forest begin by dividing land into analysis areas. Then several prescriptions or land management policies are then proposed and evaluated for each. The optimization seeks the best possible allocation of land in the analysis areas to particular prescriptions, subject to forest-wide restrictions on land use.
+
+ForestData.npy contains data for a fictional national forest that is also found in the table below. There are 7 areas of analysis and 3 prescriptions for each of them. The first column is the area of analysis denoted $i$. The second column is size of the analysis area (in thousands of acres) denoted as $s_i$. The third column is a prescription number denoted $j$. The forth column is net present value (NPV) per acre of all uses in area denoted as $p_{i,j}$. The fifth column is protected timber yield (in board feet per acre) denoted as $t_{i,j}$. The sixth column is protected grazing capability (in animal unit months per acre) denoted as $g_{i,j}$. The seventh and last column is the wilderness index rating (0 to 100) denoted as $w_{i,j}$. Let $x_{i,j}$ be area $i$ with prescription $j$.
+
+\begin{center}
+    \begin{tabular}{c c c c c c c}
+&&&Forest Data&&& \\
+\hline
+Analysis & Acres &Prescrip-&NPV,&Timber,&Grazing,&Wilderness \\ 
+Area,&(000)'s &tion&(per acre) &(per acre)&(per acre)& Index,\\
+$i$ &$s_i$&$j$& $p_{i,j}$ & $g_{i,j}$&$g_{i,j}$&$w_{i,j}$ \\\hline
+1&	75	&1	&503	&310	&0.01&	40\\
+&&		2&	140&	50&	0.04	&80\\
+&&		3&	203&	0&	0&	95\\ \hline
+2&	90&	1	&675&	198&	0.03&	55\\
+&&		2&	100&	46&	0.06&	60\\
+&&		3&	45&	0&	0&	65\\ \hline
+3&	140&	1	&630&	210	&0.04&	45\\
+&&		2&	105&	57&	0.07&	55\\
+&&		3&	40	&0&	0&	60\\ \hline
+4	&60&	1&	330&	112&	0.01&	30\\
+&&		2	&40&	30&	0.02&	35\\
+&&		3&	295&	0&	0	&90\\ \hline
+5	&212&	1	&105	&40	&0.05&	60\\
+&&		2	&460&	32	&0.08&	60\\
+&& 3	&120&0&	0	&70\\ \hline
+6	&98	&1	&490	&105	&0.02	&35\\
+&&		2&	55	&25	&0.03	&50\\
+&&		3	&180	&0	&0	&75\\ \hline
+7&	113&	1	&705	&213&	0.02	&40\\
+&&		2&	60	&40	&0.04&	45\\
+&&		3	&400	&0	&0	&95\\
+\hline
+    \end{tabular}
+\end{center}
+Our goal is to find the allocation that maximizes net present value, while producing 40 million board feet of timber, 5 thousand animal months of grazing, and keep the average wilderness index at least 70.
+
+Note that since acres are in thousands we also divide out 1000 from the constraints of timber and animals months of grazing. This can be written as 
+\begin{align*}
+\text{Maximize } &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 p_{i,j}x_{i,j} \\
+\text{subject to } &\sum\limits_{j=1}^3 x_{i,j} = s_i  \text{ for } i=1,..,7 \\
+	        &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 t_{i,j}x_{i,j} \geq 40,000 \\
+		&\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 g_{i,j}x_{i,j} \geq 5 \\
+		&\frac{1}{788} \sum\limits_{i=1}^7 \sum\limits_{j=1}^3 w_{i,j}x_{i,j} \geq 70 \\
+		&x_{i,j} \geq 0 \text{ for } i=1,...,7  \text{ and } j=1,2,3
+\end{align*}
+
+\begin{problem}
+Solve the above problem. Output the value of each $x_{i,j}$ and the maximum total net present value (return the primal objective multiplied by -1000).  
+\end{problem}
