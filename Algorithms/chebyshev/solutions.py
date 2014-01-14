@@ -34,6 +34,7 @@ def get_coefs(samples):
     cfs = ft.dct(samples, type=1)
     cfs /= (samples.size - 1)
     cfs[::cfs.size-1] /= 2
+    cfs[1::2] *= -1
     return cfs
 
 def cos_interp():
