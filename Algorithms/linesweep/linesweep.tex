@@ -1,7 +1,7 @@
-\lab{Algorithm}{Line Sweep}{Line Sweep}
+\lab{Algorithm}{Line Sweep and Voronoi Diagrams}{Line Sweep}
 \label{lab:Alg_Linesweep}
 
-\objective{Learn about and implement a basic line sweep algorithm}
+\objective{Learn about and implement a basic line sweep algorithm and Introduce Voronoid Diagrams and Delaunay Triangulations and discuss their applications}
 
 \section*{General Line Sweep Algorithms}
 
@@ -165,13 +165,256 @@ Notice that we only need to consider the points that lie in the box formed by th
 \caption{After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.}
 \end{figure}
 
-Since this version of the algorithm depends so heavily on array lookups, it will be much faster if it is implemented in Cython.
 
 \begin{problem}
-Implement the algorithm above in Cython. 
+Implement the algorithm above in Python. 
 Time it against the naive implementation at the beginning of this lab and against the simplified version you coded above.
 The new version should be faster, but speed depends heavily on how you have implemented it, so you may have some optimization left to do.
 Time how long it takes your new function to process ten million points in two dimensions. 
 Using benchmarks from the first implementation we gave you, estimate how long (in years) it would take that function to process that many points.
 How many times faster is the good implementation?
 \end{problem}
+
+Since this version of the algorithm depends so heavily on array lookups, it will be much faster if it is implemented in Cython.
+
+\section*{Voronoi Diagrams}
+
+In this section we will discuss some applications of Voronoi Diagrams, which are an application of the line sweep algorithm in that they are computed using the line sweep algorithm.
+In the abstract sense, a Voronoi diagram is a partition of a plane into regions that lie closest to different points.
+The easiest way to understand this is to look at some examples.
+Figure \ref{voronoi_ex_1} is a voronoi diagram generated from 100 random points with $x$ and $y$ values between 0 and 1.
+Notice how each point has a small  cell around it that is made up of the points that lie closest to it.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{voronoi_example_1.pdf}
+\caption{A Voronoi diagram of the square $[0,1]\times [0,1]$ for 100 randomly generated points.}
+\label{voronoi_ex_1}
+\end{figure}
+
+One possible way to compute this sort of diagram would be by brute force, for example:
+\begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+from matplotlib imort pyplot as plt
+num = 10
+res = 201
+pts = rand(num, 2)
+X = np.linspace(0, 1, res)
+Y = X.copy()
+X, Y = np.meshgrid(X, Y)
+Z = np.empty_like(X)
+indices = np.zeros_like(X)
+for i in xrange(res):
+    for j in xrange(res):
+        #note: we don't need to do the sqare root
+        #since we really just need to compare the distances
+        mn = (X[i,j] - pts[0,0])**2 + (Y[i,j] - pts[0,1])**2
+        for k in xrange(1,num):
+            dist = (X[i,j] - pts[k,0])**2 + (Y[i,j] - pts[k,1])**2
+            if dist < mn:
+                indices[i,j] = k
+                mn = dist
+plt.pcolormesh(X,Y,indices)
+plt.scatter(pts[:,0],pts[:,1])
+plt.xlim((0,1))
+plt.ylim((0,1))
+plt.show()
+\end{lstlisting}
+This algorithm is good because it can work regardless of the metric space we are using, but it is terribly slow.
+Figure \ref{voronoi_1norm} shows a similar diagram using the 1-norm and figure \ref{voronoi_supnorm} shows a diagram generated using the supremum norm.
+It is linear in the number of points added and linear in the number of pixels used to represent the diagram.
+This can be a terrible limitation, but if you are not working in a well behaved metric space, this may be the simplest approach.
+\begin{figure}
+\begin{minipage}[b]{0.45\linewidth}
+\centering
+\includegraphics[width=\textwidth]{voronoi_1norm.png}
+\caption{Voronoi diagram in the 1-norm}
+\label{voronoi_1norm}
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[b]{0.45\linewidth}
+\centering
+\includegraphics[width=\textwidth]{voronoi_supnorm.png}
+\caption{Voronoi diagram in the supremum norm}
+\label{voronoi_supnorm}
+\end{minipage}
+\end{figure}
+
+It is also possible to make voronoi diagrams based off of shapes and lines as well as points. 
+
+There are several data structures used in the field of computational geometry that can store the exact edges of diagrams like this.
+We would prefer to not have to worry about sampling the domain in this way.
+There are a variety of algorithms that can compute Voronoi diagrams in $\mathcal{O}\left( n \log\left(n\right)\right)$ time (where $n$ is the number of points).
+Fortune's algorithm is a linesweep algorithm that can do this.
+
+The Qhull library is commonly used to compute voronoi diagrams, and delaunay triangulations.
+SciPy includes a wrapper of the Qhull library in the \li{scipy.spatial} module.
+It currently only supports 2 dimensional voronoi diagrams under the Euclidean norm.
+It allows you to generate a voronoi diagram from a set of points, add points to a voronoi diagram, find the nearest point to any given point, and plot a voronoi diagram.
+
+A plot similar to the one we just generated can be made using SciPy like this:
+\begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+import scipy.spatial as st
+from matplotlib import pyplot as plt
+G = rand(100,2)
+G = st.Voronoi(G)
+st.voronoi_plot_2d(G)
+plt.xlim((0, 1))
+plt.ylim((0, 1))
+plt.show()
+\end{lstlisting}
+Notice how much clearer the plot is and how much faster it is generated.
+Try running the last bit of code for 1000 points.
+Though this is a little slower than it was for 10 points, this is a graph that would not display well if we had been using the brute force method.
+
+Table \ref{voronoi_attributes} shows the different attributes of the \li{Voronoi} object.
+For more details, see \url{http://docs.scipy.org/doc/scipy-dev/reference/spatial.html}
+\begin{table}[h!]
+\begin{center}
+	\begin{tabular}{|l|p{12cm}|}
+    \hline
+
+    \li{points} & coordinates of input points (centers of cells)\\
+
+    \li{vertices} & vertices of graph\\
+
+    \li{ridge_points} & indices of the input points between which each ridge on the diagram lies\\
+
+    \li{ridge_vertices} & indices of the vertices at the end of each ridge\\
+
+    \li{regions} & indices of the vertices corresponding to each voronoi cell\\
+
+    \li{point_region} & indices of the regions corresponding to each input point\\
+
+    \hline
+
+    \end{tabular}
+\end{center}
+\caption{Various summarizing functions}
+\label{voronoi_attributes}
+\end{table}
+
+Unfortunately, the \li{Voronoi} objects do not allow us to find out, given the coordinates of a new point, which of our original input points lies the closest to it.
+To do something like that we would need to use a different algorithm or data structure.
+One possible way of solving such a problem is to us a KD tree.
+KD trees will be discussed in further detail in Volume II.
+Scipy includes built in KD trees in both Python and C.
+The version in C is generally faster.
+You can make a KD tree like this
+\begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+import scipy.spatial as st
+A = rand(1000,2)
+kd = st.cKDTree(A)
+\end{lstlisting}
+In this case we used the \li{cKDTree} object.
+That is a KDTree implemented in C.
+\li{KDTree} is a Python-based version that is also included in scipy.
+To find the nearest neighbor of a point \li{pt} and how far away it is we can now use the following line of code:
+\begin{lstlisting}
+kd.query(pt)
+\end{lstlisting}
+Which returns as a tuple the distance of the given point to the nearest point in \li{A} and the index of that nearest neighbor in \li{A}. For exmaple, if you put in:
+\begin{lstlisting}
+kd.query(A[27])
+\end{lstlisting}
+It will return
+\begin{lstlisting}
+(0.0,27)
+\end{lstlisting}
+Since \li{A[27]} would be the nearest point at a distance of \li{0.0}.
+\section*{Applications of Voronoi Diagrams}
+
+Though the computation of a Voronoi Diagram does not provide a quick way to run nearest neighbor queries, there are still several applications for Voronoi Diagrams.
+The first, and probably most obvious, is the representation of data.
+If you want to look for visual patterns in data, a Voronoi Diagram can be very useful.
+One historically significant example was the containment of the London Cholera outbreak of 1854.
+The English Mathematician John Snow plotted where the cholera outbreaks had all happened and after some consideration, noticed that they were all relatively close to a certain water pump in that portion of the city.
+Upon noticing this, he plotted the voronoi cell of that particular water pump and proposed that the cholera outbreak was linked to contaminated water.
+He recommended that the pump handle be removed so that people would have to use other pumps in the city.
+Once the contaminated pump was shut down, the cholera outbreak was stopped.
+
+Voronoi diagrams can also be used to solve problems involving the points furthest from those already on the graph.
+Examples include determining where to drill next when searching for oil, or where to put a new branch of a major company.
+
+The file \li{edge_intersections.py} included with this lab includes a helper function, \li{edge_intersections}, that will be helpful for the rest of the lab.
+It takes a Voronoi diagram object as input as well as two tuples (xlims and ylims) representing the limits of a rectangle.
+It returns an array containing the intersections of the edges of the voronoi diagram with the boundaries of the rectangular region.
+It also returns two lists of pairs of indices.
+In the first list of indices, the first index in each pair corresponds to one of the vertices of the Voronoi diagram and the second index corresponds to one of the intersections found by this function.
+The second list of indices accounts for the case that no endpoint of an edge intersecting the region lies within the region.
+In the second list of indices, both indices of each pair correspond to intersections with the boundaries of the region.
+
+\begin{problem}
+\label{FurthestPoints}
+Write a function that, given a list of points, \li{pts}, and a rectangular region of the plain and an integer \li{n}, finds the \li{n} points in the region that lie farthest from all the points in \li{pts}. Do this by creating a list of 2-tuples with the first element as the distance to the nearest neighbor in \li{pts} (use the \li{query} function to find the distanes) and the second element of each tuple the canidate point. Add to your list of canidate tuples the veritices of the Voronoi diagram, the intersection of the edges given by the helper function, and the corners of the region. The library \li{heapq} has a nice function \li{nlargest(n,Q)} that will sort your list \li{Q} by the first element in your tuples and return sorted the largest \li{n} elements.
+\end{problem}
+
+Another possible application is navigation through a field of obstacles. Create a Voronoi diagram with each obstacle being a point. Convert it into a graph with each vertex in the Voronoi diagram being a node and the edges of the Voronoi diagram are the edges of a graph weighted with its distance. Using a shortest path algorithm you can find the shortest path between the two sides that would keep you as far from the obstacles as possible.
+
+\begin{comment}
+\begin{problem}
+Write a function that, given a list of points, forms the adjacency matrix corresponding to the connections between each node of the Voronoi diagram.
+If you are using the solution to Lab \ref{lab:MarkovGraph} (see below) for the second half of this problem, treat it as an unweighted, undirected graph.
+If you are using an implementation of Djikstra's algorithm, treat it as a weighted directed graph.
+Have this function take a threshold value to limit which ridges are included.
+Do not include a ridge in the adjacency matrix if the distance from the ridge to the center points of the Voronoi cells is less than the threshold.
+You can find this distance by measuring the distance between each pair of points referenced in the \li{ridge_points} attribute of the Voronoi object and then dividing by two.
+Note: the infinite ridges of the graph have $-1$ listed as one of the indices in the \li{ridge_vertices} attribute.
+Make sure you do not include these ridges.
+
+Use your solution to Lab \ref{lab:MarkovGraph} Problem \ref{maze_prob} to find a path from any given node to any other node.
+Write another function that plots the Voronoi diagram and the path between any two given nodes.
+
+Note: if you have a working implementation of Djikstra's algorithm, you may use it and use the graph weights corresponding to the distance between nodes instead.
+Using a modified version of Djikstra's Algorithm you could maximize the distance from any node to the path, but we won't ask you to do that here.
+A fuller solution of this problem would also account for the bounds of the region.
+That could be done with the helper function included with this lab.
+\end{problem}
+\end{comment}
+
+Another possible application of voronoi diagrams is in the estimation of total rainfall, size of ore deposits, or other similar problems.
+One simple way to do this is to take a weighted average of all known measurements where each measurement is given the weight corresponding to the size of its voronoi cell.
+
+\begin{comment}
+% This problem is cool, but it would probably make the lab too long
+% I'll leave it here in case we want to add it later
+
+\begin{problem}
+\label{AverageRainfall}
+Write a function that, given a square region and measurement values at different nodes, computes the weighted average of the measurements over the region.
+Weight each measurement according to the area of the voronoi cell of each node.
+
+Hint: You can find the area of each voroni cell by considering the triangles formed between its vertices and its center point. One way to compute the area of a triangle given the coordinates of its vertices is $A = \sqrt{s\left(s-a\right) \left(s-b\right) \left(s-c\right)}$ where $s = \frac{a+b+c}{2}$ and $a$, $b$, and $c$ are the lengths of the edges of the triangle.
+This is known as Herron's Formula.
+\end{problem}
+
+\end{comment}
+
+\section*{Delaunay Triangulation}
+
+A concept related to Voronoi diagrams is that of the Delaunay Triangulation.
+Delaunay Triangulations also have a wide variety of applications.
+One such application is the automatic division of a region into triangles for use in finite element analysis for the numerical solution of partial differential equations.
+In general, the delaunay triangulation divides the smallest convex region containing all the given points (the convex hull) into triangles that obey certain rules.
+
+You can make a Delaunay Triangulation from a list of points and plot it like this:
+\begin{lstlisting}
+A = rand(100, 2)
+D = st.Delaunay(A)
+plt.triplot(A[:,0] ,A[:,1], D.simplices)
+plt.show()
+\end{lstlisting}
+
+\begin{problem}
+Use a Delaunay triangulation to write a function that breaks up the unit square into right triangles.
+Have the only argument to your function be the number of nodes you want along each edge of the square.
+Plot your results.
+\end{problem}
+
+%other possible applications:
+%Use Delaunay Triangulation to tesselate a 3d surface.
+%Use tesselation to rerun ore/rainfall problem and compare results.
