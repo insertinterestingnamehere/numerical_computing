@@ -1,73 +1,41 @@
 import numpy as np
 
-def numDer(f, pts, mode='centered', d=1, o=2, h=1e-5):
-    '''
-    Approximate the derivative of a function at an array of points.
-    Inputs:
-        f -- a callable function whose derivative we will approximate
-        pts -- numpy array of points at which to approximate the derivative
-        mode -- specifies the type of difference scheme. Should take values in
-                ['centered', 'backward', 'forward'].
-        d -- the order of the derivative. Should take values in [1,2]
-        o -- order of approximation. If mode = 'centered', should take values
-             [2,4,6], otherwise should take values in [1,2,3]
-        h -- the size of the difference step
-    Returns:
-        app -- array the same shape as pts, giving the approximate derivative at 
-               each point in pts.
-    '''
-    # this implementation has the difference coefficients hard-coded in.
-    # it is fairly straight-forward, contains a bit of code duplication
-    # initialize an array that will hold the approximations
-    app = np.empty(pts.shape)
-    if mode == 'centered':
-        if d == 1:
-            if o == 2:
-                app[:] = (-.5*f(pts - h) + .5*f(pts + h))/h
-            if o == 4:
-                app[:] = (f(pts-2*h)/12 - 2*f(pts-h)/3 + 2*f(pts+h)/3 - f(pts+2*h)/12)/h
-            if o == 6:
-                app[:] = (-f(pts-3*h)/60 + 3*f(pts-2*h)/20 - 3*f(pts-h)/4 + 
-                          f(pts+3*h)/60 - 3*f(pts+2*h)/20 + 3*f(pts+h)/4)/h
-        if d == 2:
-            if o == 2:
-                app[:] = (f(pts - h) - 2*f(pts) + f(pts + h))/h**2
-            if o == 4:
-                app[:] = (-f(pts-2*h)/12 + 4*f(pts-h)/3 - 5*f(pts)/2 + 4*f(pts+h)/3 
-                          - f(pts+2*h)/12)/h**2
-            if o == 6:
-                app[:] = (f(pts-3*h)/90 - 3*f(pts-2*h)/20 + 3*f(pts-h)/2 - 49*f(pts)/18 + 
-                          f(pts+3*h)/90 - 3*f(pts+2*h)/20 + 3*f(pts+h)/2)/h**2
-    if mode == 'forward':
-        if d==1:
-            if o == 1:
-                app[:] = (-f(pts)+f(pts+h))/h
-            if o == 2:
-                app[:] = (-3*f(pts)/2 + 2*f(pts+h) - f(pts+2*h)/2)/h
-            if o == 3:
-                app[:] = (-11*f(pts)/6 + 3*f(pts+h) - 3*f(pts+2*h)/2 + f(pts+3*h)/3)/h
-        if d == 2:
-            if o == 1:
-                app[:] = (f(pts) - 2*f(pts+h) + f(pts+2*h))/h**2
-            if o == 2:
-                app[:] = (2*f(pts) - 5*f(pts+h) + 4*f(pts+2*h) - f(pts+3*h))/h**2
-            if o == 3:
-                app[:] = (35*f(pts)/12 - 26*f(pts+h)/3 + 19*f(pts+2*h)/2 - 
-                          14*f(pts+3*h)/3 + 11*f(pts+4*h)/12)/h**2
-    if mode == 'backward':
-        if d==1:
-            if o == 1:
-                app[:] = -(-f(pts)+f(pts-h))/h
-            if o == 2:
-                app[:] = -(-3*f(pts)/2 + 2*f(pts-h) - f(pts-2*h)/2)/h
-            if o == 3:
-                app[:] = -(-11*f(pts)/6 + 3*f(pts-h) - 3*f(pts-2*h)/2 + f(pts-3*h)/3)/h
-        if d == 2:
-            if o == 1:
-                app[:] = (f(pts) - 2*f(pts-h) + f(pts-2*h))/h**2
-            if o == 2:
-                app[:] = (2*f(pts) - 5*f(pts-h) + 4*f(pts-2*h) - f(pts-3*h))/h**2
-            if o == 3:
-                app[:] = (35*f(pts)/12 - 26*f(pts-h)/3 + 19*f(pts-2*h)/2 - 
-                          14*f(pts-3*h)/3 + 11*f(pts-4*h)/12)/h**2
-    return app
+def der(fc, x, h=.0001, degree=1, type='centered', accuracy=2):
+    """ Computes the numerical of the callable function 'fc at all the
+    points in array 'x'. 'degree' is the degree of the derivative to be
+    computed. 'type' can be 'centered', 'forward', or 'backward'.
+    'accuracy' is the desired order of accuracy. For forward and backward
+    differences it can take a value of 1, 2, or 3. For centered differences
+    it can take a value of 2, 4, or 6."""
+    # Use these lists to manage the different coefficient options.
+    A = np.array([[[0., 0., -.5, 0., .5, 0., 0.],
+                   [0., 1/12., -2/3., 0., 2/3., -1/12., 0.],
+                   [-1/60., 3/20., -3/4., 0., 3/4., -3/20., 1/60.]],
+                  [[0., 0., 1., -2., 1., 0., 0.],
+                   [0., -1/12., 4/3., -5/2., 4/3., -1/12., 0.],
+                   [1/90., -3/20., 3/2., -49/18., 3/2., -3/20., 1/90.]]])
+    B = np.array([[[-1., 1., 0., 0., 0.],
+                   [-1.5, 2., -.5, 0., 0.],
+                   [-11/6., 3., -1.5, 1/3., 0.]],
+                  [[1., -2., 1., 0., 0.],
+                   [2., -5., 4., -1., 0.],
+                   [35/12., -26/3., 19/2., -14/3., 11/12.]]])
+    if type == "centered":
+        acc = int(accuracy/2) - 1
+    else:
+        acc = int(accuracy) - 1
+    if int(degree) not in [1, 2]:
+        raise ValueError ("Only first and second derivatives are supported")
+    if acc not in [0, 1, 2]:
+        raise ValueError ("Invalid accuracy")
+    if type == 'centered':
+        xdifs = np.array([fc(x+i*h) for i in xrange(-3, 4)])
+        return np.inner(A[degree-1,acc], xdifs.T) / h**degree
+    elif type == 'forward':
+        xdifs = np.array([fc(x+i*h) for i in xrange(5)])
+        return np.inner(B[degree-1,acc], xdifs.T) / h**degree
+    elif type == 'backward':
+        xdifs = np.array([fc(x-i*h) for i in xrange(5)])
+        return np.inner(B[degree-1,acc], xdifs.T) / (-h)**degree
+    else:
+        raise ValueError ("invalid type")
