@@ -63,7 +63,7 @@ def jac(fc, x, ty="centered", ac=2, h=.0001):
     and the output of 'fc'."""
     return np.array([partial(fc, x, [i], h=h, ty=ty, ac=ac) for i in xrange(x.size)]).T
 
-# Problem 1.
+# Newton's method for an array of points.
 def newton(G, f, f1=None, maxiters=100, tol=1E-8, h=1E-7):
     """ Perform Newton's method for function 'f' at the points
     in the array 'G'.
@@ -93,7 +93,7 @@ def newton(G, f, f1=None, maxiters=100, tol=1E-8, h=1E-7):
             A[index] = value
     return A, C
 
-# Problem 3
+# Multi-dimensional Newton's method
 def multinewton(v, f, jacobian=None, maxiters=5, tol=1E-5, h=1E-7):
     """ Performs Newton's method in multiple dimensions.
     'v' is the starting vector.
@@ -120,7 +120,7 @@ def multinewton(v, f, jacobian=None, maxiters=5, tol=1E-5, h=1E-7):
             break
     return arr, convergence
 
-# Problem 4
+# Julia set problem.
 def polyjulia(p, xmin, xmax, ymin, ymax, res=401, iters=100, tol=1E-12):
     """ Plot the Julia set of a polynomial.
     Use a 'res'x'res' grid of complex numbers with real part
@@ -146,7 +146,7 @@ def polyjulia(p, xmin, xmax, ymin, ymax, res=401, iters=100, tol=1E-12):
     plt.pcolormesh(X, Y, np.absolute(Z), cmap=plt.get_cmap('winter'))
     plt.show()
 
-# Examples from problem 4.
+# Examples from Julia set problem.
 def polyplot():
     """ Plot the examples in the lab."""
     for coefs, xmin, xmax, ymin, ymax in [
@@ -156,7 +156,7 @@ def polyplot():
             ([1, 0, 0, -1], -1, 1, -1, 1)]:
         polyjulia(np.poly1d(coefs), xmin, xmax, ymin, ymax)
 
-# Problem 5.
+# Mandelbrot set problem.
 def mandelbrot(xmin=-1.5, xmax=.5, ymin=-1, ymax=1, guess=complex(0,0), res=401, iters=200):
     """ Plot the Mandelbrot set."""
     x = np.linspace(xmin, xmax, res)
