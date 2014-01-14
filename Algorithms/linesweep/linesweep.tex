@@ -179,7 +179,8 @@ Since this version of the algorithm depends so heavily on array lookups, it will
 
 \section*{Voronoi Diagrams}
 
-In this section we will discuss some applications of Voronoi Diagrams, which are an application of the line sweep algorithm in that they are computed using the line sweep algorithm.
+In this section we will discuss some applications of Voronoi Diagrams.
+They are an application of the line sweep algorithm in that they can be computed using a line sweep algorithm called Fortune's Algorithm.
 In the abstract sense, a Voronoi diagram is a partition of a plane into regions that lie closest to different points.
 The easiest way to understand this is to look at some examples.
 Figure \ref{voronoi_ex_1} is a voronoi diagram generated from 100 random points with $x$ and $y$ values between 0 and 1.
@@ -299,7 +300,7 @@ For more details, see \url{http://docs.scipy.org/doc/scipy-dev/reference/spatial
 Unfortunately, the \li{Voronoi} objects do not allow us to find out, given the coordinates of a new point, which of our original input points lies the closest to it.
 To do something like that we would need to use a different algorithm or data structure.
 One possible way of solving such a problem is to us a KD tree.
-KD trees will be discussed in further detail in Volume II.
+KD trees are discussed in further detail in Volume II.
 Scipy includes built in KD trees in both Python and C.
 The version in C is generally faster.
 You can make a KD tree like this
@@ -317,7 +318,8 @@ To find the nearest neighbor of a point \li{pt} and how far away it is we can no
 \begin{lstlisting}
 kd.query(pt)
 \end{lstlisting}
-Which returns as a tuple the distance of the given point to the nearest point in \li{A} and the index of that nearest neighbor in \li{A}. For exmaple, if you put in:
+This returns a tuple containing the distance of the given point to the nearest point in \li{A} and the index of that nearest neighbor in \li{A}.
+For exmaple, if you put in:
 \begin{lstlisting}
 kd.query(A[27])
 \end{lstlisting}
@@ -340,7 +342,7 @@ Once the contaminated pump was shut down, the cholera outbreak was stopped.
 Voronoi diagrams can also be used to solve problems involving the points furthest from those already on the graph.
 Examples include determining where to drill next when searching for oil, or where to put a new branch of a major company.
 
-The file \li{edge_intersections.py} included with this lab includes a helper function, \li{edge_intersections}, that will be helpful for the rest of the lab.
+The file \li{edge_intersections.py} included with this lab contains a helper function, \li{edge_intersections}, that will be helpful for the rest of the lab.
 It takes a Voronoi diagram object as input as well as two tuples (xlims and ylims) representing the limits of a rectangle.
 It returns an array containing the intersections of the edges of the voronoi diagram with the boundaries of the rectangular region.
 It also returns two lists of pairs of indices.
@@ -350,27 +352,28 @@ In the second list of indices, both indices of each pair correspond to intersect
 
 \begin{problem}
 \label{FurthestPoints}
-Write a function that, given a list of points, \li{pts}, and a rectangular region of the plain and an integer \li{n}, finds the \li{n} points in the region that lie farthest from all the points in \li{pts}. Do this by creating a list of 2-tuples with the first element as the distance to the nearest neighbor in \li{pts} (use the \li{query} function to find the distanes) and the second element of each tuple the canidate point. Add to your list of canidate tuples the veritices of the Voronoi diagram, the intersection of the edges given by the helper function, and the corners of the region. The library \li{heapq} has a nice function \li{nlargest(n,Q)} that will sort your list \li{Q} by the first element in your tuples and return sorted the largest \li{n} elements.
+Write a function that, given a list of points, \li{pts}, and a rectangular region of the plain and an integer \li{n}, finds the \li{n} points in the region that lie farthest from all the points in \li{pts}.
+Do this by creating a list of tuples with the first element as the distance to the nearest neighbor in \li{pts} and the second element of each tuple the canidate point.
+You should use a KD tree to compute the distance to the nearest neighbor.
+Add to your list of canidate tuples the veritices of the Voronoi diagram, the intersection of the edges given by the helper function, and the corners of the region.
+The library \li{heapq} has a nice function \li{nlargest(n,Q)} that will sort your list \li{Q} by the first element in your tuples and return sorted the largest \li{n} elements.
 \end{problem}
 
-Another possible application is navigation through a field of obstacles. Create a Voronoi diagram with each obstacle being a point. Convert it into a graph with each vertex in the Voronoi diagram being a node and the edges of the Voronoi diagram are the edges of a graph weighted with its distance. Using a shortest path algorithm you can find the shortest path between the two sides that would keep you as far from the obstacles as possible.
+Another possible application is navigation through a field of obstacles.
+This can be done by creating a Voronoi diagram where each obstacle is represented as a point.
+This diagram can then be represented as a graph where the vertices of the Voronoi diagram are considered to be the nodes.
+Using a shortest path algorithm you can find the shortest path between the two sides that would keep you as far from the obstacles as possible.
 
 \begin{comment}
 \begin{problem}
-Write a function that, given a list of points, forms the adjacency matrix corresponding to the connections between each node of the Voronoi diagram.
-If you are using the solution to Lab \ref{lab:MarkovGraph} (see below) for the second half of this problem, treat it as an unweighted, undirected graph.
-If you are using an implementation of Djikstra's algorithm, treat it as a weighted directed graph.
+Given a voronoi diagram object, write a function that uses NetworkX to find the shortest path along the edges diagram between any two given vertices.
 Have this function take a threshold value to limit which ridges are included.
 Do not include a ridge in the adjacency matrix if the distance from the ridge to the center points of the Voronoi cells is less than the threshold.
 You can find this distance by measuring the distance between each pair of points referenced in the \li{ridge_points} attribute of the Voronoi object and then dividing by two.
 Note: the infinite ridges of the graph have $-1$ listed as one of the indices in the \li{ridge_vertices} attribute.
 Make sure you do not include these ridges.
 
-Use your solution to Lab \ref{lab:MarkovGraph} Problem \ref{maze_prob} to find a path from any given node to any other node.
-Write another function that plots the Voronoi diagram and the path between any two given nodes.
-
-Note: if you have a working implementation of Djikstra's algorithm, you may use it and use the graph weights corresponding to the distance between nodes instead.
-Using a modified version of Djikstra's Algorithm you could maximize the distance from any node to the path, but we won't ask you to do that here.
+Depending on what is needed from the algorithm, you could modify the weights of the graph to give preference to edges that pass farther from the obstacles.
 A fuller solution of this problem would also account for the bounds of the region.
 That could be done with the helper function included with this lab.
 \end{problem}
