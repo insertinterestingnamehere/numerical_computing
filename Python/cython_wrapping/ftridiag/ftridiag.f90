@@ -26,7 +26,7 @@ subroutine ftridiag(a, b, c, x, n) bind(c)
 !   Two temporary varaibles.
 !   'm' is a temporary value.
 !   'i' is the index for the loops.
-    real(c_double) :: m
+    real(c_double) m
     integer i
     
 !   Here is the actual computation:
