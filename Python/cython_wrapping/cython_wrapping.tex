@@ -177,11 +177,20 @@ Aside from the small changes in the names used, the modified header file, and th
 The test script that verifies that the function works properly is the same except that it will import the function from the moule \li{cython_ftridiag} instead.
 The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab but will not be displayed here.
 
-When working with higher dimensional arrays Fortran does have the unusual feature that columns are stored in contiguous blocks of memory.
-The default for NumPy and for C arrays is to have rows stored in contiguous blocks.
-This means that, when interfacing with Fortran code that is meant to act on arrays with multiple dimensions, you must be very careful about what is a row and what is a column.
+\begin{warn}
+When working with higher dimensional arrays Fortran differs from C in that the columns are stored in contiguous blocks of memory instead of the rows.
+The default for NumPy and for C arrays is to have rows stored in contiguous blocks, but this varies, depending on what computation has already been done with the NumPy array.
+This means that, whenever you need to interface with Fortran code that is meant to act on arrays with multiple dimensions, you \emph{must} be very careful about what is a row and what is a column.
 When you pass a Fortran subroutine a pointer to an array it will, by default, assume that the entries of the array are arranged in Fortran order.
-Many Fortran routines have options that allow you to specify wether to act on an array or its transpose, but you should be very careful about this.
+Many Fortran routines have options that allow you to specify wether to act on an array or its transpose, but you should still be very careful about this.
+\end{warn}
+
+\begin{info}
+It may seem unusual that we have already provided a Fortran function that has been modified so that it is callable from C.
+Though this is not pure Fortran, it is not necessarily an uncommon scenario.
+Many larger Fortran libraries (for example, LAPACK) provide C wrappers for all their functions.
+When wrapping a Fortran library, a C wrapper may already be available for use.
+\end{info}
 
 Here is a file for the next problem:
 \lstinputlisting[style=fromfile, language=Fortran, name=fssor.f90]{./fssor/fssor.f90}
