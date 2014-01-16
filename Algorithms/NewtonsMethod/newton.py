@@ -140,10 +140,11 @@ def polyjulia(p, xmin, xmax, ymin, ymax, res=401, iters=100, tol=1E-12):
     p2 = p.deriv()
     for i in xrange(500):
         Z -= p(Z) / p2(Z)
+    colors = np.zeros_like(Z)
     for index, root in np.ndenumerate(p.roots):
-        Z[np.absolute(Z-root)<tol] = index
-    Z[np.isnan(Z)] = p.roots.size
-    plt.pcolormesh(X, Y, np.absolute(Z), cmap=plt.get_cmap('winter'))
+        colors[np.absolute(Z-root)<tol] = index
+    colors[np.isnan(Z)] = p.roots.size
+    plt.pcolormesh(X, Y, colors, cmap=plt.get_cmap('winter'))
     plt.show()
 
 # Examples from Julia set problem.
