@@ -119,7 +119,8 @@ cdef class PyPermutation:
         # Here we raise an error if it is not None since we have not
         # defined modular arithmetic for permutation objects.
         if z is not None:
-            raise NotImplementedError("modular arithmetic with permutations is not defined")
+            return NotImplemented
+            
         # As we did in the multiplication method,
         # we construct an empty PyPermutation object.
         cdef PyPermutation result = PyPermutation()
