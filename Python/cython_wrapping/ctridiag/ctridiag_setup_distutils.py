@@ -10,7 +10,7 @@ from numpy import get_include
 from os import system
 
 # Compile the .o file we will be accessing.
-# this is independent of the process to build
+# This is independent of the process to build
 # the Python extension module.
 system("gcc ctridiag.c -c -o ctridiag.o")
 

@@ -1,32 +1,20 @@
-module tridiag
-
-use iso_c_binding, only: c_double, c_int
-
-implicit none
-
-contains
-
-! The expression bind(c) tells the compiler to
-! make the naming convention in the object file
-! match the naming convention here.
 ! This will be a subroutine since it does not
 ! return any values.
-subroutine ftridiag(a, b, c, x, n) bind(c)
+subroutine ftridiag(a, b, c, x, n)
     
 !   Here we declare the types for the inputs.
-!   Thisis where we use the c_double and c_int types.
 !   The 'dimension' statement tells the compiler that
 !   the argument is an array of the given shape.
-    integer(c_int), intent(in) :: n
-    real(c_double),dimension(n),intent(in) :: b
-    real(c_double),dimension(n),intent(inout) :: x
-    real(c_double),dimension(n-1),intent(in) :: a
-    real(c_double),dimension(n-1),intent(inout) :: c
+    integer, intent(in) :: n
+    double precision,dimension(n),intent(in) :: b
+    double precision,dimension(n),intent(inout) :: x
+    double precision,dimension(n-1),intent(in) :: a
+    double precision,dimension(n-1),intent(inout) :: c
     
 !   Two temporary varaibles.
 !   'm' is a temporary value.
 !   'i' is the index for the loops.
-    real(c_double) m
+    double precision m
     integer i
     
 !   Here is the actual computation:
@@ -50,5 +38,3 @@ subroutine ftridiag(a, b, c, x, n) bind(c)
     enddo
 !   You must also explicitly end the function or subroutine.
 end subroutine ftridiag
-
-end module
