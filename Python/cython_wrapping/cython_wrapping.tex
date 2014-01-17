@@ -199,17 +199,17 @@ The Fortran subroutine \li{fssor} included with this lab uses a technique called
 It solves the same problem as problem involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
 It takes the following inputs:
 \begin{itemize}
-\item \li{U} is expected to be a pointer to a Fortran ordered array of double precision numbers.
-\item \li{m} is a pointer to an integer storing the number of rows of \li{U}.
-\item \li{n} is a pointer to an integer storing the number of columns of \li{U}.
-\item \li{omega} is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
+\item $U$ is expected to be a pointer to a Fortran ordered array of double precision numbers.
+\item $m$ is a pointer to an integer storing the number of rows of $U$.
+\item $n$ is a pointer to an integer storing the number of columns of $U$.
+\item $\omega$ is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
 The closer this value is to $2$, the faster the algorithm will converge, but if it is too close the algorithm may not converge at all.
-For this lab just use 1.9.
-\item \li{tol} is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
-\item \li{maxiters} is a pointer to an integer storing the maximum allowable number of iterations.
-\item \li{info} is a pointer to an integer.
-This subroutine will set \li{info} to $0$ if it converged to a solution within the given tolerance.
-It will set \li{info} to $1$ if it did not.
+For this lab just use $1.9$.
+\item tol is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
+\item maxiters is a pointer to an integer storing the maximum allowable number of iterations.
+\item info is a pointer to an integer.
+This subroutine will set info to $0$ if it converged to a solution within the given tolerance.
+It will set info to $1$ if it did not.
 \end{itemize}
 
 Write a corresponding C header \li{fssor.h}, Cython wrapper \li{cython_fssor.pyx}, and Cython setup file (using distutils) \li{fssor_setup_distutils.py} to wrap this subroutine for use in Python.
@@ -218,9 +218,9 @@ Call the wrapper function in your Cython file \li{cyssor}.
 Fortran works with Fortran ordered arrays, but this algorithm does not need any particular orientation of axes.
 Have your Cython wrapper swap the length of the axes when calling \li{fssor} if the array is C ordered.
 If it is Fortran ordered, pass the lengths as they are.
-Have the wrapper raise an error if the array \li{U} is neither Fortran ordered nor C ordered.
-Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets \li{info} to 1).
-Use keyword arguments to pass \li{fssor} a default tolerance of \li{1e-8} and a default maximum number of iterations of \li{10000}.
+Have the wrapper raise an error if the array $U$ is neither Fortran ordered nor C ordered.
+Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets info to 1).
+Use keyword arguments to pass \li{fssor} a default tolerance of $10e^{-9}$ and a default maximum number of iterations to 10000.
 
 Here is how you should be able to call this function:
 \begin{lstlisting}
@@ -234,7 +234,7 @@ U[-1] = - U[0]
 cyssor(U, 1.9)
 \end{lstlisting}
 
-Generate a 3D plot of \li{U} after it has been modified by the function \li{cyssor}.
+Generate a 3D plot of $U$ after it has been modified by the function \li{cyssor}.
 Use equally spaced points between 0 and 1 as your $x$ and $y$ values.
 \end{problem}
 
@@ -242,15 +242,15 @@ Here is some code for the next problem.
 \lstinputlisting[style=fromfile, language=C, name=cssor.c]{./cssor/cssor.c}
 \begin{problem}
 (Optional)
-The above C code is another implementation of the Successive Over Relaxation algorithm for solving Laplace's Equation.
+The above C code is another implementation of the Successive Over Relaxation algorithm for solving Laplace's equation.
 Wrap it so that it is callable from Python as well.
 Produce the same plot as in the previous problem using the C version of this algorithm.
-Notice that the integer \li{info} is still passed as a pointer because the function needs to be able to modify it.
+Notice that info is still passed as a pointer because the function needs to be able to modify it.
 \end{problem}
 
 \section*{Interfacing with C++}
 Cython can also be used to wrap C++ functions and classes.
-Cython can compile entire modules to C++ instead of C if we specify C++ as the language in the setup file.
+It can compile entire modules to C++ instead of C if we specify C++ as the language in the setup file.
 Here we will focus primarily on wrapping C++ classes since wrapping a C++ function is roughly the same as wrapping a function from C or Fortran.
 Cython also supports wrapping templated classes and functions.
 Many other C++ features like operator overloading and the \li{new} and \li{del} operators are also supported when using C++.
@@ -268,7 +268,7 @@ The other two classes are used in the construction of the \li{Permutation} class
 Because the Permutation class depends on the \li{Node} and \li{Cycle} classes, they must all be compiled together.
 Here is the \li{setup.py} to set up the wrapper for the \li{Permutation} class.
 
-\lstinputlisting[style=fromfile, language=C++, name=pypermutation_setup.py]{./permutations/pypermutation_setup.py}
+\lstinputlisting[style=fromfile, language=Python, name=pypermutation_setup.py]{./permutations/pypermutation_setup.py}
 
 \begin{warn}
 When wrapping C++ classes, templates, etc. you should always make sure that you specify the language as C++ as we have shown in this setup file.
@@ -304,9 +304,9 @@ Uncomment the declarations and add in the code necessary so that these methods a
 These functions are declared in the header \li{Permutation.hpp}, but they are not declared in the declaration file \li{Permutation.pxd}.
 Add the proper declarations to the declaration file.
 
-Note: the argument \li{z} that is included in the power function for the Permutation class is a mandatory argument for the exponentiation operator in Cython.
+Note: the argument $z$ that is included in the power function for the Permutation class is a mandatory argument for the exponentiation operator in Cython.
 It tells the computer to compute the power of a number mod another number.
-In this case, raise an error if \li{z} is not \li{None}.
+In this case, raise an error if $z$ is not \li{None}.
 
 Look at the \li{__mul__} method for an example of how to construct and return a new PyPermutation object.
 Keep in mind that the \li{power} method of the \li{Permutation} class in C++ returns a pointer to a new \li{Permutation} object.
