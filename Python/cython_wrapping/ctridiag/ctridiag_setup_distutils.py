@@ -12,7 +12,9 @@ from os import system
 # Compile the .o file we will be accessing.
 # This is independent of the process to build
 # the Python extension module.
-system("gcc ctridiag.c -c -o ctridiag.o")
+shared_obj = "gcc ctridiag.c -fPIC -c -o ctridiag.o"
+print shared_obj
+system(shared_obj)
 
 # Tell Python how to compile the extension.
 ext_modules = [Extension(
@@ -24,7 +26,7 @@ ext_modules = [Extension(
                          # This flag doesn't do much
                          # this time, but this is
                          # where it would go.
-                         extra_compile_args=["-O3"],
+                         extra_compile_args=["-fPIC", "-O3"],
                          # Extra files to link to:
                          extra_link_args=["ctridiag.o"])]
 
