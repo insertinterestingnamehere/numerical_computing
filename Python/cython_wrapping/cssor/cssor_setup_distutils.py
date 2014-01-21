@@ -12,7 +12,9 @@ from os import system
 # Compile the .o file we will be accessing.
 # this is independent of the process to build
 # the Python extension module.
-system("gcc cssor.c -c -o cssor.o")
+shared_obj = "gcc cssor.c -fPIC -c -o cssor.o"
+print shared_obj
+system(shared_obj)
 
 # Tell Python how to compile the extension.
 ext_modules = [Extension(
@@ -24,7 +26,7 @@ ext_modules = [Extension(
                          # This flag doesn't do much
                          # this time, but this is
                          # where it would go.
-                         extra_compile_args=["-O3"],
+                         extra_compile_args=["-fPIC", "-O3"],
                          # Extra files to link to:
                          extra_link_args=["cssor.o"])]
 

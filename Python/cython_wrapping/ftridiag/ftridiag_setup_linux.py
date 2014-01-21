@@ -25,7 +25,6 @@ o = " ftridiag.o"
 # Make a string of all these flags together.
 # Add another flag that tells the compiler to make
 # position independent code.
-# This isn't necessary on Windows.
 flags = ic + npy + o + " -fPIC"
 
 # Build the object file from the Fortran source code.

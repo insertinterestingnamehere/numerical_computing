@@ -9,7 +9,7 @@ from os import system
 # Compile the .o files we will be accessing.
 # This is independent of the process to build
 # the Python extension module.
-system("g++ -c Permutation.cpp Cycle.cpp Node.cpp")
+system("g++ -fPIC -c Permutation.cpp Cycle.cpp Node.cpp")
 
 # Tell Python how to compile the extension.
 # Notice that we specify the language as C++ this time.
@@ -20,6 +20,7 @@ ext_modules = [Extension(
                         sources=["pypermutation.pyx", "Permutation.pxd"],
                         # Language:
                         language="c++",
+                        extra_compile_args=["-fPIC", "-O2"],
                         # Other files needed for linking:
                         extra_link_args=["Permutation.o","Cycle.o","Node.o"])]
 
