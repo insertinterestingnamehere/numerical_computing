@@ -3,7 +3,7 @@ from numpy cimport ndarray as ar
 cdef extern from "fssor.h":
     void fssor(double* U, int* m, int* n, double* omega, double* tol, int* maxiters, int* info)
 
-def cyssor(ar[double,ndim=2] U, double omega, double tol=1E-8, int maxiters=10000):
+def cyssor(ar[double,ndim=2] U, double omega, double tol=1e-8, int maxiters=10000):
     cdef int m=U.shape[0], n=U.shape[1], info
     if U.flags["F_CONTIGUOUS"]:
         # If U is Fortran contiguous, call it exactly as it is written.
@@ -18,4 +18,4 @@ def cyssor(ar[double,ndim=2] U, double omega, double tol=1E-8, int maxiters=1000
         raise ValueError("Array must be either C or Fortran contiguous")
     if info:
         # Raise this error if it failed to converge.
-        raise ValueError("Failed to converge within given tolerance")
+        raise ValueError("Failed to converge with {} iterations and tolerance {}".format(maxiters, tol))

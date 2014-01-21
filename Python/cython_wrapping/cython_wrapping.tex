@@ -1,48 +1,55 @@
+\newcommand{\of}{\texttt{.o}~}
+
 \lab{Python}{Interfacing With Other Programming Languages Using Cython}{Interfacing With Other Programming Languages Using Cython}
 \label{lab:cythonwrap}
 
-\objective{Learn to interface with object files using Cython.}
+\objective{Learn to interface with object files using Cython. This lab should be worked through on a machine that has already been configured to build Cython extensions using gcc or MinGW.}
 
-This lab should work on a machine that has already been configured to build Cython extensions using gcc or MinGW.
 
 There are several ways to interface with other languages from Python.
-Python, since it is such a high-level language, for performance reasons, often needs to call code written in C or Fortran.
-There is also an easy built in interface for R, which is a language that is used mostly for statistics.
-Writing an interface for functions or objects that have been written in one language so that they are accessible in another language is called wrapping.
+Calling code written in C or Fortran is often done for performance reasons.
+There is also an easy built in interface for R, which is a statistical computing language.
+Writing an interface for functions or objects that have been written in one language so that they are accessible in another language is called \emph{wrapping}.  For example, many of the linear algebra functions in NumPy wrap the corresponding function in LAPACK or BLAS.
+This allows us to gain the speed of these very optimized libraries but use them in a nice, Pythonic way.
 
 In this lab we will focus primarily on how Python can interact with C, C++, and Fortran.
 Python can interface with these languages in a variety of ways.
-There is a built in library, ctypes, that allows you to interface with object files compiled by other languages.
+There is a built-in library, ctypes, that allows you to interface with object files compiled from other languages.
 There are also many other methods for interfacing with compiled languages like C, C++, and Fortran.
 A particularly convenient way to do this is with Cython.
-Since Cython already compiles as a C file, we can essentially use it to call C functions from a C program.
-This involves the use of object files.
+Since Cython already compiles as a C file, we can essentially use it to call functions from a C program.
+This is done through the use of object files.
 
 % Describe .o files and dll's
 % This is mainly just to help them know what is going on.
 \section*{Object Files and DLL's}
-
 For C, C++, and Fortran, the desired functions or classes are compiled into an object file containing instructions in assembly that can be used by compilers of a variety of languages.
-Object files use the \li{.o} extension.
-Object files that can be used and modified by multiple programs are called "shared objects" and use the \li{.so} extension.
-When C code has been compiled with the proper headers, etc. to interface with Python, it uses the \li{.pyd} extension on Windows and the \li{.so} extension on Unix-based operating systems.
+Object files typically use the \of extension.
+An object file that can be used and modified by multiple programs is called a \emph{shared object} and generally use the \texttt{.so} extension.
+When C code has been compiled with the proper headers, etc. to interface with Python, it uses the \texttt{.pyd} extension on Windows and the \texttt{.so} extension on Unix-based operating systems.
 The two extensions are essentially the same, except that Python object files are distinguished from shared object files on Windows.
 When you compile anything that uses functions from object files, you must tell your compiler to link to the contents of the object file.
-Otherwise it will not be able to find any of the needed functions, etc.
-The part of the compiler that forms these links between the code is called the linker.
+Otherwise it will not be able to find any of the needed functions.
+The part of the compiler that forms these links between the code is called the \emph{linker}.
 If you do not give your compiler proper instructions for linking, it will raise a linking error.
 The compiler must also be able to find the necessary header files for compiling the source code.
 This can be done by including the proper directories in the system path or by passing the paths to the proper directories as arguments to the compiler at compile time.
 
-DLL's are object files that are loaded by the operating system instead of by the compiler.
-They are libraries of functions much like .o files, but are loaded by the operating system.
+Object files can statically linked or dynamically linked.
+When statically linked, the entire object file becomes part of the final program.
+Dynamic linking, on the other hand, is just a reference to the object file.
+At runtime, the operating system will take care of loading any needed dynamically linked libraries.
+The dynamically linked programs depend on the presence of the appropriate object files on the target system in order to work.
+Since the statically linked libraries are part of the program itself, there is no need to load any libraries
 
-In our instructions here we will use the compiler gcc to demonstrate how Python can be made to interface with other languages.
+In our instructions here we will use the GNU C Compiler (gcc) to demonstrate how Python can be made to interface with other languages.
 Other compilers can be used, but, particularly on Windows based computers, a significant amount of configuration may be needed to get everything to work properly.
 Python's distutils package is designed to avoid some of the difficulty that comes when interfacing with interfacing with different compilers, and we will show some very basic examples of how it is used here.
 The simplest way to learn to interface with other languages is to work through simple examples.
+\begin{info}
 The examples in this lab are intended to provide simple templates that you can use later to wrap C and Fortran functions.
 It will be good to read through and think about how each file works, but it will not be critical for you to understand every detail of how this works at this point.
+\end{info}
 
 \begin{warn}
 When passing arrays as pointers to C, C++, and Fortran functions, you must be \emph{absolutely sure} that the array you are passing to the function is contiguous.
@@ -51,11 +58,10 @@ Passing one of these functions a strided array will result in out of bounds memo
 When working with two dimensional arrays, C and C++ expect rows to be stored in contiguous blocks of memory.
 Fortran expects columns to be stored in contiguous blocks of memory.
 
-You will also have to pass the size of the array as a separate parameter to avoid out of bounds memory accesses.
+You will also need to pass the size of the array as a separate parameter to avoid out of bounds memory accesses.
 \end{warn}
 
 \section*{Wrapping a C Function}
-
 Consider the following C function to compute the solution to a tridiagonal system.
 it works by taking pointers to four arrays.
 Array \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
@@ -67,32 +73,28 @@ Array \li{b} and \li{x} have length \li{n} and represent the main diagonal of th
 
 This file can be compiled to a \li{.o} file so that this function can be called by other programs by running the following command in a terminal:
 \begin{lstlisting}[style=ShellInput]
-gcc -c ctridiag.c -o ctridiag.o
+gcc -fPIC -c ctridiag.c -o ctridiag.o
 \end{lstlisting}
-This calls the C-compiler gcc and tells it to compile the file \li{ctridiag.c} to an object file \li{ctridiag.o}.
-The \li{-c} flag tells it to compile to an object file without linking as opposed to compiling to some sort of executable.
+This calls the C-compiler gcc and tells it to compile the file \texttt{ctridiag.c} to an object file \texttt{ctridiag.o}.
+The \texttt{-c} flag tells it to compile to an object file without linking as opposed to compiling to some sort of executable.
 Those that are familiar with C may have noticed that we did not include a \li{main} function in our C file.
-The \li{-c} flag is what prevents this from causing errors with the compiler.
+The \texttt{-c} flag is what prevents this from causing errors with the compiler.
+The \texttt{-fPIC} option is required when building code for a shared object.
 
-Once we have run this command the file has been compiled to a \li{.o} file, but it still is not accessible in Python.
-Python, though it relies on C internally, needs some special interfaces to interact with \li{.o} files like this.
+Once we have run this command the file has been compiled to a \of file, but it still is not accessible in Python.
+Python, though it relies on C internally, needs some special interfaces to interact with \of files like this.
 A general approach for accessing these external functions from Python is to define in some way what inputs each function takes.
 We will show how this is done with Cython.
 Since a Cython file compiles to a C file which is then compiled to a callable extension for Python, it can be used to interface with C code and other object files.
 We will use the following approach:
-\begin{itemize}
-
-\item Write a C header that specifies what the function is named and how it is called
-
+\begin{enumerate}
+\item Write a C header that specifies what the function is named and how it is called.
 \item Write a Cython file that imports the header to its C file and defines a Python wrapper for C function to import.
-
 \item Compile the Cython file to C code.
-
 \item Compile the Cython file to a Python extension, giving it access to the the object file we are accessing and giving the compiler access to the proper header files.
+\end{enumerate}
 
-\end{itemize}
-
-An approach similar to this will work for some other types of \li{.o} files compiled from other languages as well.
+An approach similar to this will work for some other types of \of files compiled from other languages as well.
 
 The header file that defines how to interface with the C function is very simple:
 
@@ -113,7 +115,7 @@ Describing the C function this way to the Cython compiler allows it to check for
 It is possible to define Cython headers much the same way we define C headers.
 These headers use the .pxd file extension and can be imported via the \li{cimport} statement in Cython.
 .pxd files are called Cython declaration files.
-When you use a \li{cimport} statement to import basic C functions or to interface with numpy arrays and numpy datatypes, you are really importing Cython declaration files that contain the proper signatures so that the Cython compiler can know how these functions are meant to behave.
+When you use a \li{cimport} statement to import basic C functions or to interface with NumPy arrays and NumPy datatypes, you are really importing Cython declaration files that contain the proper signatures so that the Cython compiler can know how these functions are meant to behave.
 Several different tools for automatically generating Cython declaration files from C and C++ headers are available online.
 \end{info}
 
@@ -126,8 +128,8 @@ The following file works on Linux and Macintosh machines using gcc.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_linux.py]{./ctridiag/ctridiag_setup_linux.py}
 
-The \li{distutils} module in Python is designed to allow the compilation of Python extensions on different platforms with a single setup file.
-The following setup file uses \li{distutils} to compile the Cython file.
+The distutils module in Python is designed to allow the compilation of Python extensions on different platforms with a single setup file.
+The following setup file uses distutils to compile the Cython file.
 It should run on Windows, Linux, or Macintosh based computers.
 This is a more standard way to build this sort of Cython extension.
 
@@ -135,9 +137,9 @@ This is a more standard way to build this sort of Cython extension.
 
 This setup file can be called via command line using the following command:
 \begin{lstlisting}[style=ShellInput]
-Python ctridiag_setup_distutils.py build_ext --inplace
+python ctridiag_setup_distutils.py build_ext --inplace
 \end{lstlisting}
-The \li{--inplace} flag tells the script to compile the extension in the current directory.
+The \texttt{--inplace} flag tells the script to compile the extension in the current directory.
 
 Here is a simple script to test whether or not the compilation worked.
 
@@ -148,18 +150,17 @@ It is a good idea to test whether or not these compilations work using test scri
 \end{info}
 
 \section*{Wrapping a Fortran Function}
-
 By making some small modifications to our original approach we can also use Cython to interface with functions that have been written in Fortran.
 Here we will consider a simple Fortran implementation of the same function as before.
 Here is that same algorithm implemented in Fortran.
-Since this function does not return a value, it is called a \li{subroutine} in Fortran.
+Since this function does not return a value, it is called a subroutine in Fortran.
 In this case we have used the \li{iso_c_binding} library in C to make the function accept pointers to native C types.
-If we were wrapping a function or subroutine that we did not write ourselves we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it recieves to call the original function.
+If we were wrapping a function or subroutine that we did not write ourselves we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it receives to call the original function.
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
 
 We will now write a header that tells C how to interface with the function we have just defined.
 \begin{warn}
-When interfacing between Fortran and C, you will have to pass Fortran pointers to \emph{all} the variables you send to the function as arguments.
+When interfacing between Fortran and C, you will have to pass pointers to \emph{all} the variables you send to the Fortran function as arguments.
 Passing a variable directly will probably crash Python.
 \end{warn}
 Here is the file:
@@ -167,39 +168,48 @@ Here is the file:
 
 To compile \li{ftridiag.f90} to an object file you can run the following command in your command line:
 \begin{lstlisting}[style=ShellInput]
-gfortran -c ftridiag.f90 -o ftridiag.o"
+gfortran -fPIC -c ftridiag.f90 -o ftridiag.o"
 \end{lstlisting}
-As before, if you are working on a linux or Macintosh based machine you will probably need to include the \li{-fPIC} flag as well.
+As before, if you are working on a Linux or Macintosh based machine you will probably need to include the \texttt{-fPIC} flag as well.
 
 Aside from the small changes in the names used, the modified header file, and the use of gfortran instead of gcc, the rest of the compilation process is entirely the same.
-The test script that verifies that the function works properly is the same except that it will import the function from the moule \li{cython_ftridiag} instead.
-The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab but will not be displayed here.
+The test script that verifies that the function works properly is the same except that it will import the function from the module \li{cython_ftridiag} instead.
+The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included with this lab.
 
-When working with higher dimensional arrays Fortran does have the unusual feature that columns are stored in contiguous blocks of memory.
-The default for NumPy and for C arrays is to have rows stored in contiguous blocks.
-This means that, when interfacing with Fortran code that is meant to act on arrays with multiple dimensions, you must be very careful about what is a row and what is a column.
+\begin{warn}
+When working with higher dimensional arrays Fortran differs from C in that the columns are stored in contiguous blocks of memory instead of the rows.
+The default for NumPy and for C arrays is to have rows stored in contiguous blocks, but this varies, depending on what computation has already been done with the NumPy array.
+This means that, whenever you need to interface with Fortran code that is meant to act on arrays with multiple dimensions, you \emph{must} be very careful about what is a row and what is a column.
 When you pass a Fortran subroutine a pointer to an array it will, by default, assume that the entries of the array are arranged in Fortran order.
-Many Fortran routines have options that allow you to specify wether to act on an array or its transpose, but you should be very careful about this.
+Many Fortran routines have options that allow you to specify whether to act on an array or its transpose, but you should still be very careful about this.
+\end{warn}
+
+\begin{info}
+It may seem unusual that we have already provided a Fortran function that has been modified so that it is callable from C.
+Though this is not pure Fortran, it is not necessarily an uncommon scenario.
+Many larger Fortran libraries (for example, LAPACK) provide C wrappers for all their functions.
+When wrapping a Fortran library, a C wrapper may already be available for use.
+\end{info}
 
 Here is a file for the next problem:
 \lstinputlisting[style=fromfile, language=Fortran, name=fssor.f90]{./fssor/fssor.f90}
 
 \begin{problem}
-The fortran subroutine \li{fssor} included with this lab uses a technique called Successive Over Relaxation to solve Laplace's equation on a rectangular domain descretized as a grid of equispaced points.
+The Fortran subroutine \li{fssor} included with this lab uses a technique called Successive Over Relaxation to solve Laplace's equation on a rectangular domain discretized as a grid of equally spaced points.
 It solves the same problem as problem involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
 It takes the following inputs:
 \begin{itemize}
-\item \li{U} is expected to be a pointer to a Fortran ordered array of double precision numbers.
-\item \li{m} is a pointer to an integer storing the number of rows of \li{U}.
-\item \li{n} is a pointer to an integer storing the number of columns of \li{U}.
-\item \li{omega} is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
+\item $U$ is expected to be a pointer to a Fortran ordered array of double precision numbers.
+\item $m$ is a pointer to an integer storing the number of rows of $U$.
+\item $n$ is a pointer to an integer storing the number of columns of $U$.
+\item $\omega$ is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
 The closer this value is to $2$, the faster the algorithm will converge, but if it is too close the algorithm may not converge at all.
-For this lab just use 1.9.
-\item \li{tol} is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
-\item \li{maxiters} is a pointer to an integer storing the maximum allowable number of iterations.
-\item \li{info} is a pointer to an integer.
-This subroutine will set \li{info} to $0$ if it converged to a solution within the given tolerance.
-It will set \li{info} to $1$ if it did not.
+For this lab just use $1.9$.
+\item tol is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
+\item maxiters is a pointer to an integer storing the maximum allowable number of iterations.
+\item info is a pointer to an integer.
+This subroutine will set info to $0$ if it converged to a solution within the given tolerance.
+It will set info to $1$ if it did not.
 \end{itemize}
 
 Write a corresponding C header \li{fssor.h}, Cython wrapper \li{cython_fssor.pyx}, and Cython setup file (using distutils) \li{fssor_setup_distutils.py} to wrap this subroutine for use in Python.
@@ -208,9 +218,9 @@ Call the wrapper function in your Cython file \li{cyssor}.
 Fortran works with Fortran ordered arrays, but this algorithm does not need any particular orientation of axes.
 Have your Cython wrapper swap the length of the axes when calling \li{fssor} if the array is C ordered.
 If it is Fortran ordered, pass the lengths as they are.
-Have the wrapper raise an error if the array \li{U} is neither Fortran ordered nor C ordered.
-Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets \li{info} to 1).
-Use keyword arguments to pass fssor a default tolerance of \li{1E-8} and a default maximum number of iterations of \li{10000}.
+Have the wrapper raise an error if the array $U$ is neither Fortran ordered nor C ordered.
+Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets info to 1).
+Use keyword arguments to pass \li{fssor} a default tolerance of $10e^{-9}$ and a default maximum number of iterations to 10000.
 
 Here is how you should be able to call this function:
 \begin{lstlisting}
@@ -224,19 +234,82 @@ U[-1] = - U[0]
 cyssor(U, 1.9)
 \end{lstlisting}
 
-Generate a 3D plot of \li{U} after it has been modifed by the function \li{cyssor}.
-Use equispaced points between 0 and 1 as your $x$ and $y$ values.
+Generate a 3D plot of $U$ after it has been modified by the function \li{cyssor}.
+Use equally spaced points between 0 and 1 as your $x$ and $y$ values.
 \end{problem}
 
 Here is some code for the next problem.
 \lstinputlisting[style=fromfile, language=C, name=cssor.c]{./cssor/cssor.c}
 \begin{problem}
 (Optional)
-The above C code is another implementation of the Successive Over Relaxation algorithm for solving Laplace's Equation.
+The above C code is another implementation of the Successive Over Relaxation algorithm for solving Laplace's equation.
 Wrap it so that it is callable from Python as well.
 Produce the same plot as in the previous problem using the C version of this algorithm.
+Notice that info is still passed as a pointer because the function needs to be able to modify it.
 \end{problem}
 
-% Using C++ and Cython
+\section*{Interfacing with C++}
+Cython can also be used to wrap C++ functions and classes.
+It can compile entire modules to C++ instead of C if we specify C++ as the language in the setup file.
+Here we will focus primarily on wrapping C++ classes since wrapping a C++ function is roughly the same as wrapping a function from C or Fortran.
+Cython also supports wrapping templated classes and functions.
+Many other C++ features like operator overloading and the \li{new} and \li{del} operators are also supported when using C++.
 
-% Wrapping classes (focus on Cython, show a ctypes example if there's space)
+The process for exposing a C++ class to Cython is essentially the same.
+The C++ code must first be compiled to an object file.
+In our Cython file we then declare that we will be importing functions and classes from a C++ file so that the Cython compiler knows how they will behave.
+We then compile our Cython file by first compiling to C++
+
+Included with this lab are three C++ classes.
+The \li{Permutation} class is the primary class we will be wrapping.
+It implements arithmetic for the Cauchy cycle representation of permutations.
+For those not familiar with permutation arithmetic, there are some examples in the file \li{unittest.py}.
+The other two classes are used in the construction of the \li{Permutation} class.
+Because the Permutation class depends on the \li{Node} and \li{Cycle} classes, they must all be compiled together.
+Here is the \li{setup.py} to set up the wrapper for the \li{Permutation} class.
+
+\lstinputlisting[style=fromfile, language=Python, name=pypermutation_setup.py]{./permutations/pypermutation_setup.py}
+
+\begin{warn}
+When wrapping C++ classes, templates, etc. you should always make sure that you specify the language as C++ as we have shown in this setup file.
+\end{warn}
+
+We need to tell the Cython compiler how to interface with the C++ class.
+This can be done in much the same way that we defined the interfaces for C and Fortran functions, but we now need to declare that we are importing a class with several functions that act on it.
+We will include the declarations corresponding to this class in a \li{.pxd} file.
+\li{.pxd} are called \emph{declaration} files.
+Though declarations are, strictly speaking, not ``Cython headers'', they can be used in similar ways.
+Here we will declare the Permutation class and some of its public methods so that we can use them in Cython.
+\lstinputlisting[style=fromfile, language=Python, name=Permutation.pxd]{./permutations/Permutation_incomplete.pxd}
+This \li{.pxd} file can be included in our Cython file with the line \li{from Permutation cimport Permutation}.
+Cython comes with several pre-built declaration files.
+These declaration files are good examples of the proper syntax for wrapping C++ class templates.
+Some of these declaration files allow Cython code to interface with containers and other classes from the C++ standard library like \li{deque}, \li{list}, \li{map}, \li{pair}, \li{queue}, \li{set}, \li{stack}, \li{string}, \li{utility}, and \li{vector}.
+Each of these declaration files can be loaded by using something like
+\begin{lstlisting}
+from libcpp.vector cimport vector
+\end{lstlisting}
+Cython also supports some kinds of automatic conversion from Python data types to standard library containers.
+See the Cython documentation for more information on interfacing with C++ containers.
+
+As we mentioned before, the general approach for wrapping a C++ class is to make a Cython class that wraps a pointer to the C++ class.
+Here is an example of how this is done.
+\lstinputlisting[style=fromfile, language=Python, name=pypermutation.pyx]{./permutations/pypermutation_incomplete.pyx}
+Notice that we included the declaration file for the class.
+
+\begin{problem}
+The Permutation class includes methods to trace an index through the inverse permutation, get the minimum index that is changed by the permutation, and raise the permutation to a power.
+The declarations for these functions are commented out in the \li{pypermutation.pyx} file.
+Uncomment the declarations and add in the code necessary so that these methods are also available in Python.
+These functions are declared in the header \li{Permutation.hpp}, but they are not declared in the declaration file \li{Permutation.pxd}.
+Add the proper declarations to the declaration file.
+
+Note: the argument $z$ that is included in the power function for the Permutation class is a mandatory argument for the exponentiation operator in Cython.
+It tells the computer to compute the power of a number mod another number.
+In this case, raise an error if $z$ is not \li{None}.
+
+Look at the \li{__mul__} method for an example of how to construct and return a new PyPermutation object.
+Keep in mind that the \li{power} method of the \li{Permutation} class in C++ returns a pointer to a new \li{Permutation} object.
+\end{problem}
+
+\let\of\undefined
