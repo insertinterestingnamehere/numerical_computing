@@ -14,6 +14,7 @@ cdef class PyPermutation:
     # Make the wrapper class store a pointer to an instance
     # of the C++ class we are wrapping.
     cdef Permutation* thisptr
+    
     # Here is the initialization step.
     # This is a special Cython function that is
     # called when one of the objects for the wrapper
@@ -26,7 +27,7 @@ cdef class PyPermutation:
         # Here we perform some basic checking for consistency
         # in the input and also build the vectors that will
         # be used to construct the Permutation object.
-        if li is not None:
+        if isinstance(li, (list, tuple)):
             # works assuming li is a list of lists of ints.
             for cycle in li:
                 for index in cycle:
@@ -39,6 +40,7 @@ cdef class PyPermutation:
             # add verify method for Permutation.
             # verify here.
             # then reduce.
+    
     # This is another special Cython function that is
     # called when one of these wrapper classes is deallocated.
     # Here we take care of all necessary deallocation steps.
@@ -47,43 +49,55 @@ cdef class PyPermutation:
     # so all we have to do is use the del operator to deallocate it.
     def __dealloc__(self):
         del self.thisptr
+    
     # Here we define how the object is printed.
     # Notice the automatic conversion from a
     # C++ string to a Python string.
-    def __repr__(self):
+    def __str__(self):
         return self.thisptr.get_string()
+    
     # This returns the index of a given index under the permutation.
     def trace(self, index):
         if index < 0:
             raise ValueError("index must be nonnegative")
         return self.thisptr.trace(index)
+    
     # This returns the preimage of a given index under the permutation.
-    ### def trace_inverse(self, index):
+    def trace_inverse(self, index):
+        raise NotImplementedError
+    
     # This computes and returns a PyPermutation object that wraps
     # a C++ Permutation object representing the inverse of this permutation.
     def inverse(self):
         inv = PyPermutation()
         inv.thisptr = self.thisptr.inverse()
         return inv
+    
     # Here we define some basic methods for viewing attributes of
     # the Permutation object.
     # This returns the maximum index modified by the permutation.
     def get_max(self):
         return self.thisptr.get_max()
+    
     # This returns the minimum index modified by the permutation.
-    ### def get_min(self):
+    def get_min(self):
+        raise NotImplementedError
+        
     # This returns the number of cycles currently stored in the permutation.
     def get_size(self):
         return self.thisptr.get_size()
+    
     # This method reduces the Permutation to its disjoint cycle form.
     def reduce(self):
         self.thisptr.reduce()
+    
     # This method performs multiplication between two Permutation objects.
     def __mul__(PyPermutation self, PyPermutation other):
         # Raise an error if the user tries to multiply this object by
         # anything other than another PyPermutation object.
         if not isinstance(other, PyPermutation):
-            raise NotImplementedError("Can only multiply Permutations by other permutations")
+            return NotImplemented
+            
         # Start by initializing a new PyPermutation object
         # containing a null pointer.
         cdef PyPermutation result = PyPermutation()
@@ -96,4 +110,6 @@ cdef class PyPermutation:
         result.thisptr = (self.thisptr[0]) * (other.thisptr[0])
         # Return the PyPermutation object we have just constructed.
         return result
-    ### def __pow__(PyPermutation self, int p, z):
+    
+    def __pow__(PyPermutation self, int p, z):
+        raise NotImplementedError
