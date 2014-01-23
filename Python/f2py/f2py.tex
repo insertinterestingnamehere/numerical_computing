@@ -38,7 +38,7 @@ This file is a Python module that is linked against the compiled Fortran code.
 All the details about array type, shape, size, etc. have been infered by F2PY.
 We can test the module in nearly the same way we tested the Fortran version of the tridiagonal algorithm that we wrapped as part of Lab \ref{lab:cythonwrap}.
 Here is the file for testing that with the corresponding changes.
-\lstinputlisting[style=fromfile]{./ftridiag/ftridiag_test.py}
+\lstinputlisting[style=fromfile, name=ftridiag_test.py]{./ftridiag/ftridiag_test.py}
 \begin{info}
 For our example here we compiled the subroutine by itself instead of compiling an entire module.
 If the function were a part of a Fortran module \li{tridiag} F2PY would have made it available to us as \li{ftridiag.tridiag.ftridiag}.
@@ -60,6 +60,24 @@ F2PY will raise an error by default if we do not pass a Fortran ordered array.
 Notice also that, when wrapping automatically in this way, F2PY was able to infer that \li{m} and \li{n} are the dimensions of the array.
 On the other hand, we have not defined default vaues for the tolerance and the maximum number of iterations.
 \end{problem}
+
+\section*{Detailed Compilation Steps}
+Though F2PY can be used automatically as we have just shown, it can be used to generate more carefully customized wrappers for Fortran functions and subroutines.
+When compiling an extension, F2PY performs two basic steps that are accessible to users:
+\begin{itemize}
+\item Create a \li{.pyf} signature file defining the interface for the Fortran subroutines
+\item Compile the Fortran code and use Python's C API to make an extension module that calls it in the way defined in the signature file.
+\end{itemize}
+If we want a more specific interface for the Fortran code we are wrapping we can generate the signature file, then modify it so that F2PY will make a Python function with the desired calling signature.
+
+Consider the \li{ftridiag} subroutine used above.
+We can have F2PY generate a signature file based on the contents of the file \li{ftridiag.f90} by using the command
+\begin{lstlisting}[style=ShellInput]
+f2py ftridiag.f90 -h ftridiag.pyf
+\end{lstlisting}
+The signature file created by F2PY is
+\lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.pyf]{./ftridiag/ftridiag.pyf}
+This looks almost like a function signature in Fortran, except that F2PY has accounted for the fact that \li{n} is one more than the dimension of the first array.
 
 % Wrap a C function using f2py to teach about signature files.
 
