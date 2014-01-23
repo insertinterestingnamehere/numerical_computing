@@ -24,23 +24,39 @@ We can wrap this file by running the following in our terminal:
 \begin{lstlisting}[style=ShellInput]
 python f2py.py -c ftridiag.f90 -m ftridiag
 \end{lstlisting}
+Depending on the way your system is configured, the following command may work as well
+\begin{lstlisting}[style=ShellInput]
+f2py -c ftridiag.f90 -m ftridiag
+\end{lstlisting}
 We can also tell F2PY to pass an optimization flag to the compiler using the \li{--opt} flag, as in:
 \begin{lstlisting}[style=ShellInput]
 python f2py.py -c ftridiag.f90 -m ftridiag --opt="-O3"
 \end{lstlisting}
-Depending on your system configuration, you may be able to call F2PY without expressly calling python, or without including its file extension (or both).
 
 Running these commands will create a file called \li{ftridiag.pyd} on a Windows computer or \li{ftridiag.so} on a Linux or Mac based computer.
 This file is a Python module that is linked against the compiled Fortran code.
-All the details about array type, etc. have been infered by F2PY.
-We can test the module the same way we tested the module we built using Cython.
+All the details about array type, shape, size, etc. have been infered by F2PY.
+We can test the module in nearly the same way we tested the Fortran version of the tridiagonal algorithm that we wrapped as part of Lab \ref{lab:cythonwrap}.
+Here is the file for testing that with the corresponding changes.
 \lstinputlisting[style=fromfile]{./ftridiag/ftridiag_test.py}
+\begin{info}
 For our example here we compiled the subroutine by itself instead of compiling an entire module.
 If the function were a part of a Fortran module \li{tridiag} F2PY would have made it available to us as \li{ftridiag.tridiag.ftridiag}.
+\end{info}
 
-% Show example of wrapping FORTRAN using Cython.
+\begin{warn}
+When working with arrays that have more than one dimension, F2PY expects arrays that are Fortran ordered, i.e. arrays that have their columns stored in contiguous blocks.
+You can make a Fortran ordered array by taking the transpose of a C contiguous array.
+You will have to be careful about this if you are wrapping Fortran code using the default settings.
+\end{warn}
 
-% Introduce f2py, teach how to wrap FORTRAN automatically.
+\begin{problem}
+Included with this lab is a pure-fortran version of the \li{fssor} subroutine that you wrapped in Lab \ref{lab:cythonwrap}.
+Wrap it again using f2py.
+Make a setup script that uses Python's \li{os} module to interface with the command line and run the appropriate build command.
+Notice how in the test file we have to pass the array in Fortran order by default.
+F2PY will raise an error by default if we do not pass a Fortran ordered array.
+\end{problem}
 
 % Wrap a C function using f2py to teach about signature files.
 
