@@ -2,7 +2,11 @@
 \label{lab:NewtonsMethod}
 \objective{Understand Newton's Method. Understand definition of basin of attraction.  Basic understanding of Julia Sets.}
 
-One important technique in technical computing is Newton's method. The goal of Newton's method is to find $x^*$ such that $f(x^*) = 0$. This method is especially important in optimization, where our goal is to find minima and maxima of functions. Newton's method is an iterative method (much like eigenvalue finders: remember how those provably have to be iterative?). Newton's method, in one dimension, is defined as follows:
+One important technique in technical computing is Newton's method.
+The goal of Newton's method is to find $\overline{x}$ such that $f\left(\overline{x}\right) = 0$.
+This method is especially important in optimization, where our goal is to find minima and maxima of functions.
+Newton's method is an iterative method.
+In one dimension, it is defined as follows:
 \[
 x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}
 \]
@@ -15,93 +19,84 @@ Essentially Newton's method approximates a function by its tangent line, and the
 \caption{An illustration of how one iteration of Newton's method works}
 \end{figure}
 
-Newton's method is powerful because of the speed of convergence. In many cases Newton's method converges to the actual root quadratically, meaning that the error term is squared at every iteration. This fast convergence makes it a very powerful algorithm.
+Newton's method is powerful because of the speed of convergence.
+In many cases Newton's method converges to the actual root quadratically, meaning that the error term is squared at every iteration.
+This fast convergence makes it a very powerful algorithm.
 
-Newton's method does suffer from the flaw that its convergence is dependent upon an initial guess. If the initial guess is not sufficiently close the convergence can be much slower, or may never occur. There are even certain pathological functions for which newton's method will never converge. However, these functions are very rare, and as a rule Newton's method converges very quickly.
-
-
+Newton's method does suffer from the flaw that its convergence is dependent upon an initial guess.
+If the initial guess is not sufficiently close the convergence can be much slower, or may never occur.
+There are even certain pathological functions for which newton's method will never converge.
 
 \begin{problem}
-Write a Newton's method function that it runs whether or not the user inputs a derivative function. In python this can be done by defining the derivative function as a keyword argument. Also accept a maximum of how many iterations it will run. Return a tuple where the first value is the value and the second value is a boolean on whether it converged or not. Your function definition will look something like this \li{def newton(f, x0, df=None, tol=0.001, maxNum = 20000)}
+\label{prob:newton_arr}
+Write a Newton's method function that runs whether or not the user inputs a derivative function.
+In python this can be done by defining the derivative function as a keyword argument that defaults to \li{None}.
+Also accept a maximum of how many iterations it will run and a tolerance used for the stopping condition.
+Return a tuple where the first value is the value and the second value is a boolean on whether it converged or not.
 
-Compare the performance of Newton's method when you input the derivative and when you don't. How well does each converge? Which runs faster? Try the following functions:
+Compare the performance of Newton's method when you input the derivative and when you don't.
+How well does each converge?
+Which runs faster?
+Try the following functions:
 
 \begin{itemize}
 \item $cos(x)$
 \item $x^2sin(\frac{1}{x})$
 \item $(\frac{sin(x)}{x})-x$
+\item $x^2-1$
+\item $x^3 - x$
 \end{itemize}
+
+For the last two, look at the results of the iteration on equispaced points between -2 and 2.
+Which points converge to which roots?
+
+There are also examples of when Newton's Method does not converge.
+Test your newton's method function on $x^{1/3}$.
+Have it test at eqispaced starting points on a given interval and return the corresponding values after a given number of iterations.
+What do you see?
 \end{problem}
 
 \begin{problem}
-Test your newton's method function on $x^{1/3}$. Use random starting points around zero. What do you see? Prove that for any non-zero starting point that newton's method will diverge.
-\end{problem}
-
-\begin{comment}
-\begin{problem}
-A basin of attraction can be loosely defined as a set that will eventually converge to a specific root. Pick random points on the interval $[-2,2]$ as starting points and apply newton's method to the function $x^3 -2x + 1/2$. Display the basins of attraction for this particular function. What do you observe?
-
-
-
-% I don't know anything about attractors, but I graphed mine with the function with these lines
-% I thought it helped me visualise it better
-% f = lambda x: x**3 - 2*x + 1./2
-% df = lambda x: 3*x**2 -2
-% x0 = sp.linspace(-2,2,100)
-% r = [ newtons2.newtonsMethod(f,df,x,0.001) for x in x0]
-% y = [ x**3 - 2*x + 1./2 for x in x0]
-% plt.plot(x0,r,x0,y)
-% plt.axhline(0,color='black')
-% plt.show()
-\end{problem}
-\end{comment}
-
-\begin{problem}
-% I found this one very difficult, because scipy does not have a jacobian function, and I kept running into little problems with mine
-% However, I did manage to solve it. Perhaps we should supply them a jacobian function
-Extend your Newton's method even further so that it will work on systems of equations. Suppose that $F: \mathbb{R}^n \rightarrow \mathbb{R}^n $. The relevant equation is
+Extend your Newton's method even further so that it will work on systems of equations.
+Suppose that $F: \mathbb{R}^n \rightarrow \mathbb{R}^n $.
+The relevant equation is
 \[
 x_{i+1} = x_i - J^{-1}F(x_i)
 \]
-Note that you {\bf should not} calculate the inverse Jacobian. \li{sp.solve(A,b)} gives you the solution $x$ to the equation $Ax=b$. Use this fact to calculate $J^{-1}F$ from $J$ and $F$.  You should be able to make this function work whether or not the user inputs a Jacobian. This also means that you will have to use your own \li{jacobian} function.
+Note that you should not calculate the inverse Jacobian.
+\li{scipy.linalg.solve(A,b)} gives you the solution $x$ to the equation $Ax=b$.
+Use this fact to calculate $J^{-1}F$ from $J$ and $F$.
+You should be able to make this function work whether or not the user inputs a Jacobian.
+This also means that you will have to use your own \li{jacobian} function.
 \end{problem}
 
 \section*{Basins of Attraction and Julia Sets}
-Recall Newton's method for finding the roots of a function in one variable.  Given the function $f$ and a seed value $x_0$, we can iteratively find a root:
-\[
-x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}
-\]
-We have shown in previous sections that this method will converge very quickly to a root.  For example, given
-\[
-f(x) = x^2 + x -2
-\]
-and a seed value of $x_0 = 4$, after only 4 iterations we are about as close to the true root at $1$ as we would like.  What happens, however, when we choose a different seed value, say $x_0 = -4$?  Going through the Newton iterations, we notice that we quickly converge to the other root of the function, $-2$.
+Thus far we have only noted the fact that Newton's method converges under good circumstances.
+Another topic of interest is determining which starting values converge to which roots.
+An plot showing which points converge to which roots for the function $x^2 + x - 2$ is shown in Figure \ref{Fig:basins1}.
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{basins1}
-\caption{The plot of $f(x) = x^2 + x - 2$ along with 20 seed values for Newton's Method.  The green values all converge to the root at -2, and the black values will converge to the root at 1.}
+\caption{The plot of $f(x) = x^2 + x - 2$ along with 20 seed values for Newton's Method.
+The green values all converge to the root at -2, and the black values will converge to the root at 1.}
 \label{Fig:basins1}
 \end{center}
 \end{figure}
 
-It turns out that for $f(x) = x^2 + x - 2$, any seed value will converge to one root or the other.  We call the set of points that converge to a single value through an iterative process a basin of attraction.  We can see in Figure \ref{Fig:basins1} a set of seed values that are color coded to indicate which root they converge to with Newton's method.
+It turns out that for $f(x) = x^2 + x - 2$, any seed value will converge to one root or the other.
+We call the set of points that converge to a single value through an iterative process a basin of attraction.
+We can see in Figure \ref{Fig:basins1} a set of seed values that are color coded to indicate which root they converge to with Newton's method.
 
-\begin{problem}
-Write a function that will accept a function with real roots and a number of evenly spaced seed values to try. Output an array with the starting vales as one column and the root that the converge to in the second column. Test your function on $f(x) = x(x-1)(x+1)$.
-\end{problem}
+We now extend these ideas to complex functions.
+There is an entire field of mathematics devoted to the study of such functions, but here we only examine some basic properties as they pertain to the generation of Julia sets.
+Like other functions we have thus far been exposed to, a complex function maps an input to a unique output.
+However, in this case both the input and the output come from the space of complex numbers.
 
-%\begin{itemize}
-%\item Quick overview of complex functions.  Maybe make a shout out to analytic = nice?
-%\item Definition of orbits of complex functions
-%\item attractors/repellers, fixed points etc.
-%\item simple definition of julia set
-%\item We will be looking at functions that look like $f(z)  = z^2 - c$
-%\end{itemize}
-
-We now extend these ideas to complex functions.  There is an entire field of mathematics devoted to the study of such functions, but here we only examine some basic properties as they pertain to the generation of Julia sets.  Like other functions we have thus far been exposed to, a complex function maps an input to a unique output.  However, in this case both the input and the output come from the space of complex numbers.%  We also have a conception of what a ``nice'' function is for real numbers, usually along the lines of continuity.  For complex functions, we have a similar concept of niceness called analyticity.
-
-Given a sufficiently ``nice'' complex function, we can apply Newton's method in a similar way to how we applied it in the real case.  However due to the nature of the space we are mapping from and to, we no longer have access to the intuitive visual representations of functions that we saw in the real case.  We can, however, graph the basins of attraction for Newton's method on the complex plane.  For example, let:
+Given a sufficiently ``nice'' complex function, we can apply Newton's method in a similar way to how we applied it in the real case.
+However due to the nature of the space we are mapping from and to, we no longer have access to the intuitive visual representations of functions that we saw in the real case.
+We can, however, graph the basins of attraction for Newton's method on the complex plane.
+For example, let:
 \[
 f(z) = z^2 - 1
 \]
@@ -111,9 +106,9 @@ f'(z) = 2z
 \]
 It is straightforward to verify that $f$ has two roots at 1 and -1.
 
-%How about an example on how to graph complex equations?
-
-In order to better visualize basins of attraction in the complex plane we will use the function li{pcolormesh} from the pyplot library in matplotlib. The following is an example of how to use this function. It allows us to color different portions of a plane according to the value of a function at each point.
+In order to better visualize basins of attraction in the complex plane we will use the function li{pcolormesh} from the pyplot library in matplotlib.
+The following is an example of how to use this function.
+It allows us to color different portions of a plane according to the value of a function at each point.
 
 \begin{lstlisting}
 import scipy as sp
@@ -130,28 +125,33 @@ plt.show()
 \end{lstlisting}
 
 \begin{problem}
-Modify your code from the previous problem to graph the basins of attraction of a function over the complex plane.  Examine the basins of attraction for a complex function such as $f(z) = insert here$. Make sure that when plotting you start with low resolution. Even if you generate a plot using an array of $100$ by $100$ points, you will be running Newton's method on your test function $10,000$ times, so be careful.  
+Modify your code from Problem \ref{prob:newton_arr} to graph the basins of attraction for a polynomial in the complex plane.
+Examine the basins of attraction for the following complex functions on the following domains.
+\begin{itemize}
 
-Keeping in mind the previous problems with real valued functions, what do you expect will happen when you examine a cubic complex polynomial?  Plot the basins of attraction of $f(z) = z^3 - 1$.  What happened?
+\item $z^3 - 2 z^2 - 2 z + 2$ on the set of complex numbers $a + b i$ such that $a \in \left[-\frac{1}{2}, 0\right]$ and $b \in \left[-\frac{1}{4}, \frac{1}{4}\right]$.
+
+\item $3 z^3 - 2 z^2 - 2 z + 2$ on the set of complex numbers $a + b i$ such that $a \in \left[-1, 1\right]$ and $b \in \left[-1, 1\right]$.
+
+\item $z^4 + 3 z^3 - 2 z^2 - 2 z + 2$ on the set of complex numbers $a + b i$ such that $a \in \left[-1, 1\right]$ and $b \in \left[-1, 1\right]$.
+
+\item $z^3 - 1$ on the set of complex numbers $a + b i$ such that $a \in \left[-1, 1\right]$ and $b \in \left[-1, 1\right]$.
+
+\end{itemize}
+Be aware that Newton's method may not converge for every point in these intervals, so you will have to manually set the pixels that result in a value of \li{nan} to something else.
+One good approach is to set the roots of the polynomial to numbers $0, 1, \dots, k$ and then set the values of \li{nan} to $k+1$.
+
+Make sure that when plotting you start with low resolution.
+Even if you generate a plot using an array of $100$ by $100$ points, you will be running Newton's method on your test function $10,000$ times, so be careful.
 \end{problem}
 
-The complex behavior on the boundaries of the basins of attraction of the cubic polynomial $f(z) = z^3 - 1$ is called a fractal.  This complex and beautiful behavior occurs due to a result from complex analysis that says that the basins of attraction of the Newton map must share a common boundary.  For a linear or quadratic function, this results in boring expected behavior, but when we examine a polynomial of degree 3 or higher we see the complex boundaries arise.  These complex boundaries are called the Julia set of a function (The boring parts of the picture are called the Fatou set).  
-%The interested reader can find more at CITATION NEEDED. Fractal behavior lies at the heart of what is known as chaos, which will be examined in a later chapter.
-
-To finish this section we examine the Julia sets of an iterated complex map.  In this case, instead of examining the basins of attraction of Newtons method, we will simply iterate on the complex function $f(z) = z^2 + c$ where $c \in \mathbb{C}$.  For example, let $c = 0.4 + 0.3i$ and the choose a seed value $z_0$ and iterate on $f$, i.e.
-\[
-f_{n+1} = f(f_n)
-\]
-Where $f_1 = f(z_0)$.  Try $z_0 = 0.5 + 0.1i$ and $z_0 = 5 + 5i$ as seed values.  What happens after several iterations of $f$?
-
-\begin{figure}\label{Fig:julia}
-\begin{center}
-\includegraphics[scale=0.5]{julia}
-\caption{We let $f(z) = z^2 + 0.4 + 0.3i$ and then iterate on a mesh from $[-1,1]\times[-i,i]$.  The above figure is a plot of $e^{-f_{30}(|z|)}$ for each $z$ in the mesh.}
-\end{center}
-\end{figure}
-
+Another well-studied fractal in the complex plane is the Mandelbrot set.
+It is defined as the points $c \in \mathbb{C}$ for which the sequence
+\[z_n = z_{n-1}^2 + c\]
+is bounded.
 
 \begin{problem}
-Generate another grid of complex numbers on $[-1,1]\times[-i,i]$.  Write code that iterates each point in the mesh 30 times, and then plot $e^{-f_{30}(|z|)}$ on the resulting mesh.  Try for several values of $c$.
+Generate another grid of complex numbers on $[-1.5,.5]\times[-i,i]$.
+Consider the recurrence relation $x_n = x_{n-1}^2 + c$.
+Run this iteration 30 times with a resolution of $200 \times 200$ and display the plot.
 \end{problem}
