@@ -1,0 +1,65 @@
+\lab{Algorithms}{Monte Carlo Integration}{Monte Carlo Integration}
+\objective{Learn the benefits of using Monte Carlo methods when integrating in
+many dimensions.}
+
+Many numerical integration techniques rely on finding deterministic ways to
+approximate the integrand, and using these approximations in a Riemann
+summation. However, these techniques do not generalize well when the integration
+takes place in a high-dimensional space. This lab presents a way to numerical
+approximate the value
+\[I = \int_{\Omega} f(x) \;dx \]
+when $\Omega$ is a high-dimensional space.
+
+\section*{Monte Carlo Integration}
+Monte Carlo methods are algorithms that use random numbers to approximate a
+desired result. (The name refers to the famous Monte Carlo Casino.) Monte Carlo
+integration uses random vectors taken uniformly from the domain to approximate
+an intergal.
+
+Suppose we wish to approximate the above integral. We note the average, or
+expected, value of the function $f$ on the space $\Omega$ is given by
+\[f_{\text{ave}} = \frac{1}{V(\Omega)}\int_{\Omega} f(x) dx \]
+where $V$ denotes volume. However, the law of large numbers from probability
+theory roughly states that
+\[f_{\text{ave}} = \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(x_i) \]
+when the $x_i$ are uniform random samples of $\Omega$. We see that we can
+approximate the desired value as
+\[I \approx I_N = V(\Omega)\frac{1}{N}\sum_{i=1}^{N} f(x_i) \]
+for large $N$, and that this approximation gets better as $N$ increases.
+Remarkably, for the estimation of the error we have
+\[\abs{I - I_N} \approx V(\Omega)\frac{1}{\sqrt{N}} =
+O\left(\frac{1}{\sqrt{N}}\right) \] 
+The decay of the estimation of the error depends only on $N$, and not on the
+dimension of the space $\Omega$. This is the key reason why Monte Carlo
+integration works well in high dimensions.
+
+
+
+
+
+\begin{problem}
+\label{prob:profile}
+In IPython, enter
+\begin{lstlisting}
+%run -p -s cum Value_Function_Iteration.py
+\end{lstlisting}
+where \texttt{Value\_Function\_Iteration.py} is the name of your script that solves the infinite horizon problem from the Value Function Iteration lab.  This will list the function calls made by your code, sorted by the cumulative time it spends within each function (including time spent in sub-functions).
+Run the same command, this time changing the number of grid points $N$ to be 1000.
+Run the command once more, this time setting $N=1000$ and $\beta = .95$.
+\end{problem}
+
+\begin{verbatim}
+%run -p -s cum Value_Function_Iteration.py
+         622 function calls in 2.542 seconds
+         
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    3.065    3.065 <string>:1(<module>)
+        1    0.001    0.001    3.065    3.065 {execfile}
+        1    0.955    0.955    3.064    3.064 Value_Function_Iteration.py:5(<module>)
+       59    0.000    0.000    1.418    0.024 fromnumeric.py:683(argmax)
+       59    1.417    0.024    1.417    0.024 {method 'argmax' of 'numpy.ndarray' objects}
+       59    0.001    0.000    0.613    0.010 fromnumeric.py:1774(amax)
+       59    0.612    0.010    0.612    0.010 {method 'max' of 'numpy.ndarray' objects}
+\end{verbatim}
