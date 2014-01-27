@@ -21,7 +21,7 @@ an intergal.
 
 Suppose we wish to approximate the above integral. We note the average, or
 expected, value of the function $f$ on the space $\Omega$ is given by
-\[f_{\text{ave}} = \frac{1}{V(\Omega)}\int_{\Omega} f({\bf x}) d{\bf x} \]
+\[f_{\text{ave}} = \frac{1}{V(\Omega)}\int_{\Omega} f({\bf x}) \;d{\bf x} \]
 where $V$ denotes volume. However, the law of large numbers from probability
 theory roughly states that
 \[f_{\text{ave}} = \lim_{n \to \infty} \frac{1}{n} \sum_{k=1}^{n} f({\bf x}_k) \]
@@ -40,26 +40,105 @@ integration works well in high dimensions.
 
 In order to demonstrate the benefits of Monte Carlo integration, we introduce a
 special class of functions. Let $\Omega = [0,1]^d$ be the unit cube in
-$\mathbb{R}^d$. For ${\bf a} \in \Omega$, ${\bf b} \in \mathbb{N}^d$, define
-\[\fab({\bf x}) = \sum_{i=1}^{d} \sin(2\pi b_i x_i + a_i) \]
+$\mathbb{R}^d$. For ${\bf a} \in \mathbb{N}^d$, ${\bf b} \in \Omega$, define
+\[\fab({\bf x}) = \sum_{i=1}^{d} \sin(2\pi a_i x_i + b_i) \]
 This class of functions has desirable properties for our example. First, the
 functions are defined on a space of arbitrary dimension. Also, it is easy
 to analytically calculate
-\[\int_{\Omega} \fab({\bf x}) d{\bf x} = 0 \]
-for any $d, {\bf a}, {\bf b}$. However, the functions are also interestingly
+\[\int_{\Omega} \fab({\bf x}) \; d {\bf x} = 0 \]
+for any ${\bf a}, {\bf b}, d$. However, the functions are also interestingly
 shaped, and are not trivially approximated. We finally note that $V(\Omega) = 1$.
 
 
+\begin{problem}
+\label{prob:proof}
+Prove that $\int_{\Omega} \fab({\bf x}) \;d{\bf x} = 0$.
+\end{problem}
 
 \begin{problem}
 \label{prob:fab}
 Define a function that accepts an $N \times d$ dimensional array, makes a random
 choice for ${\bf a}$ and ${\bf b}$, and returns $\fab({\bf x}_n)$ evaluated for
-each of the $N$ vectors. Restrict your choice of ${\bf b}$ to the set
+each of the $N$ vectors. Restrict your choice of ${\bf a}$ to the set
 $\{1,2,\ldots,9\}^d$.
 \end{problem}
 
 \begin{problem}
-\label{prob:err}
-Define a function 
+\label{prob:grid}
+Estimate $\int_{\Omega} \fab({\bf x}) \;d{\bf x}$ using rectangular quadrature
+(or another method), for many values of ${\bf a}, {\bf b}, d, N$. How large can
+you make $d$?  What problems do you face as $d$ increases? What happens to the
+average error as $d$ and $N$ vary?
+
+\nopagebreak[2]
+
+\vspace{5mm}
+\noindent
+{\it Hint.} First, create an $N \times d$ grid of points in the domain. Using
+the result from {\bf Problem 2}, evaluate the function at each point. Since
+$V(\Omega) = 1$, our rectangular quadrature estimate is equivalent to finding
+the mean of the resultant array. (To see this is true, examine the
+one-dimensional case; the generalization is immediate.) Since the true value of
+the integral is $0$, the error is simply the absolute value of this mean.
+
+\nopagebreak[2]
+
+\begin{verbatim}
+import numpy as np
+
+def grid(d=3, n=100):
+    """
+    Return a (d**n) by (d) dimensional array, giving a 
+    uniform, discrete grid of the space [0,1]**d, with 
+    n points along each dimension.
+    """
+
+    linspaces = [np.linspace(0,1,n, endpoint=False) 
+                 for i in xrange(d)]
+    flatmesh = [x.flatten() for x in np.meshgrid(*linspaces)]
+    return np.column_stack(flatmesh)
+
+In []: xx = grid()
+
+In []: np.abs(np.mean(problem_two(xx)))
+Out[]: error
+
+In []: np.mean([np.abs(np.mean(problem_two(xx)))
+                for i in xrange(100)])
+Out[]: average_error
+\end{verbatim}
+\end{problem}
+
+\break
+\begin{problem}
+\label{prob:mc}
+Estimate $\int_{\Omega} \fab({\bf x}) \;d{\bf x}$ using Monte Carlo integration
+for many values of ${\bf a}, {\bf b}, d, N$. How large can you make $d$? What
+happens to the average error as $d$ and $N$ vary? Compare this method with the
+previous.
+
+\nopagebreak[2]
+
+\vspace{5mm}
+\noindent
+{\it Hint.} First, choose $N$ random points from the domain. Using the result
+from {\bf Problem 2}, evaluate the function at each point. Since $V(\Omega) =
+1$, Monte Carlo integration is equivalent to finding the mean of the resultant
+array. Since the true value of the integral is $0$, the error is simply the
+absolute value of this mean.
+
+\nopagebreak[2]
+
+\begin{verbatim}
+import numpy as np
+
+In []: xx = np.random.rand(1000000, 3)
+
+In []: np.abs(np.mean(problem_two(xx)))
+Out[]: error
+
+In []: np.mean([np.abs(np.mean(problem_two(xx)))
+                for i in xrange(100)])
+Out[]: average_error
+\end{verbatim}
 \end{problem}
