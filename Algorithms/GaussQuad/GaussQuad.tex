@@ -72,11 +72,11 @@ points = np.array([- sqrt(5 + 2 * sqrt(10. / 7)) / 3,
                    0,
                    sqrt(5 - 2 * sqrt(10. / 7)) / 3,
                    sqrt(5 + 2 * sqrt(10. / 7)) / 3])
-weights = np.array([((322 - 13) * sqrt(70)) / 900,
-                    ((322 + 13) * sqrt(70)) / 900,
+weights = np.array([(322 - 13 * sqrt(70)) / 900,
+                    (322 + 13 * sqrt(70)) / 900,
                     128. / 225,
-                    ((322 + 13) * sqrt(70)) / 900,
-                    ((322 - 13) * sqrt(70)) / 900])
+                    (322 + 13 * sqrt(70)) / 900,
+                    (322 - 13 * sqrt(70)) / 900])
 \end{lstlisting}
 
 We now calculate the integral
@@ -91,13 +91,13 @@ Write a function that accepts an array of points, an array of weights, and limit
 
 \end{problem}
 
-Now, how do we find the weights and the points?  There are many publications that will give lists of points for various weight functions.  We will demonstrate how to find such a list using the Golub-Welsch algorithm.  This algorithm builds a tri-diagonal matrix.  Then the eigenvalues and the first component of the correspondings eigenvectors are the points and weights respectively.  We note that finding eigenvalues for a tridiagonal matrix is a well conditioned, relatively painless problem.  Using a good eigenvalue solver gives the Golub-Welsch algorithm a complexity of $O(n^2)$.
+Now, how do we find the weights and the points?  There are many publications that will give lists of points for various weight functions.  We will demonstrate how to find such a list using the Golub-Welsch algorithm.  This algorithm builds a tri-diagonal matrix.  The points are then the eigenvalues. The weights are the length of $\left[a, b\right]$ times the first coordinate of each eigenvector squared.  We note that finding eigenvalues for a tridiagonal matrix is a well conditioned, relatively painless problem.  Using a good eigenvalue solver gives the Golub-Welsch algorithm a complexity of $O(n^2)$.
 
-There is some interesting theory required to understand this algorithm.  We only provide a brief sketch here and point the reader to the paper at http://gubner.ece.wisc.edu/gaussquad.pdf for further details.  We mentioned that the choice of the weight function corresponds to a class of orthogonal polyomials.  An important fact about orthogonal polynomials is that any set of orthogonal polynomials $\{p_i\}_{i=1}^N$ satisfies a three term recurrence relation
+There is some interesting theory required to understand this algorithm.  We only provide a brief sketch here and point the reader to the paper at \url{http://gubner.ece.wisc.edu/gaussquad.pdf} for further details.  We mentioned that the choice of the weight function corresponds to a class of orthogonal polyomials.  An important fact about orthogonal polynomials is that any set of orthogonal polynomials $\{p_i\}_{i=1}^N$ satisfies a three term recurrence relation
 \[
 p_i(x) = (a_ix + b_i)p_{i-1}(x) - c_ip_{i-2}(x)
 \]
-where $p_{-1}(x) = 0$ and $p_0(x) = 1$.  The coefficients $\{a_i, b_i, c_i\}$ have been calculated for several classes of orthogonal polynomials, and may be determined for an arbitrary class using the procedure found in ``Calculation of Gauss Quadrature Rules'' by Golub and Welsch..  Using these coefficients we may create a tri-diagonal matrix
+where $p_{-1}(x) = 0$ and $p_0(x) = 1$.  The coefficients $\{a_i, b_i, c_i\}$ have been calculated for several classes of orthogonal polynomials, and may be determined for an arbitrary class using the procedure found in ``Calculation of Gauss Quadrature Rules'' by Golub and Welsch.  Using these coefficients we may create a tri-diagonal matrix
 
 \[
 J = \begin{bmatrix}
@@ -105,9 +105,8 @@ J = \begin{bmatrix}
 \alpha_1 & \beta_1 & 0 & 0 & ... & 0 \\
 \beta_1 & \alpha_2 & \beta_2 & 0 & ... & 0 \\
 0 & \beta_2 & \alpha_3 & \beta_3 & ... & 0 \\
-. & & & & & . \\
-. & & & & & . \\
-. & & & & & . \\
+\vdots & & & & & \vdots \\
+\vdots & & & & & \vdots \\
 0 & ... & & & & \beta_{N-1} \\
 0 & ... & & & \beta_{N-1} & \alpha_N
 
@@ -117,7 +116,7 @@ J = \begin{bmatrix}
 Where $\alpha_i = \frac{-b_i}{a_i}$ and $\beta_i = (\frac{c_{i+1}}{a_ia_{i+1}})^{\frac{1}{2}}$.  This matrix is called the Jacobi matrix.  Derivation of the Jacobi matrix can also be found in the Golub-Welsch paper.  The eigenvalues of this matrix give us the points $x_i$ and the first componenent (or first entry) of the corresponding eigenvectors give the weight.
 
 \begin{problem}
-Write a function that will accept a list of 3-tuples representing the coefficients $\{a_i, b_i, c_i\}$ from the recurrence relation above.  Return the Jacobi matrix.
+Write a function that will accept three arrays representing the coefficients $\{a_i, b_i, c_i\}$ from the recurrence relation above.  Return the Jacobi matrix.
 \end{problem}
 
 \begin{problem}
