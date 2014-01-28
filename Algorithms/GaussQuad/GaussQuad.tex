@@ -1,29 +1,188 @@
-
 \lab{Algorithms}{Gaussian Quadrature}{Gaussian Quadrature}
 \label{Lab:GaussQuad}
-\begin{itemize}
-\item In the section on Newton Cotes we saw the difficulty that arises when we use uniformly spaced points (Runge's phenomenon). Can we do better with unevenly spaced points?
-\item Explain the Gaussian quadrature rule. Explain that it is only appropriate for functions that can be well-approximated by polynomials, and that it is exact for polynomials of sufficiently small degree (not exact in floating point though...)
-\item Discuss how we calculate this rule (There's a matrix that we generate, tri-diagonal, of which we need to find the eigenvalues). This is a $O(n^2)$ operation.
-\item Explain that the rule as it stands does not allow nesting(and thus adaptive methods), which is crucial. Explain how the Gauss-Konrod rules fix this problem.
-\end{itemize}
+
+Recall from the Newton-Cotes integration lab that certain functons will not be well approximated when we use uniformly spaced points.
+In this section we will use unevenly spaced points to mitigate this problem.
+The technique we will use is called Guassian Quadrature.
+Like our previous integration techniques, we choose a set of points $x_i$ and weights $w_i$ and approximate
+\[
+\int_{a}^b f(x) dx \approx \sum_{i=1}^n w_if(x_i).
+\]
+
+There are some special considerations when we do guassian quadrature.
+First, we are required to choose a weight function $W(x)$.
+This function determines both the $x_i's$ and the $w_i's$.
+Theoretically, the weight function determines which set of orthogonal polynomials we are using to approximate the function we are trying to integrate.
+
+The second consideration is that the weight function also dictates the interval over which the integration will occur.
+For example, if we choose the weight function as $W(x) = 1$ over $[-1,1]$, then we may only integrate functions on $[-1,1]$.
+We can get around this issue by changing the interval of integration using the following formula
+\[
+\int_a^b f(x) dx = \frac{b-a}{2}\int_{-1}^1 f(\frac{(b-a)}{2}z + \frac{a+b}{2})dz.
+\]
+Once we have changed the interval, we may apply quadrature to the integral from $-1$ to $1$ and then scale it appropriately to get the answer we want.
+\[
+\int_a^b f(x) dx \approx \frac{b - a}{2} \sum_i w_if(\frac{(b-a)}{2}x_i + \frac{(b+a)}{2})
+\]
 
 \begin{problem}
-Code up how we find the integration points and the weights.
+Write a function that will accept a function and limits of integration.
+Use the change of interval formula and draw a graph of the function on $[-1,1]$.
+\end{problem}
+
+We will now give an example with known weights and points.
+We will use the constant weight function $W(x) = 1$ from $-1$ to $1$.
+This weight functions corresponds to the Legendre polynomials.
+We will calculate the integral of $f(x) = sin(x)$ from $-\pi$ to $\pi$ with $5$ interpolation points.
+
+First, we change the interval from $[-\pi, \pi]$ to $[-1,1]$.
+
+\begin{lstlisting}
+import numpy as np
+a, b = - np.pi, np.pi
+
+#f is the function that we want to integrate
+f = np.sin
+
+#g is the function with the interval changed
+g = lambda x: f((b - a) / 2 * x + (a + b) / 2 * x)
+\end{lstlisting}
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+point $x_i$ & weight $w_i$ \\
+\hline
+$-\frac{1}{3}\sqrt{5 + 2\sqrt{\frac{10}{7}}}$ &  $\frac{322-13\sqrt{70}}{900}$ \\
+\hline
+$-\frac{1}{3}\sqrt{5 - 2\sqrt{\frac{10}{7}}}$ & $\frac{322+13\sqrt{70}}{900}$ \\
+\hline
+$0$ & $\frac{128}{225}$ \\
+\hline
+$\frac{1}{3}\sqrt{5 - 2\sqrt{\frac{10}{7}}}$ & $\frac{322+13\sqrt{70}}{900}$ \\
+\hline
+$\frac{1}{3}\sqrt{5 + 2\sqrt{\frac{10}{7}}}$ & $\frac{322-13\sqrt{70}}{900}$ \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Quadrature points and weights on $\left[0, 1\right]$.}
+\label{intro_table}
+\end{table}
+
+The weights and points are given in order in Table \ref{intro_table}.
+We put them into an array here.
+
+\begin{lstlisting}
+from math import sqrt
+points = np.array([- sqrt(5 + 2 * sqrt(10. / 7)) / 3,
+                   - sqrt(5 - 2 * sqrt(10. / 7)) / 3,
+                   0,
+                   sqrt(5 - 2 * sqrt(10. / 7)) / 3,
+                   sqrt(5 + 2 * sqrt(10. / 7)) / 3])
+weights = np.array([(322 - 13 * sqrt(70)) / 900,
+                    (322 + 13 * sqrt(70)) / 900,
+                    128. / 225,
+                    (322 + 13 * sqrt(70)) / 900,
+                    (322 - 13 * sqrt(70)) / 900])
+\end{lstlisting}
+
+We now calculate the integral
+
+\begin{lstlisting}
+integral = (b - a)/2 * np.inner(weights, g(points))
+\end{lstlisting}
+
+\begin{problem}
+
+Write a function that accepts an array of points, an array of weights, and limits of integration and returns the integral.
+
+\end{problem}
+
+Now, how do we find the weights and the points?
+There are many publications that will give lists of points for various weight functions.
+We will demonstrate how to find such a list using the Golub-Welsch algorithm.
+This algorithm builds a tri-diagonal matrix.
+The points are then the eigenvalues.
+The weights are the length of $\left[a, b\right]$ times the first coordinate of each eigenvector squared.
+We note that finding eigenvalues for a tridiagonal matrix is a well conditioned, relatively painless problem.
+Using a good eigenvalue solver gives the Golub-Welsch algorithm a complexity of $O(n^2)$.
+
+There is some interesting theory required to understand this algorithm.
+We only provide a brief sketch here and point the reader to the paper at \url{http://gubner.ece.wisc.edu/gaussquad.pdf} for further details.
+We mentioned that the choice of the weight function corresponds to a class of orthogonal polyomials.
+An important fact about orthogonal polynomials is that any set of orthogonal polynomials $\{p_i\}_{i=1}^N$ satisfies a three term recurrence relation
+\[
+p_i(x) = (a_ix + b_i)p_{i-1}(x) - c_ip_{i-2}(x)
+\]
+where $p_{-1}(x) = 0$ and $p_0(x) = 1$.
+The coefficients $\{a_i, b_i, c_i\}$ have been calculated for several classes of orthogonal polynomials, and may be determined for an arbitrary class using the procedure found in ``Calculation of Gauss Quadrature Rules'' by Golub and Welsch.
+Using these coefficients we may create a tri-diagonal matrix
+
+\[
+J = \begin{bmatrix}
+
+\alpha_1 & \beta_1 & 0 & 0 & ... & 0 \\
+\beta_1 & \alpha_2 & \beta_2 & 0 & ... & 0 \\
+0 & \beta_2 & \alpha_3 & \beta_3 & ... & 0 \\
+\vdots & & & & & \vdots \\
+\vdots & & & & & \vdots \\
+0 & ... & & & & \beta_{N-1} \\
+0 & ... & & & \beta_{N-1} & \alpha_N
+
+\end{bmatrix}
+\]
+
+Where $\alpha_i = \frac{-b_i}{a_i}$ and $\beta_i = (\frac{c_{i+1}}{a_ia_{i+1}})^{\frac{1}{2}}$.
+This matrix is called the Jacobi matrix.
+Derivation of the Jacobi matrix can also be found in the Golub-Welsch paper.
+The eigenvalues of this matrix give us the points $x_i$ and the first componenent (or first entry) of the corresponding eigenvectors give the weight.
+
+\begin{problem}
+Write a function that will accept three arrays representing the coefficients $\{a_i, b_i, c_i\}$ from the recurrence relation above.
+Return the Jacobi matrix.
 \end{problem}
 
 \begin{problem}
-Code up the actual Gaussian Quadrature method.
+The coefficients of the Legendre polynomials (which correspond to the weight function $W(x) = 1$ on $[-1,1]$ are given by
+\begin{align*}
+a_i &= \frac{2i - 1}{i} \\
+b_i &= 0 \\
+c_i &= \frac{i-1}{i}
+\end{align*}
+
+Using the Jacobi matrix function you just wrote, find the points $x_i$ and weights $w_i$ that correspond to this weight function.
+Do they match the ones given in the first part of this lab?
+
 \end{problem}
+
+%Another exercise could be Chebyshev polynomials.  See wikipedia for the weight function.
+
+There do exist other techniques for finding the weights and points for a given weighting function.
+This is, in fact, not even the fastest method.
+In general practice, we may use \li{scipy.integrate} to calculate integrals.
+\li{scipy.integrate.quadrature} offers a reasonably fast Gaussian quadrature implementation.
+
+Another common hallmark of quadrature is that it can be used adaptively.
+It is common in practice to refine the points of a quadrature estimate on an interval where a function is observed to be changing rapidly.
+This allows for more accurate computation at a relatively low computational cost.
+This is the approach used by the function \li{scipy.integrate.quad}.
 
 \begin{problem}
-This technique can be extended to integrals with other types of weighting functions. Gauss Hermite Quadrature could be interesting to explain and code up, since it involves an infinite domain.
+The standard normal distribution is an important object of study in probability and statistic.
+It is defined by the density function $\frac{1}{\sqrt{2 \pi}} e^{- \frac{x^2}{2}}$.
+(Here we are assuming a mean of $0$ and a variance of $1$).
+This is a function that can not be integrated symbollically.
+We can use quadrature integration to estimate the probability that a normally distributed random variable will take a value below a given point.
+The probability that the random variable we are considering is less than (or equal to) a given value $x$ is
+\[\int_{-\infty}^x \frac{1}{\sqrt{2 \pi}} e^{- \frac{t^2}{2}} dt\]
+This function is essentially zero for values of $x$ that lie reasonably far from the mean, so we can estimate this probability by integrating from $-5$ to $x$ instead.
+
+Use \li{scipy.integrate.quad} to write a function to estimate the probability that this normally distributed random variable will take a value less than a given number $x$ that lies relatively close to the mean.
+Compare your result at $x = 1$ with the output of the code
+\begin{lstlisting}
+from scipy.stats import norm
+N = norm()
+N.cdf(1)
+\end{lstlisting}
 \end{problem}
-
-\begin{problem}
-Clenshaw-Curtis quadrature follows a similar approach. Explain that it is based upon finding the roots of the Chebyshev polynomial, and deriving the correct weights (which can be done faster than the Gaussian quadrature rule). Code and compare performance.
-\end{problem}
-
-
-
- 
