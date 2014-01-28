@@ -36,15 +36,14 @@ We will now give an example with known weights and points.  We will use the cons
 First, we change the interval from $[-\pi, \pi]$ to $[-1,1]$.
 
 \begin{lstlisting}
-a = -np.pi
-b = np.pi
+import numpy as np
+a, b = - np.pi, np.pi
 
 #f is the function that we want to integrate
-f = lambda x: np.sin(x)
+f = np.sin
 
 #g is the function with the interval changed
-g = lambda x: f((b-a)/2*x + (a+b)/2*x)
-
+g = lambda x: f((b - a) / 2 * x + (a + b) / 2 * x)
 \end{lstlisting}
 
 The weights and points are given in order in Table \ref{intro_table}.  We put them into an array here.
@@ -67,15 +66,23 @@ $\frac{1}{3}\sqrt{5 + 2\sqrt{\frac{10}{7}}}$ & $\frac{322-13\sqrt{70}}{900}$ \\
 \end{tabular}
 \end{center}
 \begin{lstlisting}
-points = np.array([-np.sqrt(5 + 2*np.sqrt(10./7))/3, -np.sqrt(5 - 2*np.sqrt(10./7))/3, 0, np.sqrt(5 - 2*np.sqrt(10./7))/3, np.sqrt(5 + 2*np.sqrt(10./7))/3]) 
-weights = np.array([((322 - 13)*np.sqrt(70))/900, ((322 + 13)*np.sqrt(70))/900, 0, ((322+13)*np.sqrt(70))/900, ((322 - 13)*np.sqrt(70))/900])
+from math import sqrt
+points = np.array([- sqrt(5 + 2 * sqrt(10. / 7)) / 3,
+                   - sqrt(5 - 2 * sqrt(10. / 7)) / 3,
+                   0,
+                   sqrt(5 - 2 * sqrt(10. / 7)) / 3,
+                   sqrt(5 + 2 * sqrt(10. / 7)) / 3])
+weights = np.array([((322 - 13) * sqrt(70)) / 900,
+                    ((322 + 13) * sqrt(70)) / 900,
+                    128. / 225,
+                    ((322 + 13) * sqrt(70)) / 900,
+                    ((322 - 13) * sqrt(70)) / 900])
 \end{lstlisting}
 
 We now calculate the integral
 
 \begin{lstlisting}
-unscaled_integal = sum(weights*g(points))
-integral = (b - a)/2 * unscaled_integral
+integral = (b - a)/2 * np.inner(weights, g(points))
 \end{lstlisting}
 
 \begin{problem}
