@@ -42,7 +42,7 @@ class SimplexSolver(object):
         
         The remaining entries in the matrix are the constraint equations
         '''
-        self._generateTableau(self.c, self.A, self.b)
+        self.tab, self.vars, self.nbasic = self._generateTableau(self.c, self.A, self.b)
     
     def __init__(self, c, A, b):
         #store the original system to make tweaking the system easier
@@ -64,16 +64,18 @@ class SimplexSolver(object):
         
     def _generateTableau(self, c, A, b):
         nr, nc = A.shape
-        self.tab = np.zeros((nr+1,nc+nr+1))
+        tab = np.zeros((nr+1,nc+nr+1))
         
         _t = nc + 1
-        self.tab[0,1:(_t)] = -c
-        self.tab[1:,0] = b
-        self.tab[1:,1:(_t)] = A
-        self.tab[1:,(_t):] = np.eye(nr)
+        tab[0,1:(_t)] = -c
+        tab[1:,0] = b
+        tab[1:,1:(_t)] = A
+        tab[1:,(_t):] = np.eye(nr)
         
-        self.vars = range(nc, nc+nr)+range(0, nc)
-        self.nbasic = nr
+        varis = range(nc, nc+nr)+range(0, nc)
+        nbasic = nr
+        
+        return tab, varis, nbasic
         
     def _auxiliary_program(self):
         r'''Setup the auxiliary linear program.
@@ -89,38 +91,59 @@ class SimplexSolver(object):
         A[:,1:] = self.A
         
         print A
-        self._generateTableau(c, A, self.b)
-        print self.tab
+        tab, varis, nbasic = self._generateTableau(c, A, self.b)
+        
         #manually perform first pivot on x_0
         #find the most negative constraint
         row_pivot = self.b.argmin()
-        x0 = self.vars.index(0)
-        print "Vars: ",self.vars
-        print "Pivot row: {} {}".format(self.vars[row_pivot], row_pivot)
-        print "Pivot col: {} {}".format(self.vars[x0], x0)
-        self.vars[x0], self.vars[row_pivot] = self.vars[row_pivot], self.vars[x0]
-        print "new vars: ",self.vars
-        self._reduceform(row_pivot + 1, 1)
-        print "First pivot"
-        print self.tab
+        x0 = varis.index(0)
+        varis[x0], varis[row_pivot] = varis[row_pivot], varis[x0]
+        print "auxiliary tab \n", tab
+        tab = self._reduceform(tab, row_pivot+1, 1)
         ##continue with regular pivoting
-        print self.getState()
-        print "Solving..."
+        self.tab = tab
+        self.vars = varis
+        self.nbasic = nbasic
+        print "auxiliary tab 2\n",tab
+        self.solve()
         
-        #remove the x0 variable
-        #self.vars.remove(max(self.vars))
-        #self.tab = np.delete(self.tab, 1, axis=1)
+        #check feasibility.
+        if self.tab[0,0] != 0:
+            self.systemState = InfeasibleSystem()
+            raise self.systemState
+        else:
+            #remove x0 and solve
+            #pad original objective function
+            
+            print self.tab
+            
+            mask = np.ones(self.tab.shape[1], dtype=bool)
+            mask[1] = False
+            tabber = self.tab[:,mask]
+            varis = [x-1 for x in self.vars]
+            varis.remove(-1)
+            nbasic = self.nbasic
+            
+            c = list(-self.c) + [0]*(len(varis)-self.c.size)
+            print "c ", c
+            print "varis ", varis
+            print tabber.shape
+            tabber[0, 1:] = c
+            print "tab shape ",tab.shape
+            
+            nrows = tabber.shape[0]
+            for i, x in enumerate(varis[:nbasic]):  
+                print "auxiliary loop \n", tabber
+                tabber = self._reduceform(tabber, i+1, x+1)
+
+            #solve using normal simplex
+            self.tab = tabber
+            self.vars = varis
+            self.nbasic = nbasic
+            self.systemState = None
+            return
+            self.solve()
         
-        #csize = self.c.size
-        #self.tab[0, 1:csize+1] = -self.c
-        #print self.tab
-        #self.solve()
-        #print self.tab
-        #if self.systemState is MaximalValue:
-            #return self.getState()
-        #else:
-            #self.systemState = InfeasibleSystem()
-            #raise self.systemState
         
     def _pivot_col(self):
         '''Determine the index of the next pivot column
@@ -171,7 +194,7 @@ class SimplexSolver(object):
                 self.vars[icol], self.vars[row-1] = self.vars[row-1], self.vars[icol]
                                 
                 #reduce the tableau using the element at (row, col) as the pivot
-                self._reduceform(row, col)
+                self.tab = self._reduceform(self.tab, row, col)
             else:
                 self.systemState = UnboundedSystem('Unbounded System!')
                 raise self.systemState
@@ -179,19 +202,21 @@ class SimplexSolver(object):
             self.systemState = MaximalValue(self.getState())
             raise self.systemState
             
-    def _reduceform(self, row, col):
+    def _reduceform(self, arr, row, col):
         r'''Reduces col to elementary vector using where row has the unitary element'''
         
-        print "Reducing row {} col {}".format(row, col)
         #divide row by tab[row,col]
         #this gets the one
-        self.tab[row] /= self.tab[row, col]
+        print "_reduceForm ", arr.shape
+        arr[row] /= arr[row, col]
         
         #reduce the rest of the column to zeros
-        _row = self.tab[row]
-        for i in xrange(self.tab.shape[0]):
+        _row = arr[row]
+        for i in xrange(arr.shape[0]):
             if i != row:
-                self.tab[i] -= _row*self.tab[i, col]
+                arr[i] -= _row*arr[i, col]
+        print "end _reduceForm ", arr.shape
+        return arr
             
         
     def __repr__(self):
