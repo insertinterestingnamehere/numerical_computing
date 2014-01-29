@@ -44,12 +44,15 @@ class SimplexSolver(object):
         '''
         self.tab, self.vars, self.nbasic = self._generateTableau(self.c, self.A, self.b)
     
-    def __init__(self, c, A, b):
+    def __init__(self, c, A, b, minimize=False):
         #store the original system to make tweaking the system easier
         self.c = np.asarray(c)
         self.A = np.asarray(A)
         self.b = np.asarray(b)
         
+        if minimize:
+            self.c = -self.c
+            
         self.systemState = None
         
         #check the program dimensions
@@ -148,7 +151,7 @@ class SimplexSolver(object):
     def _pivot_col(self):
         '''Determine the index of the next pivot column
         
-        The pivot column is the first positive coeff of the objective function (Bland's Rule)'''
+        The pivot column is the first negative coeff of the objective function (Bland's Rule)'''
         
         for i, j in enumerate(self.tab[0][1:], 1):
             if j < 0:
@@ -161,14 +164,19 @@ class SimplexSolver(object):
         '''Determine the index of the next pivot row'''
         
         #do a ratio test to find smallest index non-negative ratio
-        ratios = self.tab[1:,0]/self.tab[1:,col]
+        colslice = self.tab[1:,col]
+        rhs_mask = np.where(colslice >= 0, 1, np.nan)
+        ratios = self.tab[1:,0]/(colslice*rhs_mask)
         
         #python version of argsort
         basic_vars = self.vars[:self.nbasic]
         min_x = sorted(range(len(basic_vars)), key=basic_vars.__getitem__)
+        min_val = ratios[ratios >= 0].min()
         for x in min_x:
             t = ratios[x]
-            if not (self.isinf(t) or self.isnan(t)) and t >= 0:
+            if t < 0:
+                continue
+            if not (self.isinf(t) or self.isnan(t)) and t == min_val:
                 return x + 1   
         
     def _pivot(self, row=None, col=None):
@@ -192,6 +200,8 @@ class SimplexSolver(object):
                 #swap basic and nonbasic variables
                 icol = self.vars.index(col-1)
                 self.vars[icol], self.vars[row-1] = self.vars[row-1], self.vars[icol]
+                #print "Swapped variables x_{} and x_{}".format(self.vars[icol], self.vars[row-1])
+
                                 
                 #reduce the tableau using the element at (row, col) as the pivot
                 self.tab = self._reduceform(self.tab, row, col)
@@ -207,7 +217,6 @@ class SimplexSolver(object):
         
         #divide row by tab[row,col]
         #this gets the one
-        print "_reduceForm ", arr.shape
         arr[row] /= arr[row, col]
         
         #reduce the rest of the column to zeros
@@ -215,7 +224,6 @@ class SimplexSolver(object):
         for i in xrange(arr.shape[0]):
             if i != row:
                 arr[i] -= _row*arr[i, col]
-        print "end _reduceForm ", arr.shape
         return arr
             
         
