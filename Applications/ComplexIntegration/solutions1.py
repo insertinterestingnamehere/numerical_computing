@@ -45,14 +45,18 @@ def mpCauchy(f,C,a,b):
     integrand = lambda t,z0 : f(C(t))/(C(t)-z0)*mp.diff(C,t)
     return lambda z0 : 1/(2*np.pi*1j)*mp.quad(lambda t : integrand(t,z0),(a,b))   
 
-#this one doesn't give very good results
+#this one doesn't give very good results- it must be that the complexIntegration function is bad
 def cauchy(f,C,a,b):
     return lambda z0 : 1/(2*np.pi*1j)*compIntegrate(lambda z: f(z)/(z-z0),C,a,b,10e-10) 
 
-func = mpCauchy(mp.exp,unitBall,0,2*np.pi)
+z = 10
 
-print func(-.5 + 0j)
-print np.exp( -.5 + 0j)
+C = lambda t: unitBall(t) + z
+
+func = mpCauchy(mp.exp,C,0,2*np.pi)
+
+print func(z)
+print np.exp(z)
 
 
 
