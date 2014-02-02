@@ -28,7 +28,7 @@ def cymindist_simple(Y, metric):
     # Use the integer 'low' to track the lowest index that
     # still needs any processing.
     cdef int i, low=0
-    for i in range(2, len(X)):
+    for i in range(2, X.shape[0]):
         # Update the 'low' index to reflect which points
         # still need further processing.
         while X[low,0] < X[i,0] - r:

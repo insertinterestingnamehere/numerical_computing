@@ -126,6 +126,28 @@ We then process anything that is left.}
 \caption{After iterating over all the points in the set, we have the final minimum distance desired.}
 \end{figure}
 
+This process is outlined in Algorithm \ref{alg:linesweep_simple}
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{mindist_simple}{$Y, metric$}
+	\State $X \gets Y \text{ sorted along first coordinate}		\Comment{Make sorted copy of $Y$ to perform linesweep.}
+	\State $r \gets metric\left(X\left[0\right], X\left[1\right]\right)	\Comment{Initialize the smallest distance as the distance between the first points.}
+	\State $l \gets 0$								\Comment{Use indices to track which points are active.}
+	\For{$i=2$, $j<k$}								\Comment{Iterate over the remaining points.}
+		\While{X[low,0] + r < X[i,0]}					\Comment{Update $l$ to not include points that are too far away.}
+			\State $l += 1$
+		\EndWhile
+		\If{$l < i$}								\Comment{If there are any points to process, process them.}
+			\State $r \gets \text{min}\left(r, \text{metric}\left(X\left[i\right], X\left[l:i\right]\right)\right)$
+		\EndIf
+	\EndFor
+	\State \pseudoli{return} $r$
+\EndProcedure
+\end{algorithmic}
+\caption{A Simplified Line Sweep Algorithm}
+\label{alg:linesweep_simple}
+\end{algorithm}
+
 \begin{problem}
 Write a Python function that implements the above algorithm.
 Have your code accept a metric function as a parameter.
