@@ -194,6 +194,59 @@ Notice that we only need to consider the points that lie in the box formed by th
 \caption{After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.}
 \end{figure}
 
+This process is outlined in Algorithm \ref{alg:linesweep_full}.
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{Mindist}{$Y, \text{metric}$}
+	\LineComment{Make sorted copy of $Y$ to perform linesweep.}
+	\State $X \gets Y \text{ sorted along first coordinate}$
+	\LineComment{Store number of dimensions.}
+	\State $dim \gets Y.\text{shape}\left[1\right]$
+	\LineComment{Initialize the smallest distance as the distance between the first points.}
+	\State $r \gets metric\left(X\left[0\right], X\left[1\right]\right)$
+	\LineComment{Use indices to track which points are active.}
+	\State $l \gets 0$
+	\LineComment{This is all that is needed for the first two points.}
+	\LineComment{Iterate over the remaining points.}
+	\For{$i=2$, $j<k$}
+		\LineComment{Update $l$ to not include points that are too far away.}
+		\While{$X\left[l, 0\right] + r < X\left[i, 0\right]$}
+			\State $l += 1$
+		\EndWhile
+		\LineComment{If there are any points to process, process them.}
+		\For{$k=l$, $i$}
+			\LineComment{Initialize a flag to store whether or not to process a point.}
+			\State $proc \gets \text{True}$
+			\LineComment{Initialize partially computed distance to $0$.}
+			\State $d \gets 0.$
+			\LineComment{Compute differences in each dimension.}
+			\For{$j=1$, $dim$}
+				\State $dif \gets \left|X\left[k,j\right] - \left[i, j\right]\right|$
+				\LineComment{Stop computation if point is too far away.}
+				\If{$r < dif$}
+					\LineComment{Set flag to avoid further computations for this point.}
+					\State $proc \gets \text{False}$
+					\State \pseudoli{break}
+				\EndIf
+				\LineComment{If the point still needs to be processed,}
+				\LineComment{add in the difference squared.}
+				\State $d \gets d + dif^2$
+			\EndFor
+			\LineComment{If the point still has not been rejected, compute the distance.}
+			\LineComment{Update the minimum distance if needed.}
+			\If{$proc$}
+				\State $dif \gets X\left[k,0\right] - X\left[i,0\right]$
+				\State $r \gets \text{min}\left(r, \sqrt{d + dif^2}\right)$
+			\EndIf
+		\EndFor
+	\EndFor
+	\State \pseudoli{return} $r$
+\EndProcedure
+\end{algorithmic}
+\caption{A Simplified Line Sweep Algorithm}
+\label{alg:linesweep_full}
+\end{algorithm}
+
 
 \begin{problem}
 Implement the algorithm above in Python. 
