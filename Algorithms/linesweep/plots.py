@@ -8,6 +8,8 @@
 # project standards, but if we ever want to standardize plot generation
 # this will have to be taken care of.
 
+# There isn't currently code to generate the voronoi 1-norm and supnorm plots.
+
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 from matplotlib import pyplot as plt
