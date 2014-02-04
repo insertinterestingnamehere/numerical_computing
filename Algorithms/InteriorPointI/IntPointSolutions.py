@@ -39,7 +39,7 @@ def startingPoint(A, b, c):
 
     return x, lam, s
 
-def interiorPoint(A, b, c, niter=20, verbose=False, starting_point=None):
+def interiorPoint(A, b, c, niter=20, verbose=False, starting_point=None, pts=False):
     '''
     Solve the linear programming problem min c^T x, Ax = b, x>=0
     using an Interior Point method. This code is not optimized, but
@@ -53,11 +53,12 @@ def interiorPoint(A, b, c, niter=20, verbose=False, starting_point=None):
         starting_point -- tuple of arrays giving the initial values for x, l, and s.
                           if unspecified, the function startingPoint is used.
     Returns:
-        [x_0, x_1, ..., x_niter] -- list of points traversed in the algorithm.
+        x -- the optimal point
+        val -- the minimum value of the objective function
+        (pts -- list of points traced by the algorithm, returned if pts=True)
     Ref: Nocedal and Wright, p. 411
     '''
     pts = []
-
     # initialize variables
     m,n = A.shape
     if starting_point:
@@ -133,7 +134,10 @@ def interiorPoint(A, b, c, niter=20, verbose=False, starting_point=None):
         if verbose:
             print '{0:f} {1:f}'.format((c*x).sum(), mu)
 
-    return pts
+    if pts:
+        return pts
+    else:
+        return x, (c*x).sum()
 
 def randomLP(m,n):
     '''
