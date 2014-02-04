@@ -182,3 +182,39 @@ def randomLP(m,n):
     # the optimal solution has x[:n] = v
 
     return A, b, -c, v
+
+def leastAbsoluteDeviations():
+    """
+    This code should be fairly close to what the students submit for the least absolute deviations
+    problem.
+    """
+    data = np.loadtxt('simdata.txt')
+    m = data.shape[0]
+    n = data.shape[1] - 1
+    c = np.zeros(3*m + 2*(n + 1))
+    c[:m] = 1
+    y = np.empty(2*m)
+    y[::2] = -data[:, 0]
+    y[1::2] = data[:, 0]
+    x = data[:, 1:]
+    A = np.ones((2*m, 3*m + 2*(n + 1)))
+    A[::2, :m] = np.eye(m)
+    A[1::2, :m] = np.eye(m)
+    A[::2, m:m+n] = -x
+    A[1::2, m:m+n] = x
+    A[::2, m+n:m+2*n] = x
+    A[1::2, m+n:m+2*n] = -x
+    A[::2, m+2*n] = -1
+    A[1::2, m+2*n+1] = -1
+    A[:, m+2*n+2:] = -np.eye(2*m, 2*m)
+    
+    sol = interiorPoint(A, y, c, niter=10, verbose=True)[-1]
+    beta = (sol[m:m+n] - sol[m+n:m+2*n])[0]
+    b = sol[m+2*n] - sol[m+2*n+1]
+    
+    dom = np.linspace(0,10,2)
+    plt.scatter(data[:,1], data[:,0])
+    plt.plot(dom, beta*dom+b)
+    plt.show()
+    print 'Beta:', beta
+    print 'b:', b
