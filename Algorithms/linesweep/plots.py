@@ -107,6 +107,36 @@ def mindist_plot(Y):
         actives.insert(bs.bisect_left(actives, tuple(reversed(tuple(pt)))), tuple(reversed(tuple(pt))))
     return r
 
+def pnorm(pt, X, p=2):
+    # Take the p-norm distance between a point 'pt'
+    # and an array of points 'X'.
+    if p == "inf":
+        return np.absolute(pt - X).max(axis=-1)
+    return (np.absolute(pt - X)**p).sum(axis=-1)**(1./p)
+
+def brute_force_voronoi(n, res, p=2, filename=None):
+    # Generates a grid of points and tests to find the nearest
+    # neighbor for each of them.
+    pts = rand(n, 2)
+    X = np.linspace(0, 1, res)
+    # Make an array to store the indices of the nearest points.
+    indices = np.zeros((res, res))
+    for i in xrange(res):
+        for j in xrange(res):
+            indices[i, j] = pnorm(np.array([X[j], X[i]]), pts, p).argmin()
+    # Make a colorplot of the results.
+    X, Y = np.meshgrid(X, X, copy=False)
+    plt.pcolormesh(X, Y, indices)
+    plt.scatter(pts[:,0], pts[:,1])
+    plt.xlim((0,1))
+    plt.ylim((0,1))
+    plt.show()
+    if filename is None:
+        plt.show()
+    else:
+        plt.savefig(filename)
+        plt.clf()
+
 if __name__=="__main__":
     # Generate the plots for the simplified algorithm.
     X = rand(10, 2)
@@ -114,3 +144,7 @@ if __name__=="__main__":
     # Generate the plots for the full algorithm.
     X = rand(25, 2)
     mindistplot(X)
+    # The 1-norm voronoi diagram.
+    brute_force_voronoi(10, 401, 1, "voronoi_1norm.png")
+    # The oo-norm voronoi diagram.
+    brute_force_voronoi(10, 401, "inf", "voronoi_supnorm.png")

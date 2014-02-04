@@ -278,30 +278,34 @@ One possible way to compute this sort of diagram would be by brute force, for ex
 \begin{lstlisting}
 import numpy as np
 from numpy.random import rand
-from matplotlib imort pyplot as plt
-num = 10
-res = 201
-pts = rand(num, 2)
-X = np.linspace(0, 1, res)
-Y = X.copy()
-X, Y = np.meshgrid(X, Y)
-Z = np.empty_like(X)
-indices = np.zeros_like(X)
-for i in xrange(res):
-    for j in xrange(res):
-        #note: we don't need to do the sqare root
-        #since we really just need to compare the distances
-        mn = (X[i,j] - pts[0,0])**2 + (Y[i,j] - pts[0,1])**2
-        for k in xrange(1,num):
-            dist = (X[i,j] - pts[k,0])**2 + (Y[i,j] - pts[k,1])**2
-            if dist < mn:
-                indices[i,j] = k
-                mn = dist
-plt.pcolormesh(X,Y,indices)
-plt.scatter(pts[:,0],pts[:,1])
-plt.xlim((0,1))
-plt.ylim((0,1))
-plt.show()
+from matplotlib import pyplot as plt
+
+def pnorm(pt, X, p=2):
+    # Take the p-norm distance between a point 'pt'
+    # and an array of points 'X'.
+    if p == "inf":
+        return np.absolute(pt - X).max(axis=-1)
+    return (np.absolute(pt - X)**p).sum(axis=-1)**(1./p)
+
+def brute_force_voronoi(n, res, p=2, filename=None):
+    # Generates a grid of points and tests to find the nearest
+    # neighbor for each of them.
+    pts = rand(n, 2)
+    X = np.linspace(0, 1, res)
+    # Make an array to store the indices of the nearest points.
+    indices = np.zeros((res, res))
+    for i in xrange(res):
+        for j in xrange(res):
+            indices[i, j] = pnorm(np.array([X[j], X[i]]), pts, p).argmin()
+    # Make a colorplot of the results.
+    X, Y = np.meshgrid(X, X, copy=False)
+    plt.pcolormesh(X, Y, indices)
+    plt.scatter(pts[:,0], pts[:,1])
+    plt.xlim((0,1))
+    plt.ylim((0,1))
+    plt.show()
+
+brute_force_voronoi(10, 401)
 \end{lstlisting}
 This algorithm is good because it can work regardless of the metric space we are using, but it is terribly slow.
 Figure \ref{voronoi_1norm} shows a similar diagram using the 1-norm and figure \ref{voronoi_supnorm} shows a diagram generated using the supremum norm.
