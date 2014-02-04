@@ -93,7 +93,6 @@ class SimplexSolver(object):
         A[:,0] = -1
         A[:,1:] = self.A
         
-        print A
         tab, varis, nbasic = self._generateTableau(c, A, self.b)
         
         #manually perform first pivot on x_0
@@ -101,13 +100,11 @@ class SimplexSolver(object):
         row_pivot = self.b.argmin()
         x0 = varis.index(0)
         varis[x0], varis[row_pivot] = varis[row_pivot], varis[x0]
-        print "auxiliary tab \n", tab
         tab = self._reduceform(tab, row_pivot+1, 1)
         ##continue with regular pivoting
         self.tab = tab
         self.vars = varis
         self.nbasic = nbasic
-        print "auxiliary tab 2\n",tab
         self.solve()
         
         #check feasibility.
@@ -118,8 +115,6 @@ class SimplexSolver(object):
             #remove x0 and solve
             #pad original objective function
             
-            print self.tab
-            
             mask = np.ones(self.tab.shape[1], dtype=bool)
             mask[1] = False
             tabber = self.tab[:,mask]
@@ -128,15 +123,10 @@ class SimplexSolver(object):
             nbasic = self.nbasic
             
             c = list(-self.c) + [0]*(len(varis)-self.c.size)
-            print "c ", c
-            print "varis ", varis
-            print tabber.shape
             tabber[0, 1:] = c
-            print "tab shape ",tab.shape
             
             nrows = tabber.shape[0]
             for i, x in enumerate(varis[:nbasic]):  
-                print "auxiliary loop \n", tabber
                 tabber = self._reduceform(tabber, i+1, x+1)
 
             #solve using normal simplex
@@ -144,9 +134,6 @@ class SimplexSolver(object):
             self.vars = varis
             self.nbasic = nbasic
             self.systemState = None
-            return
-            self.solve()
-        
         
     def _pivot_col(self):
         '''Determine the index of the next pivot column
