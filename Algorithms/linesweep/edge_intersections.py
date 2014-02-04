@@ -15,7 +15,8 @@ def edge_intersections(V, xlims, ylims, tol=1E-12):
     The first list of indices represents edges formed by one point inside the region and an intersection with the edge.
     The second list of indices represents edges formed between two intersections of the Voronoi diagram.
     This second case arises when the region does not contain any of the vertices corresponding to an edge it intersects.
-    In the first list of indices, the first index in each pair corresponds to a vertex in V.vertices and the second index corresponds to one of the points in the array of edge-intersections.
+    In the first list of indices, the first index in each pair corresponds to a vertex in V.vertices and the second index
+    corresponds to one of the points in the array of edge-intersections.
     In the second list of indieces, both indices correspond to points in the new array of edge-intersections.
     V is a Voronoi diagram object.
     The bounds xlim and ylim are expected to be tuples of a minimum and a maximum value for the x and y coordinate respectively.
