@@ -24,7 +24,7 @@ Such an optimization problem defines a region in space called the \emph{feasible
 satisfying the constraints. Because the constraints are all linear, the feasible region forms a geometric object
 called a \emph{polytope}, having flat faces and edges; see Figure \ref{fig:polytope}.
 The Simplex Algorithm jumps among the vertices of the feasible region searching for an optimal point.
-It does this by moving along the edges of the feasible region in such a way that the objective function 
+It does this by moving along the edges of the feasible region in such a way that the objective function
 is always increased after each move.
 
 \begin{figure}
@@ -81,7 +81,7 @@ class SimplexSolver(object):
 
 \subsection{Adding Slack Variables}
 Our next step is to convert the inequality constraints $Ax \leq b$ into equality constraints
-by introducing one slack variable for each constraint. 
+by introducing one slack variable for each constraint.
 If the constraint matrix $A$ is an $m \times n$ matrix, then there are $m$ slack variables,
 one for each row of $A$.
 Grouping all of the slack variables into a vector of length $m$, denoted by $z$, our
@@ -132,7 +132,7 @@ Design and implement a way to store and track all of the basic and non-basic var
 After we have determined that our program is feasible, we need to create the \emph{tableau}, a construct
 that tracks the state of the algorithm.
 You may structure the tableau to suit your specific implementation.
-Remember that your tableau will need to include in some way the slack variables that you created in Problem 
+Remember that your tableau will need to include in some way the slack variables that you created in Problem
 \ref{prob:slackvars}.
 
 There are many different ways to build your tableau.
@@ -163,7 +163,7 @@ T = \begin{bmatrix}
 \label{eqn:hand_tab}
 \end{equation}
 
-The columns of the tableau correspond to each of the variables (both primal and slack), and the rows of the tableau 
+The columns of the tableau correspond to each of the variables (both primal and slack), and the rows of the tableau
 correspond to the basic variables. Using the convention introduced above
 of representing the variables by indices in the index list, we have the following correspondence:
 \[
@@ -242,6 +242,8 @@ class SimplexSolver(object):
 \subsection{Pivoting}
 Pivoting is the mechanism that really makes Simplex useful.
 Pivoting refers to the act of swapping basic and nonbasic variables, and transforming the tableau appropriately.
+This has the effect of moving from one vertex of the feasible polytope to another vertex in a way that increases
+the value of the objective function.
 Depending on how you store your variables, you may need to modify a few different parts of your solver to reflect this swapping.
 
 When initiating a pivot, you need to determine which variables will be swapped.
@@ -249,7 +251,7 @@ In the tableau representation, you first find a specific element on which to piv
 element correspond to the variables that need to be swapped.
 Row operations are then performed on the tableau so that the pivot column becomes an elementary vector.
 
-Let's break it down, starting with pivot selection. We need to use some care when choosing the pivot element. 
+Let's break it down, starting with pivot selection. We need to use some care when choosing the pivot element.
 To find the pivot column, search from left to right along the top row of the tableau
 (ignoring the first column), and stop once you encounter the first negative value. The index corresponding
 to this column will be designated the \emph{entering index}, since after the full pivot operation, it will enter
@@ -278,7 +280,7 @@ $T_{i_1, j}, T_{i_2, j}, \ldots, T_{i_k, j}$, we calculate the ratios
 \]
 and we choose our pivot element to be one that minimizes this ratio. If multiple entries minimize the ratio, then we utilize
 \emph{Bland's Rule}, which instructs us to choose the entry in the row corresponding to the smallest index.
-(Obeying this rule is important, as it prevents the possibility of the algorithm cycling back on itself infinitely.) 
+(Obeying this rule is important, as it prevents the possibility of the algorithm cycling back on itself infinitely.)
 The index corresponding to the pivot row is designated as the \emph{leaving index}, since after the full pivot operation,
 it will leave the basis and become a nonbasic variable.
 
@@ -380,7 +382,7 @@ and the updated index list is now
 \[
 L = (2, 0, 4, 3, 1),
 \]
-so that the basic variables are given by the indices $2, 0, 4$. 
+so that the basic variables are given by the indices $2, 0, 4$.
 
 Finally, we perform row operations on our tableau in the following way: divide the pivot row by the value of the pivot entry.
 Then use the pivot row to zero out all entries in the pivot column above and below the pivot entry. In our example, we first divide
@@ -415,7 +417,7 @@ the pivot row by 3, and then zero out the two entries above the pivot element an
     1/3 & 0 & -4/3 & 1 & -1/3 & 0 & 0\\
     5/3 & 1 & 1/3 & 0 & 1/3 & 0 & 0\\
     1/3 & 0 & 5/3 & 0 & -4/3 & 1 & 0
-    \end{bmatrix}.   
+    \end{bmatrix}.
 \end{align*}
 The result of these row operations is our updated Tableau, and the pivot operation is complete.
 
@@ -427,7 +429,7 @@ If the problem is unbounded, return an exception to the user.
 
 \subsection{Termination and Reading the Tableau}
 Up to this point, our algorithm accepts a linear program, adds slack variables, and creates the initial tableau. After
-carrying out these initial steps, it then performs the pivoting operation iteratively until the optimal point is found. 
+carrying out these initial steps, it then performs the pivoting operation iteratively until the optimal point is found.
 How can we determine when the optimal point is found? The answer is to look at the top row of the tableau. More specifically,
 before each pivoting operation, check whether all of the entries in the top row of the tableau (ignoring the entry in the first
 column) are nonnegative. If this is the case, then we have already found an optimal solution, and so we terminate the algorithm.
@@ -436,7 +438,7 @@ The final step is to report the solution. The current state of the tableau and i
 The maximum value attained by the objective function is found in the upper leftmost entry of the tableau. The nonbasic variables,
 whose indices are located in the last $n$ entries of the index list, all have the value $0$. The basic variables, whose indices
 are located in the first $m$ entries of the index list, have values given by the first column of the tableau. Specifically, the basic
-variable whose index is located at the $i$-th entry of the index list has the value $T_{i+1, 1}$. 
+variable whose index is located at the $i$-th entry of the index list has the value $T_{i+1, 1}$.
 
 In our example, suppose that our algorithm terminates with the tableau and index list in the following state:
 \[
@@ -459,15 +461,15 @@ x_1 &= .2.
 \end{align*}
 
 \begin{problem}
-Write an additional method in your solver called \li{solve} that obtains the optimal solution and returns it in the format: \li{(maximum value, basic variables, 
-nonbasic variables)}, where the basic and nonbasic variables are represented as two dictionaries that map the index of the variable to 
+Write an additional method in your solver called \li{solve} that obtains the optimal solution and returns it in the format: \li{(maximum value, basic variables,
+nonbasic variables)}, where the basic and nonbasic variables are represented as two dictionaries that map the index of the variable to
 its corresponding value.
 
-For example, in our example, we would return the tuple \li{(5.2, \{0: 1.6, 1: .2, 2: .6\}, \{3: 0, 4: 0\})}. 
+For example, in our example, we would return the tuple \li{(5.2, \{0: 1.6, 1: .2, 2: .6\}, \{3: 0, 4: 0\})}.
 The correct format of this tuple is critical as this tuple of information will be used judge if your solver works!
 \end{problem}
 
-At this point, you should have a Simplex solver that is simple to use. The following code demonstrates how your solver is 
+At this point, you should have a Simplex solver that is simple to use. The following code demonstrates how your solver is
 expected to behave.
 
 \begin{lstlisting}
@@ -486,6 +488,30 @@ expected to behave.
 
 If the linear program were infeasible at the origin or unbounded, we would expect the solver to alert the user by throwing an error.
 
+\section*{The Product Mix Problem}
+We now use our Simplex implementation to solve the \emph{product mix problem}, which in its basic form can be expressed as a simple linear program. 
+Suppose a manufacturer makes $n$ products from $m$ different resources. The $i$-th product is sold at a price $p_i$, and there are at most $m_j$ units 
+of the $j$-th resource available. Additionally, each unit of the $i$-th product requires $a_{i,j}$ units of resource $j$. How do we choose the optimal amount
+of each product to manufacture, so as to maximize profit while not exceeding the available resources?
+
+Let  $x_1, x_2, \ldots, x_n$ denote the amount of each product to be manufactured.
+The sale of product $i$ results in a profit of $p_ix_i$.
+Then our objective function, the profit, is given by
+\[
+\sum_{i=1}^n p_ix_i.
+\]
+Additionally, the manufacture of product $i$ requires $a_{i,j}x_i$ units of resource $j$.
+Thus, we have the resource constraints
+\[
+\sum_{i=1}^n a_{i,j}p_i \leq m_j
+\]
+for $j = 1, 2, \ldots, m$. 
+Certainly the variables $x_i$ are constrained to be nonnegative. We therefore have a linear program in the appropriate form that is feasible at the origin.
+It is a simple task to solve the problem using our Simplex solver.
+
+\begin{problem}
+Solve the product mix problem for the data contained in the file \li{productMix.txt}. 
+\end{problem}
 %---------------------------------------------------------------------------------------------------
 %
 %
@@ -531,11 +557,11 @@ In their paper, they give several examples of polytopes that the Simplex algorit
 
 Consider the following linear program from Klee-Minty.
 \begin{align*}
-\text{max } & 2^{n-1}x_1 & + & 2^{n-2}x_2  & + & \cdots & + & 2x_{n-1} & + & x_n\\                     
+\text{max } & 2^{n-1}x_1 & + & 2^{n-2}x_2  & + & \cdots & + & 2x_{n-1} & + & x_n\\
 \text{subject to } & x_1 &  &  &  &  &  &  &  &\leq 5\\
 & 4x_1 & + & x_2 &  &  &  &  &  &\leq 25\\
 & 8x_1 & + & 4x_2 & + & x_3 &  &  &  &\leq 125\\
-& \vdots & &      &   &     &  &  &  &\vdots\\ 
+& \vdots & &      &   &     &  &  &  &\vdots\\
 & 2^n x_1 & + & 2^{n-1} x_2 & + & \cdots & + & 4x_{n-1} & + x_n &\leq 5\\
 \end{align*}
 
@@ -551,9 +577,9 @@ Consider the following linear program from Klee-Minty.
 % 125 & -8 & -4 & -1 & 0 & 0 & 0\\
 % \end{bmatrix}
 % \end{equation*}
-% 
+%
 % After the first pivot with $x_1$ leaving and $s_1$ entering, we have the tableau
-% 
+%
 % \begin{equation*}
 % \begin{bmatrix}
 % 20 & 0 & 2 & 1 & -4 & 0 & 0\\
@@ -565,15 +591,15 @@ Consider the following linear program from Klee-Minty.
 % 85 & 0 & -4 & -1 & 8 & 0 & 0\\
 % \end{bmatrix}
 % \end{equation*}
-% 
+%
 % \begin{problem}
 % What is the final tableau for this Klee-Minty example with $n=3$?
 % How many iterations does it take to arrive at the final tableau?
 % \end{problem}
-% 
+%
 % \begin{problem}
 % Using problem 1 as a guide, guess the optimum value of the Klee-Minty example with $n=20$.
-% Then find the maximum value for the Klee-Minty example with $n=20$. 
+% Then find the maximum value for the Klee-Minty example with $n=20$.
 % How many iterations does it take to arrive at the final tableau?
 % How long does the program take to run for only $20$ variables?
 % \end{problem}
@@ -581,7 +607,7 @@ Consider the following linear program from Klee-Minty.
 Klee and Minty show that for this example, the worst case has exponential time complexity.
 With only $n$ constraints and $n$ variables, the simplex algorithm goes through $2^n$ iterations.
 This is because there are $2^n$ extreme points and when starting at the point $x=0$, the simplex algorithm goes through all of the extreme points before reaching the optimal point $(0,0,\dots, 0, 5^n)$.
-Other algorithms, such as the interior point method, solve this problem much faster because they are not constrained to follow the edges. 
+Other algorithms, such as interior point methods, solve this problem much faster because they are not constrained to follow the edges.
 
 
 % \bibliography{./references}
