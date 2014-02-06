@@ -67,7 +67,26 @@ $T_0 \left( x \right)$ is equal $1$ and $T_1 \left( x \right)$ is equal to $x$ (
 This recurrence relation forms the basis for what is known as Clenshaw's Algorithm.
 Clensaw's Algorithm says that, given a polynomial of degree $n$ represented as a sum of Chebyshev polynomials:
 \[p\left(x\right) = \sum_{k=0}^{n} a_k T_k\left(x\right)\]
-$p(x)$ can be evaluated by the following process.
+$p(x)$ can be evaluated by the recursion process outlined in Algorithm \ref{alg:clenshaw_recursion}.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{ClenshawRecursion}{$X, c$}
+	\State $u_{n+1} \gets 0$
+	\State $u_{n} \gets a_{n}$
+	\State $k \gets n-1$
+	\While{$k \geq -1$}
+		\State $u_k \gets 2 x u_{k+1} - u_{k+2} + a_k$
+		\State $k \gets k-1$
+	\EndWhile
+	\State \pseudoli{return} $\frac{1}{2} \left( a_0 + u_0 - u_2 \right)$
+\EndProcedure
+\end{algorithmic}
+\caption{Clenshaw Recursion}
+\label{alg:clenshaw_recursion}
+\end{algorithm}
+
+The following recursion is equivalent to Algorithm \ref{alg:clenshaw_recursion}.
 Let $u_{n+1} = 0$ and $u_{n} = a_n$ and $u_k = 2 x u_{k+1} - u_{k+2} + a_k$ for $k = n-1, n-2, \dots, 0$, then $p(x) = \frac{1}{2} \left( a_0 + u_0 - u_2 \right)$.
 
 \begin{problem}
@@ -161,3 +180,8 @@ The last $10$ coefficients for the interpolant of degree $2^{23} - 1$ are still
  -3.13050802e-08,   1.89319005e-09,   1.03700608e-08,
  -9.47258778e-10]
 \end{lstlisting}
+
+% We could add in a problem where they interpolate the PDF of the standard normal distribution and use it to estimate the CDF at different values.
+% Given a proper setup, such an approximation gives correct answers to machine precision in about the same amount of time as the version in Scipy.stats.
+% The only limitation is that the interpolant is limited to a specific interval instead of allowing approximation anywhere.
+% That isn't much of an issue though since the PDF is practically 0 outside a reasonably-sized interval anyway.
