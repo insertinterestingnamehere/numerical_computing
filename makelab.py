@@ -4,7 +4,7 @@ import ConfigParser
 import shutil
 import subprocess
 import make_util
-    
+
 def main(args):
     tmp_dir = tempfile.mkdtemp()
     c = ConfigParser.SafeConfigParser()
