@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import widgets as wg
 from scipy.misc import comb
+from numpy.random import rand
 
 # Decasteljau's algorithm problem
 def decasteljau(p,t):
@@ -80,5 +81,20 @@ def bernstein_pt_aprox(X):
         ypoly += X[i,1] * npoly
     return xpoly, ypoly
 
+# plot demonstrating numerical instability in Bernstein polys.
+def compare_plot(n, res=501):
+    X = rand(n, 2)
+    t = np.linspace(0, 1, res)
+    # This is slow.
+    # It would be better to have a
+    # decasteljau function that supported
+    # arrays of time values.
+    decasteljau_curve = np.array([decasteljau(X, ti) for ti in t])
+    xpoly, ypoly = bernstein_pt_aprox(X)
+    plt.plot(decasteljau_curve[:,0], decasteljau_curve[:,1], xpoly(t), ypoly(t))
+    plt.show()
+
 if __name__ == '__main__':
     decasteljau_interactive(5)
+    compare_plot(4)
+    compare_plot(30)
