@@ -6,6 +6,9 @@ from numpy.random import rand
 
 # Decasteljau's algorithm problem
 def decasteljau(p,t):
+    """ Evaluates a Bezier curve with control points 'p' at time 't'.
+    The points in 'p' are assumed to be stored in its rows.
+    'p' is assumed to be 2-dimensional."""
     n = p.shape[0]
     m = p.shape[1]
     q1 = p
@@ -19,6 +22,8 @@ def decasteljau(p,t):
 
 # used in interactive plot problem.
 def decasteljau_animated(p, t, res=401):
+    """ Produces a plot illustrating the Decasteljau algorithm
+    at a given time 't'."""
     n = p.shape[0]
     plt.plot(p[:,0], p[:,1])
     plt.scatter(p[:,0], p[:,1])
@@ -42,6 +47,8 @@ def decasteljau_animated(p, t, res=401):
 
 # interactive plot problem.
 def decasteljau_interactive(n):
+    """ Makes an interactive plot using a slider bar to show the
+    Decasteljau algorithm at different times."""
     ax = plt.subplot(1, 1, 1)
     plt.subplots_adjust(bottom=0.25)
     plt.axis([-1, 1, -1, 1])
@@ -68,10 +75,13 @@ def decasteljau_interactive(n):
 
 # Bernstein polynomial problem
 def bernstein(i, n):
+    """ Returns the 'i'th Bernstein polynomial of degree 'n'."""
     return comb(n, i, exact=True) * (np.poly1d([-1,1]))**(n-i) * (np.poly1d([1,0]))**i
 
 # Coordinate function problem.
 def bernstein_pt_aprox(X):
+    """ Returns the 'x' and 'y' coordinate functions for a 2-dimensional
+    Bezier curve with control points 'X'."""
     n = X.shape[0]
     xpoly = np.poly1d([0])
     ypoly = np.poly1d([0])
@@ -83,6 +93,10 @@ def bernstein_pt_aprox(X):
 
 # plot demonstrating numerical instability in Bernstein polys.
 def compare_plot(n, res=501):
+    """ Produces a plot showing a Bezier curve evaluated via
+    the Decasteljau algorithm and a Bezier curve evaluated using
+    Bernstein polynomials. Control points are chosen randomly.
+    Instability should be evident for moderately large values of 'n'."""
     X = rand(n, 2)
     t = np.linspace(0, 1, res)
     # This is slow.
