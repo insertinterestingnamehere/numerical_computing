@@ -76,7 +76,7 @@ def points_and_weights(n, length):
     c = (i - 1) / i
     j = construct_jacobi(a, b, c)
     # terribly slow to do it this way...
-    evals, evects = eig(-j)
+    evals, evects = eig(j)
     return evals, evects[0]**2 * length
 
 # normal distribution cdf problem
