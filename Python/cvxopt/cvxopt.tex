@@ -1,88 +1,139 @@
 \lab{Python}{CVXOPT}{CVXOPT}
 \label{lab:Optimization 2}
-\objective{Introduce some of the basic optimization functions available in the \li{cvxopt} package}
+\objective{Introduce some of the basic optimization functions available in the CVXOPT package}
 
-You can learn about more about cvxopt at  
+You can learn about more about CVXOPT at
 
 \url{http://abel.ee.ucla.edu/cvxopt/documentation/}.
 
 \section*{Linear Programs}
 
 %%Cvxopt has linear program solver and can implement integer programming through the Gnu Linear Programming Kit, glpk.
-CVXOPT is a convex solver. In this lab we will focus on linear and quadratic programming.
-Linear programs are of the form, 
-
-\begin{lstlisting}[mathescape]
-min $c^Tx$
-subject to $Gx \leq h$
-	       $Ax    = b$
-\end{lstlisting}
-
-cvxopt uses the notation
-
-\begin{lstlisting}[mathescape]
-min $c^Tx$
-subject to $Gx +s = h$
-	        $Ax    = b$
-	        $s     \geq 0$
-\end{lstlisting}
-
-Note that $Gx +s = h$ with $s  \geq 0$ is equivalent to $Gx \leq h$
-
-Cvxopt also solves the dual problem
-
-\begin{lstlisting}[mathescape]
-min $-h^Tz - b^Ty$
-subject to $G^Tz +A^Ty + c = 0$
-	        $z     \geq 0$
-\end{lstlisting}
-
-Consider the following problem.
+CVXOPT is a package of Python functions and classes for the purpose of convex optimization.
+In this lab we will focus on linear and quadratic programming.
+A \emph{linear program} is a linear constrained optimization problem. Such a problem can be stated in several
+different forms, one of which is
 \begin{align*}
-\text{minimize } &-4x_1-5x_2 \\
-\text{subject to } &x_1+2x_2 \leq 3 \\
-	        &2x_1+x_2 \leq 3 \\
-		&x_1 \geq 0 \\
-		&x_2 \geq 0 
+\text{minimize}\qquad &c^Tx \\
+\text{subject to}\qquad &Gx + s = h\\
+&Ax = b \\
+ &s \geq 0.
 \end{align*}
-All entries must be floats, and each array must be converted to a matrix type, unique to cvxopt.
-Numpy arrays can be converted to matrix by
+This is the formulation used by CVXOPT.
+In this formulation, we require that the matrix $A$ has full row rank,
+and that the block matrix $[G \quad A]^T$ has full column rank.
+
+Note that the constraint $Gx +s = h$ includes the term $s$, which is not part of the objective
+function, and is known as the \emph{slack variable}. Since $s  \geq 0$, the constraint
+$Gx + s = h$ is equivalent to $Gx \leq h$.
+
+The corresponding \emph{dual program} for the above linear program has the form
+\begin{align*}
+\text{maximize}\qquad &-h^Tz - b^Ty \\
+\text{subject to}\qquad &G^Tz + A^Ty + c = 0\\
+ &z \geq 0.
+\end{align*}
+CVXOPT provides functions to solve both the original (\emph{primal}) linear program and its dual program.
+
+Consider the following example.
+\begin{align*}
+\text{minimize}\qquad &-4x_1-5x_2 \\
+\text{subject to}\qquad &x_1+2x_2 \leq 3 \\
+	        &2x_1+x_2 \leq 3 \\
+		&x_1, x_2 \geq 0
+\end{align*}
+The final two constraints, $x_1, x_2 \geq 0$, need to be adjusted to be $\leq$ constraints.
+This is easily done by multiplying by $-1$, resulting in the constraints $-x_1, -x_2 \leq 0$.
+If we define
+\[
+G = \begin{bmatrix}
+  1 & 2\\
+  2 & 1\\
+  -1 & 0\\
+  0 & -1
+\end{bmatrix}
+\]
+and
+\[
+h = \begin{bmatrix}
+  3\\
+  3\\
+  0\\
+  0
+\end{bmatrix},
+\]
+then we can express the constraints compactly as
+\[
+Gx \leq h,
+\]
+where
+\[
+x = \begin{bmatrix}
+  x_1\\
+  x_2
+\end{bmatrix}.
+\]
+By adding a slack variable $s$, we can write our constraints as
+\[
+Gx + s = h,
+\]
+which matches the form discussed above. In the case of this particular example, we ignore the extra constraints
+\[
+Ax = b,
+\]
+since we were given no equality constraints.
+
+Now we proceed to solve the problem using CVXOPT.
+We need to initialize the arrays $c$, $G$, and $h$, and then pass them to the appropriate function.
+CVXOPT uses its own data type for arrays and matrices, and while similar to the NumPy array, it
+does have a few differences, especially when it comes to initialization.
+Below, we initialize CVXOPT matrices for $c$, $G$, and $h$.
 
 \begin{lstlisting}
-a=np.array([[11,7],[2,5],[8,9]])
-A=matrix(a)
-print A
-[ 11   7]
-[  2   5]
-[  8   9]
-\end{lstlisting}
-Or you can change a list into a matrix by
-\begin{lstlisting}
-B=matrix([[11,7],[2,5],[8,9]])
-print B
-[ 11   2   8]
-[  7   5   9]
-\end{lstlisting}
-
-Notice that creating a matrix with a Numpy array gives you the transpose of what it would be if you created it with a list.
-
-The follow code will solve the problem. Type it in and see what it prints out.
-\begin{lstlisting}
->>> from cvxopt import matrix, solvers
+>>> from cvxopt import matrix
 >>> c = matrix([-4., -5.])
 >>> G = matrix([[1., 2., -1., 0.],[2., 1., 0., -1.]])
 >>> h = matrix([ 3., 3., 0., 0.])
->>> sol = solvers.lp(c,G,h)  
->>> print sol['x']
->>> print sol['primal objective']
 \end{lstlisting}
-Cvxopt.solvers returns a dictionary with a lot of information, including slack, iterations, dual and primal information.
-All we really care about right now are the values of $x$ and the objective value.
+Observe that CVXOPT matrices are initialized column-wise rather than row-wise (as in the case of NumPy).
 
-So \li{c} is what you are trying to minimize and corresponds to minimize $-4x_1-5x_2$. The columns of \li{G} with the corresponding entry is \li{h} make up the constraints. So the first column of \li{G} and the first entry of \li{h} is the constraint $x_1+2x_2 \leq 3$. The last column of \li{G} with the last entry of \li{h} is the constraint $x_2 \geq 0$. Note that $x_2 \geq 0$ is equivalent to $-x_2 \leq 0$, it is a good principle to get in mind, when you have an $\geq$ you can put it in to $G$ and $h$ after multiplying by $-1$. Also note that minimize $-4x_1-5x_2$ is the same as maximize $4x_1+5x_2$
+Alternatively, we can initialize the arrays first in NumPy (a process with which you should be familiar),
+and then simply convert them to the CVXOPT matrix data type:
+\begin{lstlisting}
+>>> import numpy as np
+>>> c = np.array([-4., -5.])
+>>> G = np.array([[1., 2.],[2., 1.],[-1., 0.],[0., -1]])
+>>> h = np.array([3., 3., 0., 0.])
 
+>>> #Now convert to CVXOPT matrix type
+>>> c = matrix(c)
+>>> G = matrix(G)
+>>> h = matrix(h)
+\end{lstlisting}
+Use whichever method is most convenient. Note that we made sure the entries in the matrices are floats.
+
+Having initialized the necessary objects, we are now ready to solve the problem.
+We will use the function \li{solvers.lp}, and we simply need to pass $c$, $G$, and $h$ as arguments.
+\begin{lstlisting}
+>>> from cvxopt import solvers
+>>> sol = solvers.lp(c, G, h)
+     pcost       dcost       gap    pres   dres   k/t
+ 0: -8.1000e+00 -1.8300e+01  4e+00  0e+00  8e-01  1e+00
+ 1: -8.8055e+00 -9.4357e+00  2e-01  1e-16  4e-02  3e-02
+ 2: -8.9981e+00 -9.0049e+00  2e-03  1e-16  5e-04  4e-04
+ 3: -9.0000e+00 -9.0000e+00  2e-05  1e-16  5e-06  4e-06
+ 4: -9.0000e+00 -9.0000e+00  2e-07  1e-16  5e-08  4e-08
+Optimal solution found.
+>>> print sol['x']
+[ 1.00e+00]
+[ 1.00e+00]
+>>> print sol['primal objective']
+-8.99999981141
+\end{lstlisting}
+The function \li{solvers.lp} returns a dictionary containing useful information.
+For the time being, we will focus just on the values of $x$ and the primal objective value (i.e. the minimum value achieved by
+the objective function).
 \begin{problem}
-
 Solve the following convex optimization problem
 \begin{align*}
 \text{minimize } &2x_1+x_2+3x_3 \\
@@ -92,14 +143,16 @@ Solve the following convex optimization problem
 		&x_2 \geq 0 \\
 		&x_3 \geq 0
 \end{align*}
+Report the values of $x$ and the primal objective function that you obtain.
+Remember to make the necessary adjustments so that all inequality constraints $\leq$ rather than $\geq$.
 \end{problem}
 
-\section*{Transportation}
+\section*{The Transportation Problem}
 
 Consider the following transportation problem:
-A piano company needs to transport thirteen pianos from their three  supply centers (1,2, and 3) to two demand centers (4 and 5).
-Transporting a piano from a supply center to a demand center incurs a cost, listed in the table below.
-The company wants to minimize shipping costs for the pianos.
+A piano company needs to transport thirteen pianos from their three  supply centers (denoted by 1, 2, 3) to two demand centers (4, 5).
+Transporting a piano from a supply center to a demand center incurs a cost, listed in Table \ref{tab:cost}.
+The company wants to minimize shipping costs for the pianos while meeting the demand.
 How many pianos should each supply center send each demand center?
 
 \begin{table}[h]
@@ -113,6 +166,7 @@ Supply Center & Number of pianos available\\
 \end{tabular}
 
 \caption{Number of pianos available at each supply center}
+\label{tab:supply}
 \end{table}
 
 \begin{table}[h]
@@ -125,6 +179,7 @@ Demand Center & Number of pianos needed\\
 \end{tabular}
 
 \caption{Number of pianos needed at each demand center}
+\label{tab:demand}
 \end{table}
 
 \begin{table}[h]
@@ -140,62 +195,91 @@ Supply Center & Demand Center & Cost of transportation & Number of pianos\\
 3 & 5 & 9 & u\\
 \end{tabular}
 \caption{Cost of transporting one piano from supply center to demand center}
+\label{tab:cost}
 \end{table}
 
 The variables $p,q,r,s,t,$ and $u$ must be nonnegative and satisfy the following three supply and two demand constraints:
+\begin{align*}
+p + q  &= 7\\
+r + s  &= 2\\
+t + u  &= 4\\
+p + r + t &= 5\\
+q + s + u &= 8
+\end{align*}
 
-\begin{align}
-p +& q  &    &    &    &   &=& 7\\
-   &    & r +& s  &    &   &=& 2\\
-   &    &    &    & t +& u &=& 4\\
-p +&    & r +&    & t  &   &=& 5\\
-   & q +&    & s +&    & u &=& 8\\
-\end{align}
+The objective function is the number of pianos shipped from each location multiplied by the respective cost:
+\[
+4p + 7q + 6r + 8s + 8t + 9u.
+\]
 
-The objective function is the number of pianos shipped from each location multiplied by the cost.
-
-\begin{center}
-$4p + 7q + 6r + 8s + 8t + 9u$
-\end{center}
-
-There a several ways to solve the linear program. Now note that you want all your answers to be integers, that turns out to be an NP-hard problem and there is a whole field devoted to that called integer linear programming which is beyond the scope of this lab. For this problem the linear programming solutions are equivalent. 
+There a several ways to solve this linear program. We want our answers to be integers, and this added constraint turns out to be an NP-hard problem
+in general. There is a whole field devoted to dealing with integer constraints, called integer linear programming, which is beyond the scope of this lab.
+Fortunately, we can treat this particular problem as a standard linear program and still obtain integer solutions.
 
 Here, $G$ and $h$ constrain the variables to be non-negative.
-The entries are negative because cvxopt uses the format $Gx \leq h$.
-$A$ and $b$ represent the supply and demand constraints.
-
-
+Because CVXOPT uses the format $Gx \leq h$, we see that $G$ must be a $6 \times 6$ identity matrix multiplied by $-1$, and
+$h$ is just a column vector of zeros.
+The matrices $A$ and $b$ represent the supply and demand constraints, since these are equality constraints.
+Try initializing these arrays and solving the linear program by entering the code below. (Notice that
+we pass more arguments to \li{solvers.lp} since we have equality constraints.)
 \begin{lstlisting}
->>> from cvxopt import matrix, solvers
 >>> c = matrix([4., 7., 6., 8., 8., 9])
->>> G = matrix([ [-1., 0., 0., 0., 0., 0.],
-             [0., -1., 0., 0., 0., 0.],
-             [0., 0., -1., 0., 0., 0.],
-             [0., 0., 0., -1., 0., 0.],
-             [0., 0., 0., 0., -1., 0.],
-             [0., 0., 0., 0., 0., -1.] ])
-        
->>> h = matrix([ 0., 0., 0., 0., 0., 0.,])
->>> A = matrix([ [1., 0., 0., 1., 0.],
-             [1., 0., 0., 0., 1.],
-             [0., 1., 0., 1., 0.],
-             [0., 1., 0., 0., 1.],
-             [0., 0., 1., 1., 0.],
-             [0., 0., 1., 0., 1.] ])
->>> b = matrix([7., 2., 4., 5., 8]) 
->>> sol = solvers.lp(c,G,h,A,b)  
+>>> G = matrix(-1*np.eye(6))
+>>> h = matrix(np.zeros(6))
+>>> A = matrix([[1., 0., 0., 1., 0.],
+                [1., 0., 0., 0., 1.],
+                [0., 1., 0., 1., 0.],
+                [0., 1., 0., 0., 1.],
+                [0., 0., 1., 1., 0.],
+                [0., 0., 1., 0., 1.]])
+>>> b = matrix([7., 2., 4., 5., 8])
+>>> sol = solvers.lp(c, G, h, A, b)
+     pcost       dcost       gap    pres   dres   k/t
+ 0:  8.9500e+01  8.9500e+01  2e+01  4e-17  2e-01  1e+00
+Terminated (singular KKT matrix).
 >>> print sol['x']
+[ 3.00e+00]
+[ 4.00e+00]
+[ 5.00e-01]
+[ 1.50e+00]
+[ 1.50e+00]
+[ 2.50e+00]
 >>> print sol['primal objective']
+89.5
 \end{lstlisting}
+Notice that some problems occurred. First, CVXOPT alerted us to the fact that the algorithm terminated prematurely (due to a singular matrix).
+Further, the solution that was obtained does not consist of integer entries.
 
-Run the example.
+So what went wrong? Recall that the matrix $A$ is required to have full row rank, but we can easily see that the rows of $A$
+are linearly dependent. We rectify this by converting some of the equality constraints into \emph{inequality} constraints, so that
+the remaining equality constraints define a new matrix $A$ with linearly independent rows.
 
-You will notice that the problem does not find an optimal solution. TODO why is that.
+Rather than fuss about which equality
+constraints to convert into inequality constraints, let us simply convert all of the equality constraints.
+This is done as follows. Suppose we have the equality constraint
+\[
+x + 2y - 3z = 4.
+\]
+This is equivalent to the pair of inequality
+constraints
+\begin{align*}
+x + 2y - 3z &\leq 4, \\
+x + 2y - 3z &\geq 4.
+\end{align*}
+Of course, we require only $\leq$ constraints, so we obtain the pair
+of constraints
+\begin{align*}
+x + 2y - 3z &\leq 4, \\
+-x - 2y + 3z &\leq -4.
+\end{align*}
 
-We can fix the problem by including the supply demand constraints in the $G$ matrix.
+Apply this process to each of the equality constraints. You will obtain a new matrix $G$ with several additional rows (to account for the new inequality
+constraints), and a new vector $h$, also with more entries. Having done this, we no longer have equality constraints $A$ and $b$, so these can be ignored.
 \begin{problem}
-Solve the problem by putting the supply and demand constraints in $G$ matrix similar to the first example problem. Return the optimal values for $x$ and the primal objective.
+Solve the problem by converting all equality constraints into inequality constraints.
+Report the optimal values for $x$ and the primal objective function.
 \end{problem}
+
 \begin{comment}
 \section*{Example}
 
@@ -219,7 +303,7 @@ Why are all of the terms in $G$ and $h$ non-positive?
 
 Another method is to use an integer linear program.
 Cvxopt is configured to work with  Gnu, which does have an integer linear program.
-It will work with either of the methods above. 
+It will work with either of the methods above.
 
 \textbf{Example}
 
@@ -239,9 +323,9 @@ The first entry describes the optimality of the result, while the second gives t
 >>> o = matrix([4., 7., 6., 8., 8., 9])
 >>> sol = glpk.ilp(o,G,h)
 >>> print sol[1]
-\end{lstlisting} 
+\end{lstlisting}
 
-or 
+or
 \begin{lstlisting}
 >>> from cvxopt import matrix, solvers, glpk
 >>> G = matrix([ [-1., 0., 0., 0., 0., 0.],
@@ -262,52 +346,66 @@ or
 >>> b = matrix([7., 2., 4., 5., 8])
 >>> sol = glpk.ilp(o,G,h,A,b)
 >>> print sol[1]
-\end{lstlisting} 
+\end{lstlisting}
 
 \textbf{Problem 2}
-Choose one of these methods and compare the optimal values for the integer linear program to the result you received above. 
+Choose one of these methods and compare the optimal values for the integer linear program to the result you received above.
 
 \textbf{Problem 3}
-Create the dual problem for the linear program and solve. 
-Compare your answer to the dual value cvxopt returned. 
+Create the dual problem for the linear program and solve.
+Compare your answer to the dual value cvxopt returned.
 \end{comment}
-\section*{Quadratic Programmming}
 
-The quadratic programming setup is similar to the linear programming.
-However, it does not have to be constrained.
-Thus $G, h, A$, and $b$ are optional.
+\section*{Quadratic Programming}
 
+Quadratic programming is similar to linear programming except that the objective function is quadratic rather
+than linear. However, the constraints, if there are any, are still of the same form.
+Thus $G, h, A$, and $b$ are optional. The formulation that we will use is
 \begin{lstlisting}[mathescape]
 minimize $\frac{1}{2}x^TQx + p^Tx$
 subject to $Gx\leq h$
 	        $Ax = b$.
 \end{lstlisting}
+\begin{align*}
+\text{minimize}\qquad &\frac{1}{2}x^TQx + p^Tx \\
+\text{subject to}\qquad &Gx \leq h\\
+ &Ax = b,
+\end{align*}
+where $Q$ is a positive semidefinite symmetric matrix.
+In this formulation, we require again that $A$ have full row rank, and that the block matrix
+$[P \quad G \quad A]^T$ have full column rank.
 
-Where $Q$ has to be a symmetric matrix.
-
-For example, find the minimum of 
-\begin{equation}
-f(x,y) = 2x^2 +2xy + y^2 +x -y
-\end{equation}
+As an example, let us minimize the quadratic function
+\[
+f(x,y) = 2x^2 +2xy + y^2 +x -y.
+\]
+Note that there are no constraints, so we only need to initialize the matrix $Q$ and the vector $p$.
 \begin{lstlisting}
 >>> Q = matrix([[4., 2.], [2., 2.]])
 >>> p = matrix([1., -1.])
 >>> sol=solvers.qp(Q, p)
 >>> print(sol['x'])
+[-1.00e+00]
+[ 1.50e+00]
 >>> print sol['primal objective']
+-1.25
 \end{lstlisting}
-Notice that you double the coefficients of the single variable squared terms ($2x^2$ becomes a 4 and $y^2$ becomes a 2  in the $Q$ matrix) and the coefficients of multivariate terms stay the same but are put twice in the matrix. ($2xy$ is the 2's in the upper right hand corner and the bottom left hand corner of $Q$).
+Building the matrix $Q$ from the function $f$ is straightforward. The coefficients for each squared term are doubled and then placed on the main diagonal of $Q$ (so the term $2x^2$ yields $4$ in the upper left entry of
+$Q$, and the term $y^2$ yields $2$ in the lower right entry).
+The coefficient of each mixed term appears twice according to the row and column corresponding to the two
+variables in the mixed term (so the term $2xy$ yields a $2$ placed in the first row, second column and in
+the second row, first column). 
 
 \begin{problem}
 Find the minimizer and minimum of
-\begin{equation}
+\begin{equation*}
 g(x,y,z) = \frac{3}{2}x^2 +2xy + xz+ 2y^2 +2yz+\frac{3}{2}z^2+3x + z
-\end{equation}
-\begin{comment} 
+\end{equation*}
+\begin{comment}
 \begin{equation}
 f(x) = \frac{1}{2}x^TQx - x^Tp
 \end{equation}
-where 
+where
 
 \begin{center}
 $Q =
@@ -317,7 +415,7 @@ $Q =
 1 & 2 & 3\\
 \end{bmatrix}
 $
-and $p = 
+and $p =
 \begin{bmatrix}
 3\\
 0\\
@@ -326,21 +424,32 @@ and $p =
 $
 \end{center}
 \end{comment}
+
 \end{problem}
+
 \section*{Allocation Models}
-A simple form of a linear program is an allocation model. An allocation model is a model how to divide or allocate a valuable resource among competing needs. The following example is taken from "Optimization in Operations Research" by Ronald L. Rardin. %%pg 132
+Allocation models lead to simple linear programs. An allocation model seeks to allocate a valuable resource among competing needs. The following example is taken from ``Optimization in Operations Research" by Ronald L. Rardin. %%pg 132
 
-The U.S. Forest service has used an allocation models to address the task of managing national forestland. Models of a forest begin by dividing land into analysis areas. Then several prescriptions or land management policies are then proposed and evaluated for each. The optimization seeks the best possible allocation of land in the analysis areas to particular prescriptions, subject to forest-wide restrictions on land use.
+The U.S. Forest service has used an allocation model to deal with the task of managing national forests. 
+The model begins by dividing the land into a set of analysis areas. Several land management policies (also 
+called prescriptions) are then proposed and evaluated for each area. 
+An \emph{allocation} is an assignment of land (in acreage) in each analysis area to each of the 
+prescriptions for that analysis area.
+We seek to find the best possible allocation, subject to forest-wide restrictions on land use.
 
-ForestData.npy contains data for a fictional national forest that is also found in the table below. There are 7 areas of analysis and 3 prescriptions for each of them. The first column is the area of analysis denoted $i$. The second column is size of the analysis area (in thousands of acres) denoted as $s_i$. The third column is a prescription number denoted $j$. The forth column is net present value (NPV) per acre of all uses in area denoted as $p_{i,j}$. The fifth column is protected timber yield (in board feet per acre) denoted as $t_{i,j}$. The sixth column is protected grazing capability (in animal unit months per acre) denoted as $g_{i,j}$. The seventh and last column is the wilderness index rating (0 to 100) denoted as $w_{i,j}$. Let $x_{i,j}$ be area $i$ with prescription $j$.
+The file \li{ForestData.npy} contains data for a fictional national forest (you can also find the data
+in Table \ref{tab:forest}). There are 7 areas of analysis and 3 prescriptions for each of them. 
+The first column is the area of analysis $i$. The second column is size of the analysis area (in thousands of acres), denoted $s_i$. The third column is a prescription number denoted $j$. The forth column is net present value (NPV) per acre of all uses in area $i$ under prescription $j$, denoted $p_{i,j}$. The fifth column is protected timber yield (in board feet per acre) in area $i$ under prescription $j$, denoted $t_{i,j}$. The sixth column is protected grazing capability (in animal unit months per acre) for area $i$ under prescription $j$, denoted
+$g_{i,j}$. The seventh and last column is the wilderness index rating (0 to 100) for area $i$ under prescription $j$, denoted $w_{i,j}$. Let $x_{i,j}$ be the amount of land in area $i$ allocated to prescription $j$.
 
-\begin{center}
+\begin{table}[h]
+\centering
     \begin{tabular}{c c c c c c c}
 &&&Forest Data&&& \\
 \hline
-Analysis & Acres &Prescrip-&NPV,&Timber,&Grazing,&Wilderness \\ 
-Area,&(000)'s &tion&(per acre) &(per acre)&(per acre)& Index,\\
-$i$ &$s_i$&$j$& $p_{i,j}$ & $g_{i,j}$&$g_{i,j}$&$w_{i,j}$ \\\hline
+Analysis & Acres &Prescrip-&NPV,&Timber,&Grazing,&Wilderness \\
+Area,&(1000)'s &tion&(per acre) &(per acre)&(per acre)& Index,\\
+$i$ &$s_i$&$j$& $p_{i,j}$ & $t_{i,j}$&$g_{i,j}$&$w_{i,j}$ \\\hline
 1&	75	&1	&503	&310	&0.01&	40\\
 &&		2&	140&	50&	0.04	&80\\
 &&		3&	203&	0&	0&	95\\ \hline
@@ -364,12 +473,20 @@ $i$ &$s_i$&$j$& $p_{i,j}$ & $g_{i,j}$&$g_{i,j}$&$w_{i,j}$ \\\hline
 &&		3	&400	&0	&0	&95\\
 \hline
     \end{tabular}
-\end{center}
-Our goal is to find the allocation that maximizes net present value, while producing 40 million board feet of timber, 5 thousand animal months of grazing, and keep the average wilderness index at least 70.
+\label{tab:forest}
+\end{table}
 
-Note that since acres are in thousands we also divide out 1000 from the constraints of timber and animals months of grazing. This can be written as 
+Under this notation, and allocation is just a vector consisting of the $x_{i,j}$'s. For this particular
+example, the allocation vector is of size $7\cdot 3 = 21$. 
+Our goal is to find the allocation vector that maximizes net present value, while producing at least 40 million
+board feet of timber, at least 5 thousand animal unit months of grazing, and keeping the average wilderness index at least 70.
+
+Of course, the allocation vector is also constrained to be nonnegative, and all the land must be allocated 
+precisely. 
+
+Note that since acres are in thousands we also divide out 1000 from the constraints of timber and animals months of grazing. We can summarize our problem as follows:
 \begin{align*}
-\text{Maximize } &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 p_{i,j}x_{i,j} \\
+\text{maximize } &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 p_{i,j}x_{i,j} \\
 \text{subject to } &\sum\limits_{j=1}^3 x_{i,j} = s_i  \text{ for } i=1,..,7 \\
 	        &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 t_{i,j}x_{i,j} \geq 40,000 \\
 		&\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 g_{i,j}x_{i,j} \geq 5 \\
@@ -378,5 +495,5 @@ Note that since acres are in thousands we also divide out 1000 from the constrai
 \end{align*}
 
 \begin{problem}
-Solve the above problem. Output the value of each $x_{i,j}$ and the maximum total net present value (return the primal objective multiplied by -1000).  
-\end{problem}
+Solve the above problem. Output the value of each $x_{i,j}$ and the maximum total net present value (return the primal objective multiplied by -1000).
+\end{problem} 
