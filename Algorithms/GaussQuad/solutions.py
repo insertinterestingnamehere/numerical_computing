@@ -59,9 +59,7 @@ def construct_jacobi(a, b, c):
     three term recurrence relation."""
     alpha = - b / a
     beta = np.sqrt(c[1:] / (a[:-1] * a[1:]))
-    print beta
     i = np.arange(1, a.size+1, dtype=float)
-    print np.sqrt(1 / (4 - 1 / i**2))
     j = np.zeros((a.size, a.size))
     np.fill_diagonal(j, alpha)
     np.fill_diagonal(j[1:], beta)
@@ -69,7 +67,7 @@ def construct_jacobi(a, b, c):
     return j
 
 # points and weights problem
-def points_and_weights(n):
+def points_and_weights(n, length):
     """ Find the set of 'n' nodes and their
     corresponding weights for the interval [-1, 1]."""
     i = np.arange(1, n + 1, dtype=float)
@@ -78,8 +76,8 @@ def points_and_weights(n):
     c = (i - 1) / i
     j = construct_jacobi(a, b, c)
     # terribly slow to do it this way...
-    evals, evects = eig(-j)
-    return evals, evects[0]
+    evals, evects = eig(j)
+    return evals, evects[0]**2 * length
 
 # normal distribution cdf problem
 def normal_cdf(x):
