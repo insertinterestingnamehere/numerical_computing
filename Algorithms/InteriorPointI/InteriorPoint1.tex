@@ -2,14 +2,19 @@
 \objective{Learn About Interior Point Methods for Linear Programming}
 
 \section*{Interior Point Methods: Overview}
-Although the Simplex algorithm was long the only practically competitive method for linear programming, the past 30 years have seen the discovery and widespread adoption of a new family of algorithms that rival and in some cases outperform the Simplex algorithm, collectively called Interior Point methods. One of the major shortcomings of the Simplex algorithm is that the number of steps required to solve the problem can grow exponentially in the size of the linear system. Thus, for certain large linear programs, the Simplex algorithm is simply not viable. In practice, however, such pathological examples are rarely encountered. Interior Point methods offer and alternative approach and guarantee much better theoretical convergence properties.
+Although the Simplex algorithm was long the only practically competitive method for linear programming, the past 30 years have seen the
+discovery and widespread adoption of a new family of algorithms that rival and in some cases outperform the Simplex algorithm, collectively
+called Interior Point methods. One of the major shortcomings of the Simplex algorithm is that the number of steps required to solve the
+problem can grow exponentially in the size of the linear system. Thus, for certain large linear programs, the Simplex algorithm is simply
+not viable. Interior Point methods offer and alternative approach and guarantee much better theoretical convergence properties.
 
 Recall that a linear program is a constrained optimization problem with a linear objective function and linear constraints.
 The linear constraints define a set of allowable points called the \emph{feasible region}, the boundary of which forms a geometric
 object known as a \emph{polytope}. The theory of convex optimization ensures that the optimal point for the objective function
 can be found among the vertices of the feasible polytope. The Simplex Method tests a sequence of such vertices until it finds
 the optimal point. Provided the linear program is neither unbounded nor infeasible, the algorithm is certain to produce the correct
-answer after a finite number of steps, but it does not guarantee an efficient path along the polytope toward the minimizer. Interior point methods do away with the feasible polytope and instead generate a sequence of points that cut through the interior (or
+answer after a finite number of steps, but it does not guarantee an efficient path along the polytope toward the minimizer. Interior
+point methods do away with the feasible polytope and instead generate a sequence of points that cut through the interior (or
 exterior) of the feasible region and converge iteratively to the optimal point. Although it is computationally more expensive to
 compute such interior points, each step results in significant progress toward the minimizer. See Figure \ref{fig:intPath} for
 a visualization of an Interior Point method. In general, the Simplex Method requires many more, albeit less expensive, computations.
@@ -33,18 +38,63 @@ Here, $x, c \in \mathbb{R}^n$, $b \in \mathbb{R}^m$, and $A$ is an $m \times n$ 
 simply mean that each coordinate of $x$ is nonnegative. Note that this formulation is quite general, as any linear program can be
 posed in this manner, after appropriate transformations. This is the primal problem, and its dual takes the form
 \begin{align*}
-\text{maximize } &b^T\lambda\\
-\text{subject to } &A^T\lambda + s = c\\
+\text{maximize }\qquad &b^T\lambda\\
+\text{subject to }\qquad &A^T\lambda + s = c\\
 &s \geq 0,
 \end{align*}
-where $\lambda \in \mathbb{R}^m$ and $s \in \mathbb{R}^n$. The theory of convex optimization gives us necessary and sufficient
-conditions for the solutions to the primal and dual problems via the Karush-Kuhn-Tucker conditions, which in this case take the form
+where $\lambda \in \mathbb{R}^m$ and $s \in \mathbb{R}^n$.
+
+The theory of convex optimization gives us necessary and sufficient
+conditions for the solutions to the primal and dual problems via the Karush-Kuhn-Tucker (KKT) conditions.
+These conditions are derived as follows. First, we calculate the so-called \emph{Lagrangian function} for our linear program.
+The Lagrangian function for a general constrained optimization problem of the form
+\begin{align*}
+\text{minimize }\qquad &f(x)\\
+\text{subject to }\qquad &c_i(x) = 0, \quad i = 1,2,\ldots,k,\\
+&d_i(x) \geq 0, \quad i = 1,2,\ldots,j,
+\end{align*}
+is defined to be
+\[
+\mathcal{L}(x, \lambda, s) := f(x) - \displaystyle\sum_{i=1}^k\lambda_ic_i(x) - \displaystyle\sum_{i=1}^js_id_i(x).
+\]
+From here, the KKT conditions are
+\begin{align*}
+\nabla_x\mathcal{L}(x,\lambda,s) &= 0,\\
+c_i(x) &= 0,\quad i = 1,2,\ldots,k,\\
+s_id_i(x) &= 0,\quad i=1,2,\ldots,j,\\
+d_i(x) &\geq 0,\quad i=1,2,\ldots,j,\\
+s_i &\geq 0,\quad i=1,2,\ldots,j.
+\end{align*}
+For our linear program, $f(x) = c^Tx$, $c_i(x) = A_i^Tx - b_i$ (where $A_i$ denotes the $i$-th row of $A$), and
+$d_i(x) = x_i$. Hence, you can check that our Lagrangian function is
+\[
+\mathcal{L}(x,\lambda,s) = c^Tx - \lambda^T(Ax - b) - s^Tx.
+\]
+We then calculate
+\[
+\nabla_x\mathcal{L}(x,\lambda,s) = (c^T - \lambda^TA - s^T)^T = c - A^T\lambda - s.
+\]
+The KKT conditions can now be expressed as follows:
 \begin{align*}
 A^T\lambda + s &= c\\
 Ax &= b\\
-x_is_i &= 0, \,\,\, i = 1,2,\ldots,n\\
+x_is_i &= 0, \quad i = 1,2,\ldots,n,\\
 x, s &\geq 0.
 \end{align*}
+In fact, it is convenient to write these conditions in a more compact manner, by defining an almost-linear function
+$F$ and setting it equal to zero:
+\begin{align*}
+F(x,\lambda,s) := 
+\begin{bmatrix}
+A^T\lambda + s - c\\
+Ax - b\\
+XSe\\
+\end{bmatrix}
+&= 0,\\
+(x,s) &\geq 0,
+\end{align*}
+where $X = \text{diag}(x_1,x_2,\ldots,x_n)$, $S = \text{diag}(s_1,s_2,\ldots,s_n)$, and $e = (1,1,\ldots,1)^T$.
+
 A Primal-Dual Interior Point method is a line search method that starts with an initial guess $(x_0, \lambda_0, s_0)$
 and produces a sequence of points that converge to $(x^*, \lambda^*, s^*)$, the solution to the KKT equations and hence
 the solution to the original linear program.
@@ -53,11 +103,40 @@ the solution to the original linear program.
 We now describe how to select the search direction and step length at each iteration of the algorithm. Because this is
 a constrained problem, matters are more complicated than is usual in unconstrained line search methods.
 
-The top three lines of the KKT conditions can be rewritten as one large almost-linear homogeneous system of equations.
 In the spirit of
-Newton's Method, we can form a linear approximation of this system centered around our current point $(x, \lambda, s)$, and
-calculate the direction $(\triangle x, \triangle \lambda, \triangle s)$ in which to step in order to set the linear approximation
+Newton's Method, we can form a linear approximation of the system $F(x,\lambda,s) = 0$ centered around our current 
+point $(x, \lambda, s)$, and
+calculate the direction $(\triangle x, \triangle \lambda, \triangle s)$ in which to step to set the linear approximation
 equal to 0. This equates to solving the linear system
+\[
+J(x,\lambda,s)
+\begin{bmatrix}
+\triangle x\\
+\triangle \lambda\\
+\triangle s\\
+\end{bmatrix}
+= - F(x,\lambda,s).
+\]
+Here $J(x,\lambda,s)$ denotes the Jacobian matrix of $F$. We can calculate this matrix block-wise by obtaining the 
+partial derivatives of each block entry of $F(x,\lambda, s)$ with respect to $x$, $\lambda$, and $s$, respectively.
+For example, consider the topmost block entry of $F(x,\lambda,s)$, given by
+\[
+A^T\lambda + s - c.
+\]
+We calculate the partial derivatives of this expressions as follows:
+\begin{align*}
+\frac{\partial}{\partial x}[A^T\lambda + s - c] &= 0,\\
+\frac{\partial}{\partial \lambda}[A^T\lambda + s - c] &= A^T,\\
+\frac{\partial}{\partial s}[A^T\lambda + s - c] &= I.\\
+\end{align*}
+Hence, the topmost block row of $J(x,\lambda,s)$ is given by
+\[
+\begin{bmatrix}
+0 \quad A^T \quad I\\
+\end{bmatrix}.
+\]
+
+Continuing in this manner, we can calculate the entire Jacobian, which leads us to the following linear system:
 \begin{equation}
 \begin{bmatrix}
 0 & A^T & I\\
@@ -77,8 +156,7 @@ S & 0 & X
 \end{bmatrix},
 \label{eq:affine}
 \end{equation}
-where $r_b = Ax - b,$ $r_c = A^T\lambda + s - c$, $I$ is an appropriately-sized identity matrix, $X = \text{diag}(x_1,\ldots,x_n),$
-$S = \text{diag}(s_1,\ldots,s_n)$, and $e = (1,1,\ldots,1)^T$.
+where $r_b = Ax - b$ and $r_c = A^T\lambda + s - c$. 
 This Newton direction is too greedy, however, and even small steps in this direction may cause us to violate the nonnegativity
 condition (the last line of the KKT conditions). We need to find a new search direction.
 
@@ -109,34 +187,48 @@ S & 0 & X
 \label{eq:centering}
 \end{equation}
 The solution to this system, which we denote by $(\triangle x, \triangle \lambda, \triangle s)$, is our final search direction.
-Note that $\triangle X^a = \text{diag}(\triangle x_1^a,\ldots,\triangle x_n^a)$, $\triangle S^a = \text{diag}(\triangle s_1^a,\ldots,\triangle s_n^a)$. Further, define $\mu := x^Ts/n$. The formula for $\sigma$ is somewhat more complicated, and
-is based on a heuristic approach. Make the following calculations:
+
+We now describe the new pieces of Equation \ref{eq:centering}.
+Note that 
+\begin{align*}
+\triangle X^a &= \text{diag}(\triangle x_1^a,\ldots,\triangle x_n^a),\\
+\triangle S^a &= \text{diag}(\triangle s_1^a,\ldots,\triangle s_n^a).
+\end{align*}
+Further,
+define $\mu := x^Ts/n$. This quantity, called the \emph{duality measure}, tells us roughly how close we are
+to the optimal solution, with values closer to 0 being more desirable. It is present in Equation \ref{eq:centering} 
+for the purpose of obtaining a search direction that leads to a decrease towards 0 in the duality measure.
+
+The formula for $\sigma$ is somewhat more complicated, and
+is based on a heuristic approach. First, make the following calculations (which give the maximum allowable step lengths in
+the Newton search direction for $x$ and $s$ before the nonnegativity condition is violated):
 \begin{align*}
 \alpha_a^p &:= \min\left(1, \displaystyle\min_{i : \triangle x_i^a < 0}-\frac{x_i}{\triangle x_i^a}\right)\\
 \alpha_a^d &:= \min\left(1, \displaystyle\min_{i : \triangle s_i^a < 0}-\frac{s_i}{\triangle s_i^a}\right).
 \end{align*}
 Next, define
-$$
-\mu_a := \frac{1}{n}(x+\alpha_a^p\triangle x^a)^T(s+\alpha_a^d\triangle s^a).
-$$
+\[
+\mu_a := \frac{1}{n}(x+\alpha_a^p\triangle x^a)^T(s+\alpha_a^d\triangle s^a),
+\]
+which is simply the duality measure for the point obtained by taking a full step in the Newton direction.
 Finally, calculate $\sigma$ by the formula
-$$
+\[
 \sigma = \left(\frac{\mu_a}{\mu}\right)^3.
-$$
+\]
 
 Now that we have our search direction, it remains to choose our step length. We wish to step nearly as far as possible without
 violating the nonnegativity condition, thus remaining in the interior of the feasible region. First, make the following
-calculations:
+calculations, which give the maximum allowable step lengths for $x$ and $s$, respectively:
 \begin{align*}
 \beta^p &:= \displaystyle\min_{i : \triangle x_i < 0}-\frac{x_i}{\triangle x_i}\\
 \beta^d &:= \displaystyle\min_{i : \triangle s_i < 0}-\frac{s_i}{\triangle s_i}.
 \end{align*}
-Next, calculate
+Next, we back off from these maximum step lengths slightly:
 \begin{align*}
 \alpha^p &:= \min(1, 0.95\beta^p)\\
 \alpha^d &:= \min(1, 0.95\beta^d).
 \end{align*}
-These are our step lengths. That is, our next point $(x', \lambda', s')$ is given by
+These are our final step lengths. That is, our next point $(x', \lambda', s')$ is given by
 \begin{align*}
 x' &= x + \alpha^p\triangle x\\
 (\lambda', s') &= (\lambda, s) + \alpha^d(\triangle \lambda, \triangle s).
@@ -160,8 +252,8 @@ We summarize the entire procedure in Algorithm \ref{alg:predcorr}.
 \label{alg:predcorr}
 \end{algorithm}
 
-A few notes on the implementation of this algorithm are in order. 
-In each iteration, by far the most expensive operations are solving Equations \ref{eq:affine} and 
+A few notes on the implementation of this algorithm are in order.
+In each iteration, by far the most expensive operations are solving Equations \ref{eq:affine} and
 \ref{eq:centering}. Fortunately, the only difference between the two equations is the right-hand side.
 Thus, we can avoid repetitious calculation by first factorizing the block matrix
 \[
@@ -174,9 +266,9 @@ S & 0 & X
 once at the beginning of the iteration, and then using the factorization twice to solve both equations.
 For convenience, consider using the functions \li{lu_factor} and \li{lu_solve} in the \li{scipy.linalg}
 module. It is possible to speed up these calculations further, but for simplicity we won't pursue the issue
-farther.
+further.
 
-Next, the value of $\mu$ (defined above) gives a measure of how close our current point is to the minimizer.
+Next, as mentioned above, the duality measure $\mu$ tells us in some sense how close our current point is to the minimizer.
 The closer $\mu$ is to 0, the closer we are to the optimal point. Thus, by printing the value of $\mu$ at
 each iteration, you can track how your algorithm is progressing and detect when you have converged.
 
@@ -196,7 +288,7 @@ have already been initialized):
 \end{lstlisting}
 We need the if-statement to deal with the case where no entry of $u$ is negative.
 
-Finally, the choice of initial point $(x_0, \lambda_0, s_0)$ is an important, nontrivial one. 
+Finally, the choice of initial point $(x_0, \lambda_0, s_0)$ is an important, nontrivial one.
 A naively or randomly chosen initial point may cause the algorithm to fail to converge.
 We provide code to calculate an appropriate initial point. You should include a call to this function in your algorithm to obtain the initial point.
 
@@ -308,9 +400,9 @@ This is not yet in the form that we need in order to use our interior point meth
 For each inequality constraint, we bring all variables ($u_i, \beta, b$) to the left hand side and
 introduce a nonnegative slack variable to transform the constraint into an equality:
 \begin{align*}
-u_i  - \beta^T\mathbf{x}_i - b - s_{2i}&= -y_i,\\
-u_i +\beta^T\mathbf{x}_i + b - s_{2i+1}&= y_i,\\
-s_{2i}, s_{2i+1}&\geq 0.
+u_i  - \beta^T\mathbf{x}_i - b - s_{2i-1}&= -y_i,\\
+u_i +\beta^T\mathbf{x}_i + b - s_{2i}&= y_i,\\
+s_{2i-1}, s_{2i}&\geq 0.
 \end{align*}
 
 Notice that the variables $\beta, b$ are not assumed to be nonnegative, but in our interior point method, all variables are assumed
@@ -322,14 +414,14 @@ to be nonnegative. We can fix this situation by writing these variables as the d
 \end{align*}
 Substituting these values into our constraints, we have the following system of constraints:
 \begin{align*}
-u_i  - \beta_1^T\mathbf{x}_i + \beta_2^T\mathbf{x}_i - b_1 + b_2 - s_{2i}&= -y_i,\\
-u_i + \beta_1^T\mathbf{x}_i - \beta_2^T\mathbf{x}_i + b_1 - b_2 - s_{2i+1}&= y_i,\\
-u_i, \beta_1, \beta_2, b_1, b_2, s_{2i}, s_{2i+1}&\geq 0.
+u_i  - \beta_1^T\mathbf{x}_i + \beta_2^T\mathbf{x}_i - b_1 + b_2 - s_{2i-1}&= -y_i,\\
+u_i + \beta_1^T\mathbf{x}_i - \beta_2^T\mathbf{x}_i + b_1 - b_2 - s_{2i}&= y_i,\\
+u_i, \beta_1, \beta_2, b_1, b_2, s_{2i-1}, s_{2i}&\geq 0.
 \end{align*}
 Writing $\mathbf{y} = (-y_1, y_1, -y_2, y_2, \ldots, -y_m, y_m)^T$ and $\beta_i = (\beta_{i,1}, \ldots, \beta_{i,n})^T$ for $i = 1, 2$,
 we can aggregate all of our variables into one vector as follows:
 \[
-\mathbf{v} = (u_1,\ldots, u_m, \beta_{1,1},\ldots, \beta_{1,n}, \beta_{2,1},\ldots, \beta_{2,n}, b_1, b_2, s_1,\ldots,s_{2m+1})^T.
+\mathbf{v} = (u_1,\ldots, u_m, \beta_{1,1},\ldots, \beta_{1,n}, \beta_{2,1},\ldots, \beta_{2,n}, b_1, b_2, s_1,\ldots,s_{2m})^T.
 \]
 Defining $\mathbf{c} = (1, 1, \ldots, 1, 0, \ldots, 0)^T$ (where only the first $m$ entries are equal to 1), we can write our
 objective function as
