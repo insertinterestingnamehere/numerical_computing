@@ -77,6 +77,8 @@ Upon considering the computation involved in the previous problem, we see that t
 Many of the performance costs can be avoided by rewriting the algorithm using explicit loops and avoiding unnecessary computations.
 
 \begin{comment}
+% These comments and this problem could be one way to expand this lab later on.
+% Depending on how long the lab is, we will probably want to give them pseudocode for this version of the algorithm.
 
 First, notice that for splines of order $2$ and higher, we actually compute the values of some splines multiple times.
 A simple way to avoid this is to figure out which of the 0-order splines we will actually use in our computation, compute them all, then compute all the needed splines of order 1, 2, etc.
@@ -104,3 +106,24 @@ Scipy has some built in functions and a built in class for B-splines.
 They are all part of the scipy.interpolate package.
 
 As of SciPy 14, \li{scipy.interpolate} also includes the \li{BPoly} class that allows for easy computation of the basis functions for a B-spline.
+
+Several of the functions built in to SciPy are wrappers around the Fortran package FITPACK.
+One such example is the function \li{scipy.interpolate.splev}.
+This function is used to evaluate a spline with knot vector $t$, basis function coefficients $c$, and degree $k$ at a set of points $x$.
+The calling convention for this function is \li{splev(x, (t, c, k))}.
+If $c$ is a multi-dimensional array, the function is applied to each row of $c$.
+This is equivalent to using each column of $c$ as a control point in a higher dimension.
+
+The package \li{scipy.interpolate} also includes several routines designed for easy interpolation with b-splines.
+It also has routines designed for integration and differentiation of B-splines.
+
+\begin{problem}
+Use \li{scipy.integrate.splev} to generate a plot of a b-spline with randomly chosen control points in $\mathbb{R}^2$.
+Generate the same plot with your own implementation of the De Boor's algorithm.
+
+Use the following knot vector (where $n$ some integer and $k$ is the degree of the desired spline):
+\begin{lstlisting}
+t = np.array([0]*(k) + range(n) + [n]*(k+1))
+\end{lstlisting}
+This knot vector will give you $k + n$ different nonzero basis functions on the interval $\left[0, n\right]$.
+\end{problem}
