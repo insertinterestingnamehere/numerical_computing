@@ -3,19 +3,8 @@ import tempfile
 import ConfigParser
 import shutil
 import subprocess
+import make_util
 
-def substlab(template, lab_path, lab_file):
-    """Read template and substitute labs"""
-    with open(template, 'r') as temp:
-        t = temp.readlines()
-
-    i = t.index('%TEMPLATE_INSERT\n')
-    t.insert(i+1, '\\subimport{{{0}/}}{{{1}}}\n'.format(lab_path.replace('\\', '/'), lab_file))
-    return t
-
-def getDirs(root):
-    return set([x for x in os.listdir(root) if os.path.isdir(x)])
-    
 def main(args):
     tmp_dir = tempfile.mkdtemp()
     c = ConfigParser.SafeConfigParser()
@@ -31,7 +20,7 @@ def main(args):
     shutil.copytree(lab_path, tmp_lab_path)
     filelist = c.get('root', 'CopyFiles', raw=True).split(',')
     template = c.get('root', 'Template', raw=True)
-    template_subbed = substlab(template, lab_path, lab_name)
+    template_subbed = make_util.substlab(template, lab_path, lab_name)
 
     for f in filelist:
         shutil.copy(f, tmp_dir)
@@ -41,21 +30,18 @@ def main(args):
         t.writelines(template_subbed)
     
     #in case we have references, we need to run multiple times.
-    for i in xrange(3):
-        ret = subprocess.Popen(['xelatex', '-halt-on-error', template],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        filename = os.path.splitext(template)[0]+'.pdf'
-        labname = os.path.splitext(lab_name)[0]+'.pdf'
-        stdout = ret.communicate()[0]
+    for f in make_util.run_seq:
+        ret = f(template)
+        if ret.returncode != 0:
+            break
 
+    filename = os.path.splitext(template)[0]+'.pdf'
+    labname = os.path.splitext(lab_name)[0]+'.pdf'
     copydest = os.path.join(cwd, lab_path, labname)
     if ret.returncode == 0:
         shutil.copy2(filename, copydest)
         print "{} -> {}".format(os.path.join(tmp_lab_path, labname), lab_path)
     else:
-        print stdout
-
         #copy template.log to copydest
         shutil.copy2("template.log", copydest)
         print "{} could not be generated".format(labname)    
@@ -63,11 +49,12 @@ def main(args):
 if __name__ == "__main__":
     import argparse
     
-
-    parser = argparse.ArgumentParser(description="makelab")
-    parser.add_argument('lab', action='store')
+    descr = """
+    Makelab - An automated lab compiler.
+    
+    This will compile a single specified lab with references and output a pdf file in the lab's folder.
+    """
+    
+    parser = argparse.ArgumentParser(description=descr)
+    parser.add_argument('lab', action='store', help="Path to lab LaTeX file")
     main(parser.parse_args())
-
-
-#makelab ComplexIntegration/ComplexIntegration1.tex
-#makelab ComplexIntegration1.tex

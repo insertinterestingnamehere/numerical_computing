@@ -1,78 +1,84 @@
 import scipy as sp
 import FiniteDiff as FD
 
-def Jacobian(func, inputs, step_size=1e-7, fdtype='c'):
-    """Calculate the Jacobian of a function.
+def der(fc, x, h=.0001, degree=1, type='centered', accuracy=2):
+    """ Computes the numerical of the callable function 'fc at all the
+    points in array 'x'. 'degree' is the degree of the derivative to be
+    computed. 'type' can be 'centered', 'forward', or 'backward'.
+    'accuracy' is the desired order of accuracy. For forward and backward
+    differences it can take a value of 1, 2, or 3. For centered differences
+    it can take a value of 2, 4, or 6."""
+    # Use these lists to manage the different coefficient options.
+    A = np.array([[[0., 0., -.5, 0., .5, 0., 0.],
+                   [0., 1/12., -2/3., 0., 2/3., -1/12., 0.],
+                   [-1/60., 3/20., -3/4., 0., 3/4., -3/20., 1/60.]],
+                  [[0., 0., 1., -2., 1., 0., 0.],
+                   [0., -1/12., 4/3., -5/2., 4/3., -1/12., 0.],
+                   [1/90., -3/20., 3/2., -49/18., 3/2., -3/20., 1/90.]]])
+    B = np.array([[[-1., 1., 0., 0., 0.],
+                   [-1.5, 2., -.5, 0., 0.],
+                   [-11/6., 3., -1.5, 1/3., 0.]],
+                  [[1., -2., 1., 0., 0.],
+                   [2., -5., 4., -1., 0.],
+                   [35/12., -26/3., 19/2., -14/3., 11/12.]]])
+    if type == "centered":
+        acc = int(accuracy/2) - 1
+    else:
+        acc = int(accuracy) - 1
+    if int(degree) not in [1, 2]:
+        raise ValueError ("Only first and second derivatives are supported")
+    if acc not in [0, 1, 2]:
+        raise ValueError ("Invalid accuracy")
+    if type == 'centered':
+        xdifs = np.array([fc(x+i*h) for i in xrange(-3, 4)])
+        return np.inner(A[degree-1,acc], xdifs.T) / h**degree
+    elif type == 'forward':
+        xdifs = np.array([fc(x+i*h) for i in xrange(5)])
+        return np.inner(B[degree-1,acc], xdifs.T) / h**degree
+    elif type == 'backward':
+        xdifs = np.array([fc(x-i*h) for i in xrange(5)])
+        return np.inner(B[degree-1,acc], xdifs.T) / (-h)**degree
+    else:
+        raise ValueError ("invalid type")
 
-    INPUTS:
-        func:       Function handle to use for Jacobian
-        inputs:     Input values to function
-        step_size:  Step size
-        fdtype:     finite difference type ('c'entered, 'f'orward, 'b'ackward)
+def partial(fc, x, i, h=.0001, ty="centered", ac=2):
+    """ Computes a partial derivative with respect to index 'i'.
+    The rest of the options are the same as the numerical derivative function."""
+    def fcpart(y):
+        add = np.zeros(x.shape[0])
+        add[i] = y
+        return fc(x+add)
+    return der(fcpart, 0., h=h, type=ty, accuracy=ac)
 
-    RETURNS:
-        jacobian:   An mxn array as specified by the tuple dim.
-    """
+def jac(fc, x, ty="centered", ac=2, h=.0001):
+    """Compute the Jacobian matrix of a function.
+    'fc' is a callable function that operates on a 1D array.
+    'x' is where to evaluate the Jacobian matrix.
+    Dimensions of the domain and range are infered from 'x'
+    and the output of 'fc'."""
+    return np.array([partial(fc, x, [i], h=h, ty=ty, ac=ac) for i in xrange(x.size)]).T
 
-    #test our return
-    #try to find dimensions by being smart
-    try:
-        ndim = len(func(*inputs)), len(inputs)
-    except TypeError:
-        ndim = 1, len(inputs)
+def multipartial(fc, x, li, h=.0001, ty="centered", ac=2):
+    """ Computes multiple partial derivatives via recursion.
+    'fc' is a callable function. 'x' is where to take the derivatives.
+    'li' is a list of indices corresponding to the partials to be taken."""
+    if len(li) <= 1:
+        return partial(fc, x, li[0], h=h, ty=ty, ac=ac)
+    else:
+        part = lambda x: partial(fc, x, li[-1], h=h, ty=ty, ac=ac)
+        return multipartial(part, x, li[:-1], h=h, ty=ty, ac=ac)
 
-    jacobian = sp.zeros(ndim)
+def hessian(fc, x, h=.0001, ty="centered", ac=2):
+    """ Hessian matrix of function 'fc' at point 'x'.
+    Computed using difference 'h' and difference type 'ty' of acccuracy 'ac'.
+    Exact options are the same as the numerical derivative function."""
+    hes = np.empty((x.size, x.size))
+    for i in xrange(x.size):
+        for j in xrange(x.size):
+            hes[i,j] = multipartial(fc, x, [i,j], h=h, ty=ty, ac=ac)
+    return hes
 
-    if fdtype is 'c':
-        for j in range(ndim[1]):
-            jacobian[:,j] = FD.cdiff(func, inputs, vary=[j], accur=6, degree=1, tol=step_size)
-    elif fdtype in ['f', 'b']:
-        for j in range(ndim[1]):
-            jacobian[:,j] = FD.fbdiff(func, inputs, vary=[j], accur=3, degree=1, direction=fdtype, tol=step_size)
-
-    return jacobian
-
-def eval_hessian(func, inputs, varyi, varyj, tol):
-    #inner_pval = [x+h*tol if index in vary else x for x,index in zip(xvals, range(len(xvals)))]
-
-    inputs = sp.asarray(inputs)
-    varyi = sp.asarray(varyi)
-    varyj = sp.asarray(varyj)
-
-    f1 = func(*(inputs+(varyi+varyj)*tol))
-    f2 = func(*(inputs+(varyi-varyj)*tol))
-    f3 = func(*(inputs+(varyj-varyi)*tol))
-    f4 = func(*(inputs-(varyi+varyj)*tol))
-
-    test = (f1-f2-f3+f4)/(4.0*tol**2)
-    return test
-
-def Hessian(func, inputs, tol=1e-5):
-    ndim = [len(inputs)]*2
-
-    hessian = sp.zeros(ndim)
-
-    #cache our elementary vectors
-    elists = []
-    for j in range(ndim[0]):
-        vj=[0]*(ndim[0]-1)
-        vj.insert(j,1)
-        elists.append(vj)
-
-    for i in range(ndim[0]):
-        for j in range(ndim[0]):
-            hessian[i,j] = eval_hessian(func, inputs, elists[i], elists[j], tol)
-
-    return hessian
-
-'''
-The following are updated solutions corresponding to the latest version of the lab.
-'''
-
-import numpy as np
-from matplotlib import pyplot as plt
-import math
-
+# Here are alternate versions for the Jacobian and Hessian functions.
 def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
     '''
     Approximate the Jacobian of a function at a point.
