@@ -4,30 +4,25 @@ from scipy.interpolate import splev
 from matplotlib import pyplot as plt
 
 # Recursive De Boor algorithm problem.
-def N(i, p, t, u, tol=1E-13):
-    """ Computes the i'th basis function of order 'p'
-    for the spline with knot vector 't' at the parameter value 'u'."""
+def N(x, i, k, t, tol=1E-13):
+    """ Computes the i'th basis function of order 'k'
+    for the spline with knot vector 't' at the parameter value 'x'."""
     # This recursion involves a lot
     # of redundant calculation.
     # This is not the way this algorithm
     # should be implemented in real world
     # applications, but it is instructive.
-    # Do p=0 case.
-    if p <= 0:
-        if u[i] <= t < u[i+1]:
-            return 1.
-        # Account for last endpoint.
-        # This makes the plots look right.
-        # Technically, this disagrees with the formula.
-        elif t == u[i+1]:
+    # Do k=0 case.
+    if k <= 0:
+        if t[i] <= x < t[i+1]:
             return 1.
         else:
             return 0.
     # Use recursion for other cases.
     else:
         # Compute left and right hand sides.
-        left = (t - u[i]) / (u[i+p] - u[i])
-        right = (u[i+p+1] - t) / (u[i+p+1] - u[i+1])
+        left = (x - t[i]) / (t[i+k] - t[i])
+        right = (t[i+k+1] - x) / (t[i+k+1] - t[i+1])
         # Account for nan and inf values.
         if isnan(left) or isinf(left):
             left = 0.
@@ -39,7 +34,7 @@ def N(i, p, t, u, tol=1E-13):
         # will be zero, but this matches
         # more closely with the formula
         # as it is usually written.
-        return left * N(i, p-1, t, u) + right * N(i+1, p-1, t, u)
+        return left * N(x, i, k-1, t) + right * N(x, i+1, k-1, t)
 
 def circle_interp(n, k, res=401):
     """ Plots an interpolating spline of degree 'k'
@@ -84,7 +79,7 @@ def my_circle_interp(n, k, res=401):
     # This makes the plots look identical instead of just similar.
     X = np.linspace(0, n - 1E-10, res)
     # Find the values of each basis function
-    Ni = np.array([[N(i, k, x, t) for x in X] for i in xrange(n + k)])
+    Ni = np.array([[N(x, i, k, t) for x in X] for i in xrange(n + k)])
     # Use the points to evaluate the spline, using the basis functions.
     pts = Ni.T.dot(c.T).T
     # Plot the B-spline and its control points.
