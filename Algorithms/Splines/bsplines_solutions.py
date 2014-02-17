@@ -1,6 +1,7 @@
 import numpy as np
 from math import isnan, isinf
 from scipy.interpolate import splev
+from matplotlib import pyplot as plt
 
 # Recursive De Boor algorithm problem.
 def N(i, p, t, u, tol=1E-13):
@@ -37,3 +38,50 @@ def N(i, p, t, u, tol=1E-13):
         # more closely with the formula
         # as it is usually written.
         return left * N(i, p-1, t, u) + right * N(i+1, p-1, t, u)
+
+def circle_interp(n, k, res=401):
+    # Make the knot vector.
+    t = np.array([0]*(k) + range(n) + [n]*(k+1))
+    # Preallocate the array 'c' of control points.
+    c = np.empty((2, n + k + 1))
+    c[:,-1] = 0.
+    # Construct the circle.
+    # Use n + k control points.
+    theta = np.linspace(0, 2 * np.pi, n + k)
+    np.cos(theta, out=c[0,:-1])
+    np.sin(theta, out=c[1,:-1])
+    # Generate the sample values to use for plotting.
+    X = np.linspace(0, n, res)
+    # Evaluate the B-spline at the given points.
+    pts = splev(X, (t, c, k))
+    # Plot the B-spline and its control points.
+    plt.plot(pts[0], pts[1])
+    plt.scatter(c[0], c[1])
+    plt.show()
+
+def my_circle_interp(n, k, res=401):
+    # Make the knot vector.
+    t = np.array([0]*(k) + range(n) + [n]*(k+1))
+    # Preallocate the array 'c' of control points.
+    c = np.empty((2, n + k))
+    # Construct the circle.
+    # Use n + k control points.
+    theta = np.linspace(0, 2 * np.pi, n + k)
+    np.cos(theta, out=c[0])
+    np.sin(theta, out=c[1])
+    # Generate the sample vaues to use for plotting.
+    # Offset just a little to not get to the end of the interval.
+    # This makes the plots look identical instead of just similar.
+    X = np.linspace(0, n - 1E-10, res)
+    # Find the values of each basis function
+    Ni = np.array([[N(i, k, x, t) for x in X] for i in xrange(n + k)])
+    # Use the points to evaluate the spline, using the basis functions.
+    pts = Ni.T.dot(c.T).T
+    # Plot the B-spline and its control points.
+    plt.plot(pts[0], pts[1])
+    plt.scatter(c[0], c[1])
+    plt.show()
+
+if __name__=="__main__":
+    circle_interp(20, 4)
+    my_circle_interp(20, 4)
