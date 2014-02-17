@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 
 # Recursive De Boor algorithm problem.
 def N(i, p, t, u, tol=1E-13):
+    """ Computes the i'th basis function of order 'p'
+    for the spline with knot vector 't' at the parameter value 'u'."""
     # This recursion involves a lot
     # of redundant calculation.
     # This is not the way this algorithm
@@ -40,6 +42,10 @@ def N(i, p, t, u, tol=1E-13):
         return left * N(i, p-1, t, u) + right * N(i+1, p-1, t, u)
 
 def circle_interp(n, k, res=401):
+    """ Plots an interpolating spline of degree 'k'
+    with parameters ranging from 1 to 'n'
+    that approximates the unit circle.
+    Uses scipy.integrate.splev."""
     # Make the knot vector.
     t = np.array([0]*(k) + range(n) + [n]*(k+1))
     # Preallocate the array 'c' of control points.
@@ -60,6 +66,10 @@ def circle_interp(n, k, res=401):
     plt.show()
 
 def my_circle_interp(n, k, res=401):
+    """ Plots an interpolating spline of degree 'k'
+    with parameters ranging from 1 to 'n'
+    that approximates the unit circle.
+    Uses the function 'N' defined above."""
     # Make the knot vector.
     t = np.array([0]*(k) + range(n) + [n]*(k+1))
     # Preallocate the array 'c' of control points.
