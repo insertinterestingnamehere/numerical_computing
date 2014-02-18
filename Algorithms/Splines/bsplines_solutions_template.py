@@ -4,7 +4,7 @@ from scipy.interpolate import splev
 from matplotlib import pyplot as plt
 
 # Recursive De Boor algorithm problem.
-def N(x, i, k, t, tol=1E-13):
+def N(x, i, k, t):
     """ Computes the i'th basis function of order 'k'
     for the spline with knot vector 't' at the parameter value 'x'."""
     pass
