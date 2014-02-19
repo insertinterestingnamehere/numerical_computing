@@ -109,3 +109,18 @@ def Forbes(F):
 # Estimated initial body fat mass
 # Jackson AS et al., Int J Obes Relat Metab Disord. 2002 Jun;26(6):789-96
 #
+
+
+
+# Implementation of the Runge Kutta fourth order method
+def RK4(func,a,b,n,y0,dim):
+	x, y = np.linspace(a,b,n+1), np.zeros( (n+1,dim) )
+	y[0,:], h = y0, 1.*(b-a)/n
+	
+	for j in range(0,len(x)-1): 
+		k1 = h*func(x[j],y[j,:])
+		k2 = h*func(x[j]+h/2.,y[j,:]+(1/2.)*k1)
+		k3 = h*func(x[j]+h/2.,y[j,:]+(1/2.)*k2)
+		k4 = h*func(x[j+1],y[j,:]+k3)
+		y[j+1,:] = y[j,:] + (1/6.)*(k1 + 2*k2 + 2*k3 + k4)
+	return y

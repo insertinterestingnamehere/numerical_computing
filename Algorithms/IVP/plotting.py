@@ -162,7 +162,7 @@ def Exercise3():
 	return
 
 
-def Exercise4(): 
+def Exercise4old(): 
 # Integral curves for f(x).
 	a , b, n = 0.0,  1.6,  200
 	k, x = int(n/20), np.linspace(a,b,n+1)
@@ -232,7 +232,7 @@ def HOFig2():
 	return 
 
 
-def Exercise5(): 
+def Exercise4(): 
 # Parameters
 	a, b, ya = 0.0, 20.0, np.array([2., -1.])
 	
@@ -258,13 +258,13 @@ def Exercise5():
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('Exercise5.pdf')
+	plt.savefig('Exercise4.pdf')
 	# plt.show()
 	plt.clf()
 	return 
 
 
-def Exercise6(): 
+def Exercise5(): 
 	a, b, ya = 0.0, 20.0, np.array([1., -1.])		# Parameters
 	# Needs about 180 subintervals to achieve Rel Error < 5*10**(-5)
 	
@@ -283,13 +283,13 @@ def Exercise6():
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('Exercise6.pdf')
+	plt.savefig('Exercise5.pdf')
 	# plt.show()
 	plt.clf()
 	return
 
 
-def Exercise7(): 
+def Exercise6(): 
 # Parameters: Interval = [a,b], n = number of subintervals, ya = y(a) 
 	a, b, n, ya = 0.0, 40.0, 600, np.array([2., -1.])
 	m, k = 2., 2. 
@@ -311,7 +311,7 @@ def Exercise7():
 	plt.axhline(color='k',linestyle='-')
 	plt.xlabel('x')
 	plt.ylabel('y')
-	plt.savefig('Exercise7.pdf')
+	plt.savefig('Exercise6.pdf')
 	# plt.show()
 	plt.clf()
 	return 
@@ -330,7 +330,6 @@ Fig3()
 # Exercise4()
 # Exercise5()
 # Exercise6()
-# Exercise7()
 
 # HOFig1()
 # HOFig2()

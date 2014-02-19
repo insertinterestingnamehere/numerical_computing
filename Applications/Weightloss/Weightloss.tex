@@ -1,133 +1,22 @@
-cd \lab{Algorithms}{The Dormand-Prince Method}{The Dormand-Prince Method}
-\label{lab:DormandPrince}
-
-Many industry grade ode solvers are similar to the RK4 method already described. A common, reliable method that is a good choice for initially studying most problems is the Dormand-Prince method. This method is implemented in Python's \li{scipy.integrate} module as \li{dopri5}, and in MatLab as \li{ode45}. A similar method is the Runge-Kutta-Fehlberg method (RKF45). 
-
-The Dormand-Prince method is a Runge-Kutta method that computes a fourth order accurate solution, followed by a fifth order accurate solution. These solutions are used to estimate the error in the fourth order solution. In turn, the estimated error is used to help determine the size of each step $h_i = t_i-t_{i-1}$ used by the method, instead of used a fixed stepsize $h = (b-a)/n$. 
-
-We will demonstrate how to solve the initial value problem
-\begin{eqnarray*}
-y'(t) &=& 6+2t-y, \\
-y(0) &=& 2,
-\end{eqnarray*}
-using \li{dopri5}. We start with importing several useful modules and defining the ode. 
-The \li{ode} class is imported from the \li{scipy.integrate} module. 
-This class functions as an interface to several numerical ode methods, one of which is \li{dopri5}. 
-These other methods can be useful in certain situations; however, \li{dopri5} is a good solver to try on new problems. 
+\lab{Applications}{Weightloss and Predator-Prey Models}{Weightloss and Predator-Prey Models}
+\label{lab:Weightloss}
 
 
 
-We create an instance of the \li{ode} class and initialize it using the \li{set_integrator} and \li{set_initial_value} methods. 
-Useful parameters are \li{atol} and \li{rtol}, which set the maximum allowed absolute and relative tolerances for the solution. 
-Other parameters and methods are explained in the documentation for \li{scipy}.  
-Here the method solves for $y(1.6)$:
-
-\begin{lstlisting}
-from scipy.integrate import ode
-import numpy as np
-import matplotlib.pyplot as plt
-
-a, ya, b = 0., 2., 1.6
-def ode_f(t,y): return np.array([-1.*y+6.+2.*t])
-
-ode_object = ode(ode_f)
-ode_object.set_integrator('dopri5',atol=1e-5) 
-ode_object.set_initial_value(ya,a) 
-print ode_object.integrate(b)
-\end{lstlisting}
-
-Alternatively, let us solve for $y$ on a evenly spaced mesh, and then plot the results.
-%# The output of this function must have the shape (dim,), where dim
-%# is the dimension of the system.
-\begin{lstlisting}
-ode_object = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
-ode_object.set_initial_value(ya,a) 
-
-dim, t = 1, np.linspace(a,b,51)
-Y = np.zeros((len(t),dim))
-Y[0,:] = ya
-for j in range(1,len(t)): Y[j,:] = ode_object.integrate(t[j])  
-
-plt.plot(t,Y[:,0],'-k')
-plt.show()
-\end{lstlisting}
-
-
-\begin{problem}
-Using \li{dopri5}, solve the IVP
-\begin{eqnarray*}
-5y''' + y'+2y &=& 0, \,\, 0 \leq x \leq 16,\\
-y(0) &=&0,\\
-y'(0) &=& 1,\\
-y''(0) &=& -2.
-\end{eqnarray*}
-\end{problem}
-
-
-
-
-\section*{The SIR Model}
-The SIR model describes the spread of an epidemic throughout a large population. It does this by describing the movement of the population through three phases of the disease: those individuals who are Susceptible, those who are Infectious, and those who have been Removed from the disease. Those individuals in the Removed class have either died, or have recovered from the disease and are now immune to it. If the outbreak occurs over a short period of time, we may reasonably assume that the total population is fixed, so that $S'(t) + I'(t) + R'(t) = 0$.  We may also assume that $S(t) + I(t) + R(t) = 1$, so that $S(t)$ represents the \textit{fraction} of the population that is susceptible, etc. 
-
-Individuals may move from one class to another as described by the flow 
-\[S \to I \to R.\] Let us consider the transition rate between $S$ and $I $. Let $\beta$ represent the average number of contacts made per day that could spread the disease. The proportion of these contacts that are with a susceptible individual is $S(t)$. Thus, one infectious individual will on average infect $\beta S(t)$ others per day. Let $N$ represent the total population size. Then we obtain the differential equation
- \[\frac{d}{dt}(S(t) N) = -\beta S(t) (I(t) N).\]
- 
- Now consider the transition rate between $I$ and $R$. We assume that there is a fixed proportion $\gamma$ of the infectious group who will recover on a given day, so that 
- \[\frac{d}{dt}R(t) = -\gamma I(t).\]
- Note that the proportion who will recover on a given day is the reciprocal of the average length of time spent in the infectious phase. 
- 
- Since we have $I'(t) = - S'(t) - R'(t)$, the  differential equations are given by
-\begin{eqnarray*}
-\frac{dS}{dt} &=&-\beta IS ,\\
-\frac{dI}{dt} &=& \beta I S-\gamma I, \\
-\frac{dR}{dt} &=&\gamma I.
-\end{eqnarray*}
-
-
-\begin{problem}
-Solve the IVP
-\begin{eqnarray*}
-\frac{dS}{dt} &=&-\frac{1}{2} IS ,\\
-\frac{dI}{dt} &=& \frac{1}{2} I S-\frac{1}{4} I, \\
-\frac{dR}{dt} &=&\frac{1}{4} I,\\
-S(0) &=& 1-6.25\cdot10^{-7},\\
-I(0) &=& 6.25\cdot10^{-7},\\
-R(0) &=&0,
-\end{eqnarray*}
-on the interval $[0,100]$.
-\end{problem}
-
-
-\begin{problem}
-Suppose that, in a city of approximately three million, five have recently entered the city carrying a certain disease. (Suppose they have just entered the infectious state.)
-
-Each of those individuals has a contact each day that will spread the disease, and average of three days is spent in the infectious state. Find the solution of the corresponding SIR equations for the next fifty days. 
-
-Assume for simplicity that those who are in the infectious state either cannot go to work or are unproductive, etc. At the peak of the infection, how many in the city will still be able to work? 
-Answer the same question if instead of three days, an average of seven days is spent in the infectious state.
-\end{problem}
-
-
-\begin{problem}
-Suppose that, in a city of approximately three million, five have recently entered the city carrying a certain disease. (Suppose they have just entered the infectious state.) 
-
-Each of those individuals will make three contacts every ten days that will spread the disease, and average of four days is spent in the infectious state. Find the solution of the corresponding SIR equations. Choose an appropriate time interval and plot your results.
-\end{problem}
 
 
 \section*{A Weightloss Model}
 Here we will look at a model of weight change based on basic thermodynamics and kinematics.
 The main idea behind weight change is simple.  If a persons energy intake is more than their energy expended, then they gain weight.  If their intake is less, then they lose weight.
-Let \emph{energy balance}, denoted $EB$, be the difference between \emph{energy intake} $EI$ and \emph{energy expenditure} $EE$, that is,
+Let the \emph{energy balance} $EB$ be the difference between \emph{energy intake} $EI$ and \emph{energy expenditure} $EE$, so that
 \begin{equation}
 \label{EB}
 EB = EI - EE.
 \end{equation}
-When the energy intake exceeds the energy expended, the balance is positive and weight is gained.  Correspondingly, if the amount of energy expended exceeds the energy intake, the balance is negative and weight is lost.
+When the energy intake is greater than the energy expended, the balance is positive and weight is gained. Similarly, the balance is negative and weight is lost if the energy intake is less than the energy expended.
 
 
-Ones body weight at time $t$ is the sum of the weight of their fat and lean tissue; that is,  $BW(t) = F(t) + L(t).$ These quantities can be described by the compartmental model
+Body weight at time $t$ is the sum of the weight of fat and lean tissue; that is,  $BW(t) = F(t) + L(t).$ These quantities can be described by the compartmental model
 \begin{subequations}
 \label{compartment}
 \begin{align}
@@ -293,6 +182,145 @@ L(0) &= L_0.
 To solve this IVP for a specific individual we need initial conditions $F_0$ and $L_0.$ The function \li{fat_mass} given earlier calculates these values based on an individual's body weight (kg), age, height (meters), and gender. ($L = BW - F$.)
 
 \end{problem}
+
+
+
+\section{Two Predator-Prey Models}
+The Lotka-Volterra predator-prey model is a well-known 
+system of odes given by 
+\begin{align*}
+	\frac{du}{dt} &= au - buv,\\
+	\frac{dv}{dt} &= -cv + duv.
+\end{align*}
+In these odes $u$ and $v$ represent the prey and predator 
+populations, respectively. $a$ represents the rate of growth 
+of the prey, and $bu$ the amount of prey being eaten. 
+Similarly, $c$ represents the rate of natural predator death, and $du$ the growth of the predator 
+population due to the quantity of prey eaten.
+
+Let us look at the dynamics of this system. First we note 
+that there are exactly two equilibria (fixed points): either 
+$(u,v) = (0,0)$ corresponding to the extinction of both 
+species, or $(u,v) = (\frac{c}{d},\frac{a}{b})$.
+ Furthermore, from the odes we can see that if $v=0$ (there
+ is an absence of any predators) then the population of prey
+ will grow exponentially.
+
+To get a better idea of the dynamics of this system we will graph its phase portrait.
+We begin by nondimensionalizing the system to reduce the number of parameters: 
+Let $U = \frac{d}{c}u,$ $V = \frac{b}{a}v$, $\bar{t} = at,$ and  
+$\alpha = \frac{d}{a}$. Substituting into the original odes we 
+obtain the nondimensional system of equations
+\begin{align*}
+	\frac{dU}{d\bar{t}} &= U(1-V),\\
+	\frac{dV}{d\bar{t}} &= \alpha V (U-1).
+\end{align*}
+In the following code we plot the phase portrait. To plot the direction field 
+for the equations we use \li{numpy}'s \li{meshgrid} function and 
+\li{matplotlib}'s \li{quiver} function.
+
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{Lotka_Volterra.pdf}
+\caption{The solution of the nondimensionalized Lotka-Volterra 
+predator-prey equations with parameter $\alpha = 1/3$. 
+This solution has initial conditions $(u,v) = (3/4, 3/4)$. }
+\label{pred-prey:Lotka_Voterra}
+\end{figure}
+
+
+\begin{lstlisting}
+a, b 	= 0., 13. 					# (Nondimensional) Time interval 
+									# for one 'period' 
+alpha 	= 1./3              		# Nondimensional parameter
+dim, ya = 2, np.array([1/2., 1/3.]) # dimension of the system / 
+									# initial conditions
+
+def Lotka_Volterra(x,y):
+	return np.array([y[0]*(1. - y[1]), alpha*y[1]*(y[0] - 1.)])
+
+subintervals=200
+# Using the Order 4 Runge-Kutta IVP solver
+Y = RK4( Lotka_Volterra,a,b,subintervals,ya,dim)
+
+# Plot the direction field
+Y1,Y2 = np.meshgrid( np.arange(0,4.5,.2), np.arange(0,4.5,.2),
+									sparse=True,indexing='ij')
+U,V = Lotka_Volterra(0,(Y1,Y2))
+Q = plt.quiver( Y1[::3, ::3], Y2[::3, ::3], 
+				 U[::3, ::3],  V[::3, ::3],
+            	pivot='mid', color='b', units='dots',width=3. )
+# Plot the 2 Equilibrium points
+plt.plot(1,1,'ok',markersize=8); plt.plot(0,0,'ok',markersize=8) 
+# Plot the solution in phase space
+plt.plot(Y[:,0], Y[:,1],'-k',linewidth=2.0)
+plt.plot(Y[::10,0], Y[::10,1],'*b')
+
+plt.axis([-.5, 4.5, -.5, 4.5])
+plt.title("Phase Portrait of the Lotka-Volterra Predator-Prey Model")
+plt.xlabel('Prey',fontsize=15); plt.ylabel('Predators',fontsize=15)
+\end{lstlisting}
+
+
+\begin{problem}
+	Compute the solutions $(u,v)$ of 
+	\begin{align*}
+		\frac{dU}{d\bar{t}} &= U(1-V),\\
+		\frac{dV}{d\bar{t}} &= \alpha V (U-1).
+	\end{align*}
+	for initial conditions $(1/2, 3/4)$, $(1/16, 3/4)$, and $(1/40, 3/4)$.
+	Add these solutions to the phase portrait of the Lotka-Volterra model.
+	Can you see any limitations of this model? 
+\end{problem}
+
+
+
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{Lotka_Volterra_Phase_Portrait.pdf}
+\caption{The phase portrait for the nondimensionalized Lotka-Volterra 
+predator-prey equations with parameters $\alpha = 1/3$. 
+The portrait includes the direction field, the two equilibrium points, 
+and the graph of the solution with initial conditions $(u,v) = (3/4, 3/4)$. }
+\label{pred-prey:Lotka_Voterra_Phase_Portrait}
+\end{figure}
+
+We have already noticed that in the absence of predators, the Lotka-Volterra 
+equations predict that the prey population will grow exponentially. The logistic 
+predator-prey equations change this dynamic by adding a term to give the prey 
+population a carrying capacity $K$: 
+\begin{align*}
+	\frac{du}{dt} &= au\left(1 -\frac{u}{K}\right) - buv,\\
+	\frac{dv}{dt} &= -cv + duv.
+\end{align*}
+Let $U = \frac{u}{K},$ $V = \frac{b}{a}v$, $\bar{t} = at,$  
+$\alpha = \frac{dK}{a}$, and $\beta = \frac{c}{dK}$. Then the nondimensional logistic
+equations are 
+\begin{align*}
+	\frac{dU}{d\bar{t}} &= U(1-U-V),\\
+	\frac{dV}{d\bar{t}} &= \alpha V (U-\beta).
+\end{align*}
+
+
+\begin{problem}
+	Compute the solutions $(u,v)$ of 
+	\begin{align*}
+		\frac{dU}{d\bar{t}} &= U(1-U-V),\\
+		\frac{dV}{d\bar{t}} &= \alpha V (U-\beta).
+	\end{align*}
+	for initial conditions $(1/3, 1/3)$ and $(1/2, 1/5)$. Do this for parameter 
+	values $\alpha, \beta = 1, .3$ and also for values $\alpha, \beta = 1, 1.1$
+	Create a phase portrait for the Logistic equations using both sets of parameter
+	values. Remember to plot the direction field, all equilibrium points, and the orbits
+	of the solutions.
+\end{problem}
+
+
+
+
+
 
 
 

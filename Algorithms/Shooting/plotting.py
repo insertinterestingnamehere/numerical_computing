@@ -256,6 +256,67 @@ def Cannon(b= 150,ya=0.,va=35.,phi=np.pi/4,nu=0.):
 
 
 
+def Weightloss_Shooting():
+	age, sex =  38. , 'female'
+	H, BW    =  1.73, 72.7
+	T		 =  12*7.   # Time frame = 3 months    
+	
+	PALf, EIf = 1.7, 2025
+	def EI(t): return EIf
+	
+	def PAL(t): return PALf
+	
+	from solution import fat_mass, compute_weight_curve, weight_odes
+	F = fat_mass(BW,age,H,sex)
+	L = BW-F
+	# Fix activity level and determine Energy Intake to achieve Target weight of 145 lbs = 65.90909 kg
+	
+	init_FL = np.array([F,L])
+	EI0, EI1 = 2000, 1950					# Variable Energy Intake
+	beta = 65.90909*2.2
+	reltol, abstol = 1e-9,1e-8
+	dim, iterate = 2, 15
+	print '\nj = 1', '\nt = ', EI0
+	for j in range(2,iterate):
+		print '\nj = ', j, '\nt = ', EI1
+		ode_f = lambda t,y: weight_odes(t,y,EI1,PAL(t))
+		example1 = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
+		example1.set_initial_value(init_FL, 0.) 
+		y1 = 2.2*sum(example1.integrate(T) )
+		
+		if abs(y1-beta)<1e-8: 
+			print '\n--Solution computed successfully--'
+			break
+		# Update
+		ode_f = lambda t,y: weight_odes(t,y,EI0,PAL(t))
+		example0 = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
+		example0.set_initial_value(init_FL, 0.) 
+		y0 = 2.2*sum(example0.integrate(T))
+		
+		EI2 = EI1 - (y1 - beta)*(EI1-EI0)/(y1- y0)
+		EI0 = EI1
+		EI1 = EI2
+		
+	# Here we plot the solution 
+	ode_f = lambda t,y: weight_odes(t,y,EI1,PAL(t))
+	example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol)
+	example.set_initial_value(init_FL, 0.) 
+	
+	X = np.linspace(0.,T,801)
+	Y = np.zeros((len(X),dim))
+	Y[0,:] = init_FL
+	
+	for j in range(1,len(X)): Y[j,:] = example.integrate(X[j]) 
+	
+	print '\n|y(T) - Target Weight| = ', np.abs(beta-2.2*sum(Y[-1,:]) ),'\n'
+	plt.plot(X,2.2*(Y[:,0]+Y[:,1]),'-k',linewidth=2.0)
+	plt.axis([-1,T+1,0,170])
+	plt.show(); plt.clf()
+	return 
+
+
+
+
 #################    Exercises in Lab    ###########################
 
 # Figure2()
@@ -266,8 +327,8 @@ def Cannon(b= 150,ya=0.,va=35.,phi=np.pi/4,nu=0.):
 # Exercise2(3.,1.)			# Also plots Fig1
 
 # Exercise5()
-CannonExercise()
-
+# CannonExercise()
+# Weightloss_Shooting()
 
 
 
@@ -277,7 +338,7 @@ CannonExercise()
 
 
 # 
-# Old Exercises
+# Old Exercises: Example2, Exercise3, and Exercise4
 
 # Good example of Newton's method. Code given in lab.
 # def Example2():
@@ -471,58 +532,3 @@ CannonExercise()
 
 
 
-
-
-
-
-
-# Backup #################################################
-# def Cannon_Shooting(t0,t1): 
-# 	a, b = 0., 6.9
-# 	beta =  0.
-# 	
-# 	# t0,t1 = np.pi/6., np.pi/7
-# 	dim, iterate = 3,40
-# 	reltol, abstol = 1e-9,1e-8
-# 	
-# 	# Initial_Conditions = np.array([z=0.,v=0.5,phi=t])
-# 	nu, g = .02, .032
-# 	def ode_f(x,y): 
-# 		# y = [z,v,phi]
-# 		return np.array([np.tan(y[2]), -(g*np.sin(y[2]) + nu*y[1]**2.)/(y[1]*np.cos(y[2])), 
-# 		-g/y[1]**2.])
-# 	
-# 	
-# 	print '\nj = 1'
-# 	print 't = ', t0
-# 	for j in range(2,iterate):
-# 		print '\nj = ', j
-# 		print 't = ', t1
-# 		example1 = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
-# 		example1.set_initial_value(np.array([0.,0.5,t1]),a) 
-# 		y1 = example1.integrate(b)[0]
-# 		
-# 		if abs(y1-beta)<1e-8: 
-# 			print '\n--Solution y computed successfully--'
-# 			break
-# 		# Update
-# 		example0 = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol) 
-# 		example0.set_initial_value(np.array([0.,0.5,t0]),a) 
-# 		y0 = example0.integrate(b)[0]
-# 		
-# 		t2 = t1 - (y1 - beta)*(t1-t0)/(y1- y0)
-# 		t0 = t1
-# 		t1 = t2
-# 		
-# 	# Here we plot the solution 
-# 	example = ode(ode_f).set_integrator('dopri5',atol=abstol,rtol=reltol)
-# 	example.set_initial_value(np.array([0.,0.5,t1]),a) 
-# 	X = np.linspace(a,b,801)
-# 	Y = np.zeros((len(X),dim))
-# 	Y[0,:] = np.array([0.,0.5,t1])
-# 	
-# 	for j in range(1,len(X)): Y[j,:] = example.integrate(X[j]) 
-# 	
-# 	print '\n|y(b) - beta| = ', np.abs(beta-Y[-1,0]),'\n'
-# 	plt.plot(X,Y[:,0],'-k')
-# 	return X,Y
