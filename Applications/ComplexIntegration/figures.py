@@ -1,6 +1,7 @@
-from mpl_tookits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 import scipy as sp
+import numpy as np
 
 cmap = plt.cm.coolwarm
 cmap_r = plt.cm.coolwarm_r

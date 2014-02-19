@@ -23,16 +23,16 @@ def run_latex(template, msg=True):
     stdout = ret.communicate()[0]
     return ret
     
-def run_bibtex(template, msg=True):
+def run_biber(template, msg=True):
     if msg:
-        print "Running BibTeX on {}".format(template)
+        print "Running Biber on {}".format(template)
         
     _t = os.path.splitext(template)[0]
-    ret = subprocess.Popen(['bibtex', _t])
+    ret = subprocess.Popen(['biber', _t])
     stdout = ret.communicate()[0]
     return ret
 
 run_seq = [run_latex,
-           run_bibtex,
+           run_biber,
            run_latex,
            run_latex]
