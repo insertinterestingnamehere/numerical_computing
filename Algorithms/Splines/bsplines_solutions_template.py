@@ -11,17 +11,17 @@ def N(x, i, k, t):
 
 # Circle approximation problem,
 # 'splev' version.
-def circle_interp(n, k, res=401):
+def circle_interp(m, k, res=401):
     """ Plots an interpolating spline of degree 'k'
-    with parameters ranging from 1 to 'n'
+    with parameters ranging from 0 to 'm'
     that approximates the unit circle.
     Uses scipy.integrate.splev."""
     pass
 
 # version using your own code
-def my_circle_interp(n, k, res=401):
+def my_circle_interp(m, k, res=401):
     """ Plots an interpolating spline of degree 'k'
-    with parameters ranging from 1 to 'n'
+    with parameters ranging from 0 to 'm'
     that approximates the unit circle.
     Uses the function 'N' defined above."""
     pass

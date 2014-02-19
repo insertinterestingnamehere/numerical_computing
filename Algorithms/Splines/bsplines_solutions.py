@@ -36,23 +36,23 @@ def N(x, i, k, t):
         # as it is usually written.
         return left * N(x, i, k-1, t) + right * N(x, i+1, k-1, t)
 
-def circle_interp(n, k, res=401):
+def circle_interp(m, k, res=401):
     """ Plots an interpolating spline of degree 'k'
-    with parameters ranging from 1 to 'n'
+    with parameters ranging from 0 to 'm'
     that approximates the unit circle.
     Uses scipy.integrate.splev."""
     # Make the knot vector.
-    t = np.array([0]*(k) + range(n) + [n]*(k+1))
+    t = np.array([0]*(k) + range(m) + [m]*(k+1))
     # Preallocate the array 'c' of control points.
-    c = np.empty((2, n + k + 1))
+    c = np.empty((2, l + k + 1))
     c[:,-1] = 0.
     # Construct the circle.
     # Use n + k control points.
-    theta = np.linspace(0, 2 * np.pi, n + k)
+    theta = np.linspace(0, 2 * np.pi, m + k)
     np.cos(theta, out=c[0,:-1])
     np.sin(theta, out=c[1,:-1])
     # Generate the sample values to use for plotting.
-    X = np.linspace(0, n, res)
+    X = np.linspace(0, m, res)
     # Evaluate the B-spline at the given points.
     pts = splev(X, (t, c, k))
     # Plot the B-spline and its control points.
@@ -60,26 +60,26 @@ def circle_interp(n, k, res=401):
     plt.scatter(c[0], c[1])
     plt.show()
 
-def my_circle_interp(n, k, res=401):
+def my_circle_interp(m, k, res=401):
     """ Plots an interpolating spline of degree 'k'
-    with parameters ranging from 1 to 'n'
+    with parameters ranging from 0 to 'm'
     that approximates the unit circle.
     Uses the function 'N' defined above."""
     # Make the knot vector.
-    t = np.array([0]*(k) + range(n) + [n]*(k+1))
+    t = np.array([0]*(k) + range(m) + [m]*(k+1))
     # Preallocate the array 'c' of control points.
-    c = np.empty((2, n + k))
+    c = np.empty((2, m + k))
     # Construct the circle.
     # Use n + k control points.
-    theta = np.linspace(0, 2 * np.pi, n + k)
+    theta = np.linspace(0, 2 * np.pi, m + k)
     np.cos(theta, out=c[0])
     np.sin(theta, out=c[1])
     # Generate the sample vaues to use for plotting.
     # Offset just a little to not get to the end of the interval.
     # This makes the plots look identical instead of just similar.
-    X = np.linspace(0, n - 1E-10, res)
+    X = np.linspace(0, m - 1E-10, res)
     # Find the values of each basis function
-    Ni = np.array([[N(x, i, k, t) for x in X] for i in xrange(n + k)])
+    Ni = np.array([[N(x, i, k, t) for x in X] for i in xrange(m + k)])
     # Use the points to evaluate the spline, using the basis functions.
     pts = Ni.T.dot(c.T).T
     # Plot the B-spline and its control points.
