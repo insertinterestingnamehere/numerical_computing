@@ -8,7 +8,7 @@ class UnboundedSystem(Exception):
     pass
 
 class MaximalValue(Exception):
-        pass
+    pass
 
 class SimplexSolver(object):
     r'''Solve a standard maximization problem using the Simplex algorithm.'''
@@ -83,7 +83,9 @@ class SimplexSolver(object):
     def _auxiliary_program(self):
         r'''Setup the auxiliary linear program.
         This method is used in the case that the origin is not feasible.
-        This method will perform the first pivot and find a feasible point if any exists and leave the program in a state that the solve method can use.  Otherwise an raise an InfeasibleSystem exception.'''
+        This method will perform the first pivot and find a feasible point 
+        if any exists and leave the program in a state that the solve method can use.  
+        Otherwise an raise an InfeasibleSystem exception.'''
         
         nr, nc = self.A.shape
         
