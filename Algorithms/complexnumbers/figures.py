@@ -6,7 +6,7 @@ import numpy as np
 cmap = plt.cm.coolwarm
 cmap_r = plt.cm.coolwarm_r
 
-def RiemannSurface1():
+def sqrt_riemann_surface_1():
     """riemann surface for real part of sqrt(z)"""
 
     fig = plt.figure()
@@ -17,9 +17,9 @@ def RiemannSurface1():
     Z = sp.real(sp.sqrt(X+1j*Y))
     ax.plot_surface(X, Y, Z, cstride=1, rstride=1, linewidth=0, cmap=cmap)
     ax.plot_surface(X, Y, -Z, cstride=1, rstride=1, linewidth=0, cmap=cmap)
-    plt.savefig('RiemannSurface1.pdf', bbox_inches='tight', pad_inches=0)
+    plt.savefig('sqrt_riemann_surface_1.pdf', bbox_inches='tight', pad_inches=0)
 
-def RiemannSurface2():
+def sqrt_riemann_surface_2():
     """riemann surface for imaginary part of sqrt(z)"""
 
     fig = plt.figure()
@@ -36,9 +36,9 @@ def RiemannSurface2():
     Z = sp.imag(sp.sqrt(X+1j*Y))
     ax.plot_surface(X, Y, -Z, rstride=1, cstride=1, linewidth=0, cmap=cmap_r)
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=0, cmap=cmap)
-    plt.savefig('RiemannSurface2.pdf', bbox_inches='tight', pad_inches=0)
+    plt.savefig('sqrt_riemann_surface_2.pdf', bbox_inches='tight', pad_inches=0)
     
-def RiemannSurface3():
+def log_riemann_surface():
     """riemann surface for imaginary part of ln(z)"""
     
     fig = plt.figure()
@@ -57,9 +57,9 @@ def RiemannSurface3():
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=0, cmap=cmap)
     ax.plot_surface(X,Y,Z+2*sp.pi, rstride=1, cstride=1,linewidth=0, cmap=cmap)
     ax.plot_surface(X,Y,Z-2*sp.pi, rstride=1, cstride=1,linewidth=0, cmap=cmap)
-    plt.savefig('RiemannSurface3.pdf', bbox_inches='tight', pad_inches=0)
+    plt.savefig('log_riemann_surface.pdf', bbox_inches='tight', pad_inches=0)
     
-def RiemannSurface4():
+def arctan_riemann_surface():
     """Riemann surface for real part of arctan(z)"""
     
     fig = plt.figure()
@@ -80,4 +80,10 @@ def RiemannSurface4():
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, linewidth=0, cmap=cmap)
     ax.plot_surface(X, Y, Z+sp.pi, rstride=1, cstride=1, linewidth=0,cmap=cmap)
     ax.plot_surface(X, Y, Z-sp.pi, rstride=1, cstride=1, linewidth=0, cmap=cmap)
-    plt.savefig('RiemannSurface4.pdf', bbox_inches='tight', pad_inches=0)
+    plt.savefig('arctan_riemann_surface.pdf', bbox_inches='tight', pad_inches=0)
+
+if __name__=='__main__':
+    sqrt_riemann_surface_1()
+    sqrt_riemann_surface_2()
+    log_riemann_surface()
+    arctan_riemann_surface()
