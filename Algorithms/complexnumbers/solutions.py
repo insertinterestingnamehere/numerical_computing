@@ -25,7 +25,6 @@ def plot_poly_imag_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 def plot_poly_both_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
     X, Y, vals = get_vals(p, xbounds, ybounds, res)
-    vals[np.absolute(vals)>2] = np.nan
     ml.mesh(X, Y, vals.real)
     ml.mesh(X, Y, vals.imag)
     ml.show()
@@ -46,7 +45,6 @@ def plot_poly_imag_matplotlib(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 def plot_poly_both_matplotlib(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
     X, Y, vals = get_vals(p, xbounds, ybounds, res)
-    vals[np.absolute(vals)>2] = np.nan
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, vals.real)
@@ -111,7 +109,7 @@ def nroot_real_mayavi(n, res=401):
         ml.mesh(X[x<0], Y[x<0], real[x<0], colormap='Blues')
     ml.show()
 
-def plot_imag_part_mayavi(n, res=401):
+def nroot_imag_mayavi(n, res=401):
     x = np.linspace(-1, 1, res)
     X, Y = np.meshgrid(x, x, copy=False)
     Z = X + 1.0j * Y
@@ -132,10 +130,10 @@ def plot_imag_part_mayavi(n, res=401):
 if __name__ == '__main__':
     p = np.poly1d([1, 0, 0, 0, 1])
     if use_mayavi:
-        plot_real_part_mayavi(5)
-        plot_imag_part_mayavi(5)
+        nroot_real_mayavi(5)
+        nroot_imag_mayavi(5)
         plot_poly_both_mayavi(p)
     else:
-        plot_real_part_matplotlib(5)
-        plot_imag_part_matplotlib(5)
+        nroot_real_matplotlib(5)
+        nroot_imag_matplotlib(5)
         plot_poly_both_matplotlib(p)
