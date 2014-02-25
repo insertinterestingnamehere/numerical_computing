@@ -1,20 +1,12 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%% REVISED 2012/8/27 for the Foundations of Applied Math Text
-%%                   added footprint
-%%                   removed .eps so that pdf pix would load
-%%                   added thepreface2 for the series preface.
-%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Revised 2012/04/26 to automatically load citeref package; class option [nociteref]
 %% Revised 2001/10/10 to correct algorithms: xreferencing,numbering
 %% Revised 2002/02/19 to correct optional title in algorithms
 %% Revised 2002/05/01 to force footnotes to number consecutively throughout book
 %% Revised 2003/10/21 added example environment, like theorem
-%% Revised 2008/10/21 to correct algorithm counter stepping
+%% Revised 2013/03/20 for new format, Garamond/Helvetica fonts
+%%      new parameters at bottom, search: GH book formatting
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesClass{newsiambook}
-              [2003/10/22 v1.9
+\ProvidesClass{SIAM-GH-book}
+              [2013/03/20 v1.9
  Customized LaTeX document class]
 \newcommand\@ptsize{}
 \newif\if@restonecol
@@ -30,13 +22,13 @@
 \@mytheoremsfalse
 
 
-
 %%%%add formatted authors to chapter opener...
 \newenvironment{authorline}{\let\thanks\footnote\renewcommand{\thefootnote}{\fnsymbol{footnote}}%
-\Large\bfseries\itshape}{\vskip36pt\setcounter{footnote}{0}}
+\Large\bfseries\itshape}{\vskip36pt%_%_%_%_%\setcounter{footnote}{0}
+}
 
 %%%%add author names to table of contents...
-\newcommand{\authortoc}[1]{\addtocontents{toc}{\hspace*{-.5em}{\bfseries\itshape #1}}}
+\newcommand{\authortoc}[1]{\addtocontents{toc}{\hspace*{-.5em}\hspace{6.4pt}{\bfseries\itshape #1}}}
 
 %_%_%_%default "plain" chapter opener...no graphic
 \DeclareOption{plain-opener}{%
@@ -45,13 +37,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
 \put(0,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \Huge \bfseries #1\par}}}%%end of parbox and put
-\end{picture}}
+\end{picture}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -59,7 +51,8 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox {\Large \thepart} {\large \sc #1}}%
+      \addcontentsline{toc}{part}{{\Large \thepart} \hspace*{20.5pt} 
+      {\large \sc #1}}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -84,14 +77,14 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,11){\includegraphics[height=120pt]{macroa-1-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \Huge \bfseries #1\par}}}%%end of parbox and put
-\end{picture}}
+\end{picture}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -99,7 +92,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
+      \addcontentsline{toc}{part}{\thepart\hspace*{20.5pt}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -108,14 +101,14 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,11){\includegraphics[height=120pt]{macroa-1-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,11){\includegraphics[height=120pt]{macroa-1-gray.eps}}
 \put(72,22.5){\setlength{\fboxsep}{0pt}%\fbox
 {\parbox[b][99pt][c]{300pt}{\parindent0pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vskip3pt\par\nobreak
     \Huge \bfseries #2\par}}}%%end of parbox and put
-\end{picture}}
+\end{picture}
      \fi
     \@endpart}}
 \DeclareOption{opener-c}{%
@@ -128,13 +121,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{footprint}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \vfill\@chapapp\space \thechapter
         \vskip3pt\par\nobreak
     \huge \bfseries #1\par\vfill}}%%end of parbox and put
-\end{picture}}
+\end{picture}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -142,7 +135,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
+      \addcontentsline{toc}{part}{\thepart\hspace*{20.5pt}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -151,13 +144,13 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{footprint}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\parindent0pt\sffamily\Large\bfseries%
 \vfill\partname\space \thepart
         \vskip3pt\par\nobreak
     \huge \bfseries #2\par\vfill}}%%end of parbox and put
-\end{picture}}
+\end{picture}
      \fi
     \@endpart}}
 \DeclareOption{opener-b}{%
@@ -169,13 +162,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vskip3pt\par\vfill\nobreak
     \huge \bfseries #1\par}}%%end of parbox and put
-\end{picture}}
+\end{picture}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -183,7 +176,7 @@
 \def\@part[#1]#2{%
     \ifnum \c@secnumdepth >-2\relax
       \refstepcounter{part}%
-      \addcontentsline{toc}{part}{\hbox to 20pt{\thepart}#1}%
+      \addcontentsline{toc}{part}{\thepart\hspace*{20.5pt}#1}%
     \else
       \addcontentsline{toc}{part}{#1}%
     \fi
@@ -192,16 +185,62 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,0){\includegraphics[width=114pt]{macroa2-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=114pt]{macroa2-gray.eps}}
 \put(118,16){\vbox to 99pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vskip3pt\par\vfill\nobreak
     \huge \bfseries #2\par}}%%end of parbox and put
-\end{picture}}
+\end{picture}
+     \fi
+    \@endpart}}
+%%%%me
+ 
+ \DeclareOption{opener-q}{%
+%_%_%_%_% new makechapterhead
+%_%_%_%_% type "C"
+%_%_%_%_%
+\def\@makechapterhead#1{%
+   {\parindent \z@ \raggedright \normalfont
+    \ifnum \c@secnumdepth >\m@ne
+      \if@mainmatter     
+%
+\noindent\hspace*{-4.5pc}\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=110pt]{Gearboxicong.eps}}
+\put(118,88.5){\vtop to 99pt{\hsize300pt\raggedright\sffamily\Large\bfseries%
+%_%_%_%_%\vfill
+\@chapapp\space \thechapter
+        \vskip3pt\par\nobreak
+    \huge \bfseries #1\par\vfill}}%%end of parbox and put
+\end{picture}
+ \fi
+    \fi
+    \interlinepenalty\@M}   \vskip 40\p@
+  }%
+\def\@part[#1]#2{%
+    \ifnum \c@secnumdepth >-2\relax
+      \refstepcounter{part}%
+      \addcontentsline{toc}{part}{\thepart\hspace*{20.5pt}#1}%
+    \else
+      \addcontentsline{toc}{part}{#1}%
+    \fi
+    \markboth{}{}%
+         \interlinepenalty \@M
+     \normalfont
+    %_%_%_%_%add part background graphic...
+ \ifnum \c@secnumdepth >-2\relax
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,0){\includegraphics[width=114pt]{Gearboxicong.eps}}
+\put(118,16){\vbox to 99pt{\hsize247pt\parindent0pt\sffamily\Large\bfseries%
+\vfill\partname\space \thepart
+        \vskip3pt\par\nobreak
+    \huge \bfseries #2\par\vfill}}%%end of parbox and put
+\end{picture}
      \fi
     \@endpart}}
 
+
+%%%%%%%
 \DeclareOption{opener-a}{%
 %_%_%_%_% new makechapterhead...
 %_%_%_%_% type "A"
@@ -211,13 +250,13 @@
     \ifnum \c@secnumdepth >\m@ne
       \if@mainmatter     
 %
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,-1){\includegraphics[height=102pt]{macroa-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
 \put(118,0){\vbox to 100pt{\hsize247pt\raggedright\sffamily\Large\bfseries%
 \@chapapp\space \thechapter
         \vfill\par\nobreak
     \huge \bfseries #1\par}}%%end of parbox and put
-\end{picture}}
+\end{picture}
  \fi
     \fi
     \interlinepenalty\@M}   \vskip 40\p@
@@ -234,13 +273,13 @@
      \normalfont
     %_%_%_%_%add part background graphic...
  \ifnum \c@secnumdepth >-2\relax
-\noindent{\setlength{\unitlength}{1pt}\begin{picture}(360,144)
-\put(0,-1){\includegraphics[height=102pt]{macroa-gray}}
+\noindent\setlength{\unitlength}{1pt}\begin{picture}(360,144)
+\put(0,-1){\includegraphics[height=102pt]{macroa-gray.eps}}
 \put(118,0){\vbox to 100pt{\parindent0pt\hsize247pt\sffamily\Large\bfseries%
 \partname\space \thepart
         \vfill\par\nobreak
     \huge \bfseries #2\par}}%%end of parbox and put
-\end{picture}}
+\end{picture}
      \fi
     \@endpart}}
 \DeclareOption{a4paper}
@@ -309,16 +348,10 @@
 }
 \DeclareOption{onethmnum}{\@onethmnumtrue} % added 7.29.96
 \DeclareOption{mytheorems}{\@mytheoremstrue} %_%_%_%_% remove theorem defs from class????
-%
-\newif\if@citeref
-\@citereftrue
-
-
-\DeclareOption{nociteref}{\@citereffalse}
-%
 \ExecuteOptions{plain-opener,letterpaper,10pt,twoside,onecolumn,final,openright}
 \ProcessOptions
-\input{newsiambk1\@ptsize.clo}
+%\input{garam1\@ptsize.clo}
+\input{bk1\@ptsize.clo}
 \setlength\lineskip{1\p@}
 \setlength\normallineskip{1\p@}
 \renewcommand\baselinestretch{}
@@ -339,8 +372,8 @@
 \if@twoside
   \def\ps@headings{%
       \let\@oddfoot\@empty\let\@evenfoot\@empty
-      \def\@evenhead{{\rule[-5pt]{\textwidth}{1pt}}\hspace*{-\textwidth}\sffamily\thepage\hfil\leftmark}%
-      \def\@oddhead{{\rule[-5pt]{\textwidth}{1pt}}\hspace*{-\textwidth}\sffamily{\rightmark}\hfil\thepage}%
+      \def\@evenhead{{\rule[-5pt]{\textwidth}{0.75pt}}\hspace*{-\textwidth}\fontsize{9.5}{12pt}\selectfont\sffamily\thepage\hfil\leftmark}%
+      \def\@oddhead{{\rule[-5pt]{\textwidth}{0.75pt}}\hspace*{-\textwidth}\fontsize{9.5}{12pt}\selectfont\sffamily{\rightmark}\hfil\thepage}%
       \let\@mkboth\markboth
     \def\chaptermark##1{%
       \markboth {{%%%%%was \MakeUppercase
@@ -359,7 +392,7 @@
 \else
   \def\ps@headings{%
     \let\@oddfoot\@empty
-    \def\@oddhead{{\sffamily\rightmark}\hfil\thepage}%
+    \def\@oddhead{\fontsize{10}{12pt}\selectfont{\sffamily\rightmark}\hfil\thepage}%
     \let\@mkboth\markboth
     \def\chaptermark##1{%
       \markright {\MakeUppercase{%
@@ -372,14 +405,14 @@
 \fi
 \def\ps@myheadings{%
     \let\@oddfoot\@empty\let\@evenfoot\@empty
-    \def\@evenhead{\sffamily\thepage\hfil\sffamily\leftmark}%
-    \def\@oddhead{{\sffamily\rightmark}\hfil\sffamily\thepage}%
+      \def\@evenhead{{\rule[-5pt]{\textwidth}{0.75pt}}\hspace*{-\textwidth}\fontsize{9.5}{12pt}\selectfont\sffamily\thepage\hfil\leftmark}%
+    \def\@oddhead{{\fontsize{10}{12pt}\selectfont\sffamily\rightmark}\hfil\fontsize{10}{12pt}\selectfont\sffamily\thepage}%
     \let\@mkboth\@gobbletwo
     \let\chaptermark\@gobble
     \let\sectionmark\@gobble
     }
 \def\ps@plain{\let\@mkboth\@gobbletwo
-     \let\@oddhead\@empty\def\@oddfoot{\reset@font\hfil\sffamily\thepage
+     \let\@oddhead\@empty\def\@oddfoot{\reset@font\hfil\fontsize{9.5}{12pt}\selectfont\sffamily\thepage
      \hfil}\let\@evenhead\@empty\let\@evenfoot\@oddfoot}
   \if@titlepage
   \newcommand\maketitle{\begin{titlepage}%
@@ -435,7 +468,7 @@
     \fi
     \thispagestyle{plain}\@thanks
   \endgroup
-  \setcounter{footnote}{0}%
+  %_%_%_%_%\setcounter{footnote}{0}%
   \global\let\thanks\relax
   \global\let\maketitle\relax
   \global\let\@maketitle\relax
@@ -505,7 +538,7 @@
   \else
     \clearpage
   \fi
-  \thispagestyle{plain}%
+  \thispagestyle{empty}%
   \if@twocolumn
     \onecolumn
     \@tempswatrue
@@ -581,26 +614,26 @@
     \Huge \sffamily\bfseries  #1\par\nobreak
     \vskip 40\p@
   }}
-\newcommand\section{\@startsection {section}{1}{\z@}%
+\newcommand\section{\@startsection {section}{1}{-4.5pc}%
                                    {-3.5ex \@plus -1ex \@minus -.2ex}%
                                    {1.5ex \@plus.0ex}%
-                                   {\raggedright\normalfont\fontsize{14}{16pt}\selectfont\sffamily\bfseries}}
-\newcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                                   {\raggedright\normalfont\fontsize{13.5}{15.5pt}\selectfont\sffamily\bfseries}}%14/16
+\newcommand\subsection{\@startsection{subsection}{2}{-4.5pc}%
                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
                                      {1.5ex \@plus .2ex}%
-                                     {\raggedright\normalfont\large\sffamily\bfseries}}
-\newcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                                     {\raggedright\normalfont\fontsize{11.5}{13.5pt}\selectfont\sffamily\bfseries}}%12/14
+\newcommand\subsubsection{\@startsection{subsubsection}{3}{-4.5pc}%
                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
                                      {1.5ex \@plus .2ex}%
-                                     {\normalfont\normalsize\sffamily\bfseries}}
+                                     {\normalfont\fontsize{9.5}{11.5pt}\selectfont\sffamily\bfseries}}%10/12
 \newcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
                                     {3.25ex \@plus1ex \@minus.2ex}%
                                     {-1em}%
-                                    {\normalfont\normalsize\sffamily\bfseries}}
+                                    {\normalfont\fontsize{9.5}{12pt}\selectfont\sffamily\bfseries}}%10/12
 \newcommand\subparagraph{\@startsection{subparagraph}{5}{\parindent}%
                                        {3.25ex \@plus1ex \@minus .2ex}%
                                        {-1em}%
-                                      {\normalfont\normalsize\sffamily\bfseries}}
+                                      {\normalfont\fontsize{9.5}{12pt}\selectfont\sffamily\bfseries}}%10/12
 \if@twocolumn
   \setlength\leftmargini  {2em}
 \else
@@ -742,12 +775,14 @@
 \newlength\belowcaptionskip
 \setlength\abovecaptionskip{10\p@}
 \setlength\belowcaptionskip{0\p@}
+\newlength{\xcaptionindent}
+\setlength{\xcaptionindent}{3pc}
 \def\xtable{table}
 \long\def\@makecaption#1#2{%
   \vskip\abovecaptionskip
   \sbox\@tempboxa{\textbf{#1.} \itshape#2}%
   \ifdim \wd\@tempboxa >\hsize
-    \hspace*{3pc}{\textbf{#1.} }\itshape#2\par
+    \hspace*{\xcaptionindent}{\textbf{#1.} }\itshape#2\par
   \else
     \global \@minipagefalse
     \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
@@ -757,6 +792,29 @@
 \else
 \fi
   \vskip\belowcaptionskip}
+  
+%%%%remove extra space above tables
+\long\def\@makecaption#1#2{{\fontsize{9}{11pt}\selectfont%
+\ifx\@captype\xtable
+  \sbox\@tempboxa{\textbf{#1.} \itshape#2}%
+  \ifdim \wd\@tempboxa >\hsize
+    \hspace*{\xcaptionindent}{\textbf{#1.} }\itshape#2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip10\p@
+\else
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{\textbf{#1.} \itshape#2}%
+  \ifdim \wd\@tempboxa >\hsize
+    \hspace*{\xcaptionindent}{\textbf{#1.} }\itshape#2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi%
+\fi}}%%%end captype
+
 \DeclareOldFontCommand{\rm}{\normalfont\rmfamily}{\mathrm}
 \DeclareOldFontCommand{\sf}{\normalfont\sffamily}{\mathsf}
 \DeclareOldFontCommand{\tt}{\normalfont\ttfamily}{\mathtt}
@@ -849,7 +907,7 @@
 
 \newcounter{algorithm}[chapter]
 \renewcommand{\thealgorithm}{\arabic{chapter}.\arabic{algorithm}}
-\newenvironment{algorithm}[1][\relax]{\refstepcounter{algorithm}%
+\newenvironment{algorithm}[1][\relax]{\addtocounter{algorithm}{1}%
 \addcontentsline{loa}{algorithm}%
     {\protect\numberline{Algorithm~\thealgorithm}{\ignorespaces#1}}%
 \par\vspace{1\baselineskip}%
@@ -883,6 +941,7 @@
      {\chapter*{\bibname
         \@mkboth{\bibname}{\bibname}}%
 \addcontentsline{toc}{chapter}{\bibname}%
+\fontsize{9}{11pt}\selectfont%
       \list{\@biblabel{\@arabic\c@enumiv}}%
            {\settowidth\labelwidth{\@biblabel{#1}}%
             \leftmargin\labelwidth
@@ -1009,16 +1068,16 @@
 \def\@thmcounterup#1{\noexpand\arabic{#1}}
 \def\@thmcountersep{.}
 \def\@begintheoremup#1#2{\trivlist
-   \item[\hskip \labelsep{\bfseries #1\ #2}]\upshape}
+   \item[\hskip \labelsep{\bfseries #1\ #2.}]\upshape}
 \def\@opargbegintheoremup#1#2#3{\trivlist
-      \item[\hskip \labelsep{\bfseries #1\ #2\ (#3)}]\upshape}
+      \item[\hskip \labelsep{\bfseries #1\ #2\ (#3).}]\upshape}
 \def\@endtheoremup{\endtrivlist}
 
 
 \newlength{\proofboxwd}
 \setlength{\proofboxwd}{1pt}
 
-\def\proofbox{\hspace{12\proofboxwd}\vbox{\hrule height0.6\proofboxwd\hbox{%
+\def\proofbox{\hspace{24\proofboxwd}\vbox{\hrule height0.6\proofboxwd\hbox{%
    \vrule height1.3ex width0.6\proofboxwd\hskip0.8ex
    \vrule width0.6\proofboxwd}\hrule height0.6\proofboxwd
   }}
@@ -1058,8 +1117,18 @@
   \newtheoremup{example}[theorem]{Example}
 \fi
 \let\tempendexample\@endtheoremup
-\def\endexample{\examplebox\tempendexample}
 \fi
+
+\newdimen\exboxwd
+\exboxwd1pt
+
+\def\tempexamplebox{\hspace{12\exboxwd}\mbox{\rule{5.36pt}{7.91pt}}}
+
+\def\myexamplebox{\tempexamplebox\global\exboxwd0pt\relax}
+
+\def\examplebox{\ifdim\exboxwd=1pt\hspace{12\proofboxwd}\mbox{\rule{5.36pt}{7.91pt}}\else\fi}
+
+\def\endexample{\examplebox\global\exboxwd1pt\relax\vspace{.9\baselineskip}}
 
 
 \newcounter{rmnum}
@@ -1161,8 +1230,6 @@
 \section*{\rule[6pt]{\textwidth}{1pt}\newline\nobreak Exercises}%
 \addcontentsline{toc}{section}{Exercises}%
 \markright{Exercises}
-\input{HW-Blurb}
-
 \begin{list}{{\hfill\upshape \arabic{chapter}.\arabic{prob}.}}{\usecounter{prob}
                 \setlength{\leftmargin}{28pt}\labelwidth28pt\labelsep.5em%
 		\itemsep2pt\parsep0pt
@@ -1179,27 +1246,21 @@
                 \thispagestyle{plain}}
                {\clearpage}
 
-\newenvironment{thepreface2}{\if@openright\cleardoublepage\else\clearpage\fi
-\@makeschapterhead{Series Preface}%
-\addcontentsline{toc}{chapter}{Series Preface}%
-                \@mkboth{Preface}%
-                        {Preface}%
-                \thispagestyle{plain}}
-               {\clearpage}
-
 %_%_%_%_%
 %_%_%_%_%
 %_%_%_%_%
 
 %_%_%_%_% #1 is the contributor's name, #2 is the affiliation
-\newcommand{\contributor}[2]{\noindent\vtop{\hsize14pc#1\\\itshape#2}\par}
+\newcommand{\contributor}[2]{\small\noindent\vtop{{\bfseries#1}\\#2}\vspace{0.5pc}\par}
 
 \newenvironment{contributors}{\if@openright\cleardoublepage\else\clearpage\fi
 \@makeschapterhead{List of Contributors}%
 %\addcontentsline{toc}{chapter}{List of Contributors}%
                 \@mkboth{List of Contributors}%
                         {List of Contributors}%
-                \thispagestyle{plain}\begin{multicols}{2}\parindent0pt%
+                \thispagestyle{plain}%
+                \hoffset=-20pt%
+                \begin{multicols}{3}\parindent0pt%
 \parskip6pt plus2pt minus1pt%
 \widowpenalty10000\clubpenalty10000}
                {\end{multicols}\clearpage}
@@ -1210,12 +1271,101 @@
 \parskip1\parskip
 \hfuzz362pt
 
-\if@citeref
-\usepackage{citeref}
-\else
-\fi
+
+%_%_%_%_%
+%_%_%_%_% GH book formatting
+%_%_%_%_%
+
+\setlength{\textwidth}{361.34999pt}
+\setlength{\oddsidemargin}{7.5pc}
+\setlength{\oddsidemargin}{7.12359375pc}
+\setlength{\evensidemargin}{6.37640625pc}
+\setlength{\topmargin}{-.463pc}
+\setlength{\textheight}{50pc}
+\setlength{\textwidth}{361.34999pt}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+\def\opendingbat{\rule[.25ex]{.5ex}{.5ex}}%opendingbat
+
+
+
+
+
+%\def\@seccntformat#1{{{\csname the#1\endcsname}\hskip.33em\opendingbat\hskip.33em\relax}}%%%%vertical rule
+
+\def\@seccntformat#1{{\csname the#1\endcsname\hskip.33em\protect\rule[.25ex]{.5ex}{.5ex}\hskip.33em\relax}}%%%%vertical rule
+
+\def\ps@headings{%
+      \let\@oddfoot\@empty\let\@evenfoot\@empty
+      \def\@evenhead{\hspace*{-4.47pc}{\rule[-5pt]{34.55pc}{0.75pt}}\hspace*{-34.55pc}\hbox to 34.55pc{\fontsize{9.5}{11.5pt}\selectfont\sffamily\thepage\hfill\leftmark}}%
+      \def\@oddhead{\hspace*{-4.47pc}{\rule[-5pt]{34.55pc}{0.75pt}}\hspace*{-34.55pc}\hbox to 34.55pc{\fontsize{9.5}{11.5pt}\selectfont\sffamily{\rightmark}\hfill\thepage}}%
+      \let\@mkboth\markboth%
+    \def\chaptermark##1{%
+      \markboth {{%%%%%was \MakeUppercase
+        \ifnum \c@secnumdepth >\m@ne%
+          \if@mainmatter%
+            \@chapapp\ \thechapter. \ %
+          \fi%
+        \fi%
+        ##1}}{}}%
+    \def\sectionmark##1{%
+      \markright {{%%%%%was \MakeUppercase
+        \ifnum \c@secnumdepth >\z@%
+          \thesection. \ %
+        \fi%
+        ##1}}}}
+
+        \pagestyle{headings}
+
+\def\ps@myheadings{%
+    \let\@oddfoot\@empty\let\@evenfoot\@empty
+      \def\@evenhead{\hspace*{-4.47pc}{\rule[-5pt]{34.55pc}{0.75pt}}\hspace*{-34.55pc}\hbox to 34.55pc{\fontsize{9.5}{11.5pt}\selectfont\sffamily\thepage\hfill\leftmark}}%
+      \def\@oddhead{\hspace*{-4.47pc}{\rule[-5pt]{34.55pc}{0.75pt}}\hspace*{-34.55pc}\hbox to 34.55pc{\fontsize{9.5}{11.5pt}\selectfont\sffamily{\rightmark}\hfill\thepage}}%
+    \let\@mkboth\@gobbletwo
+    \let\chaptermark\@gobble
+    \let\sectionmark\@gobble
+    }
+    
+    \usepackage{multicol}
+    
+    \def\indexcolumns#1{\gdef\@indexcolumns{#1}}
+    \def\@indexcolumns{3}
+
+\renewenvironment{theindex}
+               {\if@twocolumn
+                  \@restonecolfalse
+                \else
+                  \@restonecoltrue
+                \fi
+                \columnseprule \z@
+                \columnsep 18\p@%\columnsep 35\p@
+                \@makeschapterhead{\indexname}%
+		\addcontentsline{toc}{chapter}{\indexname}%
+                \@mkboth{\indexname}%
+                        {\indexname}%
+                \thispagestyle{plain}%
+                \linewidth34.55pc\@totalleftmargin-4.47pc%
+                \begin{multicols}{\@indexcolumns}\fontsize{9}{11pt}\selectfont\rightskip0pt plus1fil\relax\parindent\z@
+                \parskip\z@ \@plus .3\p@\relax
+                \let\item\@idxitem}
+               {\end{multicols}\clearpage}
+
 \endinput
 %%
 %% End of file `book.cls'.
+
 
 
