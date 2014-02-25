@@ -1,4 +1,7 @@
 import numpy as np
+import cmath as cm
+from sympy import mpmath as mp
+
 try:
     from mayavi import mlab as ml
     use_mayavi = True
@@ -127,6 +130,13 @@ def nroot_imag_mayavi(n, res=401):
         ml.mesh(X[x<0], Y[x<0], imag[x<0], colormap='Blues')
     ml.show()
 
+def contour_int(f, c, t0, t1):
+    return complex(mp.quad(lambda t: f(c(t)) * mp.diff(c, t), (t0, t1)))
+
+def cauchy_verify(f, c, z0, t0, t1):
+    g = lambda z: f(z) / (z - z0)
+    return contour_int(g, c, t0, t1)
+
 if __name__ == '__main__':
     p = np.poly1d([1, 0, 0, 0, 1])
     if use_mayavi:
@@ -137,3 +147,27 @@ if __name__ == '__main__':
         nroot_real_matplotlib(5)
         nroot_imag_matplotlib(5)
         plot_poly_both_matplotlib(p)
+    
+    f1 = lambda z: z.conjugate()
+    f2 = lambda z: mp.exp(z)
+    c1 = lambda t: mp.cos(t) + 1.0j * mp.sin(t)
+    c2 = lambda t: t + 1.0j * t
+    c3 = lambda t: t
+    c4 = lambda t: 1 + 1.0j * t
+    c5 = lambda t: mp.cos(t) + 1.0j + 1.0j * mp.sin(t)
+    print "z conjugate counterclockwise along the unit ball starting and ending at 1."
+    print contour_int(f1, c1, 0, 2 * np.pi)
+    print "z conjugate along a straight line from 0 to 1+1j."
+    print contour_int(f1, c2, 0, 1)
+    print "z conjugate along the real axis from 0 to 1, then along the line from 1 to 1+1j."
+    print contour_int(f1, c3, 0, 1) + contour_int(f1, c4, 0, 1)
+    print "z conjugate along the unit ball centered at 1j from 0 to 1+1j."
+    print contour_int(f1, c5, 0, 2 * np.pi)
+    print "e^z counterclockwise along the unit ball starting and ending at 1."
+    print contour_int(f2, c1, 0, 2 * np.pi)
+    print "e^z along a straight line from 0 to 1+1j."
+    print contour_int(f2, c2, 0, 1)
+    print "e^z along the real axis from 0 to 1, then along the line from 1 to 1+1j."
+    print contour_int(f2, c3, 0, 1) + contour_int(f2, c4, 0, 1)
+    print "e^z along the unit ball centered at 1j from 0 to 1+1j"
+    print contour_int(f2, c5, 0, 2 * np.pi)
