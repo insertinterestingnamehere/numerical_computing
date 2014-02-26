@@ -5,21 +5,21 @@ def plot_real(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
     of the function 'f' given the bounds and resolution. """
     pass
 
-def plot_poly_imag_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+def plot_poly_imag(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
     """ Plot the imaginary part of the function 'f'
     given the bounds and resolution."""
     pass
 
-def plot_poly_both_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+def plot_poly_both(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
     """ Plot the real and imaginary parts of
     the function 'f', given the bounds and resolution."""
 
-def nroot_real_mayavi(n, res=401):
+def nroot_real(n, res=401):
     """ Plot the Riemann surface for the real part
     of the n'th root function."""
     pass
 
-def nroot_imag_mayavi(n, res=401):
+def nroot_imag(n, res=401):
     """ Plot the Riemann surface for the imaginary part
     of the n'th root function."""
     pass
