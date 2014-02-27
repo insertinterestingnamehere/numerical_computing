@@ -29,8 +29,9 @@ def contour_int(f, c, t0, t1):
     parameterized by the function 'c' with initial
     and final parameter values 't0' and 't1'."""
 
-def cauchy_formula(f, c, z0, t0, t1):
+def cauchy_formula(f, c, t0, t1):
     """ Compute the integral in Cauchy's Integral formula.
     'f' is a callable function parameterized by the contour 'c'.
-    'z0' is a point on the interior of 'c'.
-    't0' and 't1' are the initial and final parameter values."""
+    't0' and 't1' are the initial and final parameter values.
+    This should return a callable function that evaluates the
+    integral in the function at any given `z0`. """

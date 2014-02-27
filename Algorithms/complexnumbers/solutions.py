@@ -180,7 +180,7 @@ if __name__ == '__main__':
     print "z conjugate along the real axis from 0 to 1, then along the line from 1 to 1+1j."
     print contour_int(f1, c3, 0, 1) + contour_int(f1, c4, 0, 1)
     print "z conjugate along the unit ball centered at 1j from 0 to 1+1j."
-    print contour_int(f1, c5, 0, 2 * np.pi)
+    print contour_int(f1, c5, -np.pi / 2, 0.)
     print "e^z counterclockwise along the unit ball starting and ending at 1."
     print contour_int(f2, c1, 0, 2 * np.pi)
     print "e^z along a straight line from 0 to 1+1j."
@@ -188,4 +188,4 @@ if __name__ == '__main__':
     print "e^z along the real axis from 0 to 1, then along the line from 1 to 1+1j."
     print contour_int(f2, c3, 0, 1) + contour_int(f2, c4, 0, 1)
     print "e^z along the unit ball centered at 1j from 0 to 1+1j"
-    print contour_int(f2, c5, 0, 2 * np.pi)
+    print contour_int(f2, c5, -np.pi / 2, 0.)
