@@ -149,8 +149,7 @@ def contour_int(f, c, t0, t1):
 
 # Compute the integral in Cauchy's formula
 def cauchy_formula(f, c, z0, t0, t1):
-    g = lambda z: f(z) / (z - z0)
-    return contour_int(g, c, t0, t1)
+    return labmda z0: contour_int(lambda z: f(z) / (z - z0), c, t0, t1)
 
 if __name__ == '__main__':
     p = np.poly1d([1, 0, 0, 0, 1])
