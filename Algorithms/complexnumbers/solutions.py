@@ -21,18 +21,24 @@ def get_vals(f, xbounds, ybounds, res):
 
 # polynomial real part plot (mayavi)
 def plot_real_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Make a surface plot of the real part
+    of the function 'f' given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.real)
     ml.show()
 
 # polynomial imaginary part plot (mayavi)
 def plot_imag_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Plot the imaginary part of the function 'f'
+    given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.imag)
     ml.show()
 
 # polynomial real and imaginary plot (mayavi)
 def plot_both_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Plot the real and imaginary parts of
+    the function 'f', given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.real)
     ml.mesh(X, Y, vals.imag)
@@ -40,6 +46,8 @@ def plot_both_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 # Riemann surface for real part of n'th root (mayavi)
 def nroot_real_mayavi(n, res=401):
+    """ Plot the Riemann surface for the real part
+    of the n'th root function. """
     x = np.linspace(-1, 1, res)
     X, Y = np.meshgrid(x, x, copy=False)
     Z = X + 1.0j * Y
@@ -59,6 +67,8 @@ def nroot_real_mayavi(n, res=401):
 
 # Riemann surface for imaginary part of n'th root (mayavi)
 def nroot_imag_mayavi(n, res=401):
+    """ Plot the Riemann surface for the imaginary part
+    of the n'th root function. """
     x = np.linspace(-1, 1, res)
     X, Y = np.meshgrid(x, x, copy=False)
     Z = X + 1.0j * Y
@@ -78,6 +88,8 @@ def nroot_imag_mayavi(n, res=401):
 
 # polynomial real plot (matplotlib)
 def plot_real_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Make a surface plot of the real part
+    of the function 'f' given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -86,6 +98,8 @@ def plot_real_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 # polynomial imaginary plot (matplotlib)
 def plot_imag_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Plot the imaginary part of the function 'f'
+    given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -94,6 +108,8 @@ def plot_imag_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 # polynomial real and imaginary plot (matplotlib)
 def plot_both_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    """ Plot the real and imaginary parts of
+    the function 'f', given the bounds and resolution. """
     X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -103,6 +119,8 @@ def plot_both_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
 
 # Riemann surface for real part of n'th root (matplotlib)
 def nroot_real_matplotlib(n, res=101):
+    """ Plot the Riemann surface for the real part
+    of the n'th root function. """
     x = np.linspace(-1, 1, res)
     X, Y = np.meshgrid(x, x, copy=False)
     Z = X + 1.0j * Y
@@ -124,6 +142,8 @@ def nroot_real_matplotlib(n, res=101):
 
 # Riemann surface for imaginary part of n'th root (matplotlib)
 def nroot_imag_matplotlib(n, res=101):
+    """ Plot the Riemann surface for the imaginary part
+    of the n'th root function. """
     x = np.linspace(-1, 1, res)
     X, Y = np.meshgrid(x, x, copy=False)
     Z = X + 1.0j * Y
@@ -145,10 +165,18 @@ def nroot_imag_matplotlib(n, res=101):
 
 # Integral of f along contour c
 def contour_int(f, c, t0, t1):
+    """ Evaluate the integral of the function 'f'
+    parameterized by the function 'c' with initial
+    and final parameter values 't0' and 't1'. """
     return complex(mp.quad(lambda t: f(c(t)) * mp.diff(c, t), (t0, t1)))
 
 # Compute the integral in Cauchy's formula
 def cauchy_formula(f, c, z0, t0, t1):
+    """ Compute the integral in Cauchy's Integral formula.
+    'f' is a callable function parameterized by the contour 'c'.
+    't0' and 't1' are the initial and final parameter values.
+    This should return a callable function that evaluates the
+    integral in the function at any given `z0`. """
     return lambda z0: contour_int(lambda z: f(z) / (z - z0), c, t0, t1)
 
 if __name__ == '__main__':
