@@ -20,20 +20,20 @@ def get_vals(f, xbounds, ybounds, res):
     return X, Y, f(X + 1.0j * Y)
 
 # polynomial real part plot (mayavi)
-def plot_poly_real_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_real_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.real)
     ml.show()
 
 # polynomial imaginary part plot (mayavi)
-def plot_poly_imag_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_imag_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.imag)
     ml.show()
 
 # polynomial real and imaginary plot (mayavi)
-def plot_poly_both_mayavi(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_both_mayavi(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     ml.mesh(X, Y, vals.real)
     ml.mesh(X, Y, vals.imag)
     ml.show()
@@ -77,24 +77,24 @@ def nroot_imag_mayavi(n, res=401):
     ml.show()
 
 # polynomial real plot (matplotlib)
-def plot_poly_real_matplotlib(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_real_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, vals.real)
     plt.show()
 
 # polynomial imaginary plot (matplotlib)
-def plot_poly_imag_matplotlib(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_imag_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, vals.imag)
     plt.show()
 
 # polynomial real and imaginary plot (matplotlib)
-def plot_poly_both_matplotlib(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
-    X, Y, vals = get_vals(p, xbounds, ybounds, res)
+def plot_both_matplotlib(f, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    X, Y, vals = get_vals(f, xbounds, ybounds, res)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, vals.real)
@@ -156,11 +156,11 @@ if __name__ == '__main__':
     # use mayavi if possible.
     # otherwise, fall back to matplotlib.
     if use_mayavi:
-        plot_poly_both_mayavi(p)
+        plot_both_mayavi(p)
         nroot_real_mayavi(5)
         nroot_imag_mayavi(5)
     else:
-        plot_poly_both_matplotlib(p)
+        plot_both_matplotlib(p)
         nroot_real_matplotlib(5)
         nroot_imag_matplotlib(5)
     
