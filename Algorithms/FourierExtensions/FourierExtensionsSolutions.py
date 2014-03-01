@@ -46,7 +46,7 @@ def powerSpectrum(f):
     Inputs:
         f -- array of shape (1323,)
     Returns:
-        array of shape (1024,), the power Spectrum of f
+        array of shape (1025,), the power Spectrum of f
     '''
     f[1:] -= f[:-1] * .95
     return np.abs(pyfftw.interfaces.scipy_fftpack.fft(f, 2048)[:1025]) ** 2
