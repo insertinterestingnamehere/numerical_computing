@@ -7,7 +7,7 @@ Let's begin with a simple demonstration of why arrays are important for numerica
 We know Python already has a reasonably efficient list object, so why use arrays?
 In this demonstration, we will square a matrix that is represented as a two dimensional list (i.e. a list of lists).
 
-The following is a function that will accept two matrices (each a two dimensional list), $A$ and $B$ and return $AB$ following the usual rules of matrix multiplication.
+The following is a function that will accept two matrices (each a two dimensional list), $A$ and $B$, and return $AB$ following the usual rules of matrix multiplication.
 \lstinputlisting[style=fromfile]{arr_mult.py}
 We can initialize a $k \times k$ ``array" of integers like this:
 \begin{lstlisting}
@@ -16,11 +16,9 @@ We can initialize a $k \times k$ ``array" of integers like this:
 \end{lstlisting}
 
 \begin{problem}
-Time how long NumPy and the \li{arr_mult.py} function listed above takes to square matrices for \li{k = 100, 200, 300} and report the computed times. Briefly comment on the time needed to square a two dimensional list vs. a two dimensional NumPy array.
+Time how long NumPy and the \li{arr_mult.py} function listed above takes to square matrices for \li{k = 100, 200, 300} and report the computed times. Briefly comment on the time needed to square a two dimensional list vs. a two dimensional NumPy array. In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}. 
 
-In IPython you can time how long it takes for a line of code to execute by prefacing it with \li{\%timeit}. The following instruction may be useful in completing this problem. 
-
-Import timeit and NumPy. Create a NumPy array, \li{A}, and square it.
+Create a NumPy array, \li{A}, and square it.
 Note that \li{A*A} does \emph{not} square the array using matrix multiplication, but rather multiplies \li{A} with itself element by element.
 To get matrix multiplication for NumPy arrays you must use \li{np.dot} or the \li{dot()} method of an array like this:
 \begin{lstlisting}
@@ -29,13 +27,7 @@ k=100
 A = np.array([range(i, i+k) for i in range(0, k**2, k)])
 np.dot(A, A)
 \end{lstlisting}
-It may be beneficial to write a timer function similar to the following. 
-\begin{lstlisting}
-import timeit
-def timefunction(f, *args, **kwargs):
-	pfunc = lambda: f(*args, **kwargs)
-	print min(timeit.repeat(pfunc, number = 1, repeat = 3))
-\end{lstlisting}
+
 \end{problem}
 
 % Below is a comparison of runtimes needed to square a matrix
@@ -566,11 +558,14 @@ Functions like \li{np.hstack} and \li{np.vstack} will horizontally or vertically
 
 \begin{problem}
 Operations that create completely new arrays are often slower than operations that create views because allocating an array can be time consuming.
+
 Create a $1000 \times 1000$ array \li{A} of floating point values.
 Compare the speed of the operations \li{A.reshape(A.size)} and \li{A.flatten()} (here we are calling the methods of the arrays, these are the same as \li{np.reshape(A, A.size)}, and \li{np.flatten(A)} respectively).
+
 Why is there such a difference in speed?
 What is the difference between their output?
 What about \li{A.reshape((1,A.size))}?
+
 The reason \li{A.flatten()} takes longer is that it is allocating a new array in memory and copying all of the values from the input array into this new array.
 In contrast, \li{A.reshape()} simply changes the way the array is read from memory by changing the shape of the array.
 It doesn't touch any of the data of the array.
@@ -600,30 +595,8 @@ Initialize it as the tolerance.
 \end{enumerate}
 \end{enumerate}
 
-Now use the following code to generate a plot of your results
-\begin{lstlisting}
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-n = 100
-tol = .0001
-U = np.ones((n, n))
-U[:,0] = 100                        # set north boundary condition
-U[:,-1] = 100                       # set south boundary condition
-U[0] = 0                            # set west boundary condition
-U[-1] = 0                           # set east boundary condition
-laplace(U, tol)                     # U has been changed in place
-X = np.linspace(0, 1, n)
-Y = np.linspace(0, 1, n)
-X, Y = np.meshgrid(X, Y)
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X, Y, U, rstride=5)
-plt.show()
-\end{lstlisting}
+Be sure the generate a plot of your results as well.  
 
-\begin{figure}[H]
-\includegraphics[width=.75\textwidth]{laplace.pdf}
-\end{figure}
 \end{problem}
 
 \begin{comment}
@@ -808,3 +781,67 @@ arrs = np.load('test_multi.npz')
 \end{lstlisting}
 The variable \li{arrs} points to a dictionary object with the keys \li{a} and \li{new_a} which reference the arrays that have been saved.
 The \li{.npz} file extension is the file type used to store multiple arrays.
+
+
+
+\begin{lstlisting}
+# The following is a guideline for your solutions
+# Be sure to comment out your answers to any questions
+
+import numpy as np
+import timeit
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# problem 1
+
+# It may be beneficial to write a timer function similar to the following. 
+
+def timefunction(f, *args, **kwargs):
+	pfunc = lambda: f(*args, **kwargs)
+	print min(timeit.repeat(pfunc, number = 1, repeat = 3))
+
+# problem 2
+
+# include your code for testing and comment out your results.
+
+# problem 3
+def laplace(U, tol):
+	# This function will not return anything since the input array U is changed in place
+
+
+# Now use the following code to generate a plot of your results
+
+n = 100
+tol = .0001
+U = np.ones((n, n))
+U[:,0] = 100                        # set north boundary condition
+U[:,-1] = 100                       # set south boundary condition
+U[0] = 0                            # set west boundary condition
+U[-1] = 0                           # set east boundary condition
+laplace(U, tol)                     # U has been changed in place
+X = np.linspace(0, 1, n)
+Y = np.linspace(0, 1, n)
+X, Y = np.meshgrid(X, Y)
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.plot_surface(X, Y, U, rstride=5)
+plt.show()
+
+\end{lstlisting}
+
+\begin{figure}[H]
+\includegraphics[width=.75\textwidth]{laplace.pdf}
+\end{figure}
+
+\begin{lstlisting}
+
+# problem 4
+
+def large_numbers(n):
+	# var is the calculated variance
+	return var
+	
+\end{lstlisting}
+
+
