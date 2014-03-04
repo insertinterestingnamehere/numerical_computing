@@ -1,6 +1,9 @@
 \lab{Complex Integration}{Integration in the Complex Plane}{Integration in the Complex Plane}
 
-\objective{Understand the basics of integration in the complex plane}
+\objective{Understand some simple uses of residues and singularities in the complex plane.}
+
+In Lab \ref{Lab:complex_intro} we demonstrated the fact that integrals of holomorphic functions are independent of path.
+Here we will consider the effect that singularities have on this property.
 
 \section*{Residues}
 
@@ -9,13 +12,9 @@ A Laurent series of a function is a series of the form
 \[\sum_{n= -\infty}^{\infty} a_n (z-z_0)^n\]
 It can be proven that
 \[a_n = \frac{1}{2\pi i} \int_C \frac{f(z)}{(z-z_0)^{n+1}} dz\]
-It can also be proven that this series representation is unique.
-This sort of series can be generated whether or not $f$ has a singular point a $z_0$.
-When $f$ does not have a singularity at $z_0$ this representation degenerates to a normal Taylor Series (with the derivatives evaluated by the formula for the $n$th derivative of an analytic function).
 Where $C$ is a contour which passes counterclockwise around the singularity exactly once.
-This is called Laurent's Theorem.
-By analyzing the convergence of this series, we see that it will either converge for all points except possibly $z_0$ in the complex plane, converge on an annulus about $z_0$, or not converge at all.
-
+When $f$ does not have a singularity at $z_0$ this representation degenerates to a normal Taylor Series (with the derivatives evaluated by the formula for the $n$th derivative of an analytic function).
+These sorts of series are considered in greater detail in the text.
 The built in function \li{sympy.series} can evaluate the series expansion of a function at a singularity, for example
 \begin{lstlisting}
 import sympy as sy
@@ -23,45 +22,135 @@ z = sy.Symbol('z')
 (1/sy.sin(z)).series(z,0,8)
 \end{lstlisting}
 
-\begin{problem}
-Write a python function which takes $f$, $z_0$, the lowest power term in the Laurent Series, and the highest power term in the Laurent Series and returns a callable function for the desired series.
-Choose a small circle around $z_0$ as the contour on which to integrate ( remember, it doesn't matter what contour you use, as long as $z_0$ is inside it).
-Also have your function return an array with the coefficients so that you can compare your function against \li{sympy.series}.
-\end{problem}
+The Laurent series representation provides a simple way to classify singularities in the complex plane.
+Isolated singular points can be classified as removable singular points, poles, or essential singular points.
+These definitions will also be discussed in greater detail in the text.
+Here we will show one method for visualizing complex functions around singular points.
+In Lab \ref{Lab:complex_intro} we presented surface plots as a useful method for visualizing well-behaved functions in the complex plane.
+Here we will also show how to use surface and color plots to visualize complex functions near their poles.
 
-which evaluates the series expansion of the $\csc(z)$ at $z=0$. 
-As is the case with Taylor Series, often the Laurent Series expansion of a function is not computed directly using it's integral definition.
-It is, rather, obtained by substitution into known series.
-For example,
-\[e^z = \sum_{n=0}^{\infty} \frac{z^n}{n!}\]
-so we may say,
-\[e^{1/z} = \sum_{n=0}^{\infty} \frac{1}{n! z^n}\]
+To make a surface plot about a singularity, we must account for the fact that the function is not going to be defined at all of the points we use in our graph.
+We will also have to limit the $z$ axis on the plot to avoid creating a plot that is dominated exclusively by the extremely large and extremely small values in of the function.
+Plotting libraries like Mayavi and Matplotlib do allow thresholding of 3D plots via the use of floating point values of \li{nan}, but doing this may result in graphs having jagged edges where they have been cut.
+We can avoid the jagged edges by artificially adding a small lip of constant values to the plot as well.
+This can be done with Matplotlib as follows:
+\begin{lstlisting}
+mn, mx = -1, 1
+res = 401
+lip = 2.
+tol = 100
+x = np.linspace(mn, mx, res)
+X, Y = np.meshgrid(x, x, copy=False)
+Z = 1 / (X + 1.0j * Y)
+Z = Z.real
+Z[(threshold+lip>Z)&(Z>threshold)] = threshold
+Z[(-threshold-lip<Z)&(Z<-threshold)] = -threshold
+Z[np.absolute(Z) >= threshold + lip] = np.nan
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+ax.plot_surface(X, Y, Z)
+plt.show()
+\end{lstlisting}
 
-\begin{problem}
-Find the Laurent Series expansion of the function $\frac{e^{z}}{z^2 +1}$
-\end{problem}
+Figures \ref{fig:inv_surfaces} %and \ref{fig:inv2_surfaces} show surface plots of some relatively well-behaved singular points.
 
-The term corresponding to $n=-1$ in the Laurent Series expansion of a complex function $f$ about a singularity $z_0$ is called the residue of $f$ at $z_0$ and is often written $\Res{z=z_0} f(z)$.
-From Laurent's Theorem, using $f$, $z_0$, and $C$ as defined above, we have that
-\[\Res{z=z_0} f(z) = \frac{1}{2 \pi i} \int_C f(z) dz\]
-Another major theorem in Complex Analysis is the residue theorem (Also called Cauchy's Residue Theorem) which states that for some contour $C$ which does not intersect itself and a function $f$ analytic on $C$ and on the interior of $C$ except for isolated singular points $z_1,...,z_n$, that 
-\[\int_C f(z) dz = 2 \pi i \sum_{k=1}^{n} \Res{z=z_k} f(z)\]
-This allows for the evaluation of integrals that might not be pleasant in other circumstances.
-Here are a few definitions that are good to know when speaking of residues.
-\begin{itemize}
-\item A singular point $z_0$ is said to be an ``isolated singular point" of a function $f$ if no sequence of singular points of $f$ converges to it.
-\item An isolated singular point $z_0$ is said to be a removable singular point of a function $f$ if there are no negative powers of $(z-z_0)$ in the Laurent series expansion of $f$.
-\item An isolated singular point $z_0$ is said to be a pole of a function $f$ is there are finitely may terms containing negative powers of $(z-z_0)$ in the Laurent series expansion of $f$.
-\item An isolated singular point $z_0$ is said to be an essential singular point of a function $f$ if there are infinitely many negative powers of $(z-z_0)$ in the Laurent series expansion of $f$.
-\end{itemize}
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_real_surface.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_imag_surface.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_abs_surface.png}
+\end{subfigure}
+\caption{Surface plots of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
+\label{fig:inv_surfaces}
+\end{figure}
 
-\begin{problem}
-There is a direct relationship between the partial fraction decomposition of the reciprocal of a polynomial and the residues of that function at its zeroes.
-Show why this is true, and, using the Newton's method function you have already written, write a function which, given the coefficients for a polynomial, returns the coefficients for the partial fraction decomposition of its reciprocal with the zeroes corresponding to each coefficient.
-\end{problem}
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv2_real_surface.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv2_imag_surface.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv2_abs_surface.png}
+\end{subfigure}
+\caption{Surface plots of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
+\label{fig:inv2_surfaces}
+\end{figure}
 
-\section*{Evaluating Residues Using Limits and Derivatives}
-Often it is faster to evaluate a residue using limits instead of its direct integral definition.
+Color plots, when used in their default form suffer from similar limitations.
+On the other hand, we can do things like taking the absolute value, then scaling the values of a function logarithmically to mitigate some of the effect that the rapid growth of the plot values has on the colors in the plot.
+We can also allow the color map used by the plotting library to repeat itself as the values of the function get larger and larger.
+This can be done by taking the sine of the values.
+Combining these things together, we obtain expressions like $\sin\left(\log\left|\text{Re}\left(Z\right)\right|\right)$.
+Figures \ref{fig:inv_color}, \ref{fig:inv4_color}, \ref{fig:exp_inv_color}, and \ref{fig:exp_inv2_color} all show color plots that have been generated using this approach.
+This is one of a variety of ways to produce color plots that represent complex valued functions.
+
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_real.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_imag.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv_abs.png}
+\end{subfigure}
+\caption{Color plot representations of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
+\label{fig:inv_color}
+\end{figure}
+
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv4_real.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv4_imag.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{inv4_abs.png}
+\end{subfigure}
+\caption{Color plot representations of the real part, imaginary part, and absolute value of $\frac{1}{z^4}$ about the origin.}
+\label{fig:inv4_color}
+\end{figure}
+
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv_real.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv_imag.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv_abs.png}
+\end{subfigure}
+\caption{Color plot representations of the real part, imaginary part, and absolute value of $e^{\frac{1}{z}}$ about the origin.
+This is an essential singular point.}
+\label{fig:exp_inv_color}
+\end{figure}
+
+\begin{figure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv2_real.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv2_imag.png}
+\end{subfigure}
+\begin{subfigure}{.32\textwidth}
+\includegraphics[width=\textwidth]{exp_inv2_abs.png}
+\end{subfigure}
+\caption{Color plot representations of the real part, imaginary part, and absolute value of $e^{\frac{1}{z^2}}$ about the origin.
+This is an essential singular point.}
+\label{fig:exp_inv2_color}
+\end{figure}
+
+The number $a_{-1}$ in the Laurent expansion for a function $f$ at a point $z_0$ is called the Residue of $f$ at $z_0$.
+The formula for the coefficients of the Laurent series provides one way to compute residues.
+It is sometimes easier to evaluate a residue using limits.
 To see how this might be done, consider some function $f$ with a pole of order $1$ at $z_0$.
 We say $f$ has a pole of order $n$ at $z_0$ if the first nonzero term in the Laurent Series expansion of is the term corresponding to $(z-z_0)^{-n}$.
 In the case of our pole of order 1, we then have
