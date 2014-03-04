@@ -35,17 +35,19 @@ Plotting libraries like Mayavi and Matplotlib do allow thresholding of 3D plots 
 We can avoid the jagged edges by artificially adding a small lip of constant values to the plot as well.
 This can be done with Matplotlib as follows:
 \begin{lstlisting}
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 mn, mx = -1, 1
 res = 401
-lip = 2.
-tol = 100
+threshold = 2.
+tol = .5
 x = np.linspace(mn, mx, res)
 X, Y = np.meshgrid(x, x, copy=False)
 Z = 1 / (X + 1.0j * Y)
 Z = Z.real
-Z[(threshold+lip>Z)&(Z>threshold)] = threshold
-Z[(-threshold-lip<Z)&(Z<-threshold)] = -threshold
-Z[np.absolute(Z) >= threshold + lip] = np.nan
+Z[(threshold+tol>Z)&(Z>threshold)] = threshold
+Z[(-threshold-tol<Z)&(Z<-threshold)] = -threshold
+Z[np.absolute(Z) >= threshold + tol] = np.nan
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.plot_surface(X, Y, Z)
@@ -147,6 +149,11 @@ This is an essential singular point.}
 This is an essential singular point.}
 \label{fig:exp_inv2_color}
 \end{figure}
+
+\begin{warn}
+When generating color plots like this, you will have to check for floating point values of \li{nan} and \li{inf}.
+One easy way to get rid of them is to set those values to zero.
+\end{warn}
 
 \begin{problem}
 Write a function that produces color plots of $\sin\left(\log\left|f\left(z\right)\right|\right)$ for a given function $f$.
