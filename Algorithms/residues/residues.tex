@@ -5,7 +5,7 @@
 In Lab \ref{Lab:complex_intro} we demonstrated the fact that integrals of holomorphic functions are independent of path.
 Here we will consider the effect that singularities have on this property.
 
-\section*{Residues}
+\section*{Laurent Series and Singular Points}
 
 We will now introduce another form of series representation of functions.
 A Laurent series of a function is a series of the form
@@ -148,52 +148,47 @@ This is an essential singular point.}
 \label{fig:exp_inv2_color}
 \end{figure}
 
+\begin{problem}
+Write a function that produces color plots of $\sin\left(\log\left|f\left(z\right)\right|\right)$ for a given function $f$.
+Have it accept bounds for the interval where you want the plot generated.
+Also have an argument that tells the function whether to use the real part, imaginary part, or the absolute value of the function.
+\end{problem}
+
+\section*{Residues}
 The number $a_{-1}$ in the Laurent expansion for a function $f$ at a point $z_0$ is called the Residue of $f$ at $z_0$.
 The formula for the coefficients of the Laurent series provides one way to compute residues.
-It is sometimes easier to evaluate a residue using limits.
-To see how this might be done, consider some function $f$ with a pole of order $1$ at $z_0$.
-We say $f$ has a pole of order $n$ at $z_0$ if the first nonzero term in the Laurent Series expansion of is the term corresponding to $(z-z_0)^{-n}$.
-In the case of our pole of order 1, we then have
-\[f(z)=c_{-1}(z-z_0)^{-1}+c_0 (z-z_0)^{0} +c_1 (z-z_0) + \dots\]
-So,
-\[f(z)(z-z_0)=c_{-1}+c_0 (z-z_0) + c_1 (z-z_0)^2 + \dots\]
-Since the right hand side of the Laurent series converges within some nonzero distance of $z_0$, this series will also converge on that domain.
-It is an ordinary power series, so it will also be continuous on that domain (it will actually be analytic, but continuity is sufficient here).
-This means that we may take the limit of this expression as $z$ approaches $z_0$.
-Taking this limit, the only nonzero term of the series remaining is $c_{-1}$, so we have
-\[\lim_{z\to z_0} f(z)(z-z_0) = c_{-1} = \Res{z=z_0} f(z)\]
-Now for some $f(z)$ with a pole of order $n$ at $z_0$ we have that within some nonzero distance of $z_0$, the Laurent series of $f$ converges and is of the form
-\[f(z)=c_{-n}(z-z_0)^{-n}+\dots+c_0+c_1(z-z_0)+\dots\]
-Multiplying by $(z-z_0)^{n}$ and differentiating $n-1$ times, we have
-\[\frac{d^{n-1}}{dz^{n-1}}(f(z)(z-z_0)^{n})=(n-1)! c_{-1} + \frac{n!}{1!} c_0 (z-z_0) + \frac{(n+1)!}{2} c_1 (z-z_0)^2!+\dots\]
-Taking the limit, we have
-\[\lim_{z\to z_0}\frac{d^{n-1}}{dz^{n-1}}((z-z_0)^n f(z)) = (n-1)! c_{-1}\]
-Which implies
-\[\Res{z=z_0}f(z)=\frac{1}{(n-1)!}\lim_{z\to z_0}\frac{d^{n-1}}{dz^{n-1}}((z-z_0)^n f(z))\]
-Another useful trick involving poles and residues involves the logarithmic residue, i.e. the residue of the logarithmic derivative $\frac{d}{dz}(\ln(f(z))) = \frac{f'(z)}{f(z)}$.
-A natural consequence of the Laurent series expansion of $f(z)$ and $f'(z)$ at a pole $z_0$ is that, where $d$ is the degree of the pole at $z_0$ is that
-\[- \Res{z=z_0} \frac{f'(z)}{f(z)} = d\]
-This is a useful bit of information that may be used to simplify computation of residues or of the Laurent series expansion of a function.
-Another way we can evaluate residues is by the following theorem.
-\begin{theorem}
+It is sometimes easier to evaluate a residue using limits or some other formula.
+One good way to do this is to use the following formula:
+
 Let $f(z)=\frac{p(z)}{q(z)}$ and let $p$ and $q$ be holomorphic at $z_0$. Let $p(z_0) \neq 0$ and $q(z_0)=0$.
 Suppose that $z_0$ is a pole of order $1$ of $f$.
 Then
 \[\Res{z=z_0} f(z) = \frac{p(z_0)}{q'(z_0)}\]
-\end{theorem}
+
+A natural consequence of the Laurent series expansion of $f(z)$ and $f'(z)$ at a pole $z_0$ is that, where $d$ is the degree of the pole at $z_0$ is that
+\[- \Res{z=z_0} \frac{f'(z)}{f(z)} = d\]
+This is a useful bit of information that may be used to simplify computation of residues or of the Laurent series expansion of a function since it allows us to avoid evaluating a long series of integrals we already know will evaluate to $0$.
+
+There is also a natural relationship between the residues of a function at its poles and its partial fraction decomposition.
+Let $f = \frac{p}{q}$ where $p$ and $q$ are polynomials, $q$ has no repeated roots, and the degree of $p$ has degree less than the degree of $q$.
+This means that $f$ has a partial fraction representation
+\[f = \sum \frac{c_i}{z - z_i}\]
+where the $c_i$ are appropriately chosen coefficients and $z_i$ are the distinct zeroes of $q$.
+Consider what happens when we take the residue of this sum.
+Since integrals distribute over sums, so do residues, so we may say
+\[\Res{z=z_i} f = \sum \Res{z=z_i} \frac{c_i}{z - z_i}\]
+Since the zeros of $q$ are distinct, and the function $\frac{1}{z - z_i}$ is holomorphic wherever $z \neq z_i$, we see that
+\[\Res{z=z_i} f = c_i \Res{z=z_i} \frac{1}{z-z_i} = c_i\]
+This means that we can use residues to compute partial fraction decompositions, so long as the function in the denominator does not have repeated roots.
 
 \begin{problem}
-Write a Python function that given a function and one of it's poles uses \li{sympy.residue} to calculate the order of that pole and with that information calculate the residue of the function using symbolic limits and derivatives.
-Verify that your function calculates the correct order and check the residue against \li{sympy.residue}, using the function
-\[f(z) = \frac{1}{(z^+1)^{4}(2z+1)}dz\]
-(The roots are somewhat obvious here, but as a note you can use \li{sympy.solve} to find the roots).
-\end{problem}
+Write a Python function that, given polynomial objects $p$ and $q$, computes the partial fraction decomposition of the function $\frac{p}{q}$.
+Assume that the degree of $p$ is less than the degree of $q$ and that $q$ has no repeated roots.
+Return two arrays.
+The first should contain the coefficients in the partial fraction decomposition.
+The second should contain the corresponding zeros of $q$.
 
-\begin{problem}
-Write a python function, which, using symbolic integration in SymPy, returns the Laurent series expansion of a function about a given pole.
-Use the trick involving logarithmic residues to figure out what the degree of the pole is, then use symbolic limits and derivatives to compute the coefficients of the corresponding Laurent series expansion (look at the original equation for the coefficients of the Laurent Series and see that they can be rewritten as residues).
-You may assume that the pole is not an essential singular point.
-(Recall that, as we defined it, a pole is not an essential singular point, so it will always have a finite degree).
+Hint: numpy's \li{poly1d} objects have a \li{roots} attribute that allows you to quickly find the roots of a polynomial.
 \end{problem}
 
 \section*{Evaluating Indefinite Integrals Using Residues}
@@ -214,7 +209,7 @@ Notice that this function has poles at $e^{\frac{\pi i}{4}}$, $e^{\frac{3\pi i}{
 For notation, let these be $p_1$, $p_2$, $p_3$, and $p_4$.
 For some real $R>1$, consider the contour $C$ from $-R$ to $R$ and counterclockwise along the circle centered at $0$ of radius $R$ back to -$R$.
 
-This contour ( a semi circle) is shown in Figure \ref{complexint:c1} with $R = 2$.
+This contour (a semi circle) is shown in Figure \ref{complexint:c1} with $R = 2$.
 Let $A$ be this second portion of $C$.
 Note that, since $R>1$ we have
 \[\int_C f(z)dz = 2\pi i (\Res{z=p_0} f(z) +\Res{z=p_1} f(z))\]
