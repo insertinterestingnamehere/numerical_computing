@@ -195,8 +195,10 @@ Hint: numpy's \li{poly1d} objects have a \li{roots} attribute that allows you to
 
 One convenient use of residues is the evaluation of integrals that are difficult to evaluate symbolically in other ways.
 Often, when we cannot directly assign a value to one of these integrals, residues can still help us evaluate the Cauchy principal value of the integral.
-Recall that for an integral $\int_{-\infty}^{\infty} f(x)dx$ the Cauchy principal value is $\lim_{r\to \infty} \int_{-r}^{r} f(x) dx$.
-This limit may exist, even though the limit itself may not.
+Recall that, for an integral $\int_{-\infty}^{\infty} f(x)dx$, the Cauchy principal value is $\lim_{r\to \infty} \int_{-r}^{r} f(x) dx$.
+This limit may exist, even though the integral itself may not.
+The methods for using residues to evaluate such integrals will be discussed in greater details in the text.
+Here we consider one example.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{contour1.pdf}
@@ -218,7 +220,7 @@ So, rewriting, we have
 so
 \[\int_{-\infty}^{\infty} f(z) dz = \lim_{R\to \infty} \int_{-R}^R f(z) dz = 2\pi i (\Res{z=p_0} f(z) +\Res{z=p_1} f(z)) - \lim_{R\to \infty} \int_A f(z) dz\]
 We would like to show that that $\lim_{R\to\infty} \int_A f(z) dz = 0$, so note that on $A$, $\abs{z}=R$.
-It follows from the triangle inequality that $\abs{z^4+1}\geq \abs{\abs{z}^4-1} = R^4 -1$, so we have that
+With some effort, it follows from the triangle inequality that $\abs{z^4+1}\geq \abs{\abs{z}^4-1} = R^4 -1$, so we have that
 \[\abs{\int_A f(z) dz}\leq \int_A \abs{f(z)} dz \leq \int_A \frac{R^2}{R^4 -1}dz = \pi R \frac{R^2}{R^4-1}\]
 so $\lim_{R\to\infty} \int_A f(z) dz = 0$ as desired.
 This then implies that
@@ -226,34 +228,7 @@ This then implies that
 Evaluating the residues at $p_0$ and $p_1$ we have
 \[\int_{-\infty}^{\infty} f(z) dz = \frac{\pi}{\sqrt{2}}\]
 
-\begin{problem}
-Write a python function which, given the coefficients for the polynomials in the numerator and denominator of a rational function $f$, evaluates the sum
-\[\sum 2\pi i (\Res{z=p} f(z))\]
-over all poles $p$ of $f$ such that $Im(p)>0$.
-Use that function to numerically evaluate the following integrals.
-\[\int_{-\infty}^{\infty} \frac{z^2}{z^6+1}dz\]
-\[\int_{-\infty}^{\infty} \frac{z^{12}-5z^{10}+3z^8-16z^6+4z^4-z^2-4}{4z^{14}+6z^6+12}dz\]
-\end{problem}
-
-\begin{problem}
-Similar arguments can be used to evaluate integrals of functions that can be compared to the rational functions in question.
-Write a modified version of the function you just wrote and use it to evaluate the following integrals.
-\[\int_{-\infty}^{\infty}\frac{cos(z)}{z^4+1}dz\]
-\[\int_{-\infty}^{\infty}\frac{sin^2(z)}{z^{20}+1}dz\]
-\end{problem}
-
-The general conditions in which we may apply this particular way of evaluating integrals come from Jordan's Lemma, which states
-\begin{lemma}[Jordan's Lemma]
-If for some $f(z)$ on $\mathbb{C}$, $f$ is analytic for all points $z$ in the upper half plane such that $\abs{z}>R_0$ for some $R_0 \in \mathbb{R}$ where $R_0 >0$ and that, where $C_R$ denotes the semicircle $z=Re^{i\theta}$ for $0\leq \theta \leq \pi$, there exists some positive constant $M_R$ such that for all $z$ on $C_R$, $\abs{f(z)} \leq M_R$ and $\lim_{R \to \infty} M_R = 0$, then for every positive constant $a$, we have
-\[\lim_{R \to \infty} \int_{C_R} f(z) e^{iaz} dz = 0\]
-\end{lemma}
-
-\begin{problem}
-Use the function you just wrote to evaluate the Cauchy Principal Value of the integral
-\[\int_{\infty}^{-\infty} \frac{z sin(z)}{z^2+1}\]
-\end{problem}
-
-If a function has a singularity on the real line, we can often still evaluate the value of $\int_{-\infty}^{\infty} f(z) dz$ using a similar argument as before, but by indenting the path along the real axis around a small path around the singularity, then, as we take the limit as our outer contour moves out toward infinity, we can let the small contour around the singularity approach the singularity.
+If a function has a singularity on the real line, we can often still evaluate the value of $\int_{-\infty}^{\infty} f(z) dz$ using a similar argument as before, but we must now indent the path along the real axis around the singularity, then, as we take the limit as our outer contour moves out toward infinity, we can let the small contour around the singularity approach the singularity.
 An example of a contour like this is shown in Figure \ref{complexint:c2}.
 It is centered at the origin with $R=2$ on the outer circle and $R=\frac{1}{2}$ on the inner circle.
 
@@ -270,19 +245,12 @@ Let $C_r$ be the upper half of a circle $\abs{z-x_0}=r$ where $r<R$ oriented in 
 \[\lim_{r\to 0} \int_{C_r} f(z) dz = - B_0 \pi i\]
 \end{theorem}
 As a consequence of this, for a function $f$ on $\mathbb{C}$ with only zeros of at most order $1$ on $\mathbb{R}$, where $A$ is the sum of the residues of $f$ on the upper half plane and $B$ is the sum of the residues of $f$ on $\mathbb{R}$,
-\[CPV = \int_{-\infty}^{\infty} f(z) dz = \pi i (B+2A)\]
-When that Cauchy Principal Value exists.
+\[\int_{-\infty}^{\infty} f(z) dz = \pi i (B+2A)\]
+Whenever this integral exists.
+When we can say that the integral of $f$ over the upper half of a circle centered at $0$ goes to $0$ as the radius of the circle increases and we can also say that the Cauchy principal value of the integral of $f$ over $\mathbb{R}$ exists, this formula will give us a proper numerical value for the Cauchy principal value of the integral of $f$ over $\mathbb{R}$.
 
 \begin{problem}
-Modify the function you wrote earlier to evaluate the CPV of $\int_{-\infty}^{\infty} f(z) dz$ for a meromorphic function $f$ where $f$ has only poles of order $1$ along the real axis.
-
-Then, using the function you just wrote, evaluate
-\[\int_{0}^{\infty} \frac{sin(z)}{z} dz\]
-
-Hint: Since $1/z$ and $sin(z)$ are odd, $\frac{sin(z)}{z}$ will be even, so
-$\int_{-\infty}^{\infty} \frac{sin(z)}{z} dz = 2 \int_{0}^{\infty} \frac{sin(z)}{z} dz$.
+Write a function that computes the sum $\pi i \left(B + 2 A\right)$ (where $B$ and $A$ are as above) for a function $f$ of the form $\frac{p}{q}$ where $p$ and $q$ are polynomials.
 \end{problem}
-
-%% Add example
 
 Integration techniques using residues can also be extended to integration around branch points, some types of integrals involving sines and cosines, inverse Laplace transforms, and many other difficult integration problems.
