@@ -107,7 +107,7 @@ def qInteriorPoint(G, c, A, b, guess, niter=20, verbose=False):
         dl_aff = sol[n+m:]
 
         # calculate centering parameter
-        mu = (y*l).sum()/m
+        mu = y.dot(l)/m
         ahat_aff1 = stepSize(y, dy_aff)
         ahat_aff2 = stepSize(l, dl_aff)
         ahat_aff = min(ahat_aff1,ahat_aff2)
@@ -122,7 +122,7 @@ def qInteriorPoint(G, c, A, b, guess, niter=20, verbose=False):
         dl = sol[n+m:]
 
         # calculate step size
-        t = 0.95 # there are other ways to choose this parameter
+        t = 0.9 # there are other ways to choose this parameter
         ap = stepSize(t*y, dy)
         ad = stepSize(t*l, dl)
         a = min(ap, ad)
