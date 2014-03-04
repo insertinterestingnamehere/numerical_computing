@@ -35,24 +35,37 @@ Plotting libraries like Mayavi and Matplotlib do allow thresholding of 3D plots 
 We can avoid the jagged edges by artificially adding a small lip of constant values to the plot as well.
 This can be done with Matplotlib as follows:
 \begin{lstlisting}
+import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 mn, mx = -1, 1
-res = 401
+res = 400
+# Set the threshold at which to cut the 'z' values
 threshold = 2.
-tol = .5
+# space in 'z' values to use to create a lip on the plot
+lip = .5
 x = np.linspace(mn, mx, res)
 X, Y = np.meshgrid(x, x, copy=False)
 Z = 1 / (X + 1.0j * Y)
 Z = Z.real
-Z[(threshold+tol>Z)&(Z>threshold)] = threshold
-Z[(-threshold-tol<Z)&(Z<-threshold)] = -threshold
-Z[np.absolute(Z) >= threshold + tol] = np.nan
+# Set the values between threshold and
+# threshold + lip to be equal to threshold.
+# This forms a somewhat more concrete
+# edge at the top of the plot.
+Z[(threshold+lip>Z)&(Z>threshold)] = threshold
+# Do the same thing for the negative restriction on 'z'.
+Z[(-threshold-lip<Z)&(Z<-threshold)] = -threshold
+# Set anything that is larger to np.nan so it doesn't get plotted.
+Z[np.absolute(Z) >= threshold + lip] = np.nan
+# Now actually plot the data.
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 ax.plot_surface(X, Y, Z)
 plt.show()
 \end{lstlisting}
+If you run this code, you may notice that this still leaves some very jagged edges around the singularity.
+We were able to avoid some of the problems caused by the singularity.
+Much more detailed code would be needed to obtain good surface plots around a singular point.
 
 Figures \ref{fig:inv_surfaces} %and \ref{fig:inv2_surfaces} show surface plots of some relatively well-behaved singular points.
 
