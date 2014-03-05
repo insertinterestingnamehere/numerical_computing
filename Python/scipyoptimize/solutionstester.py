@@ -9,7 +9,10 @@ prob3=np.array([-0.39965477, -1.21959745,  0.81994268])
 
 prob4=np.array([0.56263117, 132.61958892, -116.26997494])
 
-
+def fun(x):
+    return np.array([-x[0]+x[1]+x[2], 
+            1+x[0]**3-x[1]**2+x[2]**3,
+           -2-x[0]**2+x[1]**2+x[2]**2])
 
 x=sol.Problem2()
 
@@ -24,13 +27,13 @@ else:
 
 x=sol.Problem3()
 
-if(np.allclose(prob3,x)):
+if(np.allclose(fun(prob3),np.zeros(3))):
 	print("Problem3 Passed")
 else:
 	print("Problem3 Falied")
 	print("Your answer:")
 	print(x)
-	print("Correct answer:")
+	print("A Correct answer:")
 	print(prob3)
 
 x=sol.Problem4()
