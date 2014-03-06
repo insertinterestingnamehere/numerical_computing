@@ -15,6 +15,7 @@ def adj_mat(datafile, n):
                 continue
     return adj
 
+
 def dense_pr(data, n=None):
     A = np.asarray(data.tocsr()[:n, :n].todense())
     #data is dense and is of type matrix
