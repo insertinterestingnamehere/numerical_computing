@@ -1,5 +1,5 @@
 '''
-This is the solutions file for the InteriorPointI lab in volume 1
+This is the solutions file for the InteriorPointI lab in volume 2
 '''
 import numpy as np
 from scipy import linalg as la
