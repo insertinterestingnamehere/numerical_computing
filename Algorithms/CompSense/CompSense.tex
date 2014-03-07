@@ -17,7 +17,7 @@ $A^{-1}b$. There are various computational methods for inverting $A$, and we hav
 When $b$ does not lie in the range of $A$, there is no exact solution. We can still hope to find approximate solutions,
 and techniques such as least squares and least absolute deviations provide ways to do this.
 
-The final case is when there are infinitely many vectors $x$ that satisfy $Ax = b$. How do you we decide which vector
+The final case is when there are infinitely many vectors $x$ that satisfy $Ax = b$. How do we decide which vector
 to choose? A common approach is to choose a vector $x$ of minimal norm satisfying $Ax = b$. This can be stated as 
 an optimization problem:
 \begin{align*}
@@ -122,10 +122,19 @@ condition, as do transformation matrices into the Fourier and Wavelet domains. G
 the measurement matrix $A$ represents a change of basis from the \emph{sparse} basis to the \emph{measurement} basis, 
 followed by an under-sampling of the signal. The Restricted Isometry Principle guarantees that the measurement
 basis is incoherent with the sparse basis; that is, a sparse signal in the sparse basis is diffuse in the measurement
-basis, and vice versa. This ensures that the information contained in the few nonzero coefficients in the sparse
+basis, and vice versa (see Figure \ref{fig:incoherent}). This ensures that the information contained in the few nonzero
+coefficients in the sparse
 domain is spread out randomly and roughly evenly among the coefficients in the measurement domain. 
 We can then obtain a small random subset of these measurement coefficients, solve the above optimization problem,
 and recover the original signal. 
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{incoherent.pdf}
+\caption{A sparse image (left) and its Fourier transform (right). The Fourier domain is incoherent with the 
+standard domain, so the Fourier transform of the spare image is quite diffuse.}
+\label{fig:incoherent}
+\end{figure}
 
 Fortunately, many types of signals that we wish to measure are sparse in some domain. For example, many images
 are sparse in the Wavelet domain. It turns out that the Fourier domain is incoherent with the Wavelet domain,
@@ -143,7 +152,42 @@ replace the $l_0$ norm with the $l_1$ norm and with high probability still recov
 it is sufficiently sparse. Since the $l_1$ minimization problem can be solved efficiently, we have a viable 
 computational approach to compressed sensing. 
 
-%INCLUDE HOW TO CONVERT TO LP
+Recall that we can convert the $l_1$ minimization problem into a linear program by introducing an additional
+vector $u$ of length $n$, and then solving
+\begin{align*}
+\text{minimize}\qquad 
+&\begin{bmatrix}
+\mathbf{1} & 0
+\end{bmatrix}
+\begin{bmatrix}
+u \\
+x
+\end{bmatrix}\\
+\text{subject to}\qquad
+&\begin{bmatrix}
+-I & I\\
+-I & -I
+\end{bmatrix}
+\begin{bmatrix}
+u \\
+x
+\end{bmatrix}
+\leq 
+\begin{bmatrix}
+0\\
+0
+\end{bmatrix},\\
+&\begin{bmatrix}
+0 & A
+\end{bmatrix}
+\begin{bmatrix}
+u \\
+x
+\end{bmatrix}
+= 
+b.
+\end{align*}
+Of course, solving this gives values for the optimal $u$ and the optimal $x$, but we only care about the optimal $x$.
 
 \begin{problem}
 Write a function \li{l1Min} that takes a matrix $A$ and vector $b$ as inputs, and returns the solution to the 
@@ -229,32 +273,32 @@ $\begin{array}{cc}
 \end{figure}
 
 The single-pixel camera measurement process can be modeled as matrix multiplication
-by a measurement matrix $A$, which fortunately has the Restricted Isometry Property. In the problems that follow,
+by a measurement matrix $A$, which fortunately has the Restricted Isometry Property. In the following,
 we provide you with the measurement matrix as well as the measurements. You must reconstruct the color functions
 for the tesselated surfaces, and then plot these surfaces using the code we provide you.
 
-\begin{problem}
-We will perform compressed sensing on a Rubik's cube. The Rubik's cube has a natural tessellation, with each facet
-being a square having one color. Each color can be represented as a vector of length 3, where we have split the
-color into three color channels (red, green, and blue). The set of colors for the entire Rubik's cube is fairly
-sparse in each color channel, so we can reconstruct the color values in each color channel separately.
-
-In the file \li{StudentRubiksData.npz}, we have given you the measurement matrices for each color channel
-(accessed by the keys \li{'A1', 'A2', 'A3'}) along with the respective measurements in each color channel
-(accessed by the keys \li{'b1', 'b2', 'b3'}). Reconstruct the colors in each color channel, obtaining
-three arrays. Then stack these arrays row-wise into an array with three rows. Report this final array.
-
-To visualize your result, we have provided code in the file \li{visualize.py} that you can call.
-You also need to load in the array corresponding to the key \li{'centers'} in the data archive 
-\li{StudentRubiksData.npz}. We assume the variable holding this array is named \li{c}.
-Execute the following (assuming that the variable holding the array
-you obtained above containing the reconstructed colors is named \li{r}):
-\begin{lstlisting}
->>> from visualize import visualizeSurface
->>> visualizeSurface(r.clip(0,1), c, 3)
-\end{lstlisting}
-You should see a plot showing the Rubik's cube.
-\end{problem}
+%\begin{problem}
+%We will perform compressed sensing on a Rubik's cube. The Rubik's cube has a natural tessellation, with each facet
+%being a square having one color. Each color can be represented as a vector of length 3, where we have split the
+%color into three color channels (red, green, and blue). The set of colors for the entire Rubik's cube is fairly
+%sparse in each color channel, so we can reconstruct the color values in each color channel separately.
+%
+%In the file \li{StudentRubiksData.npz}, we have given you the measurement matrices for each color channel
+%(accessed by the keys \li{'A1', 'A2', 'A3'}) along with the respective measurements in each color channel
+%(accessed by the keys \li{'b1', 'b2', 'b3'}). Reconstruct the colors in each color channel, obtaining
+%three arrays. Then stack these arrays row-wise into an array with three rows. Report this final array.
+%
+%To visualize your result, we have provided code in the file \li{visualize.py} that you can call.
+%You also need to load in the array corresponding to the key \li{'centers'} in the data archive
+%\li{StudentRubiksData.npz}. We assume the variable holding this array is named \li{c}.
+%Execute the following (assuming that the variable holding the array
+%you obtained above containing the reconstructed colors is named \li{r}):
+%\begin{lstlisting}
+%>>> from visualize import visualizeSurface
+%>>> visualizeSurface(r.clip(0,1), c, 3)
+%\end{lstlisting}
+%You should see a plot showing the Rubik's cube.
+%\end{problem}
 
 \begin{problem}
 We will now reconstruct the surface of the earth from sparse satellite imagery. The earth is modeled by a sphere,
@@ -266,16 +310,18 @@ which works for each color channel, as well as the measurements in each color ch
 (accessed by the keys \li{'b1', 'b2', 'b3'}). Reconstruct the colors in each color channel, obtaining
 three arrays. Then stack these arrays column-wise into an array with three columns. Report this final array.
 
-%To visualize your result, we have provided code in the file \li{visualize2.py} that you can call.
-%You also need to load in the array corresponding to the keys \li{'vertices'} and
-%\li{'facet'} in the data archive
-%\li{StudentEarthData.npz}. We assume the variable holding these arrays are named \li{v} and \li{f},
-%respectively.
-%Execute the following (assuming that the variable holding the array
-%you obtained above containing the reconstructed colors is named \li{e}):
-%\begin{lstlisting}
-%>>> from visualize2 import visualizeEarth
-%>>> visualizeEarth(f, v, e.clip(0,1))
-%\end{lstlisting}
-%You should see a plot showing the reconstructed earth.
+To visualize your result, we have provided code in the file \li{visualize2.py} that you can call.
+You also need to load in the arrays corresponding to the keys \li{'vertices'},
+\li{'facet'}, and \li{'V'} in the data archive
+\li{StudentEarthData.npz}. We assume the variable holding these arrays are named \li{vert}, \li{f},
+and \li{V},
+respectively.
+Execute the following (assuming that the variable holding the array
+you obtained above containing the reconstructed colors is named \li{e}):
+\begin{lstlisting}
+>>> from visualize2 import visualizeEarth
+>>> visualizeEarth(f, vert, V.dot(e).clip(0,1))
+\end{lstlisting}
+You should see a plot showing the reconstructed earth. We could have reconstructed a more detailed
+earth by choosing a finer tessellation, but you should be able to make out the shapes of the major continents.
 \end{problem}
