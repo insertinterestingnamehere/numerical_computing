@@ -2,40 +2,53 @@
 \label{lab:PageRank}
 \objective{Explain the basics of the PageRank Algorithm, and some of its applications}
 
-The PageRank algorithm was one of the first algorithms used by Google to classify search results.  It is named after one of the co-founders of Google, Larry Page.  It is based upon an interesting mathematical model that involves random processes, Markov chains and eigenvalues. It ranks pages web pages based upon their connectivity properties with the rest of the web. When you make a query on Google's web page they find every web page that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).  As of 2013, PageRank is one of over 200 algorithms used in determining Google's ranking of a website.
+The PageRank algorithm was one of the first algorithms used by Google to classify search results.
+It is named after one of the co-founders of Google, Larry Page and is based on an interesting mathematical model that involves random processes, Markov chains and eigenvalues.
+It ranks pages web pages based upon their connectivity properties with the rest of the internet.
+When you make a query on Google's web page they find every page that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
+As of 2013, PageRank is one of over 200 algorithms used in determining Google's ranking of a website.
 
-The PageRank algorithm works by supposing that a person surfing the internet randomly clicks links on the web pages. We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$. We can write an equation for this probability from one time step to the next using the following notation:
-\[
-PR(i,t+1) = \sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}
-\]
+The PageRank algorithm works by supposing that a person surfing the internet randomly clicks links on the web pages.
+We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$.
+We can write an equation for this probability from one time step to the next using the following notation:
+\[PR(i,t+1) = \sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}\]
 
-Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$. Note that this is simply representing the internet as a Markov chain, just like we discussed in Lab \ref{lab:MarkovGraph}. We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
+Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$.
+Note that this is simply representing the internet as a Markov chain, just like we discussed in Lab \ref{lab:MarkovGraph}.
+We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
 
-However, there are two minor modifications that we make to this formula. First, what if a page has no outbound links? In this case we pretend that the page links to every other page.  It is as if the surfer, upon getting stuck, randomly picks a new page. Second, we assume that the surfer sometimes gets bored and randomly picks a new page. The probability that the surfer doesn't get bored is called the damping factor $d$ and is usually set to $.85$. Using these modifications we can write our formula as:
+However, there are two minor modifications that need to be made to this formula.
+First, what if a page has no outbound links?
+In this case we pretend that the page links to every other page.
+It is as if the surfer, upon getting stuck, randomly picks a new page.
+Second, we assume that the surfer sometimes gets bored and randomly picks a new page.
+The probability that the surfer doesn't get bored is called the damping factor $d$.
+A good value for $d$ is $.85$.
+Using these modifications we can write our formula as:
 \[
 PR(i,t+1) = \frac{1-d}{N} + d\sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}
 \]
-
-Note that $N$ is the total number of webpages.
+Where $N$ is the total number of webpages.
 We then say that the page rank of a particular webpage is the value
 \[PR(i) = \lim_{t\to \infty} PR(i,t)\]
 
-Mathematically therefore, the page rank is the steady state probability of our modified Markov chain.
+Mathematically, the page rank is the steady state probability of our modified Markov chain.
 We can rewrite this as a matrix equation:
 \[R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
-
-Where $R_i(t) = PR(i,t)$. The matrix $K$ is defined by:
+Where $R_i(t) = PR(i,t)$.
+The matrix $K$ is defined by:
 \[K_{ij} = \begin{cases} \frac{1}{L(j)} & \mbox{ if j is linked to i} \\ 0 & \mbox{ otherwise} \end{cases}\]
 
 We can write $K$ neatly as follows:
 \[K = (B^{-1}A)^T\]
 
 Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the number of links leaving each vertex.
-Recall that we have to modify our graph so that any page without outbound links points to every other page, otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
-In practice, you should never construct a diagonal matrix, invert it, then do matrix multiplication.
+Remember that we have to modify our graph so that any page without outbound links points to every other page.
+Otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
+In practice, you should \textit{never} construct a diagonal matrix, invert it, then do matrix multiplication.
 That would be a series of expensive and unnecessary operations.
 Store the diagonal entries of $B$, compute the inverse by taking their reciprocal, then perform the matrix multiplication by multiplying each of the columns of $A$ by each of the entries of the diagonal of $B^{-1}$.
-These operations are mathematically equivalent versions of the inversion and multiplication, but are much more efficient.
+These operations are mathematically equivalent versions of the inversion and multiplication, but they are much more efficient.
 
 A useful way to think of this algorithm is to think in terms of voting.
 Every link that I place on my webpage is a vote for the webpage that it points to.
@@ -45,7 +58,7 @@ Additionally, if I am more prestigious then my votes count for more.
 Included with this lab is a sample data set.
 There is a comment at the top.
 Each of the remaining lines represents a link going from one web page to another.
-Each line has two integers.
+Each line consists of two integers.
 The first is the index of the webpage containing the link.
 The second is the index of the webpage pointed to by the link.
 Write a function that constructs the adjacency matrix by reading in the data from file.
@@ -74,19 +87,19 @@ One option is simply iterate the equation until $\norm{R(t)-R(t-1)}$ is sufficie
 \begin{problem}
 \label{prob:pagerank_dense_iter}
 Write an implementation of the page rank algorithm that computes the steady state $R$ iteratively, as described above.
-Your function should accept a file name for the data and a size \li{n} that defaults to \li{None}.
-The size will allow you to specify that you want to consider only the upper left $n \times n$ portion of the array.
+Your function should accept a file name for the data, a floating point value for $d$, and a size \li{n} that defaults to \li{None}.
+When the size is not none, your function should only consider the upper left $n \times n$ portion of the array.
 \end{problem}
 
 Another method for computation assumes a steady state $R$ and solves the resulting system:
 \[(I-dK)R = \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
-We won't have you implement this sort of solver here.
+We won't have you implement this version of the algorithm here.
 
 Another way to solve this problem is to make it into an eigenvalue problem.
 Since $R$ can be viewed as a vector of probabilities we can rewrite $\left(\begin{smallmatrix}1\\\vdots\end{smallmatrix}\right) = E R$, where $E$ is a matrix of all ones.
 Thus the equation becomes:
 \[R = (dK + \frac{1-d}{N}E)R\]
-Since $(dK + \frac{1-d}{N}E)$ will be a strictly positive stochastic matrix (each column sums to one) we can use the Perron-Frobenius theorem to guarantee that this eigenvalue equation corresponds to the largest magnitude eigenvalue and that the eigenvector is unique.
+Since $(dK + \frac{1-d}{N}E)$ will be a strictly positive stochastic matrix (each column sums to one) the Perron-Frobenius theorem guarantees that this eigenvalue equation corresponds to the largest magnitude eigenvalue and that the eigenvector is unique.
 This means that, by finding the eigenvector corresponding to the largest eigenvalue of $(dK + \frac{1-d}{N}E)$, we can find $R$.
 The first option for finding $R$ (the iterative approach) is equivalent to using a numerical method called power iteration to find the eigenvalues of this system.
 As we have formulated the eigenvalue problem here, it cannot be stored easily in one of SciPy's sparse matrix types, but it is still possible to work with eigenvalue solvers that exploit the symmetries of this matrix.
