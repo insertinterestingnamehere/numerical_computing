@@ -39,7 +39,7 @@ def sparse_pr(data, n, tol=1e-5):
     diag = 1./s
     sinks = s==0
     diag[sinks] = 0
-    K = spar.spdiags(diag.squeeze(1), 0, n, n).dot(A).T
+    K = spar.spdiags(diag.ravel(), 0, n, n).dot(A).T
     
     d = .85
     convDist = 1
