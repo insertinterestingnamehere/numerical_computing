@@ -1,18 +1,17 @@
 \lab{Applications}{PageRank Algorithm}{PageRank Algorithm}
-\label{Ch:PageRank}
-
+\label{lab:PageRank}
 \objective{Explain the basics of the PageRank Algorithm, and some of its applications}
 
-The PageRank Algorithm is a core algorithm used by Google to classify search results. It is based upon an interesting mathematical model that involves random processes, Markov chains and eigenvalues. It ranks pages webpages based upon their connectivity properties with the rest of the web. When you make a query on Google's webpage they find every webpage that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
+The PageRank algorithm was one of the first algorithms used by Google to classify search results.  It is named after one of the co-founders of Google, Larry Page.  It is based upon an interesting mathematical model that involves random processes, Markov chains and eigenvalues. It ranks pages web pages based upon their connectivity properties with the rest of the web. When you make a query on Google's web page they find every web page that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).  As of 2013, PageRank is one of over 200 algorithms used in determining Google's ranking of a website.
 
-The PageRank Algorithm works by supposing that a person surfing the internet randomly clicks links on the webpages. We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$. We can write an equation for this probability from one time step to the next using the following notation:
+The PageRank algorithm works by supposing that a person surfing the internet randomly clicks links on the web pages. We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$. We can write an equation for this probability from one time step to the next using the following notation:
 \[
 PR(i,t+1) = \sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}
 \]
 
-Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$. Note that this is simply representing the internet as a markov chain, just like we discussed in Lab \ref{Markov}. We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
+Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$. Note that this is simply representing the internet as a Markov chain, just like we discussed in Lab \ref{lab:MarkovGraph}. We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
 
-However, there are two minor modifications that we make to this formula. First, what if a page has no outbound links? In this case we pretend that the page links to every other page (as if the surfer, upon getting stuck, randomly picks a new page). Second, we assume that the surfer sometimes gets bored and randomly picks a new page. The probability that the surfer doesn't get bored is called the damping factor $d$ and is usually set to $.85$. Using these modifications we can write our formula as:
+However, there are two minor modifications that we make to this formula. First, what if a page has no outbound links? In this case we pretend that the page links to every other page.  It is as if the surfer, upon getting stuck, randomly picks a new page. Second, we assume that the surfer sometimes gets bored and randomly picks a new page. The probability that the surfer doesn't get bored is called the damping factor $d$ and is usually set to $.85$. Using these modifications we can write our formula as:
 \[
 PR(i,t+1) = \frac{1-d}{N} + d\sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}
 \]
@@ -60,22 +59,20 @@ This algorithm has been used in several settings (primarily in academia). For ex
 
 %Add citation for Notre Dame file http://snap.stanford.edu/data/web-NotreDame.html
 %Reference SNAP
-Let's try implementing the PageRank algorithm on a small subset of the internet. The file \texttt{internet.dat} contains the connections between webpages on all of the websites supported by Notre Dame University in the year 1999 (from SNAP: \url{http://snap.stanford.edu/data/web-NotreDame.html}).
+Let's try implementing the PageRank algorithm on a small subset of the internet. The file \texttt{internet.dat} contains the connections between web pages on all of the websites supported by Notre Dame University in the year 1999 (from SNAP: \url{http://snap.stanford.edu/data/web-NotreDame.html}).
 
-The \li{matplotlib.pyplot.spy} command of this adjacency matrix yields the plot shown in figure \ref{Fig:WebSparse}
-
+The \li{matplotlib.pyplot.spy} command of this adjacency matrix yields the plot shown in figure \ref{fig:WebSparse}
 
 \begin{figure}
-\begin{center}
+\centering
 \includegraphics[scale = .4]{WebSparse.pdf}
 \caption{\li{spy} command on the adjacency matrix corresponding to a portion of the internet}
-\label{Fig:WebSparse}
-\end{center}
+\label{fig:WebSparse}
 \end{figure}
 
 \begin{problem}
+Calculate the PageRank on the first 3500 web pages in the data set. Remember that first you must set any rows that are all zeros to be rows of ones. Which page has the highest page rank, and what is the value of the page rank? Which method works the best? Why?
 \label{prob:pg_calc}
-Calculate the PageRank on the first 6000 webpages in the data set. Remember that first you must set any rows that are all zeros to be rows of ones. Which page has the highest page rank, and what is the value of the page rank? Which method works the best? Why?
 \end{problem}
 
 \begin{problem}
