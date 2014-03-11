@@ -16,46 +16,46 @@ However, there are two minor modifications that we make to this formula. First, 
 PR(i,t+1) = \frac{1-d}{N} + d\sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}
 \]
 
-Note that $N$ is the total number of webpages. We then say that the page rank of a particular webpage is the value
-\[
-PR(i) = \lim_{t\to \infty} PR(i,t)
-\]
+Note that $N$ is the total number of webpages.
+We then say that the page rank of a particular webpage is the value
+\[PR(i) = \lim_{t\to \infty} PR(i,t)\]
 
-Mathematically therefore, the page rank is the steady state probability of our modified Markov chain. We can rewrite this as a matrix equation:
-\[
-R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}
-\]
+Mathematically therefore, the page rank is the steady state probability of our modified Markov chain.
+We can rewrite this as a matrix equation:
+\[R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
 
 Where $R_i(t) = PR(i,t)$. The matrix $K$ is defined by:
-\[
-K_{ij} = \begin{cases} \frac{1}{L(j)} & \mbox{ if j is linked to i} \\ 0 & \mbox{ otherwise} \end{cases}
-\]
+\[K_{ij} = \begin{cases} \frac{1}{L(j)} & \mbox{ if j is linked to i} \\ 0 & \mbox{ otherwise} \end{cases}\]
 
 We can write $K$ neatly as follows:
-\[
-K = (B^{-1}A)^T
-\]
+\[K = (B^{-1}A)^T\]
 
-Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the outdegree of each vertex. Recall that we have to modify our graph so that any page without outbound links points to every other page, otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
+Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the outdegree of each vertex.
+Recall that we have to modify our graph so that any page without outbound links points to every other page, otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
 
-There are several ways to solve for $\lim_{t \to \infty} R(t)$. One option is simply iterate the equation until $\norm{R(t)-R(t-1)}$ is sufficiently small. Another option is to instead assume a steady state (i.e. $R(t) = R(t-1)$) giving the equation:
-\[
-R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}
-\]
+There are several ways to solve for $\lim_{t \to \infty} R(t)$.
+One option is simply iterate the equation until $\norm{R(t)-R(t-1)}$ is sufficiently small.
+Another option is to instead assume a steady state (i.e. $R(t) = R(t-1)$) giving the equation:
+\[R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
 Which we can then reduce to the following form solvable by least squares:
-\[
-(I-dK)R = \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}
-\]
+\[(I-dK)R = \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
 
-A third option is available. Since $R$ can be viewed as a vector of probabilities we can rewrite $\left(\begin{smallmatrix}1\\\vdots\end{smallmatrix}\right) = E R$, where $E$ is a matrix of all ones. Thus the equation becomes:
-\[
-R = (dK + \frac{1-d}{N}E)R
-\]
-Since $(dK + \frac{1-d}{N}E)$ will be a strictly positive stochastic matrix (each column sums to one) we can use the Perron-Frobenius theorem to guarantee that this eigenvalue equation corresponds to the largest magnitude eigenvalue and that the eigenvector is unique. Thus by finding the eigenvector corresponding to the largest eigenvalue of $(dK + \frac{1-d}{N}E)$ we can find $R$. This can be found relatively easily using the power method as in lab \ref{Ch:EigSolve}. It actually turns out that the first option for finding $R$ (the iterative approach) is essentially equivalent to the eigenvalue approach.
+A third option is available.
+Since $R$ can be viewed as a vector of probabilities we can rewrite $\left(\begin{smallmatrix}1\\\vdots\end{smallmatrix}\right) = E R$, where $E$ is a matrix of all ones.
+Thus the equation becomes:
+\[R = (dK + \frac{1-d}{N}E)R\]
+Since $(dK + \frac{1-d}{N}E)$ will be a strictly positive stochastic matrix (each column sums to one) we can use the Perron-Frobenius theorem to guarantee that this eigenvalue equation corresponds to the largest magnitude eigenvalue and that the eigenvector is unique.
+Thus by finding the eigenvector corresponding to the largest eigenvalue of $(dK + \frac{1-d}{N}E)$ we can find $R$.
+It actually turns out that the first option for finding $R$ (the iterative approach) is essentially equivalent to the eigenvalue approach.
 
-Once we have calculated $R$ we are done. $R$ gives the page rank associated with each webpage. A useful way to think of this algorithm is to think in terms of voting. Every link that I place on my webpage is a vote for the webpage that it points to. Additionally, if I am more prestigious then my votes count for more.
+Once we have calculated $R$ we are done.
+$R$ gives the page rank associated with each webpage.
+A useful way to think of this algorithm is to think in terms of voting.
+Every link that I place on my webpage is a vote for the webpage that it points to.
+Additionally, if I am more prestigious then my votes count for more.
 
-This algorithm has been used in several settings (primarily in academia). For example, it has been used to rank graduate institutions, to rank impact factor of journals and has even been used in some biological applications.
+This algorithm has been used in several settings (primarily in academia).
+For example, it has been used to rank graduate institutions, to rank impact factor of journals and has even been used in some biological applications.
 
 %Add citation for Notre Dame file http://snap.stanford.edu/data/web-NotreDame.html
 %Reference SNAP
@@ -71,11 +71,13 @@ The \li{matplotlib.pyplot.spy} command of this adjacency matrix yields the plot 
 \end{figure}
 
 \begin{problem}
-Calculate the PageRank on the first 3500 web pages in the data set. Remember that first you must set any rows that are all zeros to be rows of ones. Which page has the highest page rank, and what is the value of the page rank? Which method works the best? Why?
+Calculate the PageRank on the first 3500 web pages in the data set. Remember that first you must set any rows that are all zeros to be rows of ones. Which page has the highest page rank, and what is the value of the page rank?
 \label{prob:pg_calc}
 \end{problem}
 
 \begin{problem}
-The iterative method allows the easiest implementation for large-scale problems (everything can be done using sparse matrices). Using an implementation that uses only sparse matrices, calculate the PageRank on the entire set of webpages. Which page has the highest page rank, and what is the PageRank value?
+The iterative method allows the easiest implementation for large-scale problems (everything can be done using sparse matrices).
+Using an implementation that uses only sparse matrices, calculate the PageRank on the entire set of webpages.
+Which page has the highest page rank, and what is the PageRank value?
 \end{problem}
 
