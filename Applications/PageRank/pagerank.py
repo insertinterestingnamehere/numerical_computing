@@ -26,8 +26,9 @@ def dense_pr(data, n=None):
     
     d = .85
     K = ((1./A.sum(1))[:,np.newaxis]*A).T
-    R1 = np.eye(*K.shape)-d*K
-    R = la.lstsq(R1, (1-d)*e/float(n))
+    K *= - d
+    np.fill_diagonal(K, K.diagonal() + 1)
+    R = la.lstsq(K, (1-d)*e/float(n))
     max_rank = R[0].max()
     
     return max_rank, np.where(R[0]==max_rank)[0]
