@@ -1,10 +1,20 @@
 \lab{Algorithms}{Value Function Iteration}{Value Function Iteration}
 \objective{This section teaches the fundamentals of Dynamic Programming using value function iteration.}
 
-Often it is of interest to optimize decision making in some sequential process.  For example, an oil company may need to decide how much oil to excavate and sell each month as prices change, a person entering retirement may need to decide how much of their savings to spend each year, or a model of economic growth may require a decision about how much to invest in capital versus how much to spend each year.  In this lab we will formulate a general dynamic optimization problem.  We will explore techniques for solving such a problem with both finite and infinite time horizons.
+Often it is of interest to optimize decision making in some sequential process.  For example, an oil company may need to decide 
+how much oil to excavate and sell each month as prices change, a person entering retirement may need to decide how much of their 
+savings to spend each year, or a model of economic growth may require a decision about how much to invest in capital versus how 
+much to spend each year.  In this lab we will formulate a general dynamic optimization problem.  We will explore techniques for 
+solving such a problem with both finite and infinite time horizons.
 
 \section*{The Sequential Problem, Finite Horizon}
-Suppose there are time periods $t=0,1,\ldots, T$ and at each time period we take an action $c_t$. Furthermore, at the beginning of each time period $t$ we are in some state $W_t$.  In many cases $W_t$ might represent an available resource, such as money.  At each time we receive some reward, $u(W_t,c_t)$, for taking action $c_t$ given state $W_t$.  We assume that rewards are worth more now than later. We let $\beta\in (0,1)$ represent what is called the discount factor and gives the ratio of preference for rewards today versus rewards tomorrow.  For example, receiving a dollar today is preferable to receiving a dollar in a year because taking a dollar today and putting it in a  savings account results in having more than a dollar in a year.  Lastly, over time our state variable $W_t$ changes according to some rule depending on the previous state and our actions,
+Suppose there are time periods $t=0,1,\ldots, T$ and at each time period we take an action $c_t$. Furthermore, at the beginning 
+of each time period $t$ we are in some state $W_t$.  In many cases $W_t$ might represent an available resource, such as money.  
+At each time we receive some reward, $u(W_t,c_t)$, for taking action $c_t$ given state $W_t$.  We assume that rewards are worth 
+more now than later. We let $\beta\in (0,1)$ represent what is called the discount factor and gives the ratio of preference for 
+rewards today versus rewards tomorrow.  For example, receiving a dollar today is preferable to receiving a dollar in a year 
+because taking a dollar today and putting it in a  savings account results in having more than a dollar in a year.  Lastly, over 
+time our state variable $W_t$ changes according to some rule depending on the previous state and our actions,
 \begin{equation}
 \label{motion}
 W_{t+1} = g(W_t,c_t).
@@ -14,80 +24,128 @@ Mathematically such a problem can be represented as follows:
 \begin{equation*}
 \max \sum_{t=0}^T \beta^t u(W_t,c_t) \quad \text{s.t.} \quad W_{t+1} = g(W_t,c_t)
 \end{equation*}
-where our initial state, $W_0$ is given.  There may also be restrictions on our choices $c_t$.  For example, in many applications the state $W_t$ represents the amount of some resource available, and $c_t$ represents the amount we use up in time period $t$.  In this case we would require $c_t \in [0,W_t]$.
+where our initial state, $W_0$ is given.  There may also be restrictions on our choices $c_t$.  For example, in many applications 
+the state $W_t$ represents the amount of some resource available, and $c_t$ represents the amount we use up in time period $t$. 
+ In this case we would require $c_t \in [0,W_t]$.
 
-For simplicity, lets assume that $u$ is a function of $c_t$ only (this is often, though not always, the case in practice).  First let's consider the case that $T=0$.  So we maximize
+For simplicity, lets assume that $u$ is a function of $c_t$ only (this is often, though not always, the case in practice). 
+ First let's consider the case that $T=0$.  So we maximize
 \begin{equation}\label{1perprob}
 u(c_0)
 \end{equation}
-over $c_0 \in [0,W_0]$.  In most cases $u$ is increasing, which we will assume here.  In this case it will be optimal to choose the largest value of $c_0$ possible, that is, $c_0 = W_0$.  Thinking of $W_0$ as our available resources, this simply means, that if we don't have future periods to consider, we will use all of it.
+over $c_0 \in [0,W_0]$.  In most cases $u$ is increasing, which we will assume here.  In this case it will be optimal to choose
+ the largest value of $c_0$ possible, that is, $c_0 = W_0$.  Thinking of $W_0$ as our available resources, this simply means, 
+ that if we don't have future periods to consider, we will use all of it.
 
-In fact this is always true in the last period.  In the problem with $T$-periods we know that we will use all of our resources remaining in period $T$.  Consider the two period problem:
+In fact this is always true in the last period.  In the problem with $T$-periods we know that we will use all of our resources 
+remaining in period $T$.  Consider the two period problem:
 \begin{equation}
 \label{2perprob}
 \max \, u(c_0) + \beta u(c_1)
 \end{equation}
-where $c_0 \in [0,W_0]$, $c_1 \in [0,W_1]$ and $W_1 = g(W_0,c_0)$.  We know that in the last period we will use all of our remaining resources so that $c_1 = W_1$.  Substituting gives
+where $c_0 \in [0,W_0]$, $c_1 \in [0,W_1]$ and $W_1 = g(W_0,c_0)$.  We know that in the last period we will use all of our 
+remaining resources so that $c_1 = W_1$.  Substituting gives
 \begin{equation*}
 \max \, u(c_0) + \beta u(g(W_0,c_0)).
 \end{equation*}
-Then we need only determine $c_0$.  Taking the derivative of \eqref{2perprob} with respect to $c_0$ and setting equal to zero gives the first order condition
+Then we need only determine $c_0$.  Taking the derivative of \eqref{2perprob} with respect to $c_0$ and setting equal to zero 
+gives the first order condition
 \begin{equation}
 \label{FOC}
 u'(c_0) = -\beta u'(g(W_0,c_0))g_c(W_0,c_0)
 \end{equation}
 where $g_c$ is the partial derivative of $g$ with respect to $c$.
 
-Given a specific form for $u$ we could solve for $W_1$ and obtain the optimal solution.  In fact, we can solve a problem of any length $T$ in this manner by starting at the last time period and working backward.  We know that $W_{T+1} = 0$.  Working backward in time we obtain an equation at each time step $t<T$ by taking the derivative with respect to $c_t$ and setting equal to zero.  This process is called backward induction.  The equations at each time step, such as equation \eqref{FOC} are sometimes called the inter-temporal Euler equations.  These equations, along with $c_T = W_T$ make $T+1$ equations to go with our $T+1$ unknowns $c_0,c_1,c_2,\ldots,c_T$ where we can use the law of motion to relate the $c_t$ and $W_t$.
+Given a specific form for $u$ we could solve for $W_1$ and obtain the optimal solution.  In fact, we can solve a problem of 
+any length $T$ in this manner by starting at the last time period and working backward.  We know that $W_{T+1} = 0$.  Working 
+backward in time we obtain an equation at each time step $t<T$ by taking the derivative with respect to $c_t$ and setting equal
+ to zero.  This process is called backward induction.  The equations at each time step, such as equation \eqref{FOC} are 
+ sometimes called the inter-temporal Euler equations.  These equations, along with $c_T = W_T$ make $T+1$ equations to go with 
+ our $T+1$ unknowns $c_0,c_1,c_2,\ldots,c_T$ where we can use the law of motion to relate the $c_t$ and $W_t$.
 
 \section*{The Recursive Problem, Finite Horizon}
-Approaching the problem sequentially like this can be somewhat messy.  The dynamic programming approach we consider now is more easily adaptable to many situations.  The key to the dynamic programming approach is to define our optimization problem in terms of subproblems.  Notice that if we are in time period $t$, we face a problem of exactly the same form as the problem at time $0$.  We are in some state $W_t$, and want to maximize the sum from $t$ to $T$.  With this idea in mind, we define a function $V_t(W_t)$ called the value function.  The function $V_t$ gives the value of entering time $t$ in state $W_t$ and making optimal decisions moving forward.  So
+Approaching the problem sequentially like this can be somewhat messy.  The dynamic programming approach we consider now is more 
+easily adaptable to many situations.  The key to the dynamic programming approach is to define our optimization problem in terms
+ of subproblems.  Notice that if we are in time period $t$, we face a problem of exactly the same form as the problem at time 
+ $0$.  We are in some state $W_t$, and want to maximize the sum from $t$ to $T$.  With this idea in mind, we define a function
+  $V_t(W_t)$ called the value function.  The function $V_t$ gives the value of entering time $t$ in state $W_t$ and making 
+  optimal decisions moving forward.  So
 \begin{equation*}
-V_{t-1}(W_{t-1}) = \max u(c_{t-1}) + \beta V_t(g(W_{t-1},c_{t-1})).
+V_{t-1}(W_{t-1}) = \max_{c_t} \left\{u(c_{t-1}) + \beta V_t(g(W_{t-1},c_{t-1}))\right\}.
 \end{equation*}
-This is called the Bellman Equation.  The key to this formulation is that we decide what to do in period $t-1$ with the assumption that our actions in the remaining periods will be optimal.  This is called the principal of optimality.
+This is called the Bellman Equation.  The key to this formulation is that we decide what to do in period $t-1$ with the 
+assumption that our actions in the remaining periods will be optimal.  This is called the principal of optimality.
 
-Let us consider a specific example from economics called The Cake Eating Problem.  Suppose $W_t$ represents the size of a cake.  At each time period we can choose how much to consume.  What we eat,$c_t$, gives us rewards.  What we save,$W_t-c_t$, does not give rewards (until it is eaten in a later period).  The law of motion \eqref{motion} becomes
+Let us consider a specific example from economics called The Cake Eating Problem.  Suppose $W_t$ represents the amount of  
+cake available at time $t$.  At each time period we can choose how much to consume.  What we eat, $c_t$, gives us a reward.  
+What we save, $W_t-c_t$, does not give us a reward (until it is eaten in a later period).  The law of motion \eqref{motion} 
+becomes
 \begin{equation}\label{LOM_EX}
 W_{t+1} = g(W_t,c_t) = W_t-c_t
 \end{equation}
+
 Now we have completely defined the problem.  The Bellman Equation is
 \begin{equation*}
-V_{t-1}(W_{t-1}) = \max u(c_{t-1}) + \beta V_t(W_{t-1}-c_{t-1}).
+V_{t-1}(W_{t-1}) = \max_{c_t} \left\{u(c_{t-1}) + \beta V_t(W_{t-1}-c_{t-1})\right\}.
 \end{equation*}
-As before, we know that in the last time period, we should not save anything.  So $V_{T+1}(W_{T+1}) = 0$.  There is no value in leaving wealth for period $T+1$.  So $c_T = W_T$.  Then $V_T(W_T) = u(c_T)$.  Consider the value function equation for period $T-1$.
-\begin{align*}
-V_{T-1}(W_{T-1}) &= \max u(c_{T-1}) + \beta V_T(W_{T-1}-c_{T-1}) \\
-                 &= \max u(c_{T-1}) + \beta (W_{T-1}-c_{T-1})
-\end{align*}
-
-Thus given $W_{T-1}$, we can determine $V_{T-1}$ by maximizing over $c_{T-1}$.  Notice that by the law of motion, it is enough to determine the values of the $W_t$ since these determine the $c_t$.  In fact rearranging \eqref{LOM_EX} we have
+Notice that by the law of motion, each $c_t$ is determined by $W_t$ and $W_{t+1}$. 
+In fact, rearranging \eqref{LOM_EX}, we have
 \begin{equation*}
 c_t = W_t - W_{t+1}.
 \end{equation*}
-Thus we can rewrite the value function as
+We can therefore rewrite the value function as
 \begin{equation}
-V_{t-1}(W_{t-1}) = \max_{W_t} u(W_{t-1} - W_{t}) + \beta V_t(W_t).
+V_{t-1}(W_{t-1}) = \max_{W_t} \left\{u(W_{t-1} - W_{t}) + \beta V_t(W_t)\right\}.
 \label{cake_valfn}
 \end{equation}
 
-The solution to this problem is often called a policy function.  A policy function determines an action based on the current state.  Denoting the policy function by $\psi$, this can be written
+We see that determining the optimal actions $c_t$ is equivalent to determining the optimal states $W_{t}$ in the
+above formulation. The solution to this 
+problem is often called a \emph{policy function}.  A policy function determines an action based on the current
+state.  Denoting the policy function by $\psi$, this can be written as
 \begin{equation*}
-W_{t+1}=\psi_t \left(W_t\right)
+W_{t+1}=\psi_t \left(W_t\right).
 \end{equation*}
-The policy function gives the optimal amount of cake to leave for next period (equivalent to the amount of consumption) given the amount of cake at the start of the period.  In other words, it determines the choice of $W_t$ that satisfies the $\max$ condition in equation \eqref{cake_valfn}.
+The policy function gives the optimal amount of cake to leave for next period (equivalent to the amount of consumption) given
+the amount of cake at the start of the period.  In other words, it determines the choice of $W_t$ that satisfies the $\max$
+condition in \eqref{cake_valfn}.
+
+As before, we know that in the last time period we should not save anything.  So $V_{T+1}(W_{T+1}) = 0$, i.e. there is 
+no value in leaving wealth for period $T+1$. Stated in another way, our action at time $T$ should be to eat all of the 
+remaining cake $W_T$, so $W_{T+1} = \psi_T(W_T) = 0$.
+Plugging this result into the Bellman Equation gives us $V_T(W_T) = u(W_T)$.  
+Now consider the value function equation for period $T-1$:
+\begin{align*}
+V_{T-1}(W_{T-1}) &= \max_{W_T} \left\{u(W_{T-1} - W_T) + \beta V_T(W_T)\right\} \\
+                 &= \max_{W_T} \left\{u(W_{T-1} - W_T) + \beta u(W_T)\right\}.
+\end{align*}
+We can determine this value by optimizing over $W_T$, where $0 \leq W_T \leq W_{T-1}$.
+Continuing backwards in this manner leads us to the solution of the original problem.
 
 \begin{problem}
 \label{prob:cake_prob}
 Follow the steps below to solve the problem described above.  Take $u(c_t) = \sqrt{c_t}$, $\beta = 0.9$, and $T=10$.
 \begin{enumerate}
-\item Let the maximum size of the cake be $W_{max} = 1$. Approximate the continuum of possible cake sizes by a column vector called $W$ that ranges from to 0 to 1.  Let the number of possible cake values be $N=100$.
+\item Let the maximum size of the cake be $W_{max} = 1$. Approximate the continuum of possible cake sizes by a column 
+vector called $W$ that ranges from to 0 to 1.  Let the number of possible cake values be $N=100$.
 
-\item Note that in order to compute the value function we need $u(W_{t-1}-W_t)$.  Create an $N$ by $N$ matrix that contains all possible values of $W_{t-1} - W_t$ (where $W_{t-1}$ corresponds to rows and $W_{t}$ to columns).  Make sure that $c_t \geq 0$ is satisfied by replacing negative entries in the matrix with zero.  Then take the square root to get a matrix of $u(W_{t-1}-W_t)$.  To make sure we do not choose $W_{t-1} - W_t < 0$ when maximizing, replace the corresponding entries of the $u(W_{t-1}-W_t)$ matrix with a large negative number (e.g. $-10^{10}$).
+\item Note that in order to compute the value function we need $u(W_{t-1}-W_t)$.  Create an $N$ by $N$ matrix that contains 
+all possible values of $W_{t-1} - W_t$ (where $W_{t-1}$ corresponds to rows and $W_{t}$ to columns).  Make sure that 
+$c_t \geq 0$ is satisfied by replacing negative entries in the matrix with zero.  Then take the square root to get a matrix 
+of $u(W_{t-1}-W_t)$.  To make sure we do not choose $W_{t-1} - W_t < 0$ when maximizing, replace the corresponding entries of 
+the $u(W_{t-1}-W_t)$ matrix with a large negative number (e.g. $-10^{10}$).
 
-\item Next create an $N$ by $T+2$ (corresponding to $t=0,1,\ldots, T+1$) matrix representing the value function for a given time $t$ and state $W_t$.  We can initialize it to zeros and begin filling in the columns starting with the last (which we know is zeros).
+\item Next create an $N$ by $T+2$ (corresponding to $t=0,1,\ldots, T+1$) matrix representing the value function for a given 
+time $t$ and state $W_t$.  We can initialize it to zeros and begin filling in the columns starting with the last (which we 
+know is zeros).
 
-\item Now we are ready to iterate backward and find the value function for each time period.  To find $V_T$, we compute $u(W_T - W_{T+1}) + \beta V_{T+1}(W_{T+1})$ for all values of $W_{T-1}$ and $W_T$.  This will result in an $N$ by $N$ matrix where the rows correspond to values of $W_{T}$ and the columns correspond to values of $W_{T+1}$.  Note that to compute this we need a matrix representing $\beta V_{T+1}(W_{T+1})$.  Because this quantity does not depend on $W_T$, its rows should be equal.  To do this, we want to take $\beta V_{T+1}(W_{T+1})$ as a row vector and stack this vector to create a matrix with equal rows.  There are multiple ways to do this.  One is the \li{np.repeat} function.  For example, if \li{b} is a row vector it could be used like the following.
+\item Now we are ready to iterate backward and find the value function for each time period.  To find $V_T$, we compute 
+$u(W_T - W_{T+1}) + \beta V_{T+1}(W_{T+1})$ for all values of $W_{T-1}$ and $W_T$.  This will result in an $N$ by $N$ matrix 
+where the rows correspond to values of $W_{T}$ and the columns correspond to values of $W_{T+1}$.  Note that to compute this 
+we need a matrix representing $\beta V_{T+1}(W_{T+1})$.  Because this quantity does not depend on $W_T$, its rows should be 
+equal.  To do this, we want to take $\beta V_{T+1}(W_{T+1})$ as a row vector and stack this vector to create a matrix with 
+equal rows.  There are multiple ways to do this.  One is the \li{np.repeat} function.  For example, if \li{b} is a row vector 
+it could be used like the following.
 \begin{lstlisting}
 b = [[1, 2, 3]]
 np.repeat(b, 3, axis = 0)
@@ -95,11 +153,15 @@ array([[1, 2, 3],
 [1, 2, 3],
 [1, 2, 3]])
 \end{lstlisting}
-In general, be careful about having the correct rows, columns, transposes, etc throughout your code. 
+In general, be careful about having the correct rows, columns, transposes, etc throughout your code.
 
-Now we maximize over choices of $W_T$ (choosing how much to save for next period).  Then we will have a row vector representing the value function for period $T$ across all possible $W_T$.  Iterate this procedure to fill in the value function for all $t=0,1,\ldots, T+1$.
+Now we maximize over choices of $W_T$ (choosing how much to save for next period).  Then we will have a row vector 
+representing the value function for period $T$ across all possible $W_T$.  Iterate this procedure to fill in the value 
+function for all $t=0,1,\ldots, T+1$.
 
-\item In each iteration you maximize to find the value function at time $t$.  Save the values of $W_{t+1}$ that achieve the maximum.  The result is an $N$ by $T+1$ matrix whose $n,t$ entry gives the optimal amount of cake to leave for for period $t+1$ given that we start period $t$ with the the $n$th value of our $W$ vector of cake.  This is the policy function.
+\item In each iteration you maximize to find the value function at time $t$.  Save the values of $W_{t+1}$ that achieve the 
+maximum.  The result is an $N$ by $T+1$ matrix whose $n,t$ entry gives the optimal amount of cake to leave for for period 
+$t+1$ given that we start period $t$ with the the $n$th value of our $W$ vector of cake.  This is the policy function.
 
 \item Plot the surface of the Value and Policy functions.  This can be done by including the following import lines
 \begin{lstlisting}
@@ -109,6 +171,7 @@ from mpl_toolkits.mplot3d import Axes3D
 \end{lstlisting}
 and using the following code
 \begin{lstlisting}
+W = np.linspace(0,1,N)
 x = np.arange(0, N)
 y = np.arange(0, T+2)
 X, Y = np.meshgrid(x, y)
@@ -209,7 +272,7 @@ and the accompanying policy function $W'=\psi_2\left(W\right)$. Calculate the ac
 
 \item Plot the policy function for the converged problem $W' = \psi\left(W\right)$ which gives the value of the cake tomorrow ($y$-axis) as a function of the cake today ($x$-axis).
 \end{enumerate}
-\end{problem} 
+\end{problem}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{convergence.pdf}
