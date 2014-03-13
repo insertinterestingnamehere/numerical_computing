@@ -125,9 +125,11 @@ Continuing backwards in this manner leads us to the solution of the original pro
 \begin{problem}
 \label{prob:cake_prob}
 Follow the steps below to solve the problem described above.  Take $u(c_t) = \sqrt{c_t}$.
-You will write a function called \li{eatCake} that takes parameters $T$ (the number of time periods),
-$\beta$ (the discount factor), $N$ (the number of discrete cake values to consider), $W_{max}$ (the original size
-of the cake, set to the default value of $1$), and a keyword argument \li{plot}, which indicates whether
+You will write a function called \li{eatCake} that takes parameters $\beta$ (the discount factor), 
+$N$ (the number of discrete cake values to consider), $W_{max}$ (the original size of the cake, 
+set to the default value of $1$), a keyword argument \li{finite} (set to default value \li{True}),
+a keyword argument  $T$ (the number of time periods, set to 
+default value \li{None}), and a keyword argument \li{plot}, which indicates whether
 to plot the computed results. The function should return arrays representing the value function and the
 policy function (we describe how to compute these in the following steps).
 \begin{enumerate}
@@ -208,7 +210,7 @@ where \li{W} is the vector of cake amounts, \li{V} is the value function, and \l
 \item Return the arrays giving the value function and the policy function.
 \end{enumerate}
 
-Solve the problem using cake size $1$, number of time periods $T = 10$, discount factor $\beta = .9$, and number of
+Solve the problem using cake size $1$, discount factor $\beta = .9$, number of time periods $T = 10$, and number of
 discrete cake values $N = 100$. You should also try plotting the value and policy functions for fixed time periods across
 $W_t$, or for fixed $W_t$
 across time and make sure that these plots fit your intuition. See Figure \ref{fig:valueslices}. Your output should
@@ -290,11 +292,15 @@ Remember, in the infinite horizon problem both the value and policy functions do
  the value and policy functions in the infinite horizon problem are one dimensional.
 
 \begin{problem}
-Solve the Cake Eating Problem with an infinite time horizon by following the steps below.  As in Problem \ref{prob:cake_prob}, take
- $u(c_t) = \sqrt{c_t}$, $\beta = 0.9$.
+Expand your \li{eatCake} function to solve the Cake Eating Problem with an infinite time horizon. If the keyword argument
+\li{finite} has the value \li{True}, then your function should behave as in Problem \ref{prob:cake_prob}, solving the finite 
+time horizon problem. However, if \li{finite = False}, solve the infinite time horizon problem through the following steps.
+Both problems will require you to pre-compute the values $u(W - W')$, where $W$ and $W'$ range over the set of discrete cake
+amounts. Be sure to avoid replicating code by factoring it out.
+As in Problem \ref{prob:cake_prob}, take $u(c_t) = \sqrt{c_t}$.
 \begin{enumerate}
-\item As in Problem \ref{prob:cake_prob}, let the maximum size of the cake be $W_{max} = 1$. Approximate the continuum of possible
-cake sizes by a column vector called $W$ that ranges 0 to 1.  Let the number of possible cake values be $N=100$.
+\item As in Problem \ref{prob:cake_prob}, approximate the continuum of possible
+cake sizes by a column vector called $W$ that ranges from 0 to $W_{max}$ in $N$ steps.
 
 \item \label{item:step2} Initialize the value function, V to a vector of zeros of length $N$.  This is $V_0$.  Perform one iteration
 of the contraction operation given in equation \eqref{EqContraction} to get a new value function $V_1$ (this should be very similar
@@ -306,32 +312,45 @@ vector representing the value of entering a period with cake size $W$.]
 between the two value functions. Define the distance metric as the sum of the squared differences,
 \begin{equation}
 \label{EqDist}
-\delta_1\equiv \norm{V_1\left(W\right) - V_0\left(W'\right)}_2^2 = \left(V_1 - V_0\right)^T\left(V_1 - V_0\right)
+\delta_1\equiv \norm{V_1\left(W\right) - V_0\left(W'\right)}_2^2 = \left(V_1 - V_0\right)^T\left(V_1 - V_0\right).
 \end{equation}
-where $\left(V_1-V_0\right)'$ is the transpose of the difference of the two vectors. Defined in this way, $\delta_1\in [0,\infty)$.
+Defined in this way, $\delta_1\in [0,\infty)$.
 
-\item \label{item:step4} Take the resulting $V_1$ from \ref{item:step2}, and perform the same contraction on it to generate $V_2$
-and $\psi_2$. That is, generate,
-\begin{equation*}
-  V_2\left(W\right) = C\Bigl(V_1\left(W\right)\Bigr) = \max_{W'\in[0,W]}\: u\left(W - W'\right) + \beta V_1\left(W'\right)
-\end{equation*}
-and the accompanying policy function $W'=\psi_2\left(W\right)$. Calculate the accompanying distance measure for $\delta_2$ using
- the formula from \eqref{EqDist} with the updated period subscripts. Compare $\delta_2$ with $\delta_1$ from \ref{item:step3}.
+%\item \label{item:step4} Take the resulting $V_1$ from \ref{item:step2}, and perform the same contraction on it to generate $V_2$
+%and $\psi_2$. That is, generate,
+%\begin{equation*}
+%  V_2\left(W\right) = C\Bigl(V_1\left(W\right)\Bigr) = \max_{W'\in[0,W]}\: u\left(W - W'\right) + \beta V_1\left(W'\right)
+%\end{equation*}
+%and the accompanying policy function $W'=\psi_2\left(W\right)$. Calculate the accompanying distance measure for $\delta_2$ using
+% the formula from \eqref{EqDist} with the updated period subscripts. Compare $\delta_2$ with $\delta_1$ from \ref{item:step3}.
+%
+%\item \label{item:step5} Repeat \ref{item:step4} and generate $V_3$ and $\psi_2$ by performing the contraction on $V_2$. Compare
+%$\delta_3$ to $\delta_2$ and $\delta_1$.
 
-\item \label{item:step5} Repeat \ref{item:step4} and generate $V_3$ and $\psi_2$ by performing the contraction on $V_2$. Compare
-$\delta_3$ to $\delta_2$ and $\delta_1$.
-
-\item Write a loop that performs the contraction operation from \ref{item:step2}, \ref{item:step4}, and \ref{item:step5} iteratively
+\item Write a loop that performs the contraction operation from steps \ref{item:step2} and \ref{item:step3} iteratively
 until the distance measure is very small ($\delta_k < 10^{-9}$).  The distance measure $\delta_k$ being arbitrarily close to zero means
  you have converged to the fixed point $V_k = V_{k+1} = V$. (For fun, you can show that the policy function converges to the same
  function regardless of what you put in for your initial policy function value.)
 
-\item Plot the policy function for the converged problem $W' = \psi\left(W\right)$ which gives the value of the cake tomorrow
-($y$-axis) as a function of the cake today ($x$-axis).
+\item If \li{plot = True}, plot the converged policy function vector
+($y$-axis) as a function of the cake amounts ($x$-axis).
+
+\item Return the value function and policy function arrays.
+
+Compute the value function and policy function for the infinite time horizon problem with 
+cake size $1$, discount factor $\beta = .9$, and number of
+discrete cake values $N = 100$. The plot you generate should agree with Figure \ref{fig:infinitePolicy}.
 \end{enumerate}
 \end{problem}
 
 \begin{figure}
+\includegraphics[width=\textwidth]{infiniteHorizon.pdf}
+\caption{Policy function for infinite time horizon.}
+\label{fig:infinitePolicy}
+\end{figure}
+
+\begin{figure}
 \includegraphics[width=\textwidth]{convergence.pdf}
-\caption{Due to the contraction mapping principle, $\delta_k$ decreases as we perform iterations until it is small enough to meet our convergence tolerance.}
+\caption{Due to the contraction mapping principle, $\delta_k$ decreases as we perform iterations 
+until it is small enough to meet our convergence tolerance.}
 \end{figure}
