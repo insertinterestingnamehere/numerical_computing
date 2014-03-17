@@ -37,7 +37,7 @@ This can be rewritten as
 \[h_{n+1, n} q_{n+1} = A q_n - h_{0,n} q_0 - \dots - h_{n,n} q_n\]
 Since each column of $Q$ has norm $1$, this allows computation of each $q_k$ based on each of the previous columns.
 This recurrence relation does not provide any constraint on the first column of $Q$.
-In practise, if we are searching for eigenvalues we can use a normalized random vector as the first column of $Q$.
+In practice, if we are searching for eigenvalues we can use a normalized random vector as the first column of $Q$.
 These columns of $Q$ allow compution of partial reductions of $A$ to Hessenberg form without any modification of $A$.
 This can seen as follows:
 
@@ -68,19 +68,19 @@ We first choose a normalized random vector $q_0$, then perform the Modified Grah
 	\State $H \gets \text{zeros}\left( k+1, k\right)$
 	\State $q_0 = b$							\Comment{Set $q_0$ equal to $b$.}
 	\State $q_0 /= \|q_0\|_2$						\Comment{Normalize $q_0$.}
-	\For{$j=0$, $j<k$}							\Comment{Perform the actual iteration}
-		\State $q_{j+1} = Amul \left(q_j\right)$		\Comment{Compute $A q_j$}
-		\For{$i=0$, $i<j+1$}					\Comment{Modified Graham Schmidt}
-			\State $h_{i,j} = q \cdot q_{j+1}$		\Comment{Set values of $H$}
+	\For{$j=0$, $j<k$}							\Comment{Perform the actual iteration.}
+		\State $q_{j+1} = Amul \left(q_j\right)$		\Comment{Compute $A q_j$.}
+		\For{$i=0$, $i<j+1$}					\Comment{Modified Graham Schmidt.}
+			\State $h_{i,j} = q_i \cdot q_{j+1}$		\Comment{Set values of $H$.}
 			\State $q_{j+1} -= h_{i,j} q_i$
 		\EndFor
 		\If{$|h_{j+1,j}|<tol$}					\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
 			\State \pseudoli{return} $H[:j,:j]$, $Q[:,j]$
 		\EndIf
-		\State $h_{j+1,j} = \|z\|_2$				\Comment{Set subdiagonal element of $H$.}
-		\State $q_{j+1} /= h_{j+1,j}$				\Comment{Normalize $q_{j+1}$}
+		\State $h_{j+1,j} = \|q_{j+1}\|_2$			\Comment{Set subdiagonal element of $H$.}
+		\State $q_{j+1} /= h_{j+1,j}$				\Comment{Normalize $q_{j+1}$.}
 	\EndFor
-	\State \pseudoli{return} $H[:-1]$				\Comment{Return $H_{k}$}
+	\State \pseudoli{return} $H[:-1]$				\Comment{Return $H_{k}$.}
 \EndProcedure
 \end{algorithmic}
 \caption{The Arnoldi Iteration}
@@ -89,6 +89,7 @@ We first choose a normalized random vector $q_0$, then perform the Modified Grah
 
 \begin{warn}
 To avoid errors involving the casting of complex numbers to real numbers make the datatypes of $H$ and $Q$ complex.
+Make sure you account for the use of complex numbers when computing the norm.
 You will also want to use the complex version of the \li{sqrt} function.
 This function is in the built in \li{cmath} library.
 \end{warn}
@@ -119,7 +120,7 @@ In simple terms, the eigenvalues of the $H_k$ converge to the eigenvalues of $A$
 The eigenvalues of the $H_k$ are called Ritz values.
 This can happen very quickly, but, in general, the rate of convergence depends on the matrix $A$.
 This works because each $H_k$ is a kind of lower-dimensional approximation of $A$.
-In adding the projection of $A q_n$ orthogonal to $q_0, \dots, \q_n$ we are really including the only poriton of the space spanned by the image of $q_0, \dots, q_n$ under $A$ that is not already included in their span.
+In adding the projection of $A q_n$ orthogonal to $q_0, \dots, q_n$ we are really including the only poriton of the space spanned by the image of $q_0, \dots, q_n$ under $A$ that is not already included in their span.
 Generally speaking, the Ritz values converge the most quickly to the eigenvalues of largest magnitude.
 Convergence is also faster for eigenvalues that are relatively far from the other eigenvalues of $A$.
 Figures \ref{fig:arnoldi_random_eig_conv} and \ref{fig:arnoldi_random_val_conv} show the convergence of the Ritz values to the largest eigenvalues of some different matrices.
@@ -164,10 +165,10 @@ All the eigenvalues of the Discrete Fourier Transform should show up most of the
 \end{problem}
 
 Problem \ref{prob:fourier_eigs} shows how Arnoldi Iteration works nicely with matrices with useful patterns.
-What is remarkable is that the matrix representation of the Fast Fourier Transform for length $2^20$ vectors would be a $2^20 \times 2^20$ complex valued matrix.
+What is remarkable is that the matrix representation of the Fast Fourier Transform for length $2^{20}$ vectors would be a $2^{20} \times 2^{20}$ complex valued matrix.
 At that size it would take $64$ TB of space just to store it.
 Thanks to the Fast Fourier Transform algorithm we are able to compute the Fourier Transform without ever explicitly forming this massive matrix.
-Using the Arnoldi iteration we can estimate the eigenvalues of this matrix without ever explicitly forming it.
+Using the Arnoldi iteration we can also estimate its eigenvalues.
 
 % Once the eigenvalue lab has been rewritten, have them use their own solver to find the eigenvalues of the $H_k$.
 
@@ -227,13 +228,13 @@ Algorithm \ref{alg:lanczos_iteration} is known as the Lanczos iteration.
 	\State $\beta_{-1} = 0$
 	\For{$j=0$, $j<k$}									\Comment{Perform the iteration.}
 		\State $z \gets Amul\left(q_1\right)$					\Comment{$z$ is a temporary vector to store $q_{i+1}$.}
-		\State $\alpha_i = q_1 \cdot z$						\Comment{$q_1$ is used to store the previous $q_i$}
-		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$				\Comment{$q_0$ is used to store $q_{i-1}$}
+		\State $\alpha_i = q_1 \cdot z$						\Comment{$q_1$ is used to store the previous $q_i$.}
+		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$				\Comment{$q_0$ is used to store $q_{i-1}$.}
 		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
 			\State \pseudoli{return} $\alpha [: i+1]$, $\beta [: i]$
 		\EndIf
 		\State $z /= \beta_i$
-		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_1$ and $q_0$}
+		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_1$ and $q_0$.}
 	\EndFor
 	\State \pseudoli{return} $\alpha$, $\beta [: -1]$
 \EndProcedure
