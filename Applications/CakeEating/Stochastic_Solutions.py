@@ -8,137 +8,74 @@ import tauchenhussey
 
 
 #Problem 1=====================================================================
-def discretenorm(K,mu,sigma):
-    upper = mu + 3*sigma
-    lower = mu - 3*sigma
-    
-    inc = (upper - lower)/float(K)
 
-    left = lower    
-    prob = sp.zeros(K)
-    eps  = sp.zeros(K)
-    for k in range(K):
-        prob[k] = st.norm.cdf(left+inc,mu,sigma) - st.norm.cdf(left,mu,sigma)
-        eps[k] = left + .5*inc
-        left = left + inc
+def discretenorm(K,mu,sig):
+    """
+    Discrete approximation of normal density with N bins, mean mu and
+    standard deviation sigma.
+    """
+    pts = np.linspace(mu-3*sig, mu+3*sig, K)
+    space = pts[1]-pts[0]
+    probs = st.norm.cdf(pts+space/2, loc=mu, scale=sig) - st.norm.cdf(pts-space/2, loc=mu, scale=sig)
+    return pts, probs
+
+#Problems 2&3==================================================================
+def stochEatCake(beta, N, e_params, W_max=1., plot=False, iid=True):
+    #step 1
+    if iid:
+        e, gamma = discretenorm(*e_params)
+    else:
+        e, gamma = tauchenhussey(*e_params)
+    
+    #step 2
+    w = np.linspace(0,W_max,N)
+    
+    #step 3
+    v = np.zeros((N,K))
+    p = np.zeros((N,K))
+    
+    #step 4
+    actions = np.tile(w, N).reshape((N,N)).T
+    actions = actions - actions.T
+    actions[actions<0] = 0
+    u = np.sqrt(actions)
+    u_hat = np.repeat(u,K).reshape((N,N,K))*e
+    
+    delta = 2.
+    while delta >= 1e-9:
+        #step 5
+        if iid:
+            E = (v*gamma).sum(axis=1)
+        else:
+            E = v.dot(gamma.T)
         
-    return prob, eps
+        #step 6
+        if iid:
+            c = np.swapaxes(np.swapaxes(u_hat, 1, 2)+beta*E, 1, 2)
+        else:
+            c = u_hat + beta*E
+        c[np.triu_indices(N, k=1)] = -1e10
+        v_new = np.max(c, axis=1)
+        max_indices = np.argmax(c, axis=1)
+        p = w[max_indices]
+        
+        #step 7
+        delta = math.sqrt(((v_new - v)**2).sum())
+        v = v_new
+        
+    #step 8
+    if plot:
+        x = np.arange(0,N)
+        y = np.arange(0,K)
+        X,Y = np.meshgrid(x,y)
+        fig1 = plt.figure()
+        ax1 = Axes3D(fig1)
+        ax1.plot_surface(w[X], Y, v.T, cmap=cm.coolwarm)
+        plt.show()
+        
+        fig2 = plt.figure()
+        ax2 = Axes3D(fig2)
+        ax2.plot_surface(w[X], Y, p.T, cmap=cm.coolwarm)
+        plt.show()
+    return v, p
 
-#Problem 2=====================================================================
-sigma = .5
-mu = 4*sigma
-K = 7
-Gamma, eps = discretenorm(K,mu,sigma)
-
-N = 100
-W = sp.linspace(0,1,N)
-V = sp.zeros((N,K))
-
-u = lambda c: sp.sqrt(c)
-beta = 0.99
-
-X,Y= sp.meshgrid(W,W)
-Wdiff = Y-X
-index = Wdiff < 0
-Wdiff[index] = 0
-
-util_grid = u(Wdiff)
-
-util3 = sp.tile(util_grid[:,:,sp.newaxis],(1,1,K))
-eps_grid = eps[sp.newaxis,sp.newaxis,:]
-eps_util = eps_grid*util3
-
-Gamma_grid = Gamma[sp.newaxis,:]
-
-delta = 1
-Vprime = V
-z = 0
-while (delta > 10**-9):
-    z= z+1
-    V = Vprime
-    gamV = Gamma_grid*V
-    Expval = sp.sum(gamV,1)
-    Exp_grid = sp.tile(Expval[sp.newaxis,:,sp.newaxis],(N,1,K))
-    arg = eps_util+beta*Exp_grid
-    arg[index] = -10^10
-    Vprime = sp.amax(arg,1)
-    psi_ind = sp.argmax(arg,1)
-    psi = W[psi_ind]
-    delta = sp.linalg.norm(Vprime - V)
-    
-    
-x=sp.arange(0,N)
-y=sp.arange(0,K)
-X,Y=sp.meshgrid(x,y)
-fig1 = plt.figure()
-ax1= Axes3D(fig1)
-ax1.plot_surface(W[X],Y,sp.transpose(Vprime), cmap=cm.coolwarm)
-plt.show ()
-
-fig2 = plt.figure() 
-ax2 = Axes3D(fig2)
-y = sp.arange(0,K)
-X,Y=sp.meshgrid(x,y)
-ax2.plot_surface(W[X],Y,sp.transpose(psi), cmap = cm.coolwarm)
-plt.show()
-
-#Problem 3=====================================================================
-sigma = .5
-sigma = .5
-mu = 4*sigma
-rho = .5
-sigmaZ = sigma/sp.sqrt(1-rho**2)
-w = 0.5 + rho/4
-baseSigma = w*sigma +(1-w)*sigmaZ
-K = 7
-eps, Gamma = tauchenhussey.tauchenhussey(K,mu,rho,sigma, baseSigma)
-eps = sp.reshape(eps,K)
-
-N = 100
-W = sp.linspace(0,1,N)
-V = sp.zeros((N,K))
-
-u = lambda c: sp.sqrt(c)
-beta = 0.9
-
-X,Y= sp.meshgrid(W,W)
-Wdiff = Y-X
-index = Wdiff < 0
-Wdiff[index] = 0
-
-util_grid = u(Wdiff)
-
-
-util3 = sp.tile(util_grid[:,:,sp.newaxis],(1,1,K))
-eps_grid = eps[sp.newaxis,sp.newaxis,:]
-eps_util = eps_grid*util3
-
-delta = 1
-Vprime = V
-z=0
-while (delta>10**-9):
-    z=z+1
-    V = Vprime
-    Expval = sp.dot(V,sp.transpose(Gamma))
-    Exp_grid = sp.tile(Expval[sp.newaxis,:,:],(N,1,1))
-    arg = eps_util+beta*Exp_grid
-    arg[index] = -10^10
-    Vprime = sp.amax(arg,1)
-    psi_ind = sp.argmax(arg,1)
-    psi = W[psi_ind]
-    delta = sp.linalg.norm(Vprime - V)
-    
-x=sp.arange(0,N)
-y=sp.arange(0,K)
-X,Y=sp.meshgrid(x,y)
-fig1 = plt.figure()
-ax1= Axes3D(fig1)
-ax1.plot_surface(W[X],Y,sp.transpose(Vprime), cmap=cm.coolwarm)
-plt.show ()
-
-fig2 = plt.figure() 
-ax2 = Axes3D(fig2)
-y = sp.arange(0,K)
-X,Y=sp.meshgrid(x,y)
-ax2.plot_surface(W[X],Y,sp.transpose(psi), cmap = cm.coolwarm)
-plt.show()
