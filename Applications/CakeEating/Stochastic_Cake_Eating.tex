@@ -5,27 +5,39 @@
 
 \section*{Infinite Horizon, Stochastic, i.i.d.}\label{SecRecProbInfinHorStochiid}
 
-In practice, dynamic programming problems often involve some level of uncertainty.  
-For example as time progresses prices may change, resources may vary, or preferences themselves may change. 
+In practice, dynamic programming problems often involve some level of uncertainty.
+For example as time progresses prices may change, resources may vary, or preferences themselves may change.
  In this lab, we reexamine the cake eating problem, this time allowing for uncertainty.
 
-We consider again the problem of optimizing a sequence of decisions over an infinite time horizon.  
-We assume that the individuals preferences fluctuate each period according to some ``shock" $\ve$, 
+We consider again the problem of optimizing a sequence of decisions over an infinite time horizon.
+We assume that the individuals preferences fluctuate each period according to some ``shock" $\ve$,
 meaning $\ve$ is a random variable.  We assume that the $\ve$ are independent and identically
-distributed (i.i.d).  In effect, this means the probabilities associated with the $\ve$ are the 
-same for any time $t$ and do not depend on each other.  We assume for now that the $\ve$ are 
-distributed normally with mean $\mu$ and variance $\sigma^2$.  The Bellman equation can be easily 
+distributed (i.i.d).  In effect, this means the probabilities associated with the $\ve$ are the
+same for any time $t$ and do not depend on each other.  We assume for now that the $\ve$ are
+distributed normally with mean $\mu$ and variance $\sigma^2$.  The Bellman equation can be easily
 rewritten in the following way to incorporate the uncertainty,
-\begin{equation*}\label{stoch_Bellman}
-   V\left(W,\ve\right) = \max_{W'\in[0,W]}\: \ve u\left(W - W'\right) + \beta E_{\ve'}\left[V\left(W',\ve'\right)\right] \quad\text{where}\quad \ve \sim \text{N}(\mu,\sigma^2)
-\end{equation*}
-where $E$ is the unconditional expectations operator over $\ve$.  Note that now the value function is a function of two variables.  It represents the value of entering the period with $W$, the amount of cake, and a preference shock of $\ve$.  For example, in a period where the realization of $\ve$ is higher, we will get more value from the cake eaten in the current period.  Because we do not know the value of the shock in the next period $\ve'$, we consider only the expected value for future time.
+\begin{equation}\label{stoch_Bellman}
+   V\left(W,\ve\right) = \max_{W'\in[0,W]}\: \{\ve u\left(W - W'\right) + 
+   \beta E_{\ve'}\left[V\left(W',\ve'\right)\right]\}, 
+\end{equation}
+where $\ve \sim \text{N}(\mu,\sigma^2)$ and
+$E$ is the unconditional expectation operator over $\ve$.  Note that now the value function is a 
+function of two variables.  It represents the value of entering the period with $W$, the amount of cake, 
+and a preference shock of $\ve$.  For example, in a period where the realization of $\ve$ is higher, 
+we will get more value from the cake eaten in the current period.  Because we do not know the value of 
+the shock in the next period $\ve'$, we consider only the expected value for future time.
 
-It turns out, we can solve this problem in a manner similar to the infinite horizon deterministic cake-eating problem considered in the Value Function Iteration lab.  It is worth noting that in this case, computationally the value and policy functions will be two dimensional as they will depend on both $W$ and $\ve$.
+It turns out, we can solve this problem in a manner similar to the infinite horizon deterministic cake-eating 
+problem considered in the Value Function Iteration lab.  It is worth noting that in this case, computationally
+ the value and policy functions will be two dimensional as they will depend on both $W$ and $\ve$.
 
-In order to deal with $\ve$ computationally, we would like to represent it as a vector of possible values it could take along with the corresponding probabilities that it takes each of those values.  However, $N(\mu,\sigma^2)$ is a continuous distribution so we cannot represent every value $\ve$ could take.  We need a discrete distribution that approximates $N(\mu,\sigma^2)$.
+In order to deal with $\ve$ computationally, we would like to represent it as a vector of possible values 
+it could take along with the corresponding probabilities that it takes each of those values.  However, 
+$N(\mu,\sigma^2)$ is a continuous distribution so we cannot represent every value $\ve$ could take.  
+We need a discrete distribution that approximates $N(\mu,\sigma^2)$.
 
-To do this we can think of breaking the distribution $N(\mu,\sigma^2)$ up into bins with endpoints $v_1,v_2,\ldots, v_K$.
+To do this we can think of breaking the distribution $N(\mu,\sigma^2)$ up into bins with endpoints 
+$v_1,v_2,\ldots, v_K$.
 
 \begin{figure}[h!]
 \label{stoch1_fig1}
@@ -35,41 +47,62 @@ To do this we can think of breaking the distribution $N(\mu,\sigma^2)$ up into b
 \caption{Discretization of $N(\mu,\sigma^2)$.  We approximate $P(\ve = \ve_k)$ by the area of the shaded region.}
 \end{figure}
 
-We can then associate $\ve_k$ with the area under the curve from $v_k$ to $v_{k+1}$.  In python we can find the area using the function norm.cdf in the stats package.  The cdf function gives the area under the curve from minus infinity to a specified value.  For example, in the following code, eps is the area under the curve from 0 to 1.
+We can then associate $\ve_k$ with the area under the curve from $v_k$ to $v_{k+1}$.  
+In Python, we can find the area using the function \li{norm.cdf} found in the \li{stats} package.  
+The cdf (cumulative distribution function) gives the area under the curve from $-\infty$ to a specified value. 
+For example, in the following code, \li{eps} is the area under the curve from 0 to 1.
 
 \begin{lstlisting}
-from scipy import stats as st
-
-mu = 0
-sigma = 1
-eps = st.norm.cdf(1,mu,sigma) - st.norm.cdf(0,mu,sigma)
+>>> from scipy import stats as st
+>>> mu = 0
+>>> sigma = 1
+>>> eps = st.norm.cdf(1,mu,sigma) - st.norm.cdf(0,mu,sigma)
 \end{lstlisting}
 
-In general, it is sufficient to take our points $\ve_k$ ranging from $\mu - 3\sigma$ to $\mu + 3\sigma$.
+In general, it is sufficient to take our points $\ve_k$ ranging from $\mu - 3\sigma$ to $\mu + 3\sigma$, as this 
+range contains about 99.7\% of the probability mass.
 
 \begin{problem}
-Write a function called discretenorm that accepts an integer representing the number of discrete points desired, a mean, and a standard deviation and returns a 1 by N vector of values ranging from $\mu - 3\sigma$ to $\mu + 3\sigma$  and a 1 by N vector of the associated probabilities.  Plot the approximation of $N(0,1)$ using 7 points.
+Write a function called \li{discretenorm} that accepts an integer $N$ representing the number of discrete points 
+desired, a mean $\mu$, and a standard deviation $\sigma$, and returns a $1\times N$ vector of values ranging from 
+$\mu - 3\sigma$ to $\mu + 3\sigma$, and a $1\tiems N$ vector containing the associated probabilities.  
+Plot the approximation of $N(0,1)$ using 7 points to check that your results are plausible.
 \end{problem}
 
-Now that we have a discrete distribution for $\ve$, we can solve for the value and policy functions determined by \eqref{stoch_Bellman}.
+Now that we have a discrete distribution for $\ve$, we can solve for the value and policy functions 
+determined by \eqref{stoch_Bellman}.
 
 \begin{problem}
 Complete the following steps to solve the problem described above.
 \begin{enumerate}
-   \item First we establish our approximation of $\ve$ using the discretenorm function created in Problem 1. Let $\sigma^2 = 0.25$ and $\mu=4\sigma$ (This way the shocks, $\ve$, are always positive.) Use $K=7$ equally spaced points to approximate $N(\mu,\sigma^2)$ so that $\ve$ is a $K$-length row vector.  Using the function discretenorm from problem 1, generate the probability distribution $\Gamma$ for $\ve$. This should be a $K$-length row vector whose entries indicate $P(\ve = \ve_k)$
+   \item First we establish our approximation of $\ve$ using the \li{discretenorm} function created in Problem 1. 
+   Let $\sigma^2 = 0.25$ and $\mu=4\sigma$ (This way the shocks, $\ve$, are always positive.) 
+   Use $K=7$ equally spaced points to approximate $N(\mu,\sigma^2)$ so that $\ve$ is a $K$-length row vector.  
+   Using the function \li{discretenorm}, generate the probability distribution $\Gamma$ for $\ve$. 
+   This should be a $K$-length row vector whose entries indicate $P(\ve = \ve_k)$
 
-   \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. Initialize the value function to an $N$ by $K$ matrix of zeros.  Assume that the period utility function is $u(c)=\sqrt{c}$, and that the discount factor is $\beta = 0.9$.
+   \item As in the Value Function Iteration lab, assume that the vector of possible cake sizes is $W$ 
+   with $N=100$ equally spaced values between 0 and 1.  Represent the value function as a matrix with each 
+   row corresponding to different values of $W'$ and each column corresponding to different values of $\ve'$. 
+   Initialize the value function to an $N$ by $K$ matrix of zeros.  Assume that the period utility function is
+    $u(c)=\sqrt{c}$, and that the discount factor is $\beta = 0.9$.
 
 
-   \item In order to evaluate the value function equation we need to compute $\ve u(W-W')$ for all values of $\ve,W,W'$.  Thus $\ve u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.  This can be achieved using the tile function.  For example, if $u(W-W')$ is represented by the $N\times N$ matrix util\_grid, and eps is the vector of $\ve$ values, then we could create the $\ve u(W-W')$ matrix by the following:
+   \item In order to evaluate the value function equation, we need to compute $\ve u(W-W')$ for all values of 
+   $\ve,W,W'$.  Thus $\ve u(W-W')$ will be represented by a three-dimensional array of size $N\times N\times K$.
+     This can be achieved using the tile function.  For example, if $u(W-W')$ is represented by the $N\times N$
+      matrix \li{util_grid}, and \li{eps} is the vector of $\ve$ values, then we could create the 
+      $\ve u(W-W')$ matrix by the following:
 
-       \begin{lstlisting}
-       util3 = sp.tile(util_grid[:,:,sp.newaxis],(1,1,K))
-       eps_grid = eps[sp.newaxis,sp.newaxis,:]
-       eps_util = eps_grid*util3
-       \end{lstlisting}
+\begin{lstlisting}
+>>> util3 = sp.tile(util_grid[:,:,sp.newaxis],(1,1,K))
+>>> eps_grid = eps[sp.newaxis,sp.newaxis,:]
+>>> eps_util = eps_grid*util3
+\end{lstlisting}
 
-       The input (1,1,K) tells sp.tile to repeat util\_grid K times in the third dimension.  Note we have to put util\_grid[:,:,sp.newaxis] in order to have a three-dimensional input since util\_grid is only two dimensional.
+       The input \li{(1,1,K)} tells \li{sp.tile} to repeat \li{util_grid} K times in the third dimension.  
+       Note we have to put \li{util_grid[:,:,sp.newaxis]} in order to have a three-dimensional input since 
+       \li{util_grid} is only two dimensional.
 
        As in the Value Function Iteration Lab, we replace negative entries in $W-W'$ by 0.
 
