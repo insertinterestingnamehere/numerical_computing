@@ -126,7 +126,7 @@ We fully present GMRES in Algorithm \ref{alg:gmres}.
         \State Calculate the residual $r$ given by Equation \ref{eq:GMRES_residual}.
         \If{$r < tol$}
             \State \pseudoli{return} $Q_ny, \,\, r$
-        \EndIf 
+        \EndIf
     \EndFor
     \State \pseudoli{return} $Q_ny, \,\, r$						
 \EndProcedure
@@ -146,7 +146,7 @@ We fully present GMRES in Algorithm \ref{alg:gmres}.
 
 \begin{problem}
 Implement the GMRES algorithm as presented above. For simplicity, assume that we are only dealing with real-valued matrices and vectors.
-Write a function \li{gmres} which accepts a function handle $Amul$ that computes the matrix-vector multiplication $Ax$ for any $x$, 
+Write a function \li{gmres} which accepts a function handle $Amul$ that computes the matrix-vector multiplication $Ax$ for any $x$,
 a vector $b$, the maximum number of iterations to perform, and an error tolerance $tol$.
 Use the GMRES algorithm to compute an approximate solution to the system of equations $Ax = b$, and return this solution, as well as
 the residual.
@@ -158,7 +158,6 @@ for its correct use.
 Test your algorithm on a random $100\times 100$ matrix with a random vector $b$ and $tol=10^{-3}$.
 Allow only a maximum of 90 iterations.
 Don't expect convergence before 90 iterations in this case, for reasons that will be explained shortly.
-Confirm that your solution is valid by checking that $res = \norm{Ax-b}/\norm{b}$.
 \label{prob:MyGMRES}
 \end{problem}
 
@@ -168,7 +167,7 @@ $\mathcal{K}_n$.
 If $A$ is full rank, then the order-$m$ Krylov subspace is all of  $\mathbb{F}^m$.
 Therefore, we are guaranteed an exact solution, up to rounding error, after $m$ iterations.
 This is not very useful, however, because $m$ is prohibitively large in practice.
-Instead we hope to converge to a close approximate solution in $n \ll m$ steps.
+Instead, we hope to converge to a close approximate solution in $n \ll m$ steps.
 
 The convergence of GMRES for reasonably small $n$ depends highly on the eigenvalues of $A$, and we expect rapid convergence whenever
 the eigenvalues are clumped together in several places in the complex plane and if the eigenvalues are not too close to zero.
@@ -184,7 +183,7 @@ Here's one idea of how to design such a matrix for testing.
 # Generate a random matrix with nice eigenvalues
 m = 2000
 A = np.random.random((m, m))
-b = np.random.random((m, 1))
+b = np.random.random(m)
 Q = np.linalg.qr(A)
 q = 1000 # number of eigenvalue clumps
 r = .1 # radius of clumps
@@ -195,7 +194,7 @@ for i in range(q):
         Lambda[j,j] = temp + np.random.random() * r
 A = np.dot(np.dot(Q[0], Lambda), Q[0].T)
 \end{lstlisting}
-Constructing a matrix this way often takes much longer than actually running GMRES to get the solution, especially once we 
+Constructing a matrix this way often takes much longer than actually running GMRES to get the solution, especially once we
 introduce restarts later on in the lab.
 Test GMRES on matrices of this kind for $100\times 100$ matrices.
 Convergence should now occur in relatively few iterations.
@@ -204,10 +203,10 @@ Try out larger matrices and different values of the parameters to see how this a
 \end{problem}
 
 \begin{info}
-In applications, matrices may be much, much larger than can be handled in this context, but substantial work, such as restructuring 
+In applications, matrices may be much, much larger than can be handled in this context, but substantial work, such as restructuring
 matrices, creating smart multiplication schemes, finding better hardware, and parallelizing are sometimes necessary to succeed.
 There is no time in this lab to carry out a fully realistic problem, but to get a feel for the kind of matrices that are commonly
- used, one can search the University of Florida Sparse Matrix Collection, which contains real-world large data sets and links to 
+ used, one can search the University of Florida Sparse Matrix Collection, which contains real-world large data sets and links to
  information on their original uses.
 \end{info}
 
@@ -218,15 +217,15 @@ Breakdowns can occur as we try to expand to larger Krylov subspaces.
 In each iteration, we have already converted $b,Ab,A^{2}b,\cdots, A^{n-1}b$ into an orthonormal set $q_0,q_1,\cdots,q_{n-1}$.
 After computing $A^nb,$ we will try to make it orthogonal to each of the $q_i$.
 But what if $A^{n}b$ is already a linear combination of the $q_i$? In other words, what if $A^{n}b$ lies in $\mathcal{K}_{n-1}$?
-This means that 
+This means that
 \[
 \mathcal{K}_{n-1}=\mathcal{K}_n=\mathcal{K}_{n+1}=\cdots,
 \]
-so we have reached an \emph{invariant subspace}, 
+so we have reached an \emph{invariant subspace},
 and the algorithm cannot proceed without modification.
 It also means that $A^{n}b = c_0 b + c_1 A b + \cdots + c_{n-1}A^{n-1}b$.
 Rearranging this, we have that $c_0 b = c_1 A b + c_2 A^{2} b + \cdots + A^{n}b$, so that $b$ lies in $\mathcal{K}_{n+1}$.
-Therefore, $b$ lies in $A\mathcal{K}_n$, so the least-squares problem will actually deliver an exact solution, up to rounding errors, 
+Therefore, $b$ lies in $A\mathcal{K}_n$, so the least-squares problem will actually deliver an exact solution, up to rounding errors,
 in this case.
 To summarize: \emph{GMRES only breaks down when it has found an exact solution}.
 
