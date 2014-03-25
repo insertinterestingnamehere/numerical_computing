@@ -157,6 +157,9 @@ for its correct use.
 
 The following function generates an $n \times n$ array with randomly distributed real eigenvalues between $-1$ and $1$.
 \begin{lstlisting}
+import numpy as np
+from numpy.random import rand
+from scipy import linalg as la
 def rand_eigs(n):
     """ Make an nxn array with random eigenvalues between -1 and 1. """
     A = rand(n) * 2 - 1
@@ -190,18 +193,16 @@ Instead of testing GMRES on completely random matrices, test it on matrices with
 Here's one idea of how to design such a matrix for testing.
 \begin{lstlisting}
 # Generate a random matrix with nice eigenvalues
-m = 2000
-A = np.random.random((m, m))
-b = np.random.random(m)
-Q = np.linalg.qr(A)
-q = 1000 # number of eigenvalue clumps
-r = .1 # radius of clumps
-Lambda = np.zeros((m, m))
-for i in range(q):
-    temp = np.random.random() + i + 1
-    for j in range(i * (m/q), (i+1) * (m/q)):
-        Lambda[j,j] = temp + np.random.random() * r
-A = np.dot(np.dot(Q[0], Lambda), Q[0].T)
+from math import ceil
+def rand_clumps(m, q, r):
+    """ Generate a random mxm matrix with q distinct groups
+    of eigenvalues around different natural numbers. """
+    A = rand(m, m)
+    Lambda = np.repeat(np.arange(2, q+2), m / q + 1)[:m]
+    variation = (rand(m) - .5) * (2 * r)
+    Lambda += variation
+    Q = la.qr(A)[0]
+    return (Q * Lambda).dot(Q.T)
 \end{lstlisting}
 Constructing a matrix this way often takes much longer than actually running GMRES to get the solution, especially once we
 introduce restarts later on in the lab.
