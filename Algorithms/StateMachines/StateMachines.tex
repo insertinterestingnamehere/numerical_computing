@@ -64,7 +64,7 @@ def dfa(in_str):
 
 \begin{problem}
 Write a Python function that will simulate any given DFA.  
-The above approach will not work!
+The above approach will not work (each state requires a new function).
 Your function should accept as parameters an input string and a 4-tuple, \li{machine}, that describes the DFA as $(\Sigma, \delta, q_0, A)$ in the following format
 \begin{enumerate}
 \item A set with all symbols of the language's alphabet represented as strings.
@@ -194,10 +194,10 @@ There are two more basic operations, \emph{star} and \emph{plus}, that are extre
 
 \section*{Introduction to Regular Expressions}
 Regular expressions are not trivial or easy, but understanding them can be very straightforward.
-The best way to think of regular expressions is the view them as operations on regular languages.  The entire regular expression represents a regular language.  In fact, the definition of being a regular language, $L$ means that there is a regular expression that represents $L$.   Since a every regular language can be represented by a DFA, we have an equivalence between regular expressions and DFAs.  And, because every NFA is equivalent to some DFA, we have a three-way equivalence (DFA=NFA=RE).  They are a \emph{very} compact way of representing complex state machines.  Sometimes it can be easier to the DFA representation (much easier to write and define) or other times it can be easier to use a regular expression (more features, more compact).
-As noted, regular expressions can only represent a language if it is regular.  There do exist languages that are non-regular.  There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.  A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
+The best way to think of regular expressions is the view them as operations on regular languages.  The entire regular expression represents a regular language.  In fact, the definition of being a regular language, $L$ means that there is a regular expression that represents $L$.   Since a every regular language can be represented by a DFA, we have an equivalence between regular expressions and DFAs.  And, because every NFA is equivalent to some DFA, we have a three-way equivalence (DFA=NFA=RE).  Regular epxressions are a \emph{very} compact way of representing complex state machines.  Sometimes it can be easier to use the DFA representation (much easier to write and define) or other times it can be easier to use a regular expression (more expressive, more compact).
+As noted, regular expressions can only represent a language if it is regular.  There exist languages that are non-regular.  There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.  A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
 
-Regular expressions are especially useful and powerful for find and matching patterns in text.  Many tools can take advantage of the powerful matching features of regular expressions.  You can think of regular expressions as operations on state machines.
+Regular expressions are especially useful and powerful for finding and matching patterns in text.  Many tools can take advantage of the powerful matching features of regular expressions.  You can think of regular expressions as operations on state machines.
 For example, the regular expression $(a^*b)^* b^*a$ could be represented as the NFA in \ref{fig:nfa_concat}.
 \begin{figure}
 \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
@@ -276,7 +276,7 @@ You can read the documentation for the module at \url{http://docs.python.org/2/l
 We begin by importing the \li{re} module from the standard library.
 \begin{lstlisting}
 >>> import re
->>> m = re.match(r"hello", "hello world!")
+>>> m = re.match(r"(a*b)*b*a", "abba")
 >>> type(m)
 _sre.SRE_Match
 \end{lstlisting}
@@ -284,7 +284,7 @@ We have just performed our first match!  As you can see, \li{re.match} returns a
 If there was not match to the regular expression, \li{None} is returned.
 The MatchObject object has several methods and attributes that give us information about the match.
 We mention a few here, but all of them are explained in the standard library documentation.
-To view what a regular expression matched, we can use the \li{.group()} method.
+To view what a regular expression matched, we can use the \li{group()} method.
 \begin{lstlisting}
 >>> m = re.match(r"(.*) (.*) (.*)", "These are a lot of words!")
 >>> m.group()
@@ -297,8 +297,8 @@ To view what a regular expression matched, we can use the \li{.group()} method.
 'words!'
 \end{lstlisting}
 As you can see, we matched the entire string.  Our regular expression split the string into 3 groups.
-We can access all the groups with \li{.groups()} or individual subgroups with \li{.group()}.
-We can know the span of the group with the \li{.span()} method.
+We can access all the groups with \li{groups()} or individual subgroups with \li{group()}.
+We can know the span of the group with the \li{span()} method.
 \begin{lstlisting}
 >>> m.span(1)
 (0, 15)
@@ -310,6 +310,30 @@ We can know the span of the group with the \li{.span()} method.
 ((0, 25), (0, 15), (16, 18), (19, 25))
 \end{lstlisting}
 
+We have compiled a table of the important characters and their meanings in Python.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Character & Meaning \\
+\hline
+\li{.} & Matches any character (except newlines) \\
+\li{^} & Matches at the start of a line \\
+\li{\$} & Matches at the end of a line \\
+\li{*} & Matches 0 or more repetitions of a regular expression (greedy) \\
+\li{+} & Matches 1 or more repetitions of a regular expression (greedy) \\
+\li{?} & Matches 0 or 1 repetition of a regular expression \\
+\li{(m)} & Matches exactly $m$ repetitions of a regular expression \\
+\li{(m, n)} & Matches between $m$ and $n$ repetitions of a regular expression \\
+\li{A|B} & A, B are regular expression.  Match either A or B \\
+\li{\\w} & Matches any alphanumeric character and underscore \\ 
+\li{\\W} & Matches any non-alphanumeric character \\
+\li{\\s} & Matches any whitespace character \\
+\li{\\S} & Matches any non-whitespace character \\
+\hline
+\end{tabular}
+\caption{Common character sequences in regular expressions.}
+\end{table}
+
 \subsection*{Matching, Searching, Splitting, and Substituting}
 Having now an understanding of the MatchObject, we can begin to talk about how to use the powerful features of Python's
 regular expression library.
@@ -320,4 +344,19 @@ Most of your regular expression use will revolve around \li{re.match()}, \li{re.
 \item \emph{re.split(pattern, string, maxsplit=0, flags=0)}: Split \emph{string} by occurrences of \emph{pattern}.  Returns a list of all matching substrings.
 \item \emph{re.sub(pattern, repl, string, count=0, flags=0)}: Search \emph{string} for occurrences of \emph{pattern}, and replace each occurrence with the result of \emph{repl} (can be a string or function that returns a string).
 \end{description}
+
+\begin{lstlisting}
+>>> re.split('\W+', 'Hi there! This is a splitted sentence.')
+['Hi', 'there', 'This', 'is', 'a', 'splitted', 'sentence', '']
+\end{lstlisting}
+
+
+\begin{problem}
+The emphatic prince has decreed that all sentence punctuation be replaced by exclamation marks.  If the sentence is a question, the question mark remains and the exclamation mark is added immediately after (i.e. ``How are you?'' transforms to ``How are you?!'').  
+\end{problem}
+
+
+\begin{problem}
+Define a pattern that will match any input that consists of at least four words
+\end{problem}
 
