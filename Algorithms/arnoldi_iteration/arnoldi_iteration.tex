@@ -10,7 +10,7 @@ One of the reasons for this success is that they do not require copies or modifi
 matrix.
 Krylov subspace methods are used to estimate certain properties of a matrix based on how it acts on vectors through matrix multiplication.
 This is especially useful for large sparse matrices (allowing us to deal with the matrix in compressed form),
-and for matrices having symmetries that reduce storage and enable faster matrix multiplication (allowing us to use
+and for matrices that have symmetries that reduce storage and enable faster matrix multiplication (allowing us to use
 specialized algorithms like the Fast Fourier Transform rather than the full matrix).
 
 The general approach of Krylov subspace methods is to consider how a given matrix $A$ acts on the span of
@@ -73,7 +73,9 @@ A  = QHQ^*,
 \]
 where $Q$ is a unitary matrix and $H$ is upper Hessenberg such that the first $N$ columns of $Q$ are $q_1,\ldots,q_N$, and
 the upper left $N \times N$ submatrix of $H$ is equal to $H_N$. Hence, the Arnoldi iteration provides a connection between
-the Krylov subspace and the Hessenberg factorization of a matrix. Solving eigenvalue problems or systems of equations for
+the Krylov subspace and the Hessenberg factorization of a matrix. Each step in the Arnoldi iteration can be thought of as computing
+another step in the Hessenberg reduction of $A$. Each $H_N$ is really just the $N \times N + 1$ upper-left block of $H$.
+Solving eigenvalue problems or systems of equations for
 a general square matrix can thus be reduced, via Arnoldi iteration, to solving these problems for a Hessenberg matrix,
 a much easier task.
 
@@ -311,11 +313,12 @@ Algorithm \ref{alg:lanczos_iteration} is known as the Lanczos iteration.
 	\State $\alpha \gets \text{empty}\left(k\right)$
 	\State $\beta \gets \text{empty}\left(k\right)$
 	\State $\beta_{-1} = 0$
-	\For{$j=0$, $j<k$}									\Comment{Perform the iteration.}
+	\For{$i=0$, $i<k$}									\Comment{Perform the iteration.}
 		\State $z \gets Amul\left(q_1\right)$					\Comment{$z$ is a temporary vector to store $q_{i+1}$.}
-		\State $\alpha_i = q_1 \cdot z$						\Comment{$q_1$ is used to store the previous $q_i$.}
+		\State $\alpha_i = \langle q_1, z \rangle$				\Comment{$q_1$ is used to store the previous $q_i$.}
 		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$				\Comment{$q_0$ is used to store $q_{i-1}$.}
-		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{j+1}\|_2$ is too small.}
+		\State $\beta_{i} = \|z\|_2$						\Comment{Initialize $\beta_i$.}
+		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{i+1}\|_2$ is too small.}
 			\State \pseudoli{return} $\alpha [: i+1]$, $\beta [: i]$
 		\EndIf
 		\State $z /= \beta_i$
