@@ -2,26 +2,80 @@
 
 \section*{Discrete Choice (Threshold) Problems}\label{SecDiscrChoice}
 
-One powerful application of dynamic programming that illustrates its versatility as a dynamic solution method is to models that have both continuous and discrete state variables. These models are sometimes referred to as discrete choice problems or optimal stopping problems.  Examples include models of employment that involve both the choice of whether to work and how much to work, models of firm entry and exit that involve the choice of both whether to produce and how much to produce, and models of marriage that involve the choice of whether to date (get married or keep dating) and how much to date.
+One powerful application of dynamic programming is
+to models that have both continuous and discrete state variables. These models are sometimes referred to as 
+discrete choice problems or optimal stopping problems.  Examples include models of employment that involve both 
+the choice of whether to work and how much to work, models of firm entry and exit that involve the choice of both 
+whether to produce and how much to produce, and models of marriage that involve the choice of whether to date 
+(get married or keep dating) and how much to date.
+This application illustrates the versatility of dynamic programming as a dynamic solution method 
 
-In this problem set, we follow a simple version of a standard job search model.  Assume that workers are infinitely lived. Let the value of entering a period with most recent wage $w$, current job offer wage $w'$, and employment status $s$ be given by the following value function,
+In this lab, we follow a simple version of a standard job search model.  
+Assume that workers live infinitely long. Let the value of entering a period with most recent wage $w$, 
+current job offer wage $w'$, and employment status $s$ be given by the following value function,
 \begin{equation}\label{EqV}
    V(w,w',s) = \begin{cases}
                   V^E(w)    \quad&\text{if}\quad s = E \\
                   V^U(w,w') \quad&\text{if}\quad s = U \\
                \end{cases}
 \end{equation}
-where employment status is a binary variable $s=\{E,U\}$; a person can be either employed or unemployed.
+where employment status is a binary variable $s=\{E,U\}$ ($E$ indicates ``employed" and $U$ indicates ``unemployed"); 
+a person can be either employed or unemployed.
 
-If an individual's job status is employed ($s = E$) in a given period, then expected utility is the utility of consumption in the current period plus the discounted expected value of the entering the next period with wage $w$, job offer wage $w''$, and employment status $s'$.
+If an individual's job status is employed ($s = E$) in a given period, then the expected utility is the utility of 
+consumption in the current period plus the discounted expected value of entering the next period with wage 
+$w$, job offer wage $w''$, and employment status $s'$.
 \begin{equation}\label{EqVe1}
    V^E(w) = u(w) + \beta E_{w'',s'}V(w,w'',s')
 \end{equation}
-Here we assume that individuals spend all of their earnings each period so that utility from the consumption in the current period is $u(w)$.  The discount factor is $\beta$.  The next periods wage, $w''$, and job offer, $s'$, are unknown and we consider them as random variables.  Consequently, the expectations operator $E_{w'',s'}$ is over the job offer wage, and employment status in the next period, and next period's value function is simply \eqref{EqV} with the future value of employment status $s'$.
+Here we assume that individuals spend all of their earnings each period so that utility from the consumption in 
+the current period is $u(w)$.  The discount factor is $\beta$.  The job offer wage ($w''$) and employment
+status ($s'$) in the next period are unknown and we consider them as random variables.  
+Consequently, the expectation operator $E_{w'',s'}$ is over
+the job offer wage and employment status in the next period.
+The next period's value function is simply \eqref{EqV} with the future job offer wage $w''$ and employment status $s'$.
 
-The joint probability distribution over $w''$ and $s'$ is characterized in the following simple way. If the worker stays employed in the next period $s' = E$, then next period's wage equals the current period's wage. If the worker becomes unemployed in the next period $s' = U$, then the worker's unemployment benefits will be a percentage of his current wage $\alpha w$. Any worker who is unemployed will receive one wage offer per period $w'$, which that worker will receive in the following period, drawn from the cumulative density function $F(w')$ or probability density function $f(w')$, which is independent of the worker's previous wage (for simplicity). Lastly, let $\gamma$ represent the probability that an employed worker becomes unemployed in the next period. So \eqref{EqVe1} can be rewritten in the following way.
+To calculate this expectation, we need to know the joint probability distribution over $w''$ and $s'$.
+This can be characterized in the following way.
+We assume that $s'$ and $w''$ are independent. Hence, we can split the joint expectation 
+operator into the composition of the two individual expectation operators:
+\[
+E_{w'',s'} = E_{w''}E_{s'}.
+\]
+Let $\gamma$ represent the probability that an employed worker becomes unemployed in the next period,
+so that $1-\gamma$ is the probability of remaining employed in the next period. 
+If the worker stays employed in the next period ($s' = E$), then next period's wage equals the current
+period's wage, and the term inside the expectation is
+\[
+V(w,w'',E) = V^E(w).
+\] 
+We then have
+\begin{align*}
+E_{s'}V(w,w'',s') &= (1-\gamma)V(w,w'',E) + \gamma V(w,w'',U)\\
+&= (1-\gamma)V^E(w) + \gamma V^U(w,w'').
+\end{align*}
+Notice that the term $(1-\gamma)V^E(w)$ is constant with respect to $w''$. Then
+\begin{align*}
+E_{w''}E_{s'}V(w,w'',s') &= E_{w''}\left[(1-\gamma)V^E(w) + \gamma V^U(w,w'')\right]\\
+&= E_{w''}(1-\gamma)V^E(w) + E_{w''}\gamma V^U(w,w'')\\
+&= (1-\gamma)V^E(w) + \gamma E_{w''}V^U(w,w'').
+\end{align*}
+Hence, we can rewrite \eqref{EqVe1} as follows:
 \begin{equation}\label{EqVe2}
-   V^E(w) = u(w) + \beta \Bigl[(1-\gamma)V^E(w) + \gamma E_{w''}V^U(w,w'')\Bigr]
+   V^E(w) = u(w) + \beta \Bigl[(1-\gamma)V^E(w) + \gamma E_{w''}V^U(w,w'')\Bigr].
+\end{equation}
+
+%i'm thinking describe V^U(w,w') first, then V^E(w).
+If the worker becomes unemployed in the next period ($s' = U$), then the worker's 
+unemployment benefits will be a percentage of his current wage $\alpha w$. Any unemployed worker 
+will receive one wage offer per period ($w'$). The worker will receive this wage in the following
+period, provided she chooses to accept employment.
+We model the uncertainty involved in future wage offers by drawing $w'$ from some distribution. 
+For simplicity, we assume that this wage offer $w'$ is independent of the worker's previous wage. 
+ 
+Putting all of this together, we can rewrite \eqref{EqVe1} as follows:
+\begin{equation}\label{EqVe2}
+   V^E(w) = u(w) + \beta \Bigl[(1-\gamma)V^E(w) + \gamma E_{w''}V^U(w,w'')\Bigr].
 \end{equation}
 
 The value of being unemployed in a given period is a function of both the wage at the most recent job $w$ as well as the wage of the current job offer $w'$,
@@ -48,7 +102,13 @@ Note that the reservation wage $w_R'$ is a function of the wage at the most rece
 \label{fig:disc_policy}
 \end{figure}
 
-In summary, the labor search discrete choice problem is characterized by the value functions \eqref{EqV}, \eqref{EqVe2}, and \eqref{EqVu}, the reservation wage \eqref{EqWR}, and the policy function \eqref{EqSprime}. Because wage offers are distributed according to the cdf $F(w')$ and because the policy function takes the form of \eqref{EqSprime}, the probability that the unemployed worker receives a wage offer that he will reject is $F(w_R')$ and the probability that he receives a wage offer that he will accept is $1 - F(w_R')$. Just like the continuous choice cake eating problems, this problem can be solved by value function, policy function, or modified policy function iteration.
+In summary, the labor search discrete choice problem is characterized by the value functions \eqref{EqV}, \eqref{EqVe2}, 
+and \eqref{EqVu}, the reservation wage \eqref{EqWR}, and the policy function \eqref{EqSprime}. Because wage offers 
+are distributed according to some given probability distribution (denote the cdf by $F(w')$), 
+and because the policy function takes the form of \eqref{EqSprime}, 
+the probability that the unemployed worker receives a wage offer that he will reject is $F(w_R')$ and the probability 
+that he receives a wage offer that he will accept is $1 - F(w_R')$. Just like the continuous choice cake eating 
+problems, this problem can be solved by value function, policy function, or modified policy function iteration.
 
 The value function iteration solution method for the equilibrium in the labor search problem is analogous to the value function iteration from the previous labs. The only difference is that two value functions ($V^E$ and $V^U$) must converge to a fixed point in this problem instead of just one value function converging in the previous problems.  Although there are two value functions to consider, there is only one policy function since decisions are only made in the unemployed state.  Thus there is only one policy function to iterate on in the case of policy or modified policy iteration.
 
