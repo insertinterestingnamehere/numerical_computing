@@ -15,7 +15,7 @@ def wilkinson_poly():
                     -3599979517947607200, 8037811822645051776,
                     -12870931245150988800, 13803759753640704000,
                     -8752948036761600000, 2432902008176640000])
-    peturbation = normal(0, 1E-5, cfs.size)
+    peturbation = normal(scale=1E-5, size=cfs.size)
     computed_roots = np.poly1d(cfs + peturbation).roots
     plt.scatter(roots.real, roots.imag)
     plt.scatter(computed_roots.real, computed_roots.imag, color='r')
