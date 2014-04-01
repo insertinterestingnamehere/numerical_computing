@@ -76,7 +76,11 @@ Figure \ref{fig:wilkinsonpolynomial} shows what happens to the roots of $w(x)$ w
 \end{figure}
 
 \begin{problem}
-Write a script to reproduce Figure \ref{fig:wilkinsonpolynomial}. Perturb $w(x)$ as described in the caption for this Figure. Instead of plotting the roots for just one random pertubation of $w(x)$, plot the roots for 100 random perturbations.
+Write a function to reproduce Figure \ref{fig:wilkinsonpolynomial}.
+Perturb $w(x)$ as described in the caption for this Figure.
+Instead of plotting the roots for just one random pertubation of $w(x)$, plot the roots for several random perturbations.
+
+Write another function that, given an array of roots for a polynomial, computes the polynomial object representing the polynomial with the desired roots, then finds the roots of the resulting polynomial and plots them with the original roots.
 \end{problem}
 
 \paragraph{Example 2: Calculating Eigenvalues}
@@ -113,10 +117,6 @@ It turns out that each of these problems has the \emph{same} relative condition 
 This is called the \emph{condition number of $A$}.
 The condition number of a matrix can be computed using \li{numpy.linalg.cond}.
 
-\begin{problem}
-Use Python to calculate condition numbers of various matrices. What's the worst conditioned matrix you can find?
-\end{problem}
-
 It is almost always best to work with orthonormal matrices (or operations that can be mathematically represented by orthonormal matrices).
 Since orthonormal matrices have a norm of $1$, as do their inverses, these transformations have the best possible condition number.
 The low condition number of orthonormal matrices is one of the primary reasons that Householder reflections and Givens rotations useful in Numerical Linear Algebra.
@@ -133,7 +133,14 @@ What could go wrong in an algorithm that would introduce new errors? Usually thi
 
 As another example, take the problem of computing the eigenvalues of a matrix $A$. If $A$ is symmetric, the eigenvalue problem is well-conditioned. However, suppose we use an algorithm that first computes the coefficients of the characteristic polynomial, and then finds the roots of that polynomial. Unavoidably, tiny errors will creep in when we compute the coefficients of the characteristic polynomial. Since root-finding is an ill-conditioned problem, these tiny errors will be magnified. This algorithm is unstable.
 
-We will now consider an example of unstable algorithm.
+\begin{warn}
+Be careful to not confuse the stability of an algorithm with the conditioning of a problem.
+These are two very different things.
+A stable algorithm is, roughly speaking, an algorithm that will return a correct result if the problem is well conditioned.
+If a problem is poorly conditioned, special algorithmic changes may be necessary to ensure a reasonable degree of accuracy.
+\end{warn}
+
+\paragraph{Example 4: A Simple but Unstable Algorithm}
 Consider
 \[\int_0^1 x^n e^{x - 1} dx\]
 It is easily seen that this integral is always positive and always less than $1$.
@@ -144,6 +151,7 @@ $!n$ is given by the recurrence relation $\left(n - 1\right)\left(!\left(n - 1\r
 There is a similar recurrence relation for the factorial function.
 Given these recurrence relations, we can compute the value for this integral as using the following blocks of code:
 \begin{lstlisting}
+import numpy as np
 def derangement(n):
     d0, d1 = 1, 0
     for i in xrange(1, n):
@@ -183,8 +191,49 @@ $x^{50}e^{x}$: & $1.46150163733 \cdot 10^{48}$ & $0.0192377544343$ \\
 \label{table:unstable_computation}
 \end{table}
 
+The algorithms that we have studied to solve linear systems have different levels of stability.
+LU decomposition (with pivoting) is usually good enough, but there are some pathological examples of matrices that cause it to break down.
+QR decompositoin (with pivoting) is generally considered to be a better option than the LU decomposition.
+Solving a linear system using the SVD is even more stable than the QR decomposition.
+(Pivoting is a modification that is commonly made to the LU decomposition and QR decompositoin algorithms we have discussed in earlier labs to make them more stable.)
+Unfortunately, in this case, the algorithms that more stable are also slower.
+The LU decomposition is used by \li{scipy.linalg.solve}.
+The SVD is used by \li{scipy.linalg.lstsq}.
+Here is some code that uses the QR decomposition of a matrix $A$ to solve the linear system $A x = b$ for $x$.
+It uses a lower-level function included in scipy to perform the back substitution required to solve this system.
+\begin{lstlisting}
+from scipy import linalg as la
+from scipy.linalg.flapack import dtrtrs
+def qr_solve(A, b):
+    Q, R = la.qr(A)
+    return dtrtrs(R.T, Q.T.dot(b), lower=1, trans=1)[0]
+\end{lstlisting}
+A solution using a pivoted QR decomposition would be better, but this will be good enough for demonstration purposes.
+
+The following are routines that generate matrices designed to show the relative benefits of each of these algorithms.
+\begin{lstlisting}
+from numpy.random import rand
+def bad_arr_1(n):
+    # Construct a specific pathological example that breaks LU decomposition.
+    # These examples are very rare, but they do exist.
+    # Strictly speaking, the condition number for this matrix isn't terribly bad.
+    A = - np.ones((n, n))
+    A[:,:-1] = np.tril(A[:,:-1])
+    np.fill_diagonal(A, 1)
+    A[:,-1] = 1
+    return A
+def bad_arr_2(n, peturbation = 1E-8):
+    # Construct another matrix that is nearly singular
+    # by computing A.dot(A.T) for a matrix A that is
+    # not square and then adding some small changes
+    # so it is not exactly singular.
+    A = rand(n, n // 2)
+    return A.dot(A.T) + peturbation * rand(n, n)
+\end{lstlisting}
+
 \begin{problem}
-There are 
+For each of the array creation routines above, plot the error $\norm{\text{solve}\left(A, A b\right) - b}$ of each of the methods mentioned above for solving a linear system.
+What do you observe?
 \end{problem}
 
 %\subsection*{Stable vs. Backward Stable Algorithms}
