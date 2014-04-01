@@ -1,53 +1,80 @@
 \lab{Algorithms}{Policy Function Iteration}{Policy Function Iteration}
 \objective{This section teaches how to improve dynamic programming convergence using policy function iteration.}
 
-Now that we have covered how to solve simple dynamic programming problems by value function iteration, we consider the convergence of the algorithm.  We demonstrate two other methods known as policy function iteration, or Howard's Improvement, and modified policy function iteration.
+Now that we have covered how to solve simple dynamic programming problems by value function iteration, we consider
+the convergence of the algorithm.  We demonstrate two additional methods known as policy function iteration, or Howard's
+Improvement, and modified policy function iteration.
 
 \section*{Policy Function Iteration}
-For infinite horizon dynamic programming problems, it can be shown that value function iteration converges at the rate $\beta$, where $\beta$ is the discount factor.  In practice, $\beta$ is usually close to one which means this algorithm often converges slowly.  
+For infinite horizon dynamic programming problems, it can be shown that value function iteration converges at the
+rate $\beta$, where $\beta$ is the discount factor.  In practice, $\beta$ is usually close to one, which means this
+algorithm often converges slowly.
 
 In order to examine the value function iteration algorithm, it is helpful to see which functions take the most runtime.
+We can perform this analysis using the profiling tools in IPython.
 \begin{problem}
 \label{prob:profile}
-In IPython, enter
+Import your function \li{eatCake} from the Value Function Iteration lab into an IPython environment.
+Profile this function with arguments $\beta = .9$, $N = 100$, \li{finite=False}, \li{plot=False}.
+Now change the arguments $\beta = .95$ and $N = 1000$.
+How does your runtime change? What parts of the code take up the most time?
+
+Recall that we can access the profiling tool in IPython as follows:
 \begin{lstlisting}
-%run -p -s cum Value_Function_Iteration.py
+>>> %prun function_call
 \end{lstlisting}
-where \texttt{Value\_Function\_Iteration.py} is the name of your script that solves the infinite horizon problem from the Value Function Iteration lab.  This will list the function calls made by your code, sorted by the cumulative time it spends within each function (including time spent in sub-functions).
-Run the same command, this time changing the number of grid points $N$ to be 1000.
-Run the command once more, this time setting $N=1000$ and $\beta = .95$.
+where \li{function_call} is a placeholder for whatever function you wish to profile.
 \end{problem}
 
-In Problem \ref{prob:profile} you should have noticed that runtime was significantly longer to run for larger $N$ or $\beta$ closer to 1.  The profiler gives more detailed information than just the overall runtime, however.  The results of Problem \ref{prob:profile} should look something like the following.
-\begin{verbatim}
-%run -p -s cum Value_Function_Iteration.py
-         622 function calls in 2.542 seconds
-         
-   Ordered by: cumulative time
+In Problem \ref{prob:profile} you should have noticed that runtime was significantly longer to run for larger $N$ or
+$\beta$ closer to 1.  The profiler gives more detailed information than just the overall runtime, however.
+The results of Problem \ref{prob:profile} should look something like the following (we have removed a few
+columns and several rows from the full output):
+\begin{lstlisting}
+     503 function calls in 2.101 seconds
 
-   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-        1    0.000    0.000    3.065    3.065 <string>:1(<module>)
-        1    0.001    0.001    3.065    3.065 {execfile}
-        1    0.955    0.955    3.064    3.064 Value_Function_Iteration.py:5(<module>)
-       59    0.000    0.000    1.418    0.024 fromnumeric.py:683(argmax)
-       59    1.417    0.024    1.417    0.024 {method 'argmax' of 'numpy.ndarray' objects}
-       59    0.001    0.000    0.613    0.010 fromnumeric.py:1774(amax)
-       59    0.612    0.010    0.612    0.010 {method 'max' of 'numpy.ndarray' objects}
-\end{verbatim}
-We notice that the most time was spent in the maximization step.  Remember, the value function iteration method maximizes $V$ (and determines the corresponding $\psi$) at every step.  Because we find both a new $V$ and a new $\psi$ at every step, we only apply the new policy function for one iteration.  This gives us a crude approximation to the value function that corresponds to the new policy function, resulting in slow convergence of the value function.  Instead, we might consider finding the exact value function associated with each new policy function.  
+Ordered by: internal time
 
-This is the idea behind the policy function iteration algorithm.  In this way we iterate on the policy functions rather than the value functions.  The algorithm for the policy function iteration can be summarized as follows:
+ncalls  tottime  filename:lineno(function)
+    1    1.759   <ipython-input-4-1487b3d35ebf>:1(eatCake)
+   59    0.244   {method 'argmax' of 'numpy.ndarray' objects}
+    1    0.033   twodim_base.py:427(triu)
+    1    0.018   {numpy.core.multiarray.where}
+    1    0.009   method 'repeat' of 'numpy.ndarray' objects}
+    1    0.009   {method 'outer' of 'numpy.ufunc' objects}
+    1    0.005   twodim_base.py:349(tri)
+    1    0.004   twodim_base.py:657(mask_indices)
+    1    0.004   {method 'astype' of 'numpy.ndarray' objects}
+   59    0.004   {method 'reduce' of 'numpy.ufunc' objects}
+\end{lstlisting}
+We notice that the most time was spent in the maximization step (\li{method 'argmax'}).
+
+Recall that the value function iteration method for the infinite horizon problem
+approximates the value function $V$ iteratively, producing a sequence of
+approximations $V_1, V_2, V_3, \ldots$ that converge to $V$.
+At each step, the algorithm also determines the policy function $\psi_k$
+corresponding to the approximated value function $V_k$.
+This process can also be viewed as applying the approximate policy function $\psi_k$ once to obtain
+the approximate value function $V_k$.
+Unfortunately, this gives us a rather crude approximation to the value function,
+resulting in slow convergence.
+
+What if instead of iteratively approximating the value function in this manner, we instead iteratively approximate
+the policy function, and calculate the exact value function associated with each new policy function?
+This is the idea behind the policy function iteration algorithm.
+In this way we iterate on the policy functions rather than the value functions.
+The algorithm for the policy function iteration can be summarized as follows:
 \begin{enumerate}
 \item Set an initial policy rule $W' = \psi_0(W)$ and a tolerance $\delta$.
 
 \item \label{item:step2_PFI} Compute the value function assuming this rule is used forever:
 \begin{equation*}
-V(W_0) = \sum_{t=0}^\infty \beta^t u(\psi_k(W)-W)
+V_k(W) = \sum_{t=0}^\infty \beta^t u(W_t - \psi_k(W_t)).
 \end{equation*}
 
 \item Determine a new policy $\psi_{k+1}$ so that
 \begin{equation*}
-\psi_{k+1}(W) = \text{argmax}_{W'} u(W-W') + \beta V(W-W')
+\psi_{k+1}(W) = \underset{W'}{\text{argmax}} \{u(W-W') + \beta V_k(W')\}.
 \end{equation*}
 
 \item If $\delta_k = ||\psi_{k+1} - \psi_k|| < \delta$, stop, otherwise go back to step \ref{item:step2_PFI} with subscript $k+1$.
@@ -59,65 +86,143 @@ V_k(W) = u(W-W') + \beta V_k(W')
 \end{equation}
 for $V_k$.
 
-Once we have discretized $W$, equation \eqref{Val_Fun} is a linear system which we can rewrite as
+As always, we take a discrete approximation to $W$, obtaining a length $N$ vector
+\[
+w = (w_1, w_2, \ldots, w_N)
+\]
+giving the possible cake quantities.
+The variable $W'$ becomes $w' = \psi_k(w)$.
+Once we have done this, equation \eqref{Val_Fun} is a linear system which we can rewrite as
 \begin{equation*}
-V_k(W) = u(W-W') + \beta QV_k(W)
+V_k(w) = u(w-w') + \beta QV_k(w)
 \end{equation*}
-where if $W$ is a vector of length $N$, then $Q$ is the $N\times N$ matrix
+where $Q$ is the $N\times N$ matrix
 \begin{equation*}
 Q_{ij} = \left\{
      \begin{array}{ll}
-       1 & \text{if} \quad  W_j = W' = W_i\\
-       0 & \text{otherwise}
+       1 & \text{if} \quad  w_i' = w_j\\
+       0 & \text{otherwise.}
      \end{array}
    \right.
 \end{equation*}
-Thus we have $V_k = (I-\beta Q)^{-1}u(W-W')$.  Although $Q$ may be large, we can take advantage of the fact that it is sparse, containing only $N$ nonzero entries out of $N^2$ total entries.
+Solving this system of equations, we have $V_k(w) = (I-\beta Q)^{-1}u(w-w')$.
+Although $Q$ may be large, we can take advantage of the fact that it is sparse, containing only $N$ nonzero entries out of $N^2$ total entries.
 
 \begin{problem}
 \label{prob:cake_eating_policyfun}
-Solve the infinite horizon cake eating problem from the Value Function Iteration lab again, this time using policy function iteration.  In order to take advantage of the sparse matrices $I$ and $Q$, use the following imports from the SciPy \li{sparse} library.
+Solve the infinite horizon cake eating problem from the Value Function Iteration lab again, this time using policy function iteration.
+Write a function \li{policyIter} that takes arguments $\beta$ (discount factor), $N$ (size of discrete approximation), and
+$W_{max}$ (size of original cake, set to default value of 1). Take the function $u$ to be the square root function, as before.
+Return the converged value function and policy function, both of which should be arrays of length $N$.
+
+As in the value function iteration, first create your discrete approximation of the $W$ values:
 \begin{lstlisting}
-from scipy import sparse
-from scipy.sparse import linalg
+>>> import numpy as np
+>>> w = np.linspace(0, Wmax, N)
+\end{lstlisting}
+
+You will still need to pre-compute all values of $u(W-W')$, storing these in an $N \times N$ array. Make sure, as before,
+that the upper triangular entries are set to large negative values, so that we don't choose to consume more cake than is
+available. In the code snippets below, we will refer to this array as \li{U}.
+
+You may also find it convenient to not track the approximated policy function $\psi_k$ directly during the iteration, but
+rather to have a length $N$ array \li{psi_ind}, whose $i$-th entry gives the index of $w_i'$ relative to the discrete approximation
+$w$. Thus, rather than initializing a policy function $\psi_0$ directly, you can initialize it indirectly by setting, for example,
+\begin{lstlisting}
+>>> psi_ind = np.arange(N)
+\end{lstlisting}
+which corresponds to an initial policy $\psi_0(W) = W$.
+The policy function vector can be obtained from \li{psi_ind} by simply slicing \li{w} as follows:
+\begin{lstlisting}
+>>> psi = w[psi_ind]
+\end{lstlisting}
+
+In order to take advantage of the sparse matrices $I$ and $Q$, use the following imports from the SciPy \li{sparse} library.
+\begin{lstlisting}
+>>> from scipy import sparse
+>>> from scipy.sparse import linalg
 \end{lstlisting}
 and the following code to initialize $I$ (outside the loop)
 \begin{lstlisting}
-I = sparse.identity(N)
+>>> I = sparse.identity(N, format='csr')
+>>> rows = np.arange(0, N)
 \end{lstlisting}
 and $Q$ (inside the loop)
 \begin{lstlisting}
-rows = np.arange(0, N)
-columns = psi_ind
-data = np.ones(N)
-Q = sparse.coo_matrix((data, (rows, columns)), shape=(N, N))
-Q = Q.tocsr()
+>>> columns = psi_ind
+>>> data = np.ones(N)
+>>> Q = sparse.coo_matrix((data, (rows,columns)), shape=(N,N))
+>>> Q = Q.tocsr()
 \end{lstlisting}
-where $N$ is the size of the $W$ grid.  Rather than compute $(I-\beta Q)^{-1}$ directly, use Scipy's sparse solver
+Rather than compute $(I-\beta Q)^{-1}$ directly, use Scipy's sparse solver
 \begin{lstlisting}
-V = linalg.spsolve(I-beta*Q, u(W-W[psi_ind]))
+V = linalg.spsolve(I-beta*Q, u(w-w[psi_ind]))
 \end{lstlisting}
-where \texttt{psi\_ind} gives the indices of $W'$ for a given $W$ according to the current policy.  
+where \li{u} is the square root function.
+
+In each iteration, we update \li{psi_indices} much as we did in the value function iteration algorithm:
+\begin{lstlisting}
+>>> psi_ind = np.argmax(U + beta*V, axis=1)
+\end{lstlisting}
+where we assume \li{V} has shape \li{(1,N)}.
+
+Use the 2-norm when computing $\|\psi_{k+1} - \psi_k\|$, and set the tolerance to $\delta = 1e-9$.
+
 Take $N = 1000$ and $\beta = .95$.
-Plot the policy function and compare with your policy function from the Value Function Iteration Lab.
+Plot the policy function and compare with your policy function from the Value Function Iteration Lab, using
+the same inputs. You should obtain the same answer, but in less runtime.
 \end{problem}
 
 \section*{Modified Policy Function Iteration}
-While policy function iteration converges in fewer iterations, solving the linear system can be slow, especially for problems with a large state space.  There is an alternative to this called modified policy function iteration.
+While policy function iteration converges in fewer iterations, solving the linear system can be slow,
+especially for problems with a large state space.  There is an alternative to this called modified policy
+function iteration.
 
-In modified policy function iteration, we don't compute the exact value function corresponding to a policy.  Instead, at step \ref{item:step2_PFI} of the policy iteration algorithm we iterate $m$ times on the value function equation (Bellman equation) to get an approximation of the new value function.  This is faster than solving for the exact value function for large state spaces.  There is no strict rule on the value of $m$, the number of value function iterations.  In practice values such as $m=10$ or $m=15$ often work well.
+In modified policy function iteration, we don't compute the exact value function corresponding to a policy.
+Instead, at step \ref{item:step2_PFI} of the policy iteration algorithm we iterate $m$ times on the value function
+equation \eqref{Val_Fun} to get an approximation of the new value function.  This is faster than solving for the
+exact value function for large state spaces.  There is no strict rule on the value of $m$, the number of value function
+iterations.  In practice values such as $m=10$ or $m=15$ often work well.
 
-Note that our methods for solving dynamic programs boil down to some combination of two things: iterating on the value function and iterating on the policy function.  Modified policy function does a combination of the two, taking advantage of the advantages of both methods.  Because modified policy iteration takes only slightly more work to code than value function iteration, it is often preferred in practice.  Whether policy or modified policy iteration will perform better may depend on the problem.
+Note that our methods for solving dynamic programs boil down to some combination of two things: iterating on the value
+function and iterating on the policy function.  Modified policy function does a combination of the two, taking advantage
+of the advantages of both methods.  Because modified policy iteration takes only slightly more work to code than value
+function iteration, it is often preferred in practice.  Whether policy or modified policy iteration will perform better
+may depend on the problem.
 
 \begin{problem}
-Solve the same problem as in problem \ref{prob:cake_eating_policyfun}, this time using the modified policy function iteration method with $m=15$.  In this case let convergence be determined in the same way (computing $\delta_k$) in the same way as in the value function iteration problem.
+Solve the infinite horizon cake eating problem again, this time using the modified policy function
+iteration method.
 
-Use the same code as in Problem \ref{prob:cake_eating_policyfun} to initialize the sparse matrix $Q$.
+Write a function \li{modPolicyIter} that takes the same arguments as your \li{policyIter} function, along
+with an additional keyword argument $m$ (set to default value $m=15$), which gives the number of iterations used
+to approximate the value function at each step. Return the converged value function and policy function. 
+
+Much of the code in your \li{policyIter} will be unchanged when implementing this function. The key differences are
+as follows.
+First, you do not need to initialize the sparse arrays $I$ and $Q$ in the modified policy function iteration.
+Secondly, rather than solving a linear system of equations to obtain the value function, you will loop
+the equation
+\begin{lstlisting}
+>>> V = u(w - w[psi_ind]) + beta*V[psi_ind]
+\end{lstlisting}
+$m$ times in each iteration. Notice how this line of code corresponds with Equation \eqref{Val_Fun}, where
+\li{w} represents $W$, \li{w[psi_ind]} represents $W'$, and \li{V[psi_ind]} represents $V(W')$.
+
+The remainder of the code should be unchanged.
+
+
 \end{problem}
 
 \begin{problem}
-Solve the cake eating problem with each of the three methods and report how many iterations each takes.  Use $N= 1000$ as the number of grid points for $W$ and $\beta = 0.95$.  It is important that you use the same initial guess in each case in order to make the results comparable.  The accuracy of the initial guess greatly effects the number of iterations to convergence.  Take your initial guess as $V = 0$ which corresponds to an initial guess of the policy function with indices $[0,1,2,\ldots, N-1]$ (meaning $\psi = 0$).
+Solve the cake eating problem with each of the three methods and report how many iterations each takes.  Use $N= 1000$ as the
+number of grid points for $W$ and $\beta = 0.95$.  It is important that you use the same initial guess in each case in order to
+make the results comparable.  The accuracy of the initial guess greatly effects the number of iterations to convergence.  Take
+your initial guess as $V = 0$, which corresponds to an initial guess of the policy function with indices $[0,1,2,\ldots, N-1]$
+(meaning $\psi(W) = W$, i.e. we eat no cake, leaving it all for the next period).
 \end{problem}
 
-In general we should see that value function iteration takes more iterations than modified policy function iteration which in turn takes more iterations than policy function iteration.  It is important to note that this does not directly say anything about runtime.  Each iteration of policy iteration may take longer than an iteration of value function iteration.
+In general we should see that value function iteration takes more iterations than modified policy function iteration which in turn
+takes more iterations than policy function iteration.  It is important to note that this does not directly say anything about runtime.
+Each iteration of policy iteration may take longer than an iteration of value function iteration.
 
