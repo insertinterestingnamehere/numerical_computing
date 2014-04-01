@@ -128,23 +128,61 @@ What could go wrong in an algorithm that would introduce new errors? Usually thi
 
 As another example, take the problem of computing the eigenvalues of a matrix $A$. If $A$ is symmetric, the eigenvalue problem is well-conditioned. However, suppose we use an algorithm that first computes the coefficients of the characteristic polynomial, and then finds the roots of that polynomial. Unavoidably, tiny errors will creep in when we compute the coefficients of the characteristic polynomial. Since root-finding is an ill-conditioned problem, these tiny errors will be magnified. This algorithm is unstable.
 
+We will now consider an example of unstable algorithm.
+Consider
+\[\int_0^1 x^n e^{x - 1} dx\]
+It is easily seen that this integral is always positive and always less than $1$.
+It can be shown that, when $n > 1$, the value for this integral is always equal to
+\[\left(-1\right)^{n} !n + \left(-1\right)^{n + 1} \frac{n!}{e}\]
+where $!n$ is a combinatorial function called a derangement (it is equal to the number of permutations of a set that change the position of each element).
+$!n$ is given by the recurrence relation $\left(n - 1\right)\left(!\left(n - 1\right) + !\left(n - 2\right)\right)$ and is defined to have the initial values $!0 = 1$ and $!1 = 0$.
+There is a similar recurrence relation for the factorial function.
+Given these recurrence relations, we can compute the value for this integral as using the following blocks of code:
+\begin{lstlisting}
+def derangement(n):
+    d0, d1 = 1, 0
+    for i in xrange(1, n):
+        d0, d1 = d1, i * (d0 + d1)
+    return d1
+def factorial(n):
+    d0, d1 = 1, 1
+    for i in xrange(1, n):
+        d0, d1 = d1, i * (d0 + d1)
+    return d1
+def integral(n):
+    return (-1)**n * derangement(n) + (-1)**(n-1) * factorial(n) / np.e
+\end{lstlisting}
+Unfortunately, since we are taking the difference of large floating point numbers that are very close to one another, this algorithm only gives correct values for the first few integrals.
+The output is shown in Table \ref{table:unstable_computation}.
+
+\begin{table}
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+Integrand & Computed Value & Actual Value \\
+\hline
+$x^{1}e^{x}$: & $0.367879441171$ & $0.367879441171$ \\
+$x^{5}e^{x}$: & $0.145532940573$ & $0.145532940573$ \\
+$x^{10}e^{x}$: & $0.0838770701084$ & $0.0838770701034$ \\
+$x^{15}e^{x}$: & $0.0590209960938$ & $0.0590175408793$ \\
+$x^{20}e^{x}$: & $0.0$ & $0.0455448840758$ \\
+$x^{25}e^{x}$: & $1073741824.0$ & $0.0370862144237$ \\
+$x^{30}e^{x}$: & $-1.80143985095 \cdot 10^{16}$ & $0.0312796739322$ \\
+$x^{35}e^{x}$: & $6.04462909807 \cdot 10^{23}$ & $0.0270462894091$ \\
+$x^{40}e^{x}$: & $0.0$ & $0.023822728669$ \\
+$x^{45}e^{x}$: & $0.0$ & $0.0212860390856$ \\
+$x^{50}e^{x}$: & $1.46150163733 \cdot 10^{48}$ & $0.0192377544343$ \\
+\hline
+\end{tabular}
+\caption{Inaccuracy of values computed using an unstable algorithm.}
+\label{table:unstable_computation}
+\end{table}
+
 \begin{problem}
-Code up an unstable algorithm for computing eigenvalues, as described above. First find the coefficients of the characteristic polynomial, and then find the roots of that polynomial. Test this algorithm against the built-in eigenvalue solver. Do these methods give the same results?
-
-There exist well-thought-out methods for finding coefficients of the characteristic polynomial. (One method uses Kyrlov subspaces, for example.) There's a built-in Python function you may use; see numpy.poly.
-% However for this problem, a naiive method will be fine as long as you only test it on small matrices.
-\end{problem}
-
-\begin{problem}
-Alternative to above problem. Instead of using numpy.poly, write your own program to find the characteristic polynomial for just $n \times n$ matrices. Then root-find to obtain eigenvalues; compare to la.eig.
-
-Note:
-This might be better than the previous, because I'm not sure what method python uses to compute characteristic polynomials. Matlab uses this method: Find the eigenvalues by a stable method, then find the polynomial to match those roots. Obviously this would defeat the purpose since it would match la.eig. However I don't THINK python does this, but I'm not sure yet.
+There are 
 \end{problem}
 
 %\subsection*{Stable vs. Backward Stable Algorithms}
-
-
 
 %\subsection*{Table}
 %
