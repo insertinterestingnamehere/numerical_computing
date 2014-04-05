@@ -67,7 +67,7 @@ def construct_jacobi(a, b, c):
     return j
 
 # points and weights problem
-def points_and_weights(n, length):
+def points_and_weights(n):
     """ Find the set of 'n' nodes and their
     corresponding weights for the interval [-1, 1]."""
     i = np.arange(1, n + 1, dtype=float)
