@@ -51,8 +51,8 @@ def jobSearchVI(Wmin, Wmax, N, e_params, alpha, beta, gamma):
         VE1 = uw + beta*((1-gamma)*VE + gamma*EVU)
         
         #test for convergence
-        d1 = ((VE1-VE)**2).sum()
-        d2 = ((VU1-VU)**2).sum()
+        d1 = math.sqrt(((VE1-VE)**2).sum())
+        d2 = math.sqrt(((VU1-VU)**2).sum())
         delta = max(d1,d2)
         
         #update
