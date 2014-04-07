@@ -25,16 +25,16 @@ def jobSearchVI(Wmin, Wmax, N, e_params, alpha, beta, gamma):
     PSI denotes the policy function.
     Label employed with 0, unemployed with 1.
     """
-    u = lambda c: np.sqrt(c)
-    w = np.linspace(Wmin, Wmax, N)
+    u   = lambda c: np.sqrt(c)
+    w   = np.linspace(Wmin, Wmax, N)
     uaw = u(alpha*w).reshape((N,1))
-    uw = u(w)
-    f = discretelognorm(w, *e_params)
+    uw  = u(w)
+    f   = discretelognorm(w, *e_params)
     
-    VE = np.zeros(N)
-    EVU = np.zeros(N)
-    VU = np.zeros((N,N))
-    MVE = np.empty((N,N)) #tiled version of VE
+    VE   = np.zeros(N)
+    EVU  = np.zeros(N)
+    VU   = np.zeros((N,N))
+    MVE  = np.empty((N,N)) #tiled version of VE
     MEVU = np.empty((N,N)) #tiled version of EVU
     
     delta = 1.

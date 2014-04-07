@@ -176,15 +176,15 @@ Although there are two value functions to consider, there is only one policy fun
 in the unemployed state.  Thus, there is only one policy function on which to iterate in the case of policy or modified
 policy iteration.
 
-In the following problems, you will solve the job search problem using value function iteration and modified policy 
+In the following problems, you will solve the job search problem using value function iteration and modified policy
 function iteration. Assume that the consumption utility function $u$ is given by
 \[
 u(w) = \sqrt{w}.
 \]
 Assume that the probability of becoming unemployed in a given period is $\gamma = 0.10$, the fraction of wages paid
-in unemployment benefits is $\alpha = 0.5$, and the discount factor is $\beta = 0.9$. 
+in unemployment benefits is $\alpha = 0.5$, and the discount factor is $\beta = 0.9$.
 
-Assume that the log of wage offers are distributed normally.  We then say that offers are distributed 
+Assume that the log of wage offers are distributed normally.  We then say that offers are distributed
 lognormally and write
 \[
 w'\sim \text{LogN}(\mu,\sigma).
@@ -192,12 +192,12 @@ w'\sim \text{LogN}(\mu,\sigma).
 This is a convenient choice for the distribution of
 wage offers.  Among other things, it guarantees that wage offers will be positive.
 
-As usual when dealing with continuous variables, we form a discrete approximation of 
+As usual when dealing with continuous variables, we form a discrete approximation of
 the possible wage values. In particular, approximate the wage values by a vector of
 length $N = 500$ of equally-spaced values from $w_{min} = 0$ to $w_{max} = 100$, inclusive.
-We then form a corresponding discrete approximation of the probability density function 
+We then form a corresponding discrete approximation of the probability density function
 $f(w')$ for the lognormal wage offers using code provided in the file \li{discretelognorm.py},
-as follows, where \li{w} is the length-$N$ vector of wage values, $m$ is the mean, and $v$ is 
+as follows, where \li{w} is the length-$N$ vector of wage values, $m$ is the mean, and $v$ is
 the variance as specified above:
 \begin{lstlisting}
 >>> from discretelognorm import discretelognorm
@@ -205,13 +205,13 @@ the variance as specified above:
 \end{lstlisting}
 The function \li{discretelognorm} computes the discrete pdf of the specified lognormal distribution in much
 the same way that you calculate the discrete normal pdf when solving the stochastic cake eating problem.
-
+Use mean $m=20$ and variance $v = 200$.
 
 
 \begin{problem}
 Solve the job search problem using value function iteration. Return the converged value functions
 $V^E$ and $V^U$, as well as the converged policy function $\psi$. The following steps provide detailed
-instructions. Note that there are multiple ways to proceed, and the following is simply one (fairly good) 
+instructions. Note that there are multiple ways to proceed, and the following is simply one (fairly good)
 possibility.
 \begin{enumerate}
 
@@ -221,17 +221,18 @@ possibility.
    w = (w_1,w_2,\ldots,w_N).
    \]
    Calculate the corresponding discrete lognormal pdf \li{f}, exactly as shown above.
-   
+
    \item Note that $u(w)$ and $u(\alpha w)$ are needed when computing the value functions.
-   Since these quantities do not change from one iteration to another, it is smart to 
+   Since these quantities do not change from one iteration to another, it is smart to
    compute them once at the outset. Denote $u(w)$ by \li{uw} and $u(\alpha w)$ by \li{uaw}.
    These are easily calculated as follows:
 \begin{lstlisting}
 >>> uw = u(w)
->>> uaw = u(alpha*w)
+>>> uaw = u(alpha*w).reshape((1,N))
 \end{lstlisting}
-    where \li{u} is the square root function.
-   
+    where \li{u} is the square root function. We must reshape \li{uaw} because of array broadcasting
+    issues that arise in the code snippets below.
+
    \item Since $V^E$ is a function of only $w$, it will be represented by a vector of length $N$, where
    the $i$-th entry gives $V^E(w_i)$. The unemployed value function $V^U$, however,
    is a function of both $w$ and $w'$, so it will be represented by an $N \times N$ array,
@@ -240,7 +241,7 @@ possibility.
 >>> VE = np.zeros(N)        #employed value function
 >>> VU = np.zeros((N,N))    #unemployed value function
 \end{lstlisting}
-   
+
    \item Note that $\mathbb{E}_{w''}V^U(w,w'')$  is needed to calculate both $V^E$ and $V^U$.
    This expectation depends on $w$, and so can be represented by a length $N$ array, where the
    $i$-th entry is $\mathbb{E}_{w''}V^U(w_i,w'')$.
@@ -249,23 +250,23 @@ possibility.
 \begin{lstlisting}
 >>> EVU = np.zeros(N)
 \end{lstlisting}
-   
+
    \item For reasons that will soon become apparent, we will need to create a $N\times N$ helper array
-   whose rows are equal to \li{VE} (call this array \li{MVE}), and a $N \times N$ helper array whose columns 
+   whose rows are equal to \li{VE} (call this array \li{MVE}), and a $N \times N$ helper array whose columns
    are equal to \li{EVU} (call this array \li{MEVU}).
    At the outset, simply initialize these arrays to zeros.
-   
+
    \item Because job status is a binary variable, the policy function returns one of two possible values. It is
    convenient to represent ``employed" by $1$ and ``unemployed" by $0$. Now the policy function depends
-   on $w$ and $w'$, so it will also be represented by an $N\times N$ array \li{PSI} of zeros and ones, 
+   on $w$ and $w'$, so it will also be represented by an $N\times N$ array \li{PSI} of zeros and ones,
    where the $(i,j)$-th entry gives $\psi(w_i, w_j)$.
-   
+
    \item Now we are ready to begin the iteration.
    A single iteration involves computing the updated value functions $V^E$ and $V^U$ from
    equations \eqref{EqVe2} and \eqref{EqVu} and then calculating the $2$-norm distance between
-   both pairs of old and updated value functions to test for convergence. If both of these 
+   both pairs of old and updated value functions to test for convergence. If both of these
    $2$-norm distances are less than $10^{-9}$, terminate the iteration.
-   
+
    Before calculating the updated value functions, we first update our helper arrays \li{MVE} and
    \li{MEVU}. The rows of \li{MVE} need to equal \li{VE}. We can use array broadcasting:
 \begin{lstlisting}
@@ -276,11 +277,11 @@ possibility.
 >>> MEVU[:,:] = EVU.reshape((N,1))
 \end{lstlisting}
 
-   Now let us address how to compute the updated $V^U$, which we denote by \li{VU1}. 
-   Equation \eqref{EqVu} shows that it is the sum of 
+   Now let us address how to compute the updated $V^U$, which we denote by \li{VU1}.
+   Equation \eqref{EqVu} shows that it is the sum of
    two terms. The first, $u(\alpha w)$, we have already computed and stored in the variable \li{uaw}.
    The second term involves a maximization between two alternatives. One can imagine writing
-   a double for-loop ranging over the values of $w'$ and $w$ to compute each individual 
+   a double for-loop ranging over the values of $w'$ and $w$ to compute each individual
    $\max\{V^E(w'), \mathbb{E}_{w''}V^U(w,w'')\}$, but we can take advantage of the helper
    arrays \li{MVE} and \li{MEVU} to do this computation in one efficient line of code.
    Note that the the $(i,j)$-th entry of \li{MVE} is just $V^E(w_j)$ and the $(i,j)$-th
@@ -294,15 +295,15 @@ possibility.
    \begin{lstlisting}
 >>> VU1 = uaw + beta*np.max(np.dstack([MEVU, MVE]), axis=2)
    \end{lstlisting}
-   
-   Calculating the updated $V^E$, denoted by \li{VE1}, is more straightforward. 
+
+   Calculating the updated $V^E$, denoted by \li{VE1}, is more straightforward.
    Equation \eqref{EqVe2} shows that it is just
    a particular linear combination of the arrays \li{uw}, \li{VE}, and \li{EVU}:
    \begin{lstlisting}
 >>> VE1 = uw + beta*((1-gamma)*VE + gamma*EVU)
    \end{lstlisting}
-   
-   We can now calculate the 2-norm distances between old and updated value functions. 
+
+   We can now calculate the 2-norm distances between old and updated value functions.
    It remains to update \li{VE}, \li{VU}, and \li{EVU}.
    The first two updates are trivial, and calculating \li{EVU} is equivalent to the
    matrix-vector multiplication of \li{VU} with \li{f}. This is similar to how we computed
@@ -311,7 +312,7 @@ possibility.
 >>> EVU = np.dot(VU,f).ravel()
    \end{lstlisting}
    We use the \li{ravel} function to ensure that \li{EVU} is a flat array.
-   
+
    \item Notice that it is not necessary to iteratively update the policy function, as it is not needed
    to update the value functions. Thus, we need only compute the policy function once, after convergence
    of the value functions has been achieved. This is done in a manner similar to calculating
@@ -325,7 +326,7 @@ possibility.
    value of $w'$ where the policy function changes from zeros to ones (the optimal choice changes from remaining
    unemployed to accepting the job offer). We can calculate this as follows:
    \begin{lstlisting}
->>> wr_ind = np.argmin(np.diff(PSI), axis = 1)
+>>> wr_ind = np.argmax(np.diff(PSI), axis = 1)
 >>> wr = w[wr_ind]
    \end{lstlisting}
 
@@ -345,12 +346,12 @@ possibility.
 \label{fig:res_wage}
 \end{figure}
 
-In the previous problem, it was necessary to iterate on two value functions.  
-Consequently the convergence is relatively slow.  
+In the previous problem, it was necessary to iterate on two value functions.
+Consequently the convergence is relatively slow.
 We can improve upon this situation by using modified policy function iteration.
 
 \begin{problem}
-Solve the same problem, this time using modified policy function iteration with $15$ value function iterations 
+Solve the same problem, this time using modified policy function iteration with $15$ value function iterations
 within each policy iteration.  You should be able to re-use much of your code from the previous problem.
 
 Start off by initializing all of the same variables. Additionally, initialize your policy function array \li{PSI},
@@ -359,7 +360,7 @@ say
 >>> PSI = 2*np.ones((N,N))
 \end{lstlisting}
 
-Next comes the iteration. 
+Next comes the iteration.
 Essentially, the iteration will consist of an outer while-loop (which terminates once the 2-norm distance
 between successive policy functions passes below $10^{-9}$), and an inner for-loop (with $15$ loops).
 
@@ -373,10 +374,10 @@ time using the current policy function. This means the line of code
 is no longer valid, as it does not use the policy function. We must instead have
 \begin{lstlisting}
 >>> VU = uaw + beta*(MVE*PSI1 + MEVU*(1 - PSI1))
-\end{lstlisting} 
+\end{lstlisting}
 Why is this code correct?
 
-Finally, after exiting the for-loop, calculate the 2-norm distance between the old and the new policy function, 
+Finally, after exiting the for-loop, calculate the 2-norm distance between the old and the new policy function,
 and then update your old policy function, i.e.
 \begin{lstlisting}
 >>> PSI = PSI1
