@@ -179,6 +179,15 @@ def cauchy_formula(f, c, z0, t0, t1):
     integral in the function at any given `z0`. """
     return lambda z0: contour_int(lambda z: f(z) / (z - z0), c, t0, t1)
 
+if use_mayavi:
+    plot_real = plot_real_mayavi
+    plot_imag = plot_imag_mayavi
+    plot_both = plot_both_mayavi
+else:
+    plot_real = plot_real_matplotlib
+    plot_imag = plot_imag_matplotlib
+    plot_both = plot_both_matplotlib
+
 if __name__ == '__main__':
     p = np.poly1d([1, 0, 0, 0, 1])
     # use mayavi if possible.
