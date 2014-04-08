@@ -1,6 +1,6 @@
 \lab{Algorithms}{Multi-Armed Bandit Problems}{Multi-Armed Bandit Problems}
-\objective{This lesson explains Markov decision processes--
-specifically multi-armed bandit problems-- and how to solve them by
+\objective{This lesson explains Markov decision processes --
+specifically multi-armed bandit problems -- and how to solve them by
 Thompson Sampling. An application to web page experiments is addressed.}
 
 \section*{Markov Decision Processes}
@@ -15,7 +15,7 @@ A Markov Decision Process (MDP) involves the following elements:
 \item   A set of decision times,
 \item   A set of states,
 \item   A set of actions,
-\item   A set of rewards dependent on the state and action,
+\item   A set of rewards dependent on the state and action, and
 \item   Transition probabilities dependent on states and actions.
 \end{itemize}
 In this lab we will consider discrete time problems, so that our
@@ -34,24 +34,24 @@ Suppose there is a row of $N$ slot machines (``one-armed bandits")
 that each pays out with probability $p_i$, $i= 1,2,\ldots,N$,
 where the probabilities are unknown to the gambler.
 The gambler seeks to determine the sequence of levers to pull in
-order to maximize their winnings.
+order to maximize her winnings.
 
 Bandit problems have a wide range of applications.
 One can consider the ``arms" to be the different treatments in a
 clinical trial, the different forms of advertising a product,
 or the different research projects a company might invest in.
 
-We now formulate the multi-armed bandit problem.
-For simplicity we suppose there are $2$ arms, though the
+We now formulate the multi-armed bandit problem precisely.
+For simplicity, suppose there are $2$ arms, though the
 discussion is easily extended to $N$ arms.
-At each time $t= 1,2,\ldots$ one arm can be pulled.
-With unknown probability $p_i$, the $i$th arm gives
+In each time period $t= 1,2,\ldots$, one arm can be pulled.
+With unknown probability $p_i$, the $i$-th arm gives
 reward $1$ and with probability $1-p_i$ it gives reward $0$.
 Note we have now defined a set of decision times, actions, and rewards.
-We define the state to be the number of successful and unsuccessful
-pulls on each arm written
+We define the state to be a 4-tuple giving the number of successful and unsuccessful
+pulls on each arm up to that point, written as
 \begin{equation}\label{state}
-R(a_1,b_1,a_2,b_2)
+(a_1,b_1,a_2,b_2),
 \end{equation}
 where $a_i$ is the number of successful pulls on arm $i$ and $b_i$
 is the number of unsuccessful pulls on arm $i$.
@@ -61,16 +61,18 @@ information about the probabilities $p_i$.
 This trade-off is often referred to as exploring versus exploiting.
 In essence, while gaining rewards, we will also come up with
 estimates of the $p_i$ that improve our decision making.
-We will do so by Bayesian Updating.
+We will do so by Bayesian updating.
 
 \section*{Bayesian Updating}
 While a full exposition of Bayesian inference is well beyond the
 scope of this lab, the essential concepts are fairly straightforward.
 We recognize that we do not know the values of the $p_i$,
 but given our past history of successful and unsuccessful
-pulls we can say something about what range we think they might be in.
+pulls, we can say something about what range we think they might be in.
 This is different than guessing a specific value for the $p_i$.
-For example the value of $p_i$ might be represented by a curve
+Instead of specifying what we think is the most likely value of $p_i$, 
+we can encode our knowledge of and uncertainty about $p_i$ in a 
+probability distribution,
 like those seen in Figure \ref{fig:priors}.
 \begin{figure}
 
@@ -79,19 +81,22 @@ like those seen in Figure \ref{fig:priors}.
 \caption{Bayesian priors}
 \label{fig:priors}
 \end{figure}
-The curves are thought of as probability distributions.
-So if you have had $1$ success and $2$ failures, you might
-think that $p_i$ is around $\frac{1}{3} = \frac{1}{1+2}$.
+
+If you have had $1$ success and $2$ failures, you might
+think that the success probability 
+$p_i$ is around $\frac{1}{3}$.
 However, you have very little information at this point,
-so better yet you might represent your belief about $p_i$
+so rather than assuming the exact value for $p_i$, 
+you might represent your belief about $p_i$
 by the blue probability distribution in Figure \ref{fig:priors}.
 We call the distribution that describes our belief about $p_i$
-the prior distribution of $p_i$.  If we incorporate new information,
-we get a new distribution called the posterior distribution.
-The posterior distribution can also be thought of as a new prior
-distribution as we continue to collect information.
+the \emph{prior distribution} of $p_i$.  If we incorporate new information,
+we get a new distribution, called the \emph{posterior distribution}.
+As we collect even more information, the posterior distribution becomes 
+the new prior distribution. This framework allows us to fluidly incorporate
+new information as we seek to determine the value of $p_i$.
 
-As we get more information, the curve gets narrower.
+As we get more information, the probability curve gets narrower.
 In the figure, we see that the distributions have expected
 value of $1/3$ and become tighter around that value.
 This is fitting since the parameter values have success $\alpha$ one
@@ -100,22 +105,28 @@ more prior information.  If we need an estimate for $p_i$ we can use
 the expected value of our distribution corresponding to $p_i$.
 We will denote this estimate by $\overline{p_i}$.
 
-In this manner we approach the multi-armed bandit problem.
-We do not know the $p_i$ but each time we pull an arm, we update our distribution of where we think it might be.
-In particular we use a beta distribution to represent our opinion on what the $p_i$ are.
+We will use this Bayesian framework in our approach to the multi-armed bandit problem.
+We do not know the $p_i$, but each time we pull an arm, we update our distribution of 
+where we think it might be.
+In particular, we use a beta distribution for each $p_i$.
 A beta distribution is a continuous probability distribution on the interval $[0,1]$,
-which corresponds nicely to the possible values of the $p_i$.  Beta distributions have two parameters $a,b$.
-So in our problem the state \eqref{state} can be thought of as representing two beta distributions -- one for each $p_i$.
+which corresponds nicely to the possible values of the $p_i$.  Beta distributions have 
+two parameters (given by $\alpha$ and $\beta$ in the figure).
+
+In our problem, the state (given by \eqref{state}) can be thought of as representing two 
+beta distributions -- one for each $p_i$ with parameters $a_i$ and $b_i$.
 The details of the updating process are unimportant for now, except
-for this important property: the two parameters $a,b$ correspond exactly with successes and failures.
-So if we start with a distribution Beta$(a,b)$ and the next pull is success, our new distribution is
-Beta$(a+1,b)$ and if the next pull is a failure then the new distribution is Beta$(a,b+1)$.
-Notice this corresponds with the way our states evolve.
+for this important property: the two parameters for the beta distribution 
+correspond exactly with successes and failures. 
+So if we start with a prior distribution Beta$(a,b)$ and the next pull is success, 
+our posterior distribution is Beta$(a+1,b)$. If the next pull is a failure, however, then 
+the posterior distribution is Beta$(a,b+1)$.
+Observe how this corresponds with the way our state evolves.
 
 \section*{Simulation and Sampling in a Bayesian Framework}
 Along with the estimate $\overline{p_i}$, we can also compute many other useful
 quantities in our Bayesian problem via random sampling.  Essentially, we can take
-random draws from our prior distribution and estimate the mean, median, or other
+random draws from our distribution and estimate the mean, median, or other
 quantities based on the value of those quantities in the random sample.
 This is a very powerful concept that will be explored in more detail in future labs.
 
@@ -124,37 +135,39 @@ Write a function \li{sim\_data} that accepts an $n\times 2$ array, where each
 row represents the parameters of a beta distribution, and a positive integer $k$
 that represents the number of random draws to return.
 The function should return a $k\times n$ matrix where each row has a random sample
-from each of the $n$ arms.  This can be accomplished with ease using the SciPy function
-\li{scipy.random.beta}.
+from each of the $n$ arms.  This can be accomplished with ease using the NumPy function
+\li{numpy.random.beta}.
 \label{prob:simdata}
 \end{problem}
 
 \begin{problem}
 Suppose one of the arms in a bandit problem has the state (or prior distribution of $p_i$)
-$Beta(100,200)$ corresponding to $100$ successes and $200$ failures.
-Simulate 10,000 data points for the distribution $Beta(100,200)$.
+Beta$(100,200)$ corresponding to $100$ successes and $200$ failures.
+Simulate 10,000 data points for the distribution Beta$(100,200)$.
 Compute $\overline{p_i}$ by finding the mean of the simulated points.
 Compute the median.  Also compute the $95$th percentile using the command
-\li{scipy.stats.mstats.mquantiles(data, .95)} where ``data'' is the array
+\li{scipy.stats.mstats.mquantiles(data, .95)} where \li{data} is the array
 containing the 10,000 simulated data points.
 \end{problem}
 
 \section*{Direct Dynamic Programming Solution}
-This framework lends itself well to a dynamic programming type solutions.
-Rather than just letting $R(a_1,b_1,a_2,b_2)$ represent the state, consider
-it as the value function, meaning the optimal expected value that can be achieved
-starting from this state.  Then we have
+This framework lends itself well to a dynamic programming type solution.
+We introduce the value function $R$ that depends on the state, and gives
+the optimal expected value that can be achieved
+starting from the state.  Then we have
 \begin{equation}
 \label{recurs}
 \begin{aligned}
 R(a_1,b_1,&a_2,b_2) =\\
- \max&\left\{\overline{p}_1\cdot[1 + \beta R(a_1+1,b_1,a_2,b_2)] + (1-\overline{p}_1)\beta R(a_1,b_1+1,a_2,b_2)\right. ,\\
-&  \left.\overline{p}_2\cdot[1 + \beta R(a_1,b_1,a_2+1,b_2)] + (1-\overline{p}_2)\beta R(a_1,b_1,a_2,b_2+1)\right\}
+ \max&\left\{\overline{p}_1\cdot[1 + \beta R(a_1+1,b_1,a_2,b_2)] + 
+ (1-\overline{p}_1)\beta R(a_1,b_1+1,a_2,b_2)\right. ,\\
+&  \left.\overline{p}_2\cdot[1 + \beta R(a_1,b_1,a_2+1,b_2)] + 
+(1-\overline{p}_2)\beta R(a_1,b_1,a_2,b_2+1)\right\}
 \end{aligned}
 \end{equation}
 The two terms in the maximization represent the expected value of pulling lever
-one or lever two respectively.  For example, if lever one is pulled it is expected
-to yield a reward of 1 with probability $\overline{p_1}$.
+one or lever two respectively.  For example, by pulling lever one, we expect
+to get a reward of 1 with probability $\overline{p_1}$.
 We must also account for the expected value of future rewards
 (discounted by $\beta$) moving to a state with one more success on arm 1.
 With probability $1-\overline{p_1}$, lever one does not give a reward and so
@@ -162,7 +175,7 @@ rewards are simply the discounted expected reward starting in the next state.
 
 Notice that the expressions inside of $R(\cdot)$ on the right side have parameter
 values that add to one greater than the $R(\cdot)$ on the left side.
-So for example if we want to compute $R(1,1,1,1)$ we need to know
+So if we want to compute $R(1,1,1,1)$ we need to know
 $R(2,1,1,1)$, $R(1,2,1,1)$, $R(1,1,2,1)$ and $R(1,1,1,2)$
 (all possible combinations of parameters that add up to 5).
 To compute these, we need to know the reward corresponding to all possible
