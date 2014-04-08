@@ -401,7 +401,9 @@ repeat the process for the next 50 visits (i.e. recompute the pulls,
 visit the web pages, and update the state of each arm).
 
 After these 100 total visits,
-the function should return the resulting $n\times 2$ array giving the states of the web pages.
+the function should return the resulting $n\times 2$ array giving the states of the web pages,
+as well as the length $n$ array giving the number of pulls for each arm used for the final 
+50 visits.
 \end{problem}
 
 In this manner we continue from day to day, always updating the state of each arm
@@ -445,11 +447,11 @@ The value remaining can be computed using the following code:
 \begin{lstlisting}
 import scipy as sp
 def val_remaining(data,prob):
-    champ_ind = sp.argmax(prob)
-    thetaM = sp.amax(data,1)
+    champ_ind = np.argmax(prob)
+    thetaM = np.amax(data,1)
     valrem = (thetaM - data[:,champ_ind])/data[:,champ_ind]
     pvr = sp.stats.mstats.mquantiles(valrem,.95)
-    return valrem,pvr
+    return pvr
 \end{lstlisting}
 where \li{data} is simulated using the \li{sim_data} function and
 and \li{prob} is a vector containing the probabilities that each arm is optimal
@@ -459,20 +461,65 @@ and \li{prob} is a vector containing the probabilities that each arm is optimal
 Write a function \li{sim_experiment} that simulates the problem described above, 
 using the stopping criteria described above.
 The function should accept a vector of the true probabilities of the arms.
-It should use the \li{sim_day} function to simulate each day, and
-continue until the stopping criteria are met.
 
-The function should return the state of each arm (i.e. an $n$ by $2$ matrix with the
-successes and failures of each arm), a matrix that contains the weights assigned to
-each arm each day, the index of the winning variation, and the number of days it took to converge.
+Your code should be formatted as follows.
+First, initialize the state vector to reflect our Beta$(1,1)$ prior:
+\begin{lstlisting}
+>>> state = np.ones((n,2))
+\end{lstlisting}
+(here \li{n} is the number of arms, as usual).
+It will also be helpful to have a list \li{pull_list} that stores
+the pull vectors from each day of simulation. 
+\begin{lstlisting}
+>>> pull_list = []
+\end{lstlisting}
 
-Your code should have a while loop that checks for the stopping criteria after each day.
+Now we are ready to launch into the iteration.
+Write a while-loop that checks for the stopping criteria.
 It might look something like this:
 \begin{lstlisting}
-while ((delta < p_tol) and (champ_cvr/100. < v_quant)) or days < 14:
+while (days<14) or (max_p <= .95 and max_pbar/100 <= pvr):
 \end{lstlisting}
-where \li{delta} is the largest weight for the current day, meaning if there were two arms and you determined the weights to be .9 and .1, then delta would be .9.  We stop when the largest weight is greater than .95, so \li{p_tol} is .95.  The variables \li{champ_cvr} and \li{v_quant} describe the stop mechanism that accounts for the potential value remaining.  First, \li{champ_cvr} is the conversion rate of the current best arm over the course of the experiment.  So if it has been used 100 times with 4 successes, then \li{champ_cvr} would be .04.  The variable \li{v_quant} is the potential value remaining, i.e. the $95$th percentile of the value remaining distribution described above.  The variable \li{pvr} can be computed using the \li{val_remaining} function given above.
-The \li{days} variable simply keeps track of how many days the experiment has been running.
+Here, \li{days} is a count variable keeping track of how many days (iterations) the experiment
+has been running. The variable \li{max_p} gives the maximal entry of the vector of
+probabilities returned by \li{arm_probs}. The variable \li{max_pbar} gives the value
+$a_i/(a_i+b_i)$, where $i$ is the index corresponding to the arm with the highest
+probability of being the best arm. Finally, \li{pvr} is the value returned by
+\li{val_remaining}. You will need to initialize these four variables to appropriate
+values before the while loop.
+
+In each iteration, run your \li{sim_day} function to simulate one day of the experiment:
+\begin{lstlisting}
+>>> state, pulls = sim_day(cvr, state)
+\end{lstlisting}
+We next need to update our stopping criteria variables.
+As described above, simulate data from the current state, and calculate the
+probability vector of each arm being the best:
+\begin{lstlisting}
+>>> data = sim_data(state, n_sim)
+>>> probs = arm_probs(data)
+\end{lstlisting}
+Compute the maximum probability, as well as the corresponding maximal $\bar{p_i}$:
+\begin{lstlisting}
+>>> max_ind = np.argmax(probs)
+>>> max_prob = probs[max_ind]
+>>> max_pbar = state[max_ind, 0]/(state[max_ind,:].sum())
+\end{lstlisting}
+Finally, compute the potential value remaining:
+\begin{lstlisting}
+>>> pvr = val_remaining(data, probs)
+\end{lstlisting}
+Don't forget to increment your \li{days} variable, as well as store the pulls from
+that day:
+\begin{lstlisting}
+>>> days += 1
+>>> pull_list.append(pulls)
+\end{lstlisting}
+
+Once the iterations terminate, return the state vector (\li{state}), 
+return the pulls from each day in the form of an array (\li{np.array(pull_list)}),
+return the optimal arm (given by \li{max_ind}), and finally the total amount
+of days that the simulation ran (\li{days}).
 \end{problem}
 
 Now let's see how our bandit performs with specific examples.
@@ -480,23 +527,31 @@ Now let's see how our bandit performs with specific examples.
 \begin{problem}
 Suppose a web page has two variations and the true CvR of the original is
 $.04$ and the true CvR of the new variation is $.05$.
-Create a plot similar to \ref{fig:weights1} that shows how the weights
-assigned to the pages changes from day to day until the optimal page is chosen and the experiment stops.
+Create a plot similar to \ref{fig:weights1} that shows how the proportion of visits
+assigned to the pages changes from day to day until the optimal page is chosen and the experiment 
+stops:
+\begin{lstlisting}
+>>> cvr = np.array([.04,.05])
+>>> n = cvr.size
+>>> state, pulls, max_ind, days = sim_experiment(cvr)
+>>> d = np.arange(days)
+>>> for i in xrange(n):
+>>>     plt.plot(d, pulls[:,i])
+>>> plt.show()
+\end{lstlisting}
 
-Next run the same simulation 200 times and keep track of how many days
-the experiment took in each case.  Create a histogram that shows the
+Next, run the same simulation 200 times and keep track of how many days
+the experiment took in each case in an array called \li{dayvec}.
+Create a histogram that shows the
 number of days it takes to complete the experiment.
 The following code will create such a histogram:
 \begin{lstlisting}
-import scipy as sp
-from matplotlib import pyplot as plt
-hist, bins = sp.histogram(dayvec, bins = 12)
-width = (bins[1]-bins[0])
-center = (bins[:-1]+bins[1:]) / 2
-plt.bar(center, hist, align = 'center', width = width, color = 'g')
-plt.show()
+>>> hist, bins = sp.histogram(dayvec, bins = 12)
+>>> width = (bins[1]-bins[0])
+>>> center = (bins[:-1]+bins[1:]) / 2
+>>> plt.bar(center, hist, align = 'center', width = width, color = 'g')
+>>> plt.show()
 \end{lstlisting}
-where \li{dayvec} is a vector containing the number of days each simulation took to complete.
 Also track which arm is determined to be optimal in each simulation.
 What percent of the time did the bandit find the optimal arm?
 
