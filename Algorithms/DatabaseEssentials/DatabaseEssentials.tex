@@ -1,8 +1,64 @@
-\lab{Algoirthms}{Database Essentials}{Database Essentials}
-\objective{Familiarization with MySQL prompt and basic queries}
-\label{lab:DbEssentials}
+\lab{Algorithms}{SQL and Relational Databases}{SQL}
+\objective{Understand concepts of a relational database and the fundamentals of the SQL language via SQLite.}
+\label{lab:sql_rdb}
 
-\section*{Introduction to MySQL}
+When working with large amounts of data, it is important to be able to quickly find and retrieve interesting information.
+Fortunately, there is a way to handle such massive amounts of data in a reasonably efficient way.
+A database allows us to store and retrieve data very quickly.
+These databases are managed by a \emph{database management system}, or DBMS.
+The DBMS is software that allows users to interact directly with the database.
+
+\section*{Relational Databases}
+A \emph{relational} database is paradigm for organizing data inside of a database.
+This paradigm assumes that all data can be represented as a tuple of information.
+A table, or \emph{relation}, is simply a set of tuples.
+Each table has a \emph{schema} that defines the attributes of a tuple.
+In the relational paradigm, there must be at least one column that can act as a primary key.
+This can uniquely identify each tuple, or row, of the table.
+It is common to use an ID number or other such unique information for the primary key.
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{rdb_table.pdf}
+\caption{Elements of a relation.}
+\label{fig:relation}
+\end{figure}
+
+One important feature of databases are transactions.
+Most relational databases are transactional databases.
+The best way to conceptualize this is imagine that your database is like a bank.
+Your connection the database is analogous to the bank teller.
+When you make a deposit, or series of deposits, you are making a transaction.
+This transaction should have certain properties.
+These properties are succinctly captured in the acronym of ACID.
+ACID compliance is an important feature transactional databases.
+It describes the properties that a good database should have: atomic, consistent, isolation, and durable.
+\begin{description}
+\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction, no changes are made to the database.  Changes are only made during error-free transactions.  This is especially useful if a transaction is interrupted due to power failure, or other type of unforeseen error.
+\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction satisfies all rules and constraints of the database.
+\item[Isolation.] The final effect of concurrent transactions it equivalent to the final effect of each transaction in serial.  This essentially means that if we run perform several transactions in parallel, none of the transactions can depend on each other.
+\item[Durable.] Once a transaction is committed, the changes are permanent regardless of any errors that may happen later.
+\end{description}
+
+\section*{Introduction to SQL}
+Most common DBMSs use a variant of the SQL language to interact with the database.
+SQL is an acronym for \emph{Structured Query Language}.
+While in general, SQL is not portable across databases, we will focus on the parts of SQL that are relatively common.
+SQL consists of blocks of code called statements.
+Each statement is made up of clauses which may or may not require predicates.
+Predicates specify conditions that can limit the effect of a clause.
+A SQL statement may either query (read-only), update (read-write), or insert (write only) information in the database.
+
+Let's look at an example SQL statement
+\begin{lstlisting}[language=SQL]
+SELECT * FROM table WHERE id=3+1 AND name='Bob';
+\end{lstlisting}
+This statement includes a SELECT clause and a WHERE clause.
+The WHERE clause contains two predicates: \texttt{id=3+1} and \texttt{name='Bob'}
+These two predicates limit the effect of the SELECT clause because any resulting tuples in the table must satisfy both conditions.
+This entire statement is classified as a query since it does not modify the database at all.
+
+
 
 Databases are an essential part of computation.  We will learn how to use MySQL databases in this section.  MySQL is open-source software that is easy to use and free.  It also works well with Python.  All of this makes it a good choice for our applications.  Other options exist, but most of what we learn here will translate easily to other platforms.
 
@@ -10,15 +66,8 @@ We do not explain installation and setup of MySQL here.  See an appendix (TODO: 
 
 MySQL works by running a server that keeps track of databases and listens for queries.  There are several ways to interact with the server.  In this section, we will be using the MySQL terminal launched from the command line.  Let's begin by starting the server.  In your command prompt, navigate to the location of your MySQL installation. Now, type
 
-\begin{lstlisting}[style=ShellInput]
-/bin/mysqld
-\end{lstlisting}
-
 Now that we are sure that the server is on, let's start the MySQL terminal so that we can talk to it.  From the command prompt, type
 
-\begin{lstlisting}[style=ShellInput]
-mysql -u root -p
-\end{lstlisting}
 
 You should get a new prompt that looks like this
 
