@@ -13,7 +13,7 @@ y'' &=& f(x,y,y'), \,\, a \leq x \leq b, \\
 y(a) &=& \alpha, \\
 y'(a) &=& t. 
 \end{eqnarray*}
-The goal is to determine an  appropriate value $t$, so that the solution of the ivp is also a solution of the boundary value problem. 
+The goal is to determine an  appropriate value $t$, so that the solution of the IVP is also a solution of the boundary value problem. 
 
 Suppose $y(x,t)$ be the solution of the initial value problem given above. We wish to find the value of $t$ so that 
 $y(b,t) - \beta = 0$. 
@@ -39,8 +39,7 @@ y(3 \pi/4) &= -\frac{1+3\sqrt{2}}{2}.
 
 % The following code employs the secant method to find the initial slope $y'(0) = t$ of a solution of \ref{bvp1}. The numerical solution may then be computed and plotted using \li{dopri5} and \li{matplotlib}. % \ref{bvp1} has an exact solution $y(x) = \cos(2x) + (1/2)\sin(2x) -3\sin(x)$.
 
-Recall that the necessary dependencies are \li{numpy} and the \li{ode} class from \newline \li{scipy.integrate}. The first step to finding the initial slope $y'(0) = t$ is to define 
-the ode as a first order system of differential equations, and to define the necessary parameters:
+Recall that the necessary dependencies are \li{numpy} and the \li{ode} class from \newline \li{scipy.integrate}. The first step to finding the initial slope $y'(0) = t$ is to define the ODE as a first order system of differential equations, and to define the necessary parameters:
 \begin{lstlisting}
 def ode_f(x,y): return numpy.array([y[1] , -4.*y[0] - 9.*numpy.sin(x)])
 
@@ -56,7 +55,6 @@ example.set_initial_value(np.array([alpha,t0]),a)
 y0 = example.integrate(b)[0]
 \end{lstlisting}
 
-
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{Fig1.pdf}
@@ -64,9 +62,7 @@ y0 = example.integrate(b)[0]
 \label{shooting:prob2}
 \end{figure}
 
-
-
-\begin{problem} Use the secant method to solve the bvp
+\begin{problem} Use the secant method to solve the BVP
 \begin{equation*}
 \begin{split}
 y'' &= -4y -9\sin(x), \,\, x \in [0,3\pi/4],\\
@@ -74,11 +70,10 @@ y(0) &= 1, \\
 y(3\pi/4) &=-\frac{1+3\sqrt{2}}{2}.
 \end{split}
 \end{equation*}
-When you code the secant method, be sure to include a maximum number of iterations, as well as an appropriate stopping criteria. For example, if $|y(b,t_n)-\beta|<10^{-8},$ you have likely found a solution. 
+When you code the secant method, be sure to include a maximum number of iterations, as well as an appropriate stopping criteria. For example, if $|y(b,t_n)-\beta|<10^{-8},$ you have likely found a solution for $t$. With $t$ calculated refomulate the BVP into an IVP using $t$ in the new initial conditions to solve the system.
 \end{problem}
 
-
-\begin{problem} Appropriately defined initial value problems will usually have a unique solution. Boundary value problems are not so straightforward; they may have no solution or they may have several. You may have to determine which solution is physically interesting. The following bvp has at least two solutions. Using the secant method, find both numerical solutions and their initial slopes. (Their plots are given in Figure \eqref{shooting:prob2}.) What initial values $t_0, t_1$ did you use to find them?
+\begin{problem} Appropriately defined initial value problems will usually have a unique solution. Boundary value problems are not so straightforward; they may have no solution or they may have several. You may have to determine which solution is physically interesting. The following BVP has at least two solutions. Using the secant method, find both numerical solutions and their initial slopes. (Their plots are given in Figure \eqref{shooting:prob2}.) What initial values of $t_0$ and $t_1$ did you use to find them?
 \begin{equation*}
 \begin{split}
 y'' &= -4y -9\sin(x), \,\, x \in [0,\pi],\\
@@ -86,11 +81,9 @@ y(0) &= 1, \\
 y(\pi) &=1.
 \end{split}
 \end{equation*}
-
 \end{problem}
 
-
-Let us consider how to solve for $\frac{d}{dt} y(b,t)$. We will assume that the function $y(x,t)$ can be differentiated with respect to $x$ and $t$ in any order, and let  $z(x,t) = \frac{d}{dt} y(x,t).$ Using the chain rule, we obtain 
+Now let us consider how to solve for $\frac{d}{dt} y(b,t)$ so that we can have a better approximation for it in our iterative method than just a finite difference. We will assume that the function $y(x,t)$ can be differentiated with respect to $x$ and $t$ in any order, and let  $z(x,t) = \frac{d}{dt} y(x,t).$ Using the chain rule, we obtain 
 \begin{eqnarray*}
 z'' = \frac{d}{dt} y''(x,t) &=& \frac{\partial f}{\partial y} (x,y(x,t),y'(x,t)) \cdot \frac{dy}{dt}(x,t) ,\\
 &+& \frac{\partial f}{\partial y'} (x,y(x,t),y'(x,t)) \cdot \frac{dy'}{dt}(x,t),
@@ -102,7 +95,7 @@ z'' &=& \frac{\partial f}{\partial y} (x,y,y') z + \frac{\partial f}{\partial y'
  z(a) &=& 0, z'(a) = 1.
 \end{eqnarray*}
 
-To use Newton's method, the (coupled) IVPs for $y$ and $z$ must be solved simultaneously. The iterative method then becomes 
+To use Newton's method, the coupled IVPs for $y$ and $z$ must be solved simultaneously. The iterative method then becomes 
 \[
 t_{n+1} = t_n - \frac{ y(b,t_n) - \beta}{z(b,t_n)}, \,\, n = 0,1,\hdots
 .\]
@@ -150,7 +143,7 @@ t_{n+1} = t_n - \frac{ y(b,t_n) - \beta}{z(b,t_n)}, \,\, n = 0,1,\hdots
 % \end{problem}
 
 \begin{problem}
-Use Newton's method to solve the bvp
+Use Newton's method to solve the BVP
 \begin{equation*}
 \begin{split}
 y'' &= 3 + \frac{2y}{x^2}, \,\, x \in [1,e],\\
@@ -158,7 +151,8 @@ y(1) &= 6, \\
 y(e) &= e^2 + 6/e.
 \end{split}
 \end{equation*}
-Plot your solution. What is an appropriate initial guess? 
+Plot your solution. What is an appropriate initial guess?
+Hint: To solve for y and z simultaneously you will need to use a 4 tuple to represent the dependent variables and their derivatives.
 \end{problem}
 
 \pagebreak
@@ -216,8 +210,6 @@ Thus we have the coupled system of differential equations
 v' &= -g\sin{\theta} -  k v^2/m,\nonumber \\
 \theta' &= -g \cos{\theta}/v. \nonumber
 \end{align}
-
-
 The independent variable $t$ used above is unessential to our problem. If we assume that $t$ is an smooth invertible function of $x$ ($t = t(x)$), then we obtain 
 \begin{align*}
 \frac{dy}{dx} &= \frac{dy}{dt}\frac{dt}{dx} ,\\
@@ -230,7 +222,6 @@ Thus our system of differential equations becomes
 \frac{d\theta}{dx} &= -\frac{g}{v^2}, \label{cannon_DEs}
 \end{align}
 where $\nu = k/m.$
-
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{Cannon_with_AirResistance.pdf}
@@ -242,7 +233,7 @@ where $\nu = k/m.$
 \begin{problem}[The Cannon Problem]
 Consider the following scenario: suppose a projectile is fired from a cannon with velocity $35\text{ m/s}^2.$ At what angle $\theta(0)$ should it be fired to land at a distance of $195\text{ m}$? 
 
-There should be two initial angles $\theta(0)$ that produce a solution for this bvp. Use the secant method to numerically compute and then plot both trajectories.
+There should be two initial angles $\theta(0)$ that produce a solution for this BVP. Use the secant method to numerically compute and then plot both trajectories.
 \begin{align*}
 \frac{dy}{dx} &= \tan {\theta} ,\\
 \frac{dv}{dx} &= -\frac{g \sin{\theta} + \nu v^2}{v \cos{\theta}},\\
@@ -253,14 +244,9 @@ v(0) &= 45 \text{ m/s}^2.\\
 ($g = 9.8067\text{ m/s}^2.$) Find both solutions for this boundary value problem when $\nu = .0003$. Compare with the solutions when $\nu = 0.$ Hint: This is a system of three first order differential equations, and so our secant method requires a slight modification. Define an appropriate function $f(t),$ and then use Newton's method.
 \end{problem}
 
-
 % \begin{problem}
 % Use the secant method to solve the boundary value problem 
 % 
 % \end{problem}
-
-
-
-
 
 
