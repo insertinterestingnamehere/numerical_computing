@@ -71,7 +71,7 @@ def eatCake(beta, N, Wmax=1., T=None, finite=True, plot=False):
     return values, psi
 
 #Problem 1
-values, psi = eatCake(.9, 4, T = 100, plot=True)
+values, psi = eatCake(.9, 100, T = 10, plot=True)
 
 #Problem 2
 values, psi = eatCake(.9, 100, T=1000)
