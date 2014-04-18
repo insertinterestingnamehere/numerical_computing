@@ -50,6 +50,12 @@ SQL consists of blocks of code called statements.
 Each statement is made up of clauses which may or may not require predicates.
 Predicates specify conditions that can limit the effect of a clause.
 
+\begin{info}
+SQL commands are often written in all caps to help distinguish them from the other parts of the query.
+It is only a matter of style.
+SQLite, along with most other database managers, are case insensitive.
+\end{info}
+
 Let's look at an example SQL statement
 \begin{lstlisting}[language=SQL]
 SELECT * FROM table WHERE id=3+1 AND name='Bob';
@@ -71,7 +77,6 @@ Keyword & Syntax \\
 \hline
 \lsql{CREATE TABLE} & \lsql{CREATE TABLE <table> (<col1> <type>, <col2> <type>, ...);} \\
 \lsql{DROP TABLE} & \lsql{DROP TABLE <table>;} \\
-\lsql{ALTER TABLE} & \lsql{ALTER TABLE <table> [ADD/DROP] <col>} \\
 \lsql{CREATE INDEX} & \lsql{CREATE INDEX <name> ON <table> (<col>)} \\
 \lsql{DROP INDEX} & \lsql{DROP INDEX <name>} \\
 \hline
@@ -146,6 +151,7 @@ Python Type & SQLite Type \\
 \label{table:typemap}
 \end{table}
 
+\subsection*{Creating and Dropping Tables}
 Let's create a table.
 \begin{lstlisting}
 result = cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
@@ -163,6 +169,14 @@ StudentID & Name & SSN & MajorCode \\
 
 The arguments in parentheses are the column names followed by the data type that entries in that column will be.  The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.  The \lsql{NOT NULL} command is a \emph{constraint} on the StudentID column.  It requires that all records in the table have a student ID.
 
+\begin{info}
+SQLite does not enforce types on columns.
+Just like Python, SQLite is dynamically typed.
+However, most other database systems strictly enforce column types.
+It is a good idea to conform to the column types.
+\end{info}
+
+
 Note that each command that we execute returns a another cursor object.  We can use the fetch objects to look at any results of the previous command.  The result is formally known as the \emph{result set}.  If you use \li{result.fetchall()}, you will see an empty list.  That is because the create table command does not return a result set.
 
 Now we want to build a relation between students and the courses they've had and their grades in those courses.
@@ -177,50 +191,164 @@ The second table will be called CourseInfo and have columns called CourseID and 
 \label{prob:new_tables}
 \end{problem}
 
-
-
-\subsection*{Inserting Data}
-In this section we will insert data into the tables that we have created.  First we will show how to manually add data using the {\tt INSERT} command.  {\tt INSERT} requires that we specify which table that we wish to modify and the values for each column.  For example
-
+We can also destroy tables using the \lsql{DROP TABLE} command.
 \begin{lstlisting}
-mysql> INSERT INTO student_information VALUES(55, "John Smith", 372897382, 2);
-Query OK, 1 row affected (0.20 sec)
+cur.execute("CREATE TABLE test_table (id int, name text);")
+\end{lstlisting}
+We can delete the table by dropping it.
+\begin{lstlisting}
+\cur.execute("DROP TABLE test_table;")
+\end{lstlisting}
+If a table doesn't exist, an exception will be raised.
+We can tell the database to drop the table only if it really exists by using \lsql{DROP TABLE IF EXISTS test_table;}.
+
+\subsection*{Inserting and Removing Data}
+Let's insert some data into our new tables.
+We can add rows to tables using the \lsql{INSERT INTO} command.
+\begin{lstlisting}
+cur.execute("INSERT INTO student_information VALUES(55, 'John Smith', 372897382, 2);")
+\end{lstlisting}
+After running this statement, we will have the table in Table \ref{table:student_information1}.
+\begin{table}
+\begin{tabular}{|l|l|l|l|}
+\hline
+StudentID & Name & SSN & MajorCode \\
+\hline
+55 & John Smith & 372897382 & 2 \\
+\hline
+\end{tabular}
+\caption{student\_information}
+\label{table:student_information1}
+\end{table}
+
+Note that SQLite will assume that values match sequentially with the schema of the table.
+We can also specify the schema of the table to use in the mapping of the values.
+\begin{lstlisting}
+cur.execute("INSERT INTO student_information(MajorCode, Name, SSN, StudentID)  VALUES(55, 'John Smith', 372897382, 2);")
+\end{lstlisting}
+This will map the value 55 to MajorCode and the value 2 to StudentID.  This can be useful sometimes.
+
+We may remove rows from a table using the \lsql{DELETE FROM} command.
+\begin{lstlisting}
+cur.execute("DELETE FROM student_information WHERE MajorCode=55;")
 \end{lstlisting}
 
-We may also remove the line we just inserted using the {\tt DELETE} command.
+\begin{warn}
+\emph{\textbf{Never}} use Python's string operations to construct a SQL query.
+It is extremely insecure and is an easy target for a well known type of database called a SQL injection attack.
 
+Parameter substitution can be used to construct dynamic queries.
+In the simplest way, it involves using a `?' character whenever you want to use a value and providing a sequence of values as a second argument to \li{execute()}.
 \begin{lstlisting}
-
-mysql> DELETE FROM student_information WHERE StudentID=55;
-Query OK, 1 row affected (0.16 sec)
-
+statment = "INSERT INTO student_information VALUES(?, ?, ?, ?);"
+values = (55, 'John Smith', 372897382, 2)
+cur.execute(statement, values)
 \end{lstlisting}
-
-These commands are useful for table maintenance or where it may be automated, but MySQL is a very powerful tool for dealing with large amounts of data.  Manually inserting and deleting in such a table is ornerous in even simple cases and essentially impossible for a moderately sized table.  If we have some data in a file on our computer, we may use the {\tt LOAD} command to automatically move it into our database.
-
-\begin{lstlisting}
-
-mysql> LOAD DATA LOCAL INFILE "./students.dat" INTO TABLE student_information FIELDS TERMINATED BY ",";
-Query OK, 10 rows affected (0.07 sec)
-
-\end{lstlisting}
-
-{\tt LOCAL INFILE} specifies that we are a loading file from a location on our local machine.  We then specify the path to the file and which table to load the data into.  Finally, we specify what character separates the columns.  Even for large files this operation moves very fast.
+\end{warn}
 
 \begin{problem}
+The ICD is a large collection of codes used to classify any diagnosis that a doctor would make.
+When someone goes to the hospital or doctors office, their visit will be recorded using these codes.
+Insurance companies, the government, and researchers find this data useful.
+The data file provided to you has simulated health histories for one million persons.
+Each line has columns for identification number, gender, age followed by ICD-9 codes of various quantities.
+Create a new database with a single table to store all the simulated data.
 
-Download students.dat, class\_info.dat, classes.dat, and major\_info.dat and use the {\tt LOAD} command to insert the data in each into student\_information, ClassInfo, student\_classes and MajorInfo respectively.
-
+Because of the volume of data, it is highly recommended the \li{executemany()} method of the cursor.
+It will be about twice as fast as using an \li{execute()} for each line of the CSV file.
+\label{prob:icd9tables}
 \end{problem}
 
 \begin{problem}
+Create the following tables in the same database you created in Problem \ref{prob:icd9tables}.
 
-Using python, write a program that will accepts a number of rows and returns a 10 column matrix with the specified number of rows and write it to a file with each column separated by commas.  The first column should be in ascending numeric order, but the others should have random numbers in them.  Generate matrices with 100, 1000, 10000, and 100000 rows.  Load each into a different table in a new database and time the load operation.  How does the time increase?
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+StudentID & Name & MajorCode \\
+\hline
+401767594 & Michelle Fernandez & 1 \\
+678665086 & Gilbert Chapman & 1 \\
+553725811 & Roberta Cook & 2 \\
+886308195 & Rene Cross & 3 \\
+103066521 & Cameron Kim & 4 \\
+821568627 & Mercedes Hall & 3 \\
+206208438 & Kristopher Tran & 2 \\
+341324754 & Cassandra Holland & 1 \\
+262019426 & Alfonso Phelps & 3 \\
+622665098 & Sammy Burke &2 \\
+\hline
+\end{tabular}
+\caption{students}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+ID & Major \\
+\hline
+1 & Math \\
+2 & Science \\
+3 & Writing \\
+4 & Art \\
+\hline
+\end{tabular}
+\caption{majors}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|l|}
+\hline
+StudentID & ClassID & Grade \\
+\hline
+401767594 & 4 & C \\
+401767594 & 3 & B- \\
+678665086 & 4 & A+ \\
+678665086 & 3 & A+ \\
+553725811 & 2 & C \\
+678665086 & 1 & B \\
+886308195 & 1 & A \\
+103066521 & 2 & C \\
+103066521 & 3 & C- \\
+821568627 & 4 & D \\
+821568627 & 2 & A+ \\
+821568627 & 1 & B \\
+206208438 & 2 & A \\
+206208438 & 1 & C+ \\
+341324754 & 2 & D- \\
+341324754 & 1 & A- \\
+103066521 & 4 & A \\
+262019426 & 2 & B \\
+262019426 & 3 & C \\
+6226650980 & 1 & A \\
+622665098 & 2 & A- \\
+\hline
+\end{tabular}
+\caption{grades}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|l|l|}
+\hline
+ClassID & Name \\
+\hline
+1 & Calculus \\
+2 & English \\
+3 & Pottery \\
+4 & History \\
+\hline
+\end{tabular}
+\caption{classes}
+\end{table}
 
 \end{problem}
 
+
+\subsection*{Selecting Data From Tables}
+We can select
+
+%-----------------------------------------------------------
 \section{Querying and Joining Tables}
-
 Now that we have loaded data in the form of our student database we will learn to query and join the tables.  The first command that we will use is {\tt SELECT}, which returns specified rows of a table.  For example
 
 \begin{lstlisting}
