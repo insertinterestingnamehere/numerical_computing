@@ -60,7 +60,7 @@ These two predicates limit the effect of the SELECT clause because any resulting
 This entire statement is classified as a query since it does not modify the database at all.
 
 SQL has several classes of statements.
-The three main classes we will cover in this lab are: schema (Table \ref{table:sql-schema}), data (Table \ref{table:sql-data}), and data-change (Table \ref{table:sql-data_change}).
+The two main classes we will cover in this lab are schema (Table \ref{table:sql-schema}) and data manipulation (Table \ref{table:sql-data_manip}).
 We will give you a simplified description of each command and its syntax.
 You are encouraged to look up the full syntax outside of this lab.
  
@@ -71,6 +71,9 @@ Keyword & Syntax \\
 \hline
 \lsql{CREATE TABLE} & \lsql{CREATE TABLE <table> (<col1> <type>, <col2> <type>, ...);} \\
 \lsql{DROP TABLE} & \lsql{DROP TABLE <table>;} \\
+\lsql{ALTER TABLE} & \lsql{ALTER TABLE <table> [ADD/DROP] <col>} \\
+\lsql{CREATE INDEX} & \lsql{CREATE INDEX <name> ON <table> (<col>)} \\
+\lsql{DROP INDEX} & \lsql{DROP INDEX <name>} \\
 \hline
 \end{tabular}
 \caption{The SQL Schema commands}
@@ -82,110 +85,101 @@ Keyword & Syntax \\
 \hline
 Keyword & Syntax \\
 \hline
-\lsql{SELECT} & \lsql{SELECT <attributes> FROM <table>} \\
-\hline
-\end{tabular}
-\caption{The SQL Data commands}
-\label{table:sql-data}
-\end{table}
-
-\begin{table}
-\begin{tabular}{|l|l|}
-\hline
-Keyword & Syntax \\
-\hline
-\lsql{INSERT INTO} & \lsql{INSERT INTO <table> (<col1>, <col2>, ...) VALUES (<value1>, <value2>, ...)} \\
+\lsql{INSERT INTO} & \lsql{INSERT INTO <table> <attributes> VALUES (<value1>, <value2>, ...)} \\
+\lsql{UPDATE} & \lsql{UPDATE <table> SET (<col1>=<val1>, <col2>=<val2>, ...) WHERE <condition>} \\
+\lsql{DELETE} & \lsql{DELETE FROM <table> WHERE <condition>} \\
+\lsql{SELECT} & \lsql{SELECT <attributes> FROM <table> WHERE <condition>} \\
 \hline
 \end{tabular}
 \caption{The SQL Data Manipulation commands}
-\label{table:sql-data_change}
+\label{table:sql-data_manip}
 \end{table}
 
-
-
-
-
-
-\section*{Basic Commands in MySQL}
-
-\subsection{Creating Databases and Tables}
-
-MySQL can store muliple databases, and each database will have several tables.  To see the databases in MySQL, we use the {\tt SHOW DATABASES;} command.
-
+\section*{SQL in Python}
+Python has built-in support for SQLite databases using the standard library.
+Let's open a database called \texttt{test1}.
 \begin{lstlisting}
+import sqlite3 as sql
+db = sql.connect("test1")
+\end{lstlisting}
+The \li{connect()} function is used to connect to a database.
+If it does not already exist, then a new database will be created using string passed as the argument.
+The new database was created as a file in the current working directory.
+If we wanted an in-memory database, we would call \li{sql.connect(``:memory:'')}.
 
-mysql> SHOW DATABASES;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| mysql              |
-| performance_schema |
-+--------------------+
-3 rows in set (0.03 sec)
-
+To execute SQL commands, we need to get a cursor object from the database.
+\begin{lstlisting}
+cur = db.cursor()
 \end{lstlisting}
 
-Note that the command ends with a semicolon. Every command we will see will also end with the same character.  Your terminal may show additional databases to these.  Each of these three databases store information about your installation of MySQL and the databases that are stored on the server.  They have their uses, but for now we will ignore them.
+The cursor object has several useful methods (Table \ref{table:cursormethods}).
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Method & Description \\
+\hline
+\li{execute} & Execute a single SQL statement \\
+\li{executemany} & Execute a single SQL statement over a sequence \\
+\li{executescript} & Execute a SQL script (multiple SQL commands) \\
+\li{close} & Closes the cursor object \\
+\hline
+\end{tabular}
+\caption{Cursor object methods}
+\label{table:cursormethods}
+\end{table}
 
-Now we will go over some basic queries that you can execute from the command line.  We want to be able to get data from MySQL server, but we don't have a database to get it from yet.  We can use the {\tt CREATE} command to create a new database.  In this example, we will create a student database with three tables.
+Before creating a table, we need to  understand how SQLite stores information in a database.  SQLite uses four native data types (a simplified system from other SQL database managers).  Table \ref{table:typemap}, gives a mapping between Python and SQLite native types.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Python Type & SQLite Type \\
+\hline
+\li{None} & \lsql{NULL} \\
+\li{int} & \lsql{INTEGER} \\
+\li{long} & \lsql{INTEGER} \\
+\li{float} & \lsql{REAL} \\
+\li{str} & \lsql{TEXT} \\
+\li{buffer} & \lsql{BLOB} \\
+\hline
+\end{tabular}
+\caption{Python and SQLite types mapping}
+\label{table:typemap}
+\end{table}
 
+Let's create a table.
 \begin{lstlisting}
-mysql>CREATE DATABASE students;
-Query OK, 1 row affected (0.00 sec)
-
-mysql> show databases;
-+--------------------+
-| Database           |
-+--------------------+
-| information_schema |
-| mysql              |
-| performance_schema |
-| students           |
-+--------------------+
-4 rows in set (0.00 sec)
-
+result = cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
 \end{lstlisting}
+This will create the empty table in Table \ref{table:student_information}.
+\begin{table}
+\begin{tabular}{|l|l|l|l|}
+\hline
+StudentID & Name & SSN & MajorCode \\
+\hline
+\end{tabular}
+\caption{student\_information}
+\label{table:student_information}
+\end{table}
 
-Now we add some tables to the students database.  First, we need to tell MySQL which database we want to work on with the {\tt USE} command.
+The arguments in parentheses are the column names followed by the data type that entries in that column will be.  The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.  The \lsql{NOT NULL} command is a \emph{constraint} on the StudentID column.  It requires that all records in the table have a student ID.
 
+Note that each command that we execute returns a another cursor object.  We can use the fetch objects to look at any results of the previous command.  The result is formally known as the \emph{result set}.  If you use \li{result.fetchall()}, you will see an empty list.  That is because the create table command does not return a result set.
+
+Now we want to build a relation between students and the courses they've had and their grades in those courses.
 \begin{lstlisting}
-
-mysql> USE students;
-Database changed
-
-\end{lstlisting}
-
-Now we use the {\tt CREATE} command to create a table and specify the column names of the table.
-
-\begin{lstlisting}
-
-mysql> CREATE TABLE student_information (StudentID INT NOT NULL, Name VARCHAR(20), SocSecurity INT, MajorCode INT);
-Query OK, 0 rows affected (0.68 sec)
-
-\end{lstlisting}
-
-This creates a student information table with coloumns for each individuals student id, social security number, major, and name.  The arguments in parentheses are the column names followed by the datatype that entries in that column will take.  The {\tt INT} datatype allows up to 32-bit integers and {\tt VARCHAR(20)} allows strings of variable length up to 20 characters.  There are dozens of options to choose from.  The online MySQL documentation is a good resource to explore them.
-
-Now we add another table that matches students to courses that they have taken and their grades.
-
-\begin{lstlisting}
-
-mysql> CREATE TABLE student_classes (StudentID INT NOT NULL, CourseID INT, Grade VARCHAR(2));
-Query OK, 0 rows affected (0.26 sec)
-
+cur.execute('CREATE TABLE student_classes (StudentID INT NOT NULL, CourseID INT, Grade TEXT);')
 \end{lstlisting}
 
 \begin{problem}
+In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.  MajorCode is an integer and MajorName is a string.
 
-In this problem you will create two new tables using the {\tt CREATE TABLE} syntax.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.  MajorCode should have the INT datatype and MajorName should be VARCHAR(20).
-
-The second table will be called CourseInfo and have columns called CourseID and CourseName, also INT and VARCHAR(20) respectively.
-
+The second table will be called CourseInfo and have columns called CourseID and CourseName, also integers and strings, respectively.
+\label{prob:new_tables}
 \end{problem}
 
-\subsection{Inserting Data}
 
+
+\subsection*{Inserting Data}
 In this section we will insert data into the tables that we have created.  First we will show how to manually add data using the {\tt INSERT} command.  {\tt INSERT} requires that we specify which table that we wish to modify and the values for each column.  For example
 
 \begin{lstlisting}
