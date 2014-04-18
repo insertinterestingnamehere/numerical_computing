@@ -260,7 +260,7 @@ It will be about twice as fast as using an \li{execute()} for each line of the C
 \end{problem}
 
 \begin{problem}
-Create the following tables in the same database you created in Problem \ref{prob:icd9tables}.
+Create the following tables in the same database you created in Problem \ref{prob:icd9tables}.  You may do so however you think is best.
 
 \begin{table}[H]
 \begin{tabular}{|l|l|l|}
@@ -285,7 +285,7 @@ StudentID & Name & MajorCode \\
 \begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
-ID & Major \\
+ID & Name \\
 \hline
 1 & Math \\
 2 & Science \\
@@ -340,143 +340,40 @@ ClassID & Name \\
 \end{tabular}
 \caption{classes}
 \end{table}
-
 \end{problem}
 
 
 \subsection*{Selecting Data From Tables}
-We can select
-
-%-----------------------------------------------------------
-\section{Querying and Joining Tables}
-Now that we have loaded data in the form of our student database we will learn to query and join the tables.  The first command that we will use is {\tt SELECT}, which returns specified rows of a table.  For example
-
-\begin{lstlisting}
-mysql> SELECT Name FROM student_information;
-+---------------------+
-| Name                |
-+---------------------+
-|  Jared Webb         |
-|  Alexander Zaitzeff |
-|  Rachel Suggs       |
-|  Jeff Humphreys     |
-|  Abe Frandsen       |
-|  Tyler Jarvis       |
-|  Jessica Purcell    |
-|  Janice Joplin      |
-|  John Lennon        |
-|  Tupac Shakur       |
-+---------------------+
-10 rows in set (0.00 sec)
+The process of retrieving data from a table in a database is accomplished by selecting it.
+The \lsql{SELECT} statement can be thought of as a very high level set description.
+For example to view the contents of an entire table, we simply need to unconditionally select its contents.
+\begin{lstlisting}[language=SQL]
+SELECT * FROM classes;
 \end{lstlisting}
+Which is equivalent to the following set (where $x$ is a row).
+\[ \setconstruct{x}{x \in \text{classes}} \]
 
-After {\tt SELECT} we specify a column and a table to query, and MySQL returns the requested rows.  We may also add conditions to our command to get more refined results.
-
-\begin{lstlisting}
-
-mysql> SELECT Name FROM student_information WHERE StudentID = 4;
-+-----------------+
-| Name            |
-+-----------------+
-|  Jeff Humphreys |
-+-----------------+
-1 row in set (0.00 sec)
-
+We can also select specific columns.
+\begin{lstlisting}[language=SQL]
+SELECT StudentID, Name FROM classes;
 \end{lstlisting}
-
-Or we may select more than one column
-
-\begin{lstlisting}
-
-mysql> SELECT Name, SocSecurity FROM student_information WHERE StudentID = 4;
-+-----------------+-------------+
-| Name            | SocSecurity |
-+-----------------+-------------+
-|  Jeff Humphreys |   736452198 |
-+-----------------+-------------+
-1 row in set (0.00 sec)
-
-mysql> SELECT * FROM student_information WHERE StudentID = 4;
-+-----------+-----------------+-------------+-----------+
-| StudentID | Name            | SocSecurity | MajorCode |
-+-----------+-----------------+-------------+-----------+
-|         4 |  Jeff Humphreys |   736452198 |         3 |
-+-----------+-----------------+-------------+-----------+
-1 row in set (0.00 sec)
-
-mysql> SELECT * FROM student_information;
-+-----------+---------------------+-------------+-----------+
-| StudentID | Name                | SocSecurity | MajorCode |
-+-----------+---------------------+-------------+-----------+
-|         1 |  Jared Webb         |   123456789 |         1 |
-|         2 |  Alexander Zaitzeff |   987654321 |         1 |
-|         3 |  Rachel Suggs       |   431256789 |         2 |
-|         4 |  Jeff Humphreys     |   736452198 |         3 |
-|         5 |  Abe Frandsen       |   172645382 |         4 |
-|         6 |  Tyler Jarvis       |   174382645 |         3 |
-|         7 |  Jessica Purcell    |   827635142 |         2 |
-|         8 |  Janice Joplic      |   987263512 |         1 |
-|         9 |  John Lennon        |   192837641 |         3 |
-|        10 |  Tupac Shakur       |   192837412 |         2 |
-+-----------+---------------------+-------------+-----------+
-10 rows in set (0.00 sec)
-
+Or we can impose conditions on the selected rows.
+\begin{lstlisting}[language=SQL]
+SELECT StudentID, Name FROM classes WHERE MajorCode=1;
 \end{lstlisting}
-
-We may join tables by columns using the {\tt INNER JOIN} command.  This is a very powerful tool for uniting data across many tables.  In MySQL we can use {\tt INNER JOIN} in conjunction with {\tt SELECT} to query data across many tables into place.  For example we can inner join student\_classes and student\_information on the StudentID column to display student information and grades in one table.
-
-\begin{lstlisting}
-
-mysql> SELECT * FROM student_information INNER JOIN student_classes ON student_information.StudentID = student_classes.StudentID;
-+-----------+---------------------+-------------+-----------+-----------+---------+-------+
-| StudentID | Name                | SocSecurity | MajorCode | StudentID | ClassID | Grade |
-+-----------+---------------------+-------------+-----------+-----------+---------+-------+
-|         1 |  Jared Webb         |   123456789 |         1 |         1 |       4 |  C    |
-|         1 |  Jared Webb         |   123456789 |         1 |         1 |       3 |  B    |
-|         2 |  Alexander Zaitzeff |   987654321 |         1 |         2 |       4 |  A    |
-|         2 |  Alexander Zaitzeff |   987654321 |         1 |         2 |       3 |  A    |
-|         3 |  Rachel Suggs       |   431256789 |         2 |         3 |       2 |  C    |
-|         2 |  Alexander Zaitzeff |   987654321 |         1 |         2 |       1 |  B    |
-|         4 |  Jeff Humphreys     |   736452198 |         3 |         4 |       1 |  A    |
-|         5 |  Abe Frandsen       |   172645382 |         4 |         5 |       2 |  C    |
-|         5 |  Abe Frandsen       |   172645382 |         4 |         5 |       3 |  C    |
-|         6 |  Tyler Jarvis       |   174382645 |         3 |         6 |       4 |  D    |
-|         6 |  Tyler Jarvis       |   174382645 |         3 |         6 |       2 |  A    |
-|         6 |  Tyler Jarvis       |   174382645 |         3 |         6 |       1 |  B    |
-|         7 |  Jessica Purcell    |   827635142 |         2 |         7 |       2 |  A    |
-|         7 |  Jessica Purcell    |   827635142 |         2 |         7 |       1 |  C    |
-|         8 |  Janice Joplic      |   987263512 |         1 |         8 |       2 |  D    |
-|         8 |  Janice Joplic      |   987263512 |         1 |         8 |       1 |  A    |
-|         5 |  Abe Frandsen       |   172645382 |         4 |         5 |       4 |  A    |
-|         9 |  John Lennon        |   192837641 |         3 |         9 |       2 |  B    |
-|         9 |  John Lennon        |   192837641 |         3 |         9 |       3 |  C    |
-|        10 |  Tupac Shakur       |   192837412 |         2 |        10 |       1 |  A    |
-|        10 |  Tupac Shakur       |   192837412 |         2 |        10 |       2 |  A    |
-+-----------+---------------------+-------------+-----------+-----------+---------+-------+
-21 rows in set (0.05 sec)
-
-\end{lstlisting}
-
-By specify columns, we can display the grades of one student.
-
-\begin{lstlisting}
-
-mysql> SELECT Name, Grade FROM student_information INNER JOIN student_classes ON student_information.StudentID = student_classes.StudentID WHERE student_information.StudentID=6;
-+---------------+-------+
-| Name          | Grade |
-+---------------+-------+
-|  Tyler Jarvis |  D    |
-|  Tyler Jarvis |  A    |
-|  Tyler Jarvis |  B    |
-+---------------+-------+
-3 rows in set (0.05 sec)
-
-\end{lstlisting}
-
-\begin{problem}
-
-Use {\tt INNER JOIN} and {\tt SELECT} to display the student\_information table, but show the students majors and classes instead of ClassID and MajorID.
-
-\end{problem}
+This query results in the following table (Table \ref{table:selectmath}) where the contents are all the students that are math majors.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+StudentID & Name \\
+\hline
+401767594 & Michelle Fernandez \\
+678665086 & Gilbert Chapman \\
+341324754 & Cassandra Holland \\
+\hline
+\end{tabular}
+\caption{Selected students who are math majors.}
+\label{table:selectmath}
+\end{table}
 
 \let\undefined\lsql
