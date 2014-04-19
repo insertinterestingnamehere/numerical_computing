@@ -1,4 +1,5 @@
 import sqlite3 as sql
+from collections import Counter
 
 dbfile = 'icd9.db'
 def get_conn():
@@ -90,7 +91,7 @@ def sampletables():
         cur = con.cursor()
         for x in creates:
             cur.execute(x)
-        cur.executemany('insert into stduents values(?, ?, ?);' data['students'])
+        cur.executemany('insert into stduents values(?, ?, ?);', data['students'])
         cur.executemany('insert into majors values(?, ?);', data['majors'])
         cur.executemany('insert into grades values(?, ?, ?);', data['grades'])
         cur.executemany('insert into classes values(?, ?);', data['classes'])
@@ -100,3 +101,29 @@ def sampletables():
         con.rollback()
     finally:
         con.close()
+
+def youngfreqcodes():
+    con = get_conn()
+    cur = con.cursor()
+    query = "select codes from icd9_problem where gender=? and age < 35 and age >= 25;"
+    cur.execute(query, "M")
+    
+    MenCounter = Counter()
+    mc = 0
+    for code in cur:
+        MenCounter.update(code[0].split(';'))
+        mc += 1
+    
+    cur.execute(query, "F")
+    WomenCounter = Counter()
+    wc = 0
+    for code in cur:
+        WomenCounter.update(code[0].split(';'))
+        wc += 1
+        
+    wmost = WomenCounter.most_common(1)
+    mmost = MenCounter.most_common(1)
+    
+    cur.close()
+    con.close()
+    return mc, wc, mmost, wmost
