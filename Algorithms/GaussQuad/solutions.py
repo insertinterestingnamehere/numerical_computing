@@ -21,7 +21,7 @@ def funcplot(f, a, b, n=401):
     Y = f(X1)
     plt.plot(X1, Y)
     plt.show()
-    plt.plot(X2, Y)
+    plt.plot(X2, ((b - a) / 2.) * Y)
     plt.show()
 
 # alternate version matching what the lab describes
@@ -67,7 +67,7 @@ def construct_jacobi(a, b, c):
     return j
 
 # points and weights problem
-def points_and_weights(n, length):
+def points_and_weights(n):
     """ Find the set of 'n' nodes and their
     corresponding weights for the interval [-1, 1]."""
     i = np.arange(1, n + 1, dtype=float)
@@ -77,11 +77,11 @@ def points_and_weights(n, length):
     j = construct_jacobi(a, b, c)
     # terribly slow to do it this way...
     evals, evects = eig(j)
-    return evals, evects[0]**2 * length
+    return evals, evects[0]**2 * 2
 
 # normal distribution cdf problem
 def normal_cdf(x):
     """Compute the CDF of the standard normal
     distribution at the point 'x'."""
     pdf = lambda x: exp(- x**2 / 2.) / sqrt(2 * np.pi)
-    return quad(pdf, -5, x)
+    return quad(pdf, -5, x)[0]
