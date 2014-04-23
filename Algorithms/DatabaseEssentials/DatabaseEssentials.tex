@@ -15,17 +15,16 @@ A \emph{relational database} is paradigm for organizing data inside of a databas
 In this paradigm, the data are broken down into tuples of information.
 These tuples are then grouped into tables, or \emph{relations}, each of which is simply a set of tuples.
 Each table has a \emph{schema} that defines the attributes of the tuples within the table.
-If we fix an order to the attributes in the schema, we can think of each attribute as a column 
-of the table, and each tuple as a row of the table. See Figure \ref{fig:relation} for an illustration of 
+If we fix an order to the attributes in the schema, we can think of each attribute as a column
+of the table, and each tuple as a row of the table. See Figure \ref{fig:relation} for an illustration of
 these ideas.
 
-As an example, suppose we have demographic data for a large number of individuals. 
+As an example, suppose we have demographic data for a large number of individuals.
 If we are interested in the gender and age of the individuals, we might make a table
 with schema (Name, Gender, Age). This table would consist of several 3-tuples, such as
 (Jane Doe, F, 20). Alternatively, we can view this table as having three columns
-and as many rows as there are individuals within our data.
+and as many rows as there are individuals within our data set.
 We might also create a table with schema (Name, Employment Status, Income, Education).
-There is much flexibility in creating tables. 
 
 In the relational paradigm, there must be at least one attribute in each schema that can act as a \emph{primary key}.
 This can uniquely identify each tuple of the table.
@@ -39,24 +38,24 @@ key provided no two individuals within the data set have the same name.
 \label{fig:relation}
 \end{figure}
 
-One important feature of a database is the \emph{transaction}, which is a conceptual protocol for 
+One important feature of a database is the \emph{transaction}, which is a conceptual protocol for
 interacting with the database.
 Most relational databases are transactional databases.
 The best way to conceptualize this is imagine that your database is like a bank.
 Your connection the database is analogous to the bank teller.
-When you make one or a series of deposits and withdrawals, you are making a transaction.
+When you make one or more deposits and withdrawals, you are making a transaction.
 A database transaction should have certain properties to protect the integrity of the data.
-These properties are succinctly captured in the acronym of ACID, and 
+These properties are succinctly captured in the acronym of ACID, and
 compliance with these properties is an important feature of transactional databases.
 Let us consider the four ACID properties: atomic, consistent, isolation, and durable.
 \begin{description}
-\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction, 
-no changes are made to the database.  Changes are only made during error-free transactions.  This is especially 
+\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction,
+no changes are made to the database.  Changes are only made during error-free transactions.  This is especially
 useful if a transaction is interrupted due to power failure, or some other type of unforeseen error.
-\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction 
+\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction
 satisfies all rules and constraints of the database.
-\item[Isolation.] The final effect of concurrent transactions is equivalent to the final effect of each transaction 
-in serial.  This essentially means that if multiple users perform several transactions in parallel, none of the transactions 
+\item[Isolation.] The final effect of concurrent transactions is equivalent to the final effect of each transaction
+in serial.  This essentially means that if multiple users perform several transactions in parallel, none of the transactions
 can depend on each other.
 \item[Durable.] Once a transaction is committed, the changes are permanent regardless of any errors that may happen later.
 \end{description}
@@ -65,7 +64,7 @@ can depend on each other.
 Most common DBMSs use a variant of the SQL language to interact with the database.
 SQL is an acronym for \emph{Structured Query Language}, and may be pronounced like the word ``sequel" or by saying
 the letters ``s", ``q", and ``l" separately.
-While SQL is not portable across databases in general, we will focus on the parts of SQL that are relatively common.
+While SQL is not generally portable across different DBMSs, we will focus on the parts of SQL that are relatively common.
 In particular, we will base our discussion on the SQLite database management system, a very popular DBMS.
 
 SQL consists of blocks of code called statements.
@@ -154,8 +153,8 @@ Method & Description \\
 \label{table:cursormethods}
 \end{table}
 
-Before creating a table, we need to  understand how SQLite stores information in a database.  
-SQLite uses five native data types (a simplified system from other SQL database managers).  
+Before creating a table, we need to  understand how SQLite stores information in a database.
+SQLite uses five native data types (a simplified system from other SQL database managers).
 Table \ref{table:typemap}, gives a mapping between Python and SQLite native types.
 \begin{table}
 \begin{tabular}{|l|l|}
@@ -177,7 +176,7 @@ Python Type & SQLite Type \\
 \subsection*{Creating and Dropping Tables}
 Let's create a table.
 \begin{lstlisting}
-result = cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
+cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
 \end{lstlisting}
 This will create the empty table in Table \ref{table:student_information}.
 \begin{table}
@@ -192,7 +191,7 @@ StudentID & Name & SSN & MajorCode \\
 
 The arguments in parentheses are the column names followed by the data type that entries in that column will be,
 and together these form the schema of the table.
-The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.  
+The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.
 The \lsql{NOT NULL} command is a \emph{constraint} on the StudentID column.  It requires that all records in the table have a student ID.
 
 \begin{info}
@@ -203,9 +202,9 @@ It is a good idea to conform to the column types specified in the schema.
 \end{info}
 
 
-Note that each command we execute returns a another cursor object.  This object is equipped with a method that allows us to look 
-at any results of the previous command.  The result is formally known as the \emph{result set}.  
-If you use \li{result.fetchall()}, you will see an empty list.  
+Note that each command we execute returns the same cursor object.  This object is equipped with a method that allows us to look
+at any results of the previous command.  The result is formally known as the \emph{result set}.
+If you use \li{cur.fetchall()}, you will see an empty list.
 That is because the create table command does not return a result set.
 
 Now we want to build a relation between students, the courses they've had, and their grades in those courses.
@@ -214,7 +213,7 @@ cur.execute('CREATE TABLE student_classes (StudentID INT NOT NULL, CourseID INT,
 \end{lstlisting}
 
 \begin{problem}
-In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.  
+In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.
 MajorCode is an integer and MajorName is a string.
 
 The second table will be called CourseInfo and have columns called CourseID and CourseName, also integers and strings, respectively.
@@ -277,7 +276,7 @@ cur.execute("DELETE FROM student_information WHERE MajorCode=55;")
 It is extremely insecure and is an easy target for a well known type of database called a SQL injection attack.
 
 Parameter substitution can be used to construct dynamic queries.
-In the simplest way, it involves using a `?' character whenever you want to use a value and providing a 
+In the simplest way, it involves using a `?' character whenever you want to use a value and providing a
 sequence of values as a second argument to \li{execute()}.
 \begin{lstlisting}
 statement = "INSERT INTO student_information VALUES(?, ?, ?, ?);"
@@ -439,9 +438,9 @@ Select statements return a \emph{result set}.
 This is an iterable object.
 Each row in the object is represented as a tuple of values.
 \begin{lstlisting}
-z = cur.execute('SELECT StudentID, Name FROM classes WHERE MajorCode=1;')
-for student in z:
-    print z
+cur.execute('SELECT StudentID, Name FROM classes WHERE MajorCode=1;')
+for student in cur:
+    print cur
 \end{lstlisting}
 We can also use the fetch methods of the returned cursor to extract rows from the result set (Table \ref{table:fetching}).
 \begin{table}
@@ -464,5 +463,17 @@ From the ICD9 table you created in Problem \ref{prob:icd9tables}, how many men b
 What code is the most frequent code for men between age 25 and 35? For women (between 25 and 35)?  Note that the codes are separated by semicolons.
 \label{prob:youngfreqcodes}
 \end{problem}
+
+\subsection*{Ending the SQL Session}
+Once we are finished performing SQL statements and interacting with the database, we need to commit our changes and safely close the connection
+to the database. This can be done by calling methods on the database connection object:
+\begin{lstlisting}
+db.commit()     #save changes made in the transaction
+db.close()      #safely close the database
+\end{lstlisting}
+If for any reason during the transaction we wish to undo the changes we have made, we execute the following:
+\begin{lstlisting}
+db.rollback()   #undo changes made during transaction
+\end{lstlisting}
 
 \let\undefined\lsql 
