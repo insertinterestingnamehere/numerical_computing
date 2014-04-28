@@ -457,6 +457,35 @@ Method & Description \\
 \label{table:fetching}
 \end{table}
 
+\subsection*{When an Error Occurs}
+It is important to be able to recover from errors gracefully, especially when working a database.
+Data integrity in a database is often a critical need.
+When an error occurs, we need to undo the changes that triggered the error.
+Fortunately, \li{sqlite3} reports a variety of errors.
+These errors and when they are raised is explained in PEP249 (\url{http://legacy.python.org/dev/peps/pep-0249/}).
+\begin{description}
+\item[Error] The base class for errors thrown by \li{sqlite3}.  All other errors inherit from this class.  Catching this error will catch any error raised.
+\item[InterfaceError] This is error is raised when there is a problem with the interface to the database rather than the database itself.
+\item[DatabaseError] Raised when there is an error with the database itself.
+\item[DataError] Subclass of DatabaseError.  Raised when there are errors in the processed data (division by zero, value out of range, etc.).
+\item[OperationalError] Subclass of DatabaseError. Raised for errors related to the database that are not the fault of the programmer.  For example, a unexpected disconnect, failure to process a transaction, a memory allocation error during a transaction, etc.
+\item[IntegrityError] Subclass of DatabaseError.  Raised when the relational integrity of the database is compromised.
+\item[InternalError] Subclass of DatabaseError. Raised when there is an internal error such as an invalid cursor, out-of-sync transaction, etc.
+\item[ProgrammingError] Subclass of DatabaseError.  Raised for programming errors.
+\item[NotSupportedError] Subclass of DatabaseError.  Raised when a method is called that is not supported by the database.
+\end{description}
+
+The way to gracefully recover from errors is to catch them and handle them accordingly.  For example, if any error occurs, with the interface or the database, we immediately rollback the transaction.  If no error occurs, commit.  We could use if-statements or we could use a try-except block.
+\begin{lstlisting}
+try:
+    <code>
+    db.commit()
+except sql.Error:
+    db.rollback()
+\end{lstlisting}
+Note that rolling back is not needed if we are just performing queries.
+If we don't change any of the data in the database, there is no need to roll anything back.  However, even with queries, there are the potential for errors.  You must design your code to handle these errors gracefully.
+
 \begin{problem}
 From the ICD9 table you created in Problem \ref{prob:icd9tables}, how many men between the ages of 25 and 35 are there?  How many women between those same ages?
 
@@ -466,14 +495,14 @@ What code is the most frequent code for men between age 25 and 35? For women (be
 
 \subsection*{Ending the SQL Session}
 Once we are finished performing SQL statements and interacting with the database, we need to commit our changes and safely close the connection
-to the database. This can be done by calling methods on the database connection object:
+to the database.
+This can be done by calling methods on the database connection object.
 \begin{lstlisting}
 db.commit()     #save changes made in the transaction
 db.close()      #safely close the database
 \end{lstlisting}
-If for any reason during the transaction we wish to undo the changes we have made, we execute the following:
-\begin{lstlisting}
-db.rollback()   #undo changes made during transaction
-\end{lstlisting}
+
+A database connection is automatically closed in Python when the connection object is garbage-collected.  However, it is nice to be safe and explicit in closing a database connection using the \li{close()} method.
+
 
 \let\undefined\lsql 
