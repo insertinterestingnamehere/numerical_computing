@@ -5,20 +5,32 @@
 \label{lab:sql_rdb}
 
 When working with large amounts of data, it is important to be able to quickly find and retrieve interesting information.
-Fortunately, there is a way to handle such massive amounts of data in a reasonably efficient way.
-A database allows us to store and retrieve data very quickly.
-These databases are managed by a \emph{database management system}, or DBMS.
+Fortunately, there is a way to handle such massive amounts of data in a reasonably efficient way: a database.
+A database is simply a structured repository of data, and it allows us to store and retrieve information very quickly.
+It is managed by a \emph{database management system}, or DBMS.
 The DBMS is software that allows users to interact directly with the database.
 
 \section*{Relational Databases}
-A \emph{relational} database is paradigm for organizing data inside of a database.
-This paradigm assumes that all data can be represented as a tuple of information.
-A table, or \emph{relation}, is simply a set of tuples.
-Each table has a \emph{schema} that defines the attributes of a tuple.
-In the relational paradigm, there must be at least one column that can act as a primary key.
-This can uniquely identify each tuple, or row, of the table.
-It is common to use an ID number or other such unique information for the primary key.
+A \emph{relational database} is paradigm for organizing data inside of a database.
+In this paradigm, the data are broken down into tuples of information.
+These tuples are then grouped into tables, or \emph{relations}, each of which is simply a set of tuples.
+Each table has a \emph{schema} that defines the attributes of the tuples within the table.
+If we fix an order to the attributes in the schema, we can think of each attribute as a column
+of the table, and each tuple as a row of the table. See Figure \ref{fig:relation} for an illustration of
+these ideas.
 
+As an example, suppose we have demographic data for a large number of individuals.
+If we are interested in the gender and age of the individuals, we might make a table
+with schema (Name, Gender, Age). This table would consist of several 3-tuples, such as
+(Jane Doe, F, 20). Alternatively, we can view this table as having three columns
+and as many rows as there are individuals within our data set.
+We might also create a table with schema (Name, Employment Status, Income, Education).
+
+In the relational paradigm, there must be at least one attribute in each schema that can act as a \emph{primary key}.
+This can uniquely identify each tuple of the table.
+It is common to use an ID number or other such unique information for the primary key.
+In our example above, the ``Name" attribute acted as a primary key. However, this attribute only works as a primary
+key provided no two individuals within the data set have the same name.
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{rdb_table.pdf}
@@ -26,26 +38,35 @@ It is common to use an ID number or other such unique information for the primar
 \label{fig:relation}
 \end{figure}
 
-One important feature of databases are transactions.
+One important feature of a database is the \emph{transaction}, which is a conceptual protocol for
+interacting with the database.
 Most relational databases are transactional databases.
 The best way to conceptualize this is imagine that your database is like a bank.
 Your connection the database is analogous to the bank teller.
-When you make a deposit, or series of deposits, you are making a transaction.
-This transaction should have certain properties.
-These properties are succinctly captured in the acronym of ACID.
-ACID compliance is an important feature transactional databases.
-It describes the properties that a good database should have: atomic, consistent, isolation, and durable.
+When you make one or more deposits and withdrawals, you are making a transaction.
+A database transaction should have certain properties to protect the integrity of the data.
+These properties are succinctly captured in the acronym of ACID, and
+compliance with these properties is an important feature of transactional databases.
+Let us consider the four ACID properties: atomic, consistent, isolation, and durable.
 \begin{description}
-\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction, no changes are made to the database.  Changes are only made during error-free transactions.  This is especially useful if a transaction is interrupted due to power failure, or other type of unforeseen error.
-\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction satisfies all rules and constraints of the database.
-\item[Isolation.] The final effect of concurrent transactions it equivalent to the final effect of each transaction in serial.  This essentially means that if we run perform several transactions in parallel, none of the transactions can depend on each other.
+\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction,
+no changes are made to the database.  Changes are only made during error-free transactions.  This is especially
+useful if a transaction is interrupted due to power failure, or some other type of unforeseen error.
+\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction
+satisfies all rules and constraints of the database.
+\item[Isolation.] The final effect of concurrent transactions is equivalent to the final effect of each transaction
+in serial.  This essentially means that if multiple users perform several transactions in parallel, none of the transactions
+can depend on each other.
 \item[Durable.] Once a transaction is committed, the changes are permanent regardless of any errors that may happen later.
 \end{description}
 
 \section*{Introduction to SQL}
 Most common DBMSs use a variant of the SQL language to interact with the database.
-SQL is an acronym for \emph{Structured Query Language}.
-While in general, SQL is not portable across databases, we will focus on the parts of SQL that are relatively common.
+SQL is an acronym for \emph{Structured Query Language}, and may be pronounced like the word ``sequel" or by saying
+the letters ``s", ``q", and ``l" separately.
+While SQL is not generally portable across different DBMSs, we will focus on the parts of SQL that are relatively common.
+In particular, we will base our discussion on the SQLite database management system, a very popular DBMS.
+
 SQL consists of blocks of code called statements.
 Each statement is made up of clauses which may or may not require predicates.
 Predicates specify conditions that can limit the effect of a clause.
@@ -53,23 +74,23 @@ Predicates specify conditions that can limit the effect of a clause.
 \begin{info}
 SQL commands are often written in all caps to help distinguish them from the other parts of the query.
 It is only a matter of style.
-SQLite, along with most other database managers, are case insensitive.
+SQLite, along with most other database managers, is case insensitive.
 \end{info}
 
-Let's look at an example SQL statement
+Let's look at an example SQL statement:
 \begin{lstlisting}[language=SQL]
 SELECT * FROM table WHERE id=3+1 AND name='Bob';
 \end{lstlisting}
 This statement includes a SELECT clause and a WHERE clause.
 The WHERE clause contains two predicates: \texttt{id=3+1} and \texttt{name='Bob'}
 These two predicates limit the effect of the SELECT clause because any resulting tuples in the table must satisfy both conditions.
-This entire statement is classified as a query since it does not modify the database at all.
+This entire statement is classified as a query since it does not modify the database in any way.
 
 SQL has several classes of statements.
 The two main classes we will cover in this lab are schema (Table \ref{table:sql-schema}) and data manipulation (Table \ref{table:sql-data_manip}).
 We will give you a simplified description of each command and its syntax.
 You are encouraged to look up the full syntax outside of this lab.
- 
+
 \begin{table}
 \begin{tabular}{|l|l|}
 \hline
@@ -77,8 +98,8 @@ Keyword & Syntax \\
 \hline
 \lsql{CREATE TABLE} & \lsql{CREATE TABLE <table> (<col1> <type>, <col2> <type>, ...);} \\
 \lsql{DROP TABLE} & \lsql{DROP TABLE <table>;} \\
-\lsql{CREATE INDEX} & \lsql{CREATE INDEX <name> ON <table> (<col>)} \\
-\lsql{DROP INDEX} & \lsql{DROP INDEX <name>} \\
+\lsql{CREATE INDEX} & \lsql{CREATE INDEX <name> ON <table> (<col>);} \\
+\lsql{DROP INDEX} & \lsql{DROP INDEX <name>;} \\
 \hline
 \end{tabular}
 \caption{The SQL Schema commands}
@@ -90,10 +111,10 @@ Keyword & Syntax \\
 \hline
 Keyword & Syntax \\
 \hline
-\lsql{INSERT INTO} & \lsql{INSERT INTO <table> <attributes> VALUES (<value1>, <value2>, ...)} \\
-\lsql{UPDATE} & \lsql{UPDATE <table> SET (<col1>=<val1>, <col2>=<val2>, ...) WHERE <condition>} \\
-\lsql{DELETE} & \lsql{DELETE FROM <table> WHERE <condition>} \\
-\lsql{SELECT} & \lsql{SELECT <attributes> FROM <table> WHERE <condition>} \\
+\lsql{INSERT INTO} & \lsql{INSERT INTO <table> <attributes> VALUES (<value1>, <value2>, ...);} \\
+\lsql{UPDATE} & \lsql{UPDATE <table> SET (<col1>=<val1>, <col2>=<val2>, ...) WHERE <condition>;} \\
+\lsql{DELETE} & \lsql{DELETE FROM <table> WHERE <condition>;} \\
+\lsql{SELECT} & \lsql{SELECT <attributes> FROM <table> WHERE <condition>;} \\
 \hline
 \end{tabular}
 \caption{The SQL Data Manipulation commands}
@@ -110,13 +131,12 @@ db = sql.connect("test1")
 The \li{connect()} function is used to connect to a database.
 If it does not already exist, then a new database will be created using string passed as the argument.
 The new database was created as a file in the current working directory.
-If we wanted an in-memory database, we would call \li{sql.connect(``:memory:'')}.
+If we wanted an in-memory database, we would call \li{sql.connect('':memory:'')}.
 
 To execute SQL commands, we need to get a cursor object from the database.
 \begin{lstlisting}
 cur = db.cursor()
 \end{lstlisting}
-
 The cursor object has several useful methods (Table \ref{table:cursormethods}).
 \begin{table}
 \begin{tabular}{|l|l|}
@@ -133,7 +153,9 @@ Method & Description \\
 \label{table:cursormethods}
 \end{table}
 
-Before creating a table, we need to  understand how SQLite stores information in a database.  SQLite uses four native data types (a simplified system from other SQL database managers).  Table \ref{table:typemap}, gives a mapping between Python and SQLite native types.
+Before creating a table, we need to  understand how SQLite stores information in a database.
+SQLite uses five native data types (a simplified system from other SQL database managers).
+Table \ref{table:typemap}, gives a mapping between Python and SQLite native types.
 \begin{table}
 \begin{tabular}{|l|l|}
 \hline
@@ -154,7 +176,7 @@ Python Type & SQLite Type \\
 \subsection*{Creating and Dropping Tables}
 Let's create a table.
 \begin{lstlisting}
-result = cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
+cur.execute('CREATE TABLE student_information (StudentID INTEGER NOT NULL, Name TEXT, SSN INTEGER, MajorCode INTEGER);')
 \end{lstlisting}
 This will create the empty table in Table \ref{table:student_information}.
 \begin{table}
@@ -167,25 +189,32 @@ StudentID & Name & SSN & MajorCode \\
 \label{table:student_information}
 \end{table}
 
-The arguments in parentheses are the column names followed by the data type that entries in that column will be.  The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.  The \lsql{NOT NULL} command is a \emph{constraint} on the StudentID column.  It requires that all records in the table have a student ID.
+The arguments in parentheses are the column names followed by the data type that entries in that column will be,
+and together these form the schema of the table.
+The \lsql{INTEGER} data type in SQLite is a 1, 2, 3, 4, 6, or 8 byte integer depending on the value.
+The \lsql{NOT NULL} command is a \emph{constraint} on the StudentID column.  It requires that all records in the table have a student ID.
 
 \begin{info}
 SQLite does not enforce types on columns.
 Just like Python, SQLite is dynamically typed.
 However, most other database systems strictly enforce column types.
-It is a good idea to conform to the column types.
+It is a good idea to conform to the column types specified in the schema.
 \end{info}
 
 
-Note that each command that we execute returns a another cursor object.  We can use the fetch objects to look at any results of the previous command.  The result is formally known as the \emph{result set}.  If you use \li{result.fetchall()}, you will see an empty list.  That is because the create table command does not return a result set.
+Note that each command we execute returns the same cursor object.  This object is equipped with a method that allows us to look
+at any results of the previous command.  The result is formally known as the \emph{result set}.
+If you use \li{cur.fetchall()}, you will see an empty list.
+That is because the create table command does not return a result set.
 
-Now we want to build a relation between students and the courses they've had and their grades in those courses.
+Now we want to build a relation between students, the courses they've had, and their grades in those courses.
 \begin{lstlisting}
 cur.execute('CREATE TABLE student_classes (StudentID INT NOT NULL, CourseID INT, Grade TEXT);')
 \end{lstlisting}
 
 \begin{problem}
-In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.  MajorCode is an integer and MajorName is a string.
+In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.
+MajorCode is an integer and MajorName is a string.
 
 The second table will be called CourseInfo and have columns called CourseID and CourseName, also integers and strings, respectively.
 \label{prob:new_tables}
@@ -226,7 +255,16 @@ We can also specify the schema of the table to use in the mapping of the values.
 \begin{lstlisting}
 cur.execute("INSERT INTO student_information(MajorCode, Name, SSN, StudentID)  VALUES(55, 'John Smith', 372897382, 2);")
 \end{lstlisting}
-This will map the value 55 to MajorCode and the value 2 to StudentID.  This can be useful sometimes.
+This will map the value 55 to MajorCode and the value 2 to StudentID.  This may be useful sometimes.
+
+It can quickly become tedious to insert large amounts of data into a table, one row at a time.
+We can automate the process somewhat by using the \li{executemany} method of the cursor object.
+To insert several rows into a table using a single command, we can do the following:
+\begin{lstlisting}
+cur.executemany("INSERT INTO student_information VALUES (?, ?, ?, ?);", rows)
+\end{lstlisting}
+In the code above, we assume that \li{rows} is a Python list of tuples, each tuple containing the data for one
+row.
 
 We may remove rows from a table using the \lsql{DELETE FROM} command.
 \begin{lstlisting}
@@ -238,9 +276,10 @@ cur.execute("DELETE FROM student_information WHERE MajorCode=55;")
 It is extremely insecure and is an easy target for a well known type of database called a SQL injection attack.
 
 Parameter substitution can be used to construct dynamic queries.
-In the simplest way, it involves using a `?' character whenever you want to use a value and providing a sequence of values as a second argument to \li{execute()}.
+In the simplest way, it involves using a `?' character whenever you want to use a value and providing a
+sequence of values as a second argument to \li{execute()}.
 \begin{lstlisting}
-statment = "INSERT INTO student_information VALUES(?, ?, ?, ?);"
+statement = "INSERT INTO student_information VALUES(?, ?, ?, ?);"
 values = (55, 'John Smith', 372897382, 2)
 cur.execute(statement, values)
 \end{lstlisting}
@@ -267,6 +306,13 @@ Create a new database with a single table to store all the simulated data.
 
 Because of the volume of data, it is highly recommended the \li{executemany()} method of the cursor.
 It will be about twice as fast as using an \li{execute()} for each line of the CSV file.
+Recall the \li{csv} package in Python. To read a CSV file into a list of tuples, where each tuple consists
+of the delimited values of a particular line in the file, one can use the following code as a guideline:
+\begin{lstlisting}
+import csv
+with open('filename', 'rb') as csvfile:
+    rows = [row for row in csv.reader(csvfile, delimiter=',')]
+\end{lstlisting}
 \label{prob:icd9tables}
 \end{problem}
 
@@ -356,13 +402,13 @@ ClassID & Name \\
 
 
 \subsection*{Selecting Data From Tables}
-The process of retrieving data from a table in a database is accomplished by selecting it.
+The process of retrieving data from a table in a database is accomplished by the \lsql{SELECT} statement.
 The \lsql{SELECT} statement can be thought of as a very high level set description.
-For example to view the contents of an entire table, we simply need to unconditionally select its contents.
+For example, to view the contents of an entire table, we simply need to unconditionally select its contents.
 \begin{lstlisting}[language=SQL]
 SELECT * FROM classes;
 \end{lstlisting}
-Which is equivalent to the following set (where $x$ is a row).
+This is equivalent to the following set (where $x$ is a row).
 \[ \setconstruct{x}{x \in \text{classes}} \]
 
 We can also select specific columns.
@@ -392,9 +438,9 @@ Select statements return a \emph{result set}.
 This is an iterable object.
 Each row in the object is represented as a tuple of values.
 \begin{lstlisting}
-z = cur.execute('SELECT StudentID, Name FROM classes WHERE MajorCode=1;')
-for student in z:
-    print z
+cur.execute('SELECT StudentID, Name FROM classes WHERE MajorCode=1;')
+for student in cur:
+    print cur
 \end{lstlisting}
 We can also use the fetch methods of the returned cursor to extract rows from the result set (Table \ref{table:fetching}).
 \begin{table}
@@ -418,4 +464,16 @@ What code is the most frequent code for men between age 25 and 35? For women (be
 \label{prob:youngfreqcodes}
 \end{problem}
 
-\let\undefined\lsql
+\subsection*{Ending the SQL Session}
+Once we are finished performing SQL statements and interacting with the database, we need to commit our changes and safely close the connection
+to the database. This can be done by calling methods on the database connection object:
+\begin{lstlisting}
+db.commit()     #save changes made in the transaction
+db.close()      #safely close the database
+\end{lstlisting}
+If for any reason during the transaction we wish to undo the changes we have made, we execute the following:
+\begin{lstlisting}
+db.rollback()   #undo changes made during transaction
+\end{lstlisting}
+
+\let\undefined\lsql 
