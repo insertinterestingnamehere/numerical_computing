@@ -1,0 +1,62 @@
+\lab{Algorithms}{Trust-Region Methods}{Trust-Region Methods}
+\label{lab:trust_region}
+
+\objective{Explore Trust-Region methods for optimization.}
+
+When it comes to optimizing high-dimensional functions, a common strategy is to break
+the problem up into a series of smaller, easier tasks, leading to a sequence of
+successive approximations to the optimizer. This is the approach taken by Line-Search
+algorithms such as Newton's method, as discussed in Lab \ref{lab:line_search}.
+The class of algorithms known as Trust-Region methods are also based on this
+strategy, although they differ from Line-Search methods in some important ways.
+
+\section*{Overview of the Trust-Region Approach}
+Suppose we have a function $f$ that we wish to minimize over its entire domain.
+Give that we have some particular point $x_k$ in the domain of $f$, how do we
+select a new point $x_{k+1}$ that better minimizes the function? A Line-Search
+algorithm solves this sub-problem by first choosing a search direction $d_k$ 
+(often related to the gradient of $f$), and then a step length $\alpha_k$ so
+as to minimize $f$ along the direction $d_k$. The next point, then, is simply
+\[
+x_{k+1} := x_k + \alpha_k d_k.
+\]
+
+A Trust-Region algorithm, on the other hand, does away with a search direction and 
+step length, and instead approximates the function $f$ with some simpler function
+$m_k$ (called the \emph{model function}). The model $m_k$ will likely not be close to $f$ over the entire
+domain, and so we must restrict our attention to a ball of radius $r_k$ centered at
+the point $x_k$, inside of which $m_k$ is reasonably close to $f$. We then minimize
+$m_k$ over this ball, and set $x_{k+1}$ equal to this minimizer. That is,
+\[
+x_{k+1} := \underset{x \in B(x_k, r_k)}{\text{argmin}} m_k(x).
+\]
+The ball $B(x_k, r_k)$ is called the \emph{trust region} because we trust that the
+model function $m_k$ gives a reasonably accurate approximation of $f$ on this region.
+Note that it is also possible to use other types of trust regions, such as 
+ellipsoidal or box-like regions. 
+
+\subsection*{The Model Function}
+The model function $m_k$ is commonly taken to be a linear or quadratic approximation of
+$f$ based on its Taylor Series expansion about the point $x_k$. In the linear case,
+our model function has the form
+\[
+m_k(y) = f(x_k) + (y-x_k)^T \nabla f(x_k).
+\] 
+In the quadratic case, we simply add on a quadratic term to obtain
+\[
+m_k(y) = f(x_k) + (y-x_k)^T \nabla f(x_k) + \frac{1}{2}(y - x_k)^T B_k (y-x_k),
+\]
+where $B_k$ is the Hessian matrix of $f$ at $x_k$, or some approximation thereof.
+Given a trust region with radius $r_k$, note that our sub-problem can be 
+written in the following way:
+\begin{align*}
+x_{k+1} &= \underset{x \in B(x_k, r_k)}{\text{argmin}} m_k(x)\\
+&= x_k + \underset{\|p\| < r_k}{\text{argmin}}\, \{f(x_k) + p^T \nabla f(x_k) + \frac{1}{2}p^T B_k p\}.
+\end{align*}
+
+\subsection*{The Trust-Region}
+Discuss how choice of the radius $r_k$ can have large impact on performance of the algorithm. Balance between
+too small and too large of a trust region. How to determine whether the radius should change in the next iteration.
+
+\section*{Levenberg-Marquardt Algorithm}
+This is a trust-region approach of the Gauss-Newton method for nonlinear least squares.
