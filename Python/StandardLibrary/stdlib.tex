@@ -7,29 +7,26 @@ The standard library is comprised of over a hundred different modules that provi
 In this lab, we will look at some of these modules.
 
 Modules can be imported via the \li{import} statement. Methods provided by the module may then be called.
-If we only want to one thing from a Module, we can use \li{from module import class}.
-If we want a shorter name to call a Module when using methods, we can use the word \li{as}
-
+If we only want to one thing from a module, we can use \li{from module import class}.
+If we want a shorter name to call a module when using methods, we can use the word \li{as}.
 \begin{lstlisting}
+import math
 import random as rand
 from collections import deque
-
-m.sqrt(3) #uses the square root method from the math module.
+math.sqrt(3) #uses the square root method from the math module.
 \end{lstlisting}
 
 \section*{\texttt{math} Module}
 The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
 Common mathematical functions are defined in these modules, including \li{cos}, \li{sin}, \li{log}, and \li{sqrt}.
 These functions wrap around the functionality of the C math library.
-
 \begin{lstlisting}
 import math
-
 math.sin(4)
 \end{lstlisting}
 
 \begin{problem}
-Import the \li{math} module and \li{cmath} module. Write a function that prints out the results of \li{math.sqrt(5)} and \li{cmath.sqrt(5)}, and \li{cmath.sqrt(-5)}.
+Import the \li{math} module and \li{cmath} module. Write a function that prints out the results of $\sqrt{5}$ for both complex and floating point variants of the appropriate function.  What are the results for $\sqrt{-5}$?
 \end{problem}
 
 \section*{\texttt{random} Module}
@@ -44,8 +41,7 @@ It also contains functions that operate on sequences.  For example
 \item \li{shuffle()} randomly shuffles a list of numbers.
 \end{enumerate}
 
-Here's some examples of how to use the random module.
-
+Here are some examples of how to use the random module.
 \begin{lstlisting}
 import random
 
@@ -55,9 +51,7 @@ random.randint(5,12)
 #get a random sample of 5 people from the list. 
 people = ['Kevin', 'Jean', 'Alex', 'Ian', 'Bob', 'John', 'Melissa', 'Christy', 'Dave']
 random.sample(people,5)
-
 \end{lstlisting}
-
 
 \begin{problem}
 Import the \li{random} module.  Write a function that takes in a list of integers and shuffles it. Then it takes a random integer between 0 and the length of the list minus one and outputs the number that is in the suffled list at that spot.
@@ -154,8 +148,8 @@ with open(`test_out.csv', `w') as csv_file:
 \begin{problem}
 Practice reading and writing a CSV file.
 Read \texttt{test.csv} and write it followed by your name and student id number to \texttt{test\_out.csv}.
-When writing the CSV file, use a ; as your delimiter.
-Read the Python documentation for instructions on how to do this.
+When writing the CSV file, use a semicolon as your delimiter.
+Read the Python CSV module documentation for instructions on how to do this.
 \end{problem}
 
 \section*{\texttt{sys} Module}
@@ -165,21 +159,24 @@ It is sometimes useful to access these values when writing programs that are run
 Many programs are written to execute differently based on the various arguments and options specified at execution.
 Here is an example.
 \begin{lstlisting}[title = echo.py]
-def echo(word):
-	print word
+def square(n):
+    return n*n
 	
 if __name__=='__main__':
-	import sys
-	echo(sys.argv[1])
+    import sys
+    print sys.argv[0]
+    n = float(sys.argv[1])
+    print square(n)
 \end{lstlisting}
-When we run from the command line with a single argument, inside the main function, \li{sys.argv} returns the arguments thus letting the echo function print out the given argument.
+When we run from the command line with a single argument, the code will print the name of the program along with the square of the number passed as the first argument.
 If we execute the following script from the command line as follows:
 \begin{verbatim}
-python echo.py ACME
+python echo.py 4
 \end{verbatim}
 We should get
 \begin{verbatim}
-ACME
+echo.py
+16.0
 \end{verbatim}
 
 
@@ -243,56 +240,29 @@ This is done by declaring a Python \li{lambda} function which takes no arguments
 pfunc = lambda: f(*args, **kwargs)
 \end{lstlisting}
 where \li{args} is a tuple and \li{kwargs} is a dictionary.
-This syntax is explained in chapter 4 of the Official Python Tutorial.
+This syntax is explained in chapter 4 of the official Python tutorial.
 \end{problem}
 
 \section*{\texttt{collections} Module}
 This module defines several specialized data structures to use in addition to the built-in Python data structures. It includes namedTuple, deque, Counter, OrderedDict, and defaultDict.
 
 Named tuples are designed to help improve code readability in some cases.
-Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.
+Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.  They are just as efficient as regular tuples.
 
-A deque is similar to a list, but instead of inserting and removing anywhere, it has very quick insert and removal from each end of the structure.
+A deque is similar to a list, but instead of inserting and removing anywhere, it has very quick insert and removal from each end of the structure.  You cannot modify the middle elements of the deque.
  
-Counters are a subclass of dictionaries, but are expecially useful for counting things. They remain ordered with the item with the highest count at the beginning of the dictionary.
+Counter objects are very efficient at counting items.  They behave like a Python dictionary.  Counts are allowed to be any integer including 0 and negative values.
  
 Ordered dictionaries are exactly like standard dictionaries except for one important difference.
 Ordered dictionaries remember the order in which key-value pairs were added to the data structure.
-This data structure is useful if we want to iterate over key-value pairs of a dictionary in a specific order.
+When iterating over an ordered dictionary, the items are returned in the order they were added from first to last.
 
 Default dictionaries are a very convenient way to set a default value for all new keys in a dictionary.
 While this can be done with standard dictionaries using the \li{setdefault()} method, using a default dictionary is simpler and faster.
 
 \begin{problem}
-Write a function that will read in a text file and then use a Counter to find the most common word in the file. Use it to find the most common word in \li{words.txt}.
-
+Write a function that will read in a text file and then use a Counter to find the most common word in the file. Use it to find the most common word in \texttt{words.txt}.
 \end{problem}
-
-
-\begin{comment}
-\begin{problem}
-Write a function that takes in an integer maxInt and a integer n. Make a list of random integers between  0 and maxInt of length n, then use the Counter class to count how many there are of each one. Return a dictionary where the keys are the integers in the list and values are the frequency of the integer.
-\end{problem}
-
-
- are named tuples and deques.
-
-Named tuples are designed to help improve code readability in some cases.
-Standard tuples in Python are accessed by index.
-Named tuples allow access via index or by a field name.
-Compare the following:
-\begin{lstlisting}
-from collections import namedtuple
-pt = (32.1, 63.2)
-
-Pt = namedtuple(`Point', `x y')
-npt = Pt(32.1, 63.2)
-\end{lstlisting}
-The tuple \li{pt} is a standard tuple, which we can surmise represents the coordinates of a pt in 2D space.
-We must assume that \li{pt[0]} is the x-coordinate and \li{pt[1]} is the y-coordinate.
-When declaring a named tuple, we clearly defined what each index represents.
-We know for certain that \li{npt.x} is the x-coordinate and that \li{npt.y} is the y-coordinate.
-
 
 \begin{problem}
 A double-ended queue, or deque, can be thought of as a deck of cards.
@@ -302,5 +272,12 @@ This differs from a list, which allows insertions anywhere, but is very ineffici
 Write two functions that will rotate the elements of a deque and a list respectively.
 To rotate, remove elements from the right end one by one and insert them on the left end.
 Compare the timings you obtain from a deque and a list of 10000 elements.
+
+For the sake of timing, do not use the rotate method of the deque.
 \end{problem}
-\end{comment}
+
+\begin{problem}
+Write a function that takes in an integer maxInt and an integer n.
+Make a list of random integers between 0 and maxInt of length $n$, then use a Counter object to count how times each number appears in the list.
+Return a dictionary where the keys are the integers in the list and values are the frequency of the integer.
+\end{problem}
