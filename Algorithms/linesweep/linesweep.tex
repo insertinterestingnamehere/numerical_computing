@@ -126,6 +126,35 @@ We then process anything that is left.}
 \caption{After iterating over all the points in the set, we have the final minimum distance desired.}
 \end{figure}
 
+This process is outlined in Algorithm \ref{alg:linesweep_simple}.
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{MindistSimple}{$Y, \text{metric}$}
+	\LineComment{Make sorted copy of $Y$ to perform linesweep.}
+	\State $X \gets Y \text{ sorted along first coordinate}$
+	\LineComment{Initialize the smallest distance as the distance between the first points.}
+	\State $r \gets metric\left(X\left[0\right], X\left[1\right]\right)$
+	\LineComment{Use indices to track which points are active.}
+	\State $l \gets 0$
+	\LineComment{This is all that is needed for the first two points.}
+	\LineComment{Iterate over the remaining points.}
+	\For{$i=2$, $j<k$}
+		\LineComment{Update $l$ to not include points that are too far away.}
+		\While{$X\left[l, 0\right] + r < X\left[i, 0\right]$}
+			\State $l += 1$
+		\EndWhile
+		\LineComment{If there are any points to process, process them.}
+		\If{$l < i$}
+			\State $r \gets \text{min}\left(r, \text{metric}\left(X\left[i\right], X\left[l:i\right]\right)\right)$
+		\EndIf
+	\EndFor
+	\State \pseudoli{return} $r$
+\EndProcedure
+\end{algorithmic}
+\caption{A Simplified Line Sweep Algorithm}
+\label{alg:linesweep_simple}
+\end{algorithm}
+
 \begin{problem}
 Write a Python function that implements the above algorithm.
 Have your code accept a metric function as a parameter.
@@ -165,6 +194,59 @@ Notice that we only need to consider the points that lie in the box formed by th
 \caption{After processing through all the points, we are guaranteed to have hit the minimum distance already, so our minimum distance thus far is our final return value.}
 \end{figure}
 
+This process is outlined in Algorithm \ref{alg:linesweep_full}.
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{Mindist}{$Y, \text{metric}$}
+	\LineComment{Make sorted copy of $Y$ to perform linesweep.}
+	\State $X \gets Y \text{ sorted along first coordinate}$
+	\LineComment{Store number of dimensions.}
+	\State $dim \gets Y.\text{shape}\left[1\right]$
+	\LineComment{Initialize the smallest distance as the distance between the first points.}
+	\State $r \gets metric\left(X\left[0\right], X\left[1\right]\right)$
+	\LineComment{Use indices to track which points are active.}
+	\State $l \gets 0$
+	\LineComment{This is all that is needed for the first two points.}
+	\LineComment{Iterate over the remaining points.}
+	\For{$i=2$, $j<k$}
+		\LineComment{Update $l$ to not include points that are too far away.}
+		\While{$X\left[l, 0\right] + r < X\left[i, 0\right]$}
+			\State $l += 1$
+		\EndWhile
+		\LineComment{If there are any points to process, process them.}
+		\For{$k=l$, $i$}
+			\LineComment{Initialize a flag to store whether or not to process a point.}
+			\State $proc \gets \text{True}$
+			\LineComment{Initialize partially computed distance to $0$.}
+			\State $d \gets 0.$
+			\LineComment{Compute differences in each dimension.}
+			\For{$j=1$, $dim$}
+				\State $dif \gets \left|X\left[k,j\right] - \left[i, j\right]\right|$
+				\LineComment{Stop computation if point is too far away.}
+				\If{$r < dif$}
+					\LineComment{Set flag to avoid further computations for this point.}
+					\State $proc \gets \text{False}$
+					\State \pseudoli{break}
+				\EndIf
+				\LineComment{If the point still needs to be processed,}
+				\LineComment{add in the difference squared.}
+				\State $d \gets d + dif^2$
+			\EndFor
+			\LineComment{If the point still has not been rejected, compute the distance.}
+			\LineComment{Update the minimum distance if needed.}
+			\If{$proc$}
+				\State $dif \gets X\left[k,0\right] - X\left[i,0\right]$
+				\State $r \gets \text{min}\left(r, \sqrt{d + dif^2}\right)$
+			\EndIf
+		\EndFor
+	\EndFor
+	\State \pseudoli{return} $r$
+\EndProcedure
+\end{algorithmic}
+\caption{A Line Sweep Algorithm}
+\label{alg:linesweep_full}
+\end{algorithm}
+
 
 \begin{problem}
 Implement the algorithm above in Python. 
@@ -179,7 +261,8 @@ Since this version of the algorithm depends so heavily on array lookups, it will
 
 \section*{Voronoi Diagrams}
 
-In this lab we will discuss some applications of Voronoi Diagrams.
+In this section we will discuss some applications of Voronoi Diagrams.
+They are an application of the line sweep algorithm in that they can be computed using a line sweep algorithm called Fortune's Algorithm.
 In the abstract sense, a Voronoi diagram is a partition of a plane into regions that lie closest to different points.
 The easiest way to understand this is to look at some examples.
 Figure \ref{voronoi_ex_1} is a voronoi diagram generated from 100 random points with $x$ and $y$ values between 0 and 1.
@@ -195,30 +278,34 @@ One possible way to compute this sort of diagram would be by brute force, for ex
 \begin{lstlisting}
 import numpy as np
 from numpy.random import rand
-from matplotlib imort pyplot as plt
-num = 10
-res = 201
-pts = rand(num, 2)
-X = np.linspace(0, 1, res)
-Y = X.copy()
-X, Y = np.meshgrid(X, Y)
-Z = np.empty_like(X)
-indices = np.zeros_like(X)
-for i in xrange(res):
-    for j in xrange(res):
-        #note: we don't need to do the sqare root
-        #since we really just need to compare the distances
-        mn = (X[i,j] - pts[0,0])**2 + (Y[i,j] - pts[0,1])**2
-        for k in xrange(1,num):
-            dist = (X[i,j] - pts[k,0])**2 + (Y[i,j] - pts[k,1])**2
-            if dist < mn:
-                indices[i,j] = k
-                mn = dist
-plt.pcolormesh(X,Y,indices)
-plt.scatter(pts[:,0],pts[:,1])
-plt.xlim((0,1))
-plt.ylim((0,1))
-plt.show()
+from matplotlib import pyplot as plt
+
+def pnorm(pt, X, p=2):
+    # Take the p-norm distance between a point 'pt'
+    # and an array of points 'X'.
+    if p == "inf":
+        return np.absolute(pt - X).max(axis=-1)
+    return (np.absolute(pt - X)**p).sum(axis=-1)**(1./p)
+
+def brute_force_voronoi(n, res, p=2, filename=None):
+    # Generates a grid of points and tests to find the nearest
+    # neighbor for each of them.
+    pts = rand(n, 2)
+    X = np.linspace(0, 1, res)
+    # Make an array to store the indices of the nearest points.
+    indices = np.zeros((res, res))
+    for i in xrange(res):
+        for j in xrange(res):
+            indices[i, j] = pnorm(np.array([X[j], X[i]]), pts, p).argmin()
+    # Make a colorplot of the results.
+    X, Y = np.meshgrid(X, X, copy=False)
+    plt.pcolormesh(X, Y, indices)
+    plt.scatter(pts[:,0], pts[:,1])
+    plt.xlim((0,1))
+    plt.ylim((0,1))
+    plt.show()
+
+brute_force_voronoi(10, 401)
 \end{lstlisting}
 This algorithm is good because it can work regardless of the metric space we are using, but it is terribly slow.
 Figure \ref{voronoi_1norm} shows a similar diagram using the 1-norm and figure \ref{voronoi_supnorm} shows a diagram generated using the supremum norm.
@@ -299,7 +386,7 @@ For more details, see \url{http://docs.scipy.org/doc/scipy-dev/reference/spatial
 Unfortunately, the \li{Voronoi} objects do not allow us to find out, given the coordinates of a new point, which of our original input points lies the closest to it.
 To do something like that we would need to use a different algorithm or data structure.
 One possible way of solving such a problem is to us a KD tree.
-KD trees will be discussed in further detail in Volume II.
+KD trees are discussed in further detail in Volume II.
 Scipy includes built in KD trees in both Python and C.
 The version in C is generally faster.
 You can make a KD tree like this
@@ -317,7 +404,16 @@ To find the nearest neighbor of a point \li{pt} and how far away it is we can no
 \begin{lstlisting}
 kd.query(pt)
 \end{lstlisting}
-
+This returns a tuple containing the distance of the given point to the nearest point in \li{A} and the index of that nearest neighbor in \li{A}.
+For exmaple, if you put in:
+\begin{lstlisting}
+kd.query(A[27])
+\end{lstlisting}
+It will return
+\begin{lstlisting}
+(0.0,27)
+\end{lstlisting}
+Since \li{A[27]} would be the nearest point at a distance of \li{0.0}.
 \section*{Applications of Voronoi Diagrams}
 
 Though the computation of a Voronoi Diagram does not provide a quick way to run nearest neighbor queries, there are still several applications for Voronoi Diagrams.
@@ -332,7 +428,7 @@ Once the contaminated pump was shut down, the cholera outbreak was stopped.
 Voronoi diagrams can also be used to solve problems involving the points furthest from those already on the graph.
 Examples include determining where to drill next when searching for oil, or where to put a new branch of a major company.
 
-The file \li{edge_intersections.py} included with this lab includes a helper function, \li{edge_intersections}, that will be helpful for the rest of the lab.
+The file \li{edge_intersections.py} included with this lab contains a helper function, \li{edge_intersections}, that will be helpful for the rest of the lab.
 It takes a Voronoi diagram object as input as well as two tuples (xlims and ylims) representing the limits of a rectangle.
 It returns an array containing the intersections of the edges of the voronoi diagram with the boundaries of the rectangular region.
 It also returns two lists of pairs of indices.
@@ -342,28 +438,28 @@ In the second list of indices, both indices of each pair correspond to intersect
 
 \begin{problem}
 \label{FurthestPoints}
-Write a function that, given a list of points and a rectangular region of the plain and an integer $n$, finds the $n$ points in the region that lie farthest from all the points already given.
-Use the helper function given to test the intersections of the edges of the voronoi diagram with the intersections of the rectangular region.
+Write a function that, given a list of points, \li{pts}, and a rectangular region of the plain and an integer \li{n}, finds the \li{n} points in the region that lie farthest from all the points in \li{pts}.
+Do this by creating a list of tuples with the first element as the distance to the nearest neighbor in \li{pts} and the second element of each tuple the canidate point.
+You should use a KD tree to compute the distance to the nearest neighbor.
+Add to your list of canidate tuples the veritices of the Voronoi diagram, the intersection of the edges given by the helper function, and the corners of the region.
+The library \li{heapq} has a nice function \li{nlargest(n,Q)} that will sort your list \li{Q} by the first element in your tuples and return sorted the largest \li{n} elements.
 \end{problem}
 
-Another possible application is navigation through a field of obstacles. Create a Voronoi diagram with each obstacle being a point. Convert it into a graph with each vertex in the Voronoi diagram being a node and the edges of the Voronoi diagram are the edges of a graph weighted with its distance. Using a shortest path algorithm you can find the shortest path between the two sides that would keep you as far from the obstacles as possible.
+Another possible application is navigation through a field of obstacles.
+This can be done by creating a Voronoi diagram where each obstacle is represented as a point.
+This diagram can then be represented as a graph where the vertices of the Voronoi diagram are considered to be the nodes.
+Using a shortest path algorithm you can find the shortest path between the two sides that would keep you as far from the obstacles as possible.
 
 \begin{comment}
 \begin{problem}
-Write a function that, given a list of points, forms the adjacency matrix corresponding to the connections between each node of the Voronoi diagram.
-If you are using the solution to Lab \ref{lab:MarkovGraph} (see below) for the second half of this problem, treat it as an unweighted, undirected graph.
-If you are using an implementation of Djikstra's algorithm, treat it as a weighted directed graph.
+Given a voronoi diagram object, write a function that uses NetworkX to find the shortest path along the edges diagram between any two given vertices.
 Have this function take a threshold value to limit which ridges are included.
 Do not include a ridge in the adjacency matrix if the distance from the ridge to the center points of the Voronoi cells is less than the threshold.
 You can find this distance by measuring the distance between each pair of points referenced in the \li{ridge_points} attribute of the Voronoi object and then dividing by two.
 Note: the infinite ridges of the graph have $-1$ listed as one of the indices in the \li{ridge_vertices} attribute.
 Make sure you do not include these ridges.
 
-Use your solution to Lab \ref{lab:MarkovGraph} Problem \ref{maze_prob} to find a path from any given node to any other node.
-Write another function that plots the Voronoi diagram and the path between any two given nodes.
-
-Note: if you have a working implementation of Djikstra's algorithm, you may use it and use the graph weights corresponding to the distance between nodes instead.
-Using a modified version of Djikstra's Algorithm you could maximize the distance from any node to the path, but we won't ask you to do that here.
+Depending on what is needed from the algorithm, you could modify the weights of the graph to give preference to edges that pass farther from the obstacles.
 A fuller solution of this problem would also account for the bounds of the region.
 That could be done with the helper function included with this lab.
 \end{problem}
