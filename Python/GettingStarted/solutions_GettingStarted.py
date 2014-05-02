@@ -1,4 +1,3 @@
-
 # Problem 1
 '''
 1. Integer Division returns the floor.

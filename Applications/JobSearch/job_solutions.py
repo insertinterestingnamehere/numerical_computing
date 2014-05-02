@@ -1,105 +1,121 @@
-import scipy as sp
+import numpy as np
+import math
 from discretelognorm import discretelognorm
 from matplotlib import pyplot as plt
 
-#Problem 1 Solution============================================================
-#N = 500
-#w = sp.linspace(0,100,N)
-#w = w.reshape(N,1)
-#u = lambda c: sp.sqrt(c)
-#util_vec = u(w)
-#alpha = 0.5
-#alpha_util = u(alpha*w)
-#alpha_util_grid = sp.repeat(alpha_util,N,1)
-#
-#m = 20
-#v = 200
-#f = discretelognorm(w,m,v)
-#
-#VEprime = sp.zeros((N,1))
-#VUprime    = sp.zeros((N,N))
-#EVUprime = sp.zeros((N,1))
-#gamma = 0.1
-#beta = 0.9
-#
-#tol = 10**-9
-#delta1 = 1+tol
-#delta2 = 1+tol
-#it = 0
-#while ((delta1 >= tol) or (delta2 >= tol)):
-#    it += 1
-#    VE = VEprime.copy()
-#    VU = VUprime.copy()
-#    EVU = EVUprime.copy()
-#    
-#    VEprime = util_vec + beta*((1-gamma)*VE + gamma*EVU)
-#    arg1 = sp.repeat(sp.transpose(VE),N,0)
-#    arg2 = sp.repeat(EVU,N,1)
-#    arg = sp.array([arg2,arg1])
-#    VUprime = alpha_util_grid + beta*sp.amax(arg,axis = 0)
-#    psi = sp.argmax(arg,axis = 0)
-#    EVUprime = sp.dot(VUprime,f)
-#
-#    delta1 = sp.linalg.norm(VEprime - VE)
-#    delta2 = sp.linalg.norm(VUprime - VU)
-#    print(delta1)
-#    
-#wr_ind = sp.argmax(sp.diff(psi), axis = 1)
-#wr = w[wr_ind]
-#plt.plot(w,wr)
-#plt.show()
-
-#Problem 2 Solution============================================================
-N = 500
-w = sp.linspace(0,100,N)
-w = w.reshape(N,1)
-u = lambda c: sp.sqrt(c)
-util_vec = u(w)
-alpha = 0.5
-alpha_util = u(alpha*w)
-alpha_util_grid = sp.repeat(alpha_util,N,1)
-
+#initialize parameters for both problems
 m = 20
 v = 200
-f = discretelognorm(w,m,v)
+N = 500
+Wmax = 100
+Wmin = 0
+gamma = .10
+alpha = .5
+beta = .9
+e_params = (m, v) #to be passed to discretelognorm
 
-VEprime = sp.zeros((N,1))
-VUprime    = sp.zeros((N,N))
-EVUprime = sp.zeros((N,1))
-psiprime = sp.ones((N,1))
-gamma = 0.1
-beta = 0.9
 
-m = 15
-tol = 10**-9
-delta = 1+tol
-it = 0
-while (delta >= tol):
-    it += 1
+#Problem 1 Solution============================================================
+def jobSearchVI(Wmin, Wmax, N, e_params, alpha, beta, gamma):
+    """
+    Solve the job search problem.
+    VE denotes the employed value function.
+    VU denotes the unemployed value function.
+    EVU denotes E_{w''}V^U(w,w'').
+    PSI denotes the policy function.
+    Label employed with 0, unemployed with 1.
+    """
+    u   = lambda c: np.sqrt(c)
+    w   = np.linspace(Wmin, Wmax, N)
+    uaw = u(alpha*w).reshape((N,1))
+    uw  = u(w)
+    f   = discretelognorm(w, *e_params)
     
-    psi = psiprime.copy()
-    arg1 = sp.repeat(sp.transpose(VEprime),N,0)
-    arg2 = sp.repeat(EVUprime,N,1)
-    arg = sp.array([arg2,arg1])
-    psiprime = sp.argmax(arg,axis = 0)    
+    VE   = np.zeros(N)
+    EVU  = np.zeros(N)
+    VU   = np.zeros((N,N))
+    MVE  = np.empty((N,N)) #tiled version of VE
+    MEVU = np.empty((N,N)) #tiled version of EVU
     
-    for j in sp.arange(0,m):
-        VE = VEprime.copy()
-        VU = VUprime.copy()
-        EVU = EVUprime.copy()
-        VEprime = util_vec + beta*((1-gamma)*VE + gamma*EVU)
-        arg1 = sp.repeat(sp.transpose(VE),N,0)*psiprime
-        arg2 = sp.repeat(EVU,N,1)*(1-psiprime)
-        arg = arg1+arg2
-        VUprime = alpha_util_grid + beta*arg
-        EVUprime = sp.dot(VUprime,f)  
+    delta = 1.
+    i = 0
+    while delta >= 1e-9:
+        i+=1
+        
+        #update tiled value functions
+        MVE[:,:] = VE.reshape((1,N))
+        MEVU[:,:] = EVU.reshape((N,1))
+        
+        #calculate new value functions
+        VU1 = uaw + beta*np.max(np.dstack([MEVU, MVE]), axis=2)
+        VE1 = uw + beta*((1-gamma)*VE + gamma*EVU)
+        
+        #test for convergence
+        d1 = math.sqrt(((VE1-VE)**2).sum())
+        d2 = math.sqrt(((VU1-VU)**2).sum())
+        delta = max(d1,d2)
+        
+        #update
+        VU = VU1
+        VE = VE1
+        EVU = np.dot(VU,f).ravel()
+    
+    #calculate policy function
+    PSI = np.argmax(np.dstack([MEVU,MVE]), axis=2)
+    
+    #calculate and plot reservation wage function
+    wr_ind = np.argmax(np.diff(PSI), axis = 1)
+    wr = w[wr_ind]
+    plt.plot(w,wr)
+    plt.show()
+    print "Number of iterations:", i
+    return VE, VU, PSI
 
+#Problem 2 Solution============================================================
+def jobSearchMPI(Wmin, Wmax, N, e_params, alpha, beta, gamma):
+    """
+    Solve Job search problem using modified policy function iteration.
+    """
+    # initialize data
+    u = lambda c: np.sqrt(c)
+    w = np.linspace(Wmin, Wmax, N)
+    uaw = u(alpha*w).reshape((N,1))
+    uw = u(w)
+    f = discretelognorm(w, *e_params)
     
-
-    delta = sp.linalg.norm(psiprime -psi)
-    print(delta)    
+    VE = np.zeros(N)
+    EVU = np.zeros(N)
+    VU = np.zeros((N,N))
+    PSI = 2*np.ones((N,N)) #initialize policy function
+    MVE = np.empty((N,N))
+    MEVU = np.empty((N,N))
     
-wr_ind = sp.argmax(sp.diff(psiprime), axis = 1)
-wr = w[wr_ind]
-plt.plot(w,wr)
-plt.show()
+    delta = 10.
+    it = 0
+    while delta >= 1e-9:
+        it += 1
+        
+        #calculate new policy function
+        PSI1 = np.argmax(np.dstack([MEVU,MVE]), axis=2)
+        
+        #iterate on the value functions
+        for i in xrange(15):
+            MVE[:,:] = VE.reshape((1,N))
+            MEVU[:,:] = EVU.reshape((N,1))
+            VU = uaw + beta*(MVE*PSI1+MEVU*(1-PSI1))
+            VE = uw + beta*((1-gamma)*VE + gamma*EVU)
+            EVU = np.dot(VU,f).ravel()
+            
+        #test for convergence
+        delta = math.sqrt(np.abs((PSI1-PSI)).sum())
+        
+        #update
+        PSI = PSI1
+        
+    #calculate and plot reservation wage function
+    wr_ind = np.argmax(np.diff(PSI), axis = 1)
+    wr = w[wr_ind]
+    plt.plot(w,wr)
+    plt.show()
+    print "Number of iterations:", it
+    return PSI
