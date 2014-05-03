@@ -165,7 +165,7 @@ An inner join is equivalent to the following pseudo-loop in Python
 for row_s in students:
     for row_m in majors:
         if predicates(row_s, row_m):
-            yield columns
+            yield columns(row_s, row_m)
 \end{lstlisting}
 
 \begin{table}
@@ -187,7 +187,8 @@ Sammy Burke & Science \\
 \end{table}
 
 \subsection*{Left Outer Join}
-
+A left outer join will return all relations from the left table even if they don't match any relation on the joined tables.
+An illustration of a left outer join is given in figure \ref{fig:left_outer}.
 \begin{figure}
 \centering
 \includegraphics[width=.5\textwidth]{left_outer.pdf}
@@ -195,13 +196,46 @@ Sammy Burke & Science \\
 \label{fig:left_outer}
 \end{figure}
 
+A Pythonesque loop that illustrates performs a left outer join is
+\begin{lstlisting}
+for row_s in students:
+    for row_m in majors:
+        if predicates(row_s, row_m):
+            yield columns(row_s, row_m)
+        else:
+            yield columns(row_s)
+\end{lstlisting}
 
-
+The following left outer join will result in the table shown in table \ref{table:lo_studentsmajors}.
+\begin{lstlisting}[language=SQL]
+SELECT students.name, majors.name FROM students LEFT OUTER JOIN majors ON students.majorcode=majors.id;
+\end{lstlisting}
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+students.name & majors.name \\
+\hline
+Michelle Fernandez & Math \\
+Gilbert Chapman & None \\
+Roberta Cook & Science \\
+Rene Cross & Writing \\
+Cameron Kim & Art \\
+Mercedes Hall & None \\
+Kristopher Tran & Science \\
+Cassandra Holland & Math \\
+Alfonso Phelps & None \\
+Sammy Burke & Science \\
+\hline
+\end{tabular}
+\caption{A left outer join of students and majors}
+\label{table:lo_studentsmajors}
+\end{table}
 
 \subsection*{Cross Join}
-Essentially a cartesian product of tables.  Care must be taken when using cross join because of the size of the joined table.
-
-
+Essentially a Cartesian product of tables.  
+Care must be taken when using cross join because of the size of the joined table.
+A cross join should only be used on small tables.
+It matches each relation in one table with every other possible combination of relations in the joined tables.
 
 \section*{Aggregating Functions}
 Aggregate functions are useful for summarizing the data in a column.
@@ -211,14 +245,65 @@ The functions are
 \hline
 Function & Description \\
 \hline
-MIN & Retrieve the smallest numeric value of a column \\
-MAX & Retrieve the largest numeric value of a column \\
-SUM & Sum the numeric values of a column \\
-AVG & Retrieve the average numeric value of the column \\
-COUNT & Retrieve the total number of matching records in a column\\
+MIN() & Retrieve the smallest numeric value of a column \\
+MAX()& Retrieve the largest numeric value of a column \\
+SUM() & Sum the numeric values of a column \\
+AVG() & Retrieve the average numeric value of the column \\
+COUNT() & Retrieve the total number of matching records in a column\\
 \hline
 \end{tabular}
 \end{table}
+
+We can count the number of students by executing the following SQL statement.
+\begin{lstlisting}[language=SQL]
+SELECT COUNT(*) FROM students;
+\end{lstlisting}
+
+\subsection*{Ordering and Grouping Relations}
+The \lsql{ORDER BY} keyword can be used to sort the result set by columns.
+We can sort in ascending order or descending order.
+\begin{lstlisting}[language=SQL]
+SELECT name FROM students ORDER BY name ASC;
+SELECT name FROM students ORDER BY name DESC;
+\end{lstlisting}
+
+Another useful SQL keyword is the \lsql{GROUP BY} keyword.
+It is used along with an aggregating function to group the result set by columns.
+\begin{lstlisting}
+SELECT grade, COUNT(studentid) FROM grades GROUP BY grade;
+\end{lstlisting}
+The result set is given in table \ref{table:group_by_grade}.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+grade & COUNT(studentid) \\
+\hline
+None & 5 \\
+A & 4 \\
+A+ & 1 \\
+A- & 1 \\
+B & 2 \\
+B- & 1 \\
+C & 3 \\
+C+ & 1 \\
+C- & 1 \\
+D & 1 \\
+D- & 1 \\
+\hline
+\end{tabular}
+\caption{Grouping of students by grade.}
+\label{table:group_by_grade}
+\end{table}
+
+
+
+
+\begin{problem}
+Write a SQL query that will count how many students have an A in at least one of the classes.
+\end{problem}
+
+
+
 
 \section*{Conditional Selects}
 %case, distinct, like
