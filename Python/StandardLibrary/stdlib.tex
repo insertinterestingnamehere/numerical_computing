@@ -1,6 +1,104 @@
 \lab{Python}{The Standard Library}{Standard Library}
 \objective{Become familiar with the Python standard library}
 
+Python has a very rich set of tools available by default.
+There are about 80 built-in functions that are always present in any Python environment.
+In addition to these 80 core functions, the standard library includes thousands of useful routines and classes that cover almost every imaginable need.
+Python has a ``batteries included'' philosophy in its standard library.
+This philosophy makes complex tasks almost trivial to implement using the standard library.
+There are many sophisticated and robust modules available in the standard library.
+
+\section*{File Objects in Python}
+One of the built-in functionalities of Python is dealing with files.
+Python has a useful file object which acts as an interface to all kinds of different streams.
+File objects are created using the built-in \li{open} command.
+The \li{open} command accepts three arguments: filename, mode, and buffering.
+The mode determines the kind of access to use when opening the file.
+Possible mode strings are described in Table \ref{table:filemodes}.
+The default buffering is sufficient for most cases.
+If the file cannot be opened for any reason, an exception is raised.
+\begin{table}
+\begin{tabular}{|l|p{10cm}|}
+\hline
+Mode & Description \\
+\hline
+\li{r} & Opens a file for read-only access. This is the default mode. \\
+\li{w} & Opens a file for write-only access.  This mode will create the file if it doesn't exist, or overwrite the file if it does exist. \\
+\li{a} & Opens a file for appending.  The file pointer is at the end of the file.  Creates a new file if none exists. \\
+\hline
+\hline
+Modifier & Description \\
+\hline
+\li{b} & Open a file in binary mode. \\
+\li{+} & Open a file for read/write access.  Note that \li{r+} and \li{w+} are \emph{not} equivalent. \\
+\hline
+\end{tabular}
+\caption{File open modes.}
+\label{table:filemodes}
+\end{table}
+
+Every file object has several attributes and methods (Table \ref{table:fileattribs}).
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Attribute & Description \\
+\hline
+\li{closed} & True if file object is closed. \\
+\li{mode} & The access mode used to open the file object. \\
+\li{name} & The name of the file. \\
+\hline
+\hline
+Method & Description \\
+\hline
+\li{close()} & Flush any buffered writes and close the file object. \\
+\li{flush()} & Flush any buffered writes.  File object remains open. \\
+\li{read()} & Read the next string of the file. \\
+\li{readline()} & Read a line of the file. \\
+\li{readlines()} & Read lines of the file until end of file. \\
+\li{seek(offset)} & Place the file pointer at a certain position within the file. \\
+\li{tell()} & Return the current position of the file pointer. \\
+\li{write()} & Write a string to the file. \\
+\li{writelines()} & Write a sequence of strings to the file. \\
+\hline
+\end{tabular}
+\caption{File object attributes and methods.}
+\label{table:fileattribs}
+\end{table}
+
+We can open a file as follows
+\begin{lstlisting}
+f = open('filename.txt','r')
+#This will iterate through our entire file and print each line.
+for line in f:
+        print line
+f.close()
+\end{lstlisting}
+However, it is preferred to open files in the following manner.
+Notice that we don't have to explicitly close the file.
+The moment we exit the \li{with} block, the file is automatically closed safely.
+Using the below method is preferred because your files are guaranteed to be closed properly, even if an unexpected error happens.
+\begin{lstlisting}
+with open('filename.txt', 'r') as f:
+    for line in f:
+        print line
+\end{lstlisting}
+
+To write to a file, we would do something similar to the following.
+\begin{lstlisting}
+num = 17
+with open('output.txt', 'w'):
+    f.write("My favorite number: ")
+    f.write(str(num))
+\end{lstlisting}
+
+Note that we can declare variables inside the \li{with} block that are accessible outside that block.
+\begin{lstlisting}
+#read our file using a with statement
+with open('filename.txt', 'r') as f:
+        read_data = f.read()
+print read_data
+\end{lstlisting}
+
 One of the reasons Python is so useful as a scientific computing platform is because it is not limited to only scientific computing.
 Python has a very large and comprehensive standard library that is available with almost every Python environment.
 The standard library is comprised of over a hundred different modules that provide extra functionality to Python.
@@ -14,6 +112,33 @@ import math
 import random as rand
 from collections import deque
 math.sqrt(3) #uses the square root method from the math module.
+\end{lstlisting}
+
+\section*{\texttt{sys} Module}
+The \li{sys} module allows us to access information specific to the system running Python.
+For example, we often import \li{sys} to get the list \li{sys.argv} which is a list of arguments passed to the current environment.
+It is sometimes useful to access these values when writing programs that are run from command line.
+Many programs are written to execute differently based on the various arguments and options specified at execution.
+Here is an example.
+\begin{lstlisting}[title = echo.py]
+def square(n):
+    return n*n
+        
+if __name__=='__main__':
+    import sys
+    print sys.argv[0]
+    n = float(sys.argv[1])
+    print square(n)
+\end{lstlisting}
+When we run from the command line with a single argument, the code will print the name of the program along with the square of the number passed as the first argument.
+If we execute the following script from the command line as follows:
+\begin{lstlisting}[style=ShellInput]
+python echo.py 4
+\end{lstlisting}
+We should get the following output.
+\begin{lstlisting}[style=ShellOutput]
+echo.py
+16.0
 \end{lstlisting}
 
 \section*{\texttt{math} Module}
@@ -40,6 +165,7 @@ It also contains functions that operate on sequences.  For example
 \item \li{sample()} returns a list of specified length of randomly sampled numbers from a list,
 \item \li{shuffle()} randomly shuffles a list of numbers.
 \end{enumerate}
+The \li{random} module can sample from several distributions such as the uniform, normal, beta, gamma, exponential, and many others.
 
 Here are some examples of how to use the random module.
 \begin{lstlisting}
@@ -51,67 +177,6 @@ random.randint(5,12)
 #get a random sample of 5 people from the list. 
 people = ['Kevin', 'Jean', 'Alex', 'Ian', 'Bob', 'John', 'Melissa', 'Christy', 'Dave']
 random.sample(people,5)
-\end{lstlisting}
-
-\begin{problem}
-Import the \li{random} module.  Write a function that takes in a list of integers and shuffles it. Then it takes a random integer between 0 and the length of the list minus one and outputs the number that is in the suffled list at that spot.
-\end{problem}
-
-The \li{random} module can sample from several distributions such as the uniform, normal, beta, gamma, exponential, and many others.
-NumPy's \li{random} module has even more capability than the standard Python \li{random} module.
-We will do more with NumPy in a later lab.
-
-\section*{Reading and Writing into Text Files}
-One useful way to store data is in a text file.
-This allows us to use data from outside sources as well as write strings that can be accessed outside of the python environment.
-
-To start, we need to use the \li{open()} method to access our file.
-The method takes two strings, the filename and whether we want to read, write, or both.
-We use \li{'r'} for reading, \li{'w'} for writing, and \li{'r+'} for reading and writing.
-After we finish working with a file, we close the connection with the \li{close()} method.
-
-\begin{lstlisting}
-f = open('filename.txt', 'r')
-#f is now how we access our file.
-# We can read one line at a time by using
-f.readline()
-#We can read the entire file by using
-f.read()
-
-f.close()
-\end{lstlisting}
-
-The methods \li{read()} and \li{readline()} return strings.
-We can also iterate through our file and look at each line.
-
-\begin{lstlisting}
-f = open('filename.txt','r')
-#This will iterate through our entire file and print each line.
-for line in f:
-	print line
-f.close()
-\end{lstlisting}
-
-Writing to a file is similar, we open the file and then use methods. 
-However, the \li{write()} method will only accept strings, so everything we write needs to be a string.
-
-\begin{lstlisting}
-num = 17
-f = open('output.txt','w')
-f.write('My favorite number: ')
-s = str(num) #convert num to a string
-f.write(s)
-f.close()
-\end{lstlisting}
-
-Working with files can often cause errors if we don't know exactly what is in the file.
-To avoid errors, we can use \li{try} and \li{except} blocks, or use Python's \li{with} statement.
-This will close the file when we are done without us having to call the \li{close()} method even if an exception is raised while working.
-
-\begin{lstlisting}
-#read our file using a with statement
-with open('filename.txt', 'r') as f:
-	read_data = f.read()
 \end{lstlisting}
 
 \section*{\texttt{csv} Module}
@@ -131,9 +196,8 @@ with open(`test.csv', `r') as csv_file:
         print line
 \end{lstlisting}
 
-%Writing with a CSV \li{writer} object is very similar to writing with a regular file object.
-We can also write to a \li{csv} file using a CSV \li{writer} object.  The following code demonstrates how this may be done.
-
+Writing with a CSV \li{writer} object is very similar to writing with a regular file object.
+The following code demonstrates how this may be done.
 \begin{lstlisting}
 contents = [["Column 1", "Column 2", "Column 3"],
             [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
@@ -142,40 +206,6 @@ with open(`test_out.csv', `w') as csv_file:
     for record in contents:
         csv_writer.writerow(record)
 \end{lstlisting}
-
-\begin{problem}
-Practice reading and writing a CSV file.
-Read \texttt{test.csv} and write it followed by your name and student id number to \texttt{test\_out.csv}.
-When writing the CSV file, use a semicolon as your delimiter.
-Read the Python CSV module documentation for instructions on how to do this.
-\end{problem}
-
-\section*{\texttt{sys} Module}
-The \li{sys} module allows us to access information specific to the system running Python.
-For example, we often import \li{sys} to get the list \li{sys.argv} which is a list of arguments passed to the current environment.
-It is sometimes useful to access these values when writing programs that are run from command line.
-Many programs are written to execute differently based on the various arguments and options specified at execution.
-Here is an example.
-\begin{lstlisting}[title = echo.py]
-def square(n):
-    return n*n
-	
-if __name__=='__main__':
-    import sys
-    print sys.argv[0]
-    n = float(sys.argv[1])
-    print square(n)
-\end{lstlisting}
-When we run from the command line with a single argument, the code will print the name of the program along with the square of the number passed as the first argument.
-If we execute the following script from the command line as follows:
-\begin{verbatim}
-python echo.py 4
-\end{verbatim}
-We should get
-\begin{verbatim}
-echo.py
-16.0
-\end{verbatim}
 
 \section*{\texttt{timeit} Module}
 This module is used to time the execution of small bits of Python code.
@@ -205,7 +235,7 @@ This syntax is explained in chapter 4 of the official Python tutorial.
 This module defines several specialized data structures to use in addition to the built-in Python data structures. It includes namedTuple, deque, Counter, OrderedDict, and defaultDict.
 
 Named tuples are designed to help improve code readability in some cases.
-Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.  They are just as efficient as regular tuples.
+Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.
 
 A deque is similar to a list, but instead of inserting and removing anywhere, it has very quick insert and removal from each end of the structure.  You cannot modify the middle elements of the deque.
  
@@ -219,10 +249,6 @@ Default dictionaries are a very convenient way to set a default value for all ne
 While this can be done with standard dictionaries using the \li{setdefault()} method, using a default dictionary is simpler and faster.
 
 \begin{problem}
-Write a function that will read in a text file and then use a Counter to find the most common word in the file. Use it to find the most common word in \texttt{words.txt}.
-\end{problem}
-
-\begin{problem}
 A double-ended queue, or deque, can be thought of as a deck of cards.
 Inserting and removing elements from either end is very efficient.
 Python's deque implementation only allows insertions at the left and right ends of the data structure.
@@ -230,8 +256,6 @@ This differs from a list, which allows insertions anywhere, but is very ineffici
 Write two functions that will rotate the elements of a deque and a list respectively.
 To rotate, remove elements from the right end one by one and insert them on the left end.
 Compare the timings you obtain from a deque and a list of 10000 elements.
-
-For the sake of timing, do not use the rotate method of the deque.
 \end{problem}
 
 \begin{problem}
@@ -239,3 +263,114 @@ Write a function that takes in an integer maxInt and an integer n.
 Make a list of random integers between 0 and maxInt of length $n$, then use a Counter object to count how times each number appears in the list.
 Return a dictionary where the keys are the integers in the list and values are the frequency of the integer.
 \end{problem}
+
+\section*{\texttt{itertools} Module}
+There is a very powerful library in the Python Standard Library that is built around the concept
+of generators and iterators.  The functions in \li{itertools} are designed to be used as
+building blocks in larger functions.  These functions are fast and memory efficient.
+
+\subsection*{Generators}
+Before discussing this module, let's briefly understand what a generator is.
+A generator ``generates'' values.  It is a special type of iterator that yields values on-demand.  Here is a simple example of a generator.
+\begin{lstlisting}
+def example():
+    yield 1
+    yield 2
+    yield 3
+\end{lstlisting}
+In a generator, the \li{yield} keyword acts like a special \li{return} statement.  
+It essentially pauses the execution of the generator and returns a value.
+When a generator is created, it simply returns a generator object.
+These generator objects have a \li{next()} method, which will request the next value from the generator.
+Calling \li{next()} on a generator object resumes execution in the generator until the next yield statement or the generator finishes.
+In our last code example, calling \li{next()} the first time will yield the value 1.  Calling \li{next()} again will yield 2.  Calling \li{next()} again will yield 3.  Finally, calling \li{next()} again will raise an exception signaling that the generator has finished executing and has yielded all its values.
+
+When are generators helpful? 
+If you encounter the situations below, consider trying to solve 
+your problem using generators.
+Generators have proven to be very useful in these situations.
+\begin{itemize}
+\item \emph{Iterating through only part of a sequence.}
+It is inefficient to create an entire sequence if we know that we will not need all of it.
+Representing the sequence as a generator could possibly avoid excess memory use and excess computation.
+\item \emph{Iterating through a sequence once.} Consider the statement 
+\li{sum([i for i in range(1000) if i\%2 == 0])}.
+We are creating two sequences just to iterate through them once and never use them again.
+We can make this more efficient using generators.
+\li{sum(i for i in xrange(1000) if i\%2 == 0)}
+Notice that we have used syntax similar to a list comprehension.
+The line \li{(i for i in xrange(1000) if i\%2 == 0)} will define a generator object similar to the list made by \li{[i for i in xrange(1000) if i\%2 == 0]}.
+The solution using generators will often execute faster, but it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
+\item \emph{Calculating large sequences.}  The sequence must be stored somewhere in computer memory.
+If the sequence is large, we could exhaust all available memory.
+\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite.  We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
+\end{itemize}
+
+\subsection*{Useful Generators in \texttt{itertools}}
+The \li{itertools} module contains three main types of generators.
+There are infinite generators, shortest sequence generators, and combinatoric generators.
+Some of the most used generators are summarized in table \ref{table:populargens}.  The examples are from the Python documentation.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Generator & Example \\
+\hline
+\li{chain()} & \li{chain('ABC', 'DEF') --> A B C D E F} \\
+\li{compress()} & \li{compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F} \\
+\li{islice()} & \li{islice('ABCDEFG', 2, None) --> C D E F G} \\
+\li{imap()} & \li{imap(pow, (2,3,10), (5,2,3)) --> 32 9 1000} \\
+\li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} \\
+\li{product()} & \\
+\li{permutations()} & \\
+\li{combinations()} & \\
+\li{combinations_with_replacement()} & \\
+\hline
+\end{tabular}
+\caption{Popular generators in \li{itertools} module}.
+\label{table:populargens}
+\end{table}
+
+We encourage you to view the documentation for \li{itertools} on the Python website.
+The documentation for \li{itertools} also includes various recipes for other useful generator functions.
+Feel free to look through the documentation \url{http://docs.python.org/2/library/itertools.html}.
+
+\begin{problem}
+You have been tasked to write a simulator that will simulate a hunger games tournament.
+In this problem you will be using your cumulative knowledge of the standard library to write a simulator.
+
+You solution should accept a single argument from the command line that is a filename.  All the output you generate in your program will be written to this file.
+
+You are provided with two files, a text file and a CSV file.
+The text file has a list of events, one per line.
+The CSV file has two columns of names.
+The first column are the male tributes, the second column the female tributes.
+
+First, create a named tuple that will contain information about each of the tributes such as their name, district, and gender.
+
+You will need to randomly pair the male and female tributes (read from the CSV file) together to form 12 pairs.
+
+To simulate the game, you will need to do at least the following.
+For each day of the simulation, randomly choose the events from the list of events you read from the text file.
+Each tribute will experience one event per day.
+To determine the survival of a given tribute, randomly generate a number between 0 and 1 (probably with a uniform or Gaussian distribution).  If the random number is greater than a certain threshold, then the tribute survives their event for that day.
+
+Stop the simulation when there is at most one surviving tribute.
+Print the winner to standard output.
+
+A sample output for the last two days would like
+\begin{lstlisting}[style=ShellOutput]
+Day 3
+Silver Herriot experienced Tracker Jackers and survived.
+Hammil Odinshoot experienced Wild Deer and died.
+End of Day 3
+Canon fired 1 times
+
+Day 4
+The final tribute was the girl from District 4: Silver Herriot
+\end{lstlisting}
+The final result would be printed to the console
+\begin{lstlisting}[style=ShellOutput]
+The final tribute was the girl from District 4: Silver Herriot
+\end{lstlisting}
+\end{problem}
+
