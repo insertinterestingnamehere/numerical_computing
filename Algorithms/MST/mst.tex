@@ -1,9 +1,5 @@
 %TODOS FOR THIS LAB
-%
-%1.  This is too long.  Have them do Prims or Kruskalls, but not both
-%2.  Compare their implemented solution to NetworkX
-%3.  More examples of the different kinds of graphs mentioned in the introduction, or otherwise don't mention them at all.
-
+%1.  Maybe merge mst and ImgSegMST
 
 \lab{Algorithm}{Kruskal's and Prim's Algorithm}{Kruskal's and Prim's Algorithm}
 \label{Ch:Kruskal}
@@ -16,20 +12,20 @@ Remember that a graph is composed of two sets, a set of nodes and a set of edges
 
 \begin{figure}[H]
 \includegraphics[width = .4\textwidth]{graph1.pdf}
-\caption{An example of a graph}
+\caption{An example of an undirected graph}
 \label{mst:graph1}
 \end{figure}
 
 A graph is directed if connections are uni-directional, and undirected if they are bi-directional.
 Figure \ref{mst:graph1} shows an undirected graph.
-%A weighted graph is a graph where each edge has a value associated with it.
-%Usually these values represent some sort of cost or distance.
+A weighted graph is a graph where each edge has a value associated with it.
+Usually these values represent some sort of cost or distance.
 A connected graph is a graph where there is a path, or a set of edges, that connect every two nodes together.
 We can write a matrix that describes this type of graph.
 We let each row of our matrix represent a starting point and each column represent a destination.
 If an edge from one node to another exists, we put the weight of the edge.
 If there is no edge, we put a 0.
-For the above graph we generate the following matrix:
+For the above graph in Figure 8.1 we generate the following matrix:
 
 \[
 A = \begin{pmatrix}
@@ -85,8 +81,8 @@ Figure \ref{mst:graph3} shows a cycle in an undirected graph.
 \end{figure}
 
 The minimum spanning tree (MST) of a weighted, undirected graph is a spanning tree where the sum of the weights of the subset of edges is less than or equal to the sum of the weights of every other spanning tree.
-Both Kruskal's and Prim's Algorithms are methods that find the minimum spanning tree of a weighted, directed graph.
-Figure \ref{mst:graph2} shows a minimum spanning tree of the graph shown in \ref{mst:graph1}.
+Both Kruskal's and Prim's Algorithms are methods that find the minimum spanning tree of a weighted, undirected graph.
+Figure \ref{mst:graph2} shows a spanning tree of the graph shown in \ref{mst:graph1}.
 Figure 8.5 shows a minimum spanning tree of the graph shown in \ref{mst:graph4}
 
 \begin{figure}[H]
@@ -97,7 +93,7 @@ Figure 8.5 shows a minimum spanning tree of the graph shown in \ref{mst:graph4}
 
 \begin{figure}[H]
 \includegraphics[width = .4\textwidth]{graph4.pdf}
-\caption{A weighted undirected graph}
+\caption{A weighted, undirected graph}
 \label{mst:graph4}
 \end{figure}
 
@@ -140,7 +136,7 @@ The next edge is \li{(D, E, 2)}.
 The root node of the tree containing \li{D} is \li{C} and the root node of the tree containing \li{E} is \li{C}, so these nodes are already connected, so we do not add this edge to the tree.
 
 The next edge is \li{(A, B, 3)}.
-The root node for \li{A} is A, and the root node for \li{B} is \li{B}, so we add the edge to the tree and update the dictionary.
+The root node for \li{A} is \li{A}, and the root node for \li{B} is \li{B}, so we add the edge to the tree and update the dictionary.
 The dictionary becomes \li{\{A:A, B:A, C:C, D:C, E:C, F:F\}}
 
 The next edge is \li{(B, F, 4)}.
@@ -163,7 +159,7 @@ Here is the pseudocode for the algorithm as we have described it above:
 \begin{itemize}
 
 % Note: The comments in the solutions match the pseudocode.
-% When making changes, pleas keep that in mind.
+% When making changes, please keep that in mind.
 
 \item Initialize an empty list of edges for the minimum spanning tree.
 
@@ -235,10 +231,11 @@ Use the data from MSTdata.npy to test your tree.
 Use np.load("MSTdata.npy") to get it.
 Use the \li{formChanger} function below to put it in the right form.
 \begin{lstlisting}
-\end{lstlisting}
 def formChanger(oldData):
-    newData=[] for i in oldData: newData.append((i[0],i[1],int(i[2])))
+    newData=[] 
+    for i in oldData: newData.append((i[0],i[1],int(i[2])))
     return newData
+\end{lstlisting}
 \end{problem}
 \section*{Prim's algorithm}
 
@@ -260,10 +257,10 @@ We first initialize a dictionary with all the nodes as keys to track which of al
 At the beginning it will be \li{\{A:False, B:False, C:False, D:False, E:False, F:False\}}.
 We then form the dictionary that maps each node to the edges that contain it.
 Since we will already know one node of each edge while we use the dictionary, we only need to store the node that is not being looked up.
-It will be \li{\{A:[(B, 3), (F, 6)], B:[(A, 3), (C, 5), (F, 4)], C:[(B, 5), (D, 1), (E, 1), (F, 5)], D:[(C, 1), (E, 1)], E:[(C, 1), (D, 2), (F, 4)], F:[(A, 6), (B, 4), (C, 5), (E, 4)]\}}.
+It will be \li{\{A:[(B, 3), (F, 6)], B:[(A, 3), (C, 5), (F, 4)], C:[(B, 5), (D, 1), (E, 1), (F, 5)], D:[(C, 1), (E, 2)], E:[(C, 1), (D, 2), (F, 4)], F:[(A, 6), (B, 4), (C, 5), (E, 4)]\}}.
 We will also initialize an empty dictionary to track the shortest edges that run between nodes we have processed and nodes that we haven't.
-As we iterated over the the edges in our initialization step we were also able to find the shortest edge.
-In this case, it is either \li{(D, C, 1)} or \li{(D, E, 1)}.
+As we iterated over the edges in our initialization step we were also able to find the shortest edge.
+In this case, it is \li{(D, C, 1)}.
 Say we are starting with \li{(D, C, 1)}.
 We now initialize our tree as the list \li{[(D, C, 1)]}.
 Once that is done, we mark \li{D} and \li{C} as processed in the dictionary that tracks which nodes have been processed.
@@ -347,6 +344,7 @@ It isn't a perfectly optimized version, but it is pretty good.
 Write a Python function that uses Prim's algorithm to find the minimum spanning tree of a graph.
 Test your implementation with the same data as the previous problem.
 Compare the speed of Prim's algorithm with the speed of Kruskal's algorithm.
+Create a function which prints these two times.
 \end{problem}
 
 Many graph packages have functions for finding the minimal spanning tree. One of these is NetworkX. You begin as follows
@@ -357,5 +355,8 @@ G=nx.Graph()
 You can add a node $x$ with \li{G.add_node(x)} and add a edge from $x$ to $y$ with weight n with \li{G.add_edge(x,y,weight=n)}. Then \li{nx.minimum_spanning_tree(G)} returns the minimal spanning tree using Kruskals algorithm.
 
 \begin{problem}
-Use NetworkX to find the minimal spanning tree of the data in MSTdata.npy. Compare the output with that of your algorithm.
+Use NetworkX to find the minimal spanning tree of the data in MSTdata.npy. 
+Compare the output with that of your algorithm.
+Create a function which prints your comparison.
 \end{problem}
+
