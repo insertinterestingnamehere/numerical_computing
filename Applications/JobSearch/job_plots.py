@@ -3,7 +3,66 @@ import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 import matplotlib.pyplot as plt
+import numpy as np
+import math
 from discretelognorm import discretelognorm
+
+def plot_reservation_wage():
+    m = 20
+    v = 200
+    N = 500
+    Wmax = 100
+    Wmin = 0
+    gamma = .10
+    alpha = .5
+    beta = .9
+    e_params = (m, v)
+    
+    u = lambda c: np.sqrt(c)
+    w = np.linspace(Wmin, Wmax, N)
+    uaw = u(alpha*w).reshape((N,1))
+    uw = u(w)
+    f = discretelognorm(w, *e_params)
+    
+    VE = np.zeros(N)
+    EVU = np.zeros(N)
+    VU = np.zeros((N,N))
+    MVE = np.empty((N,N)) #tiled version of VE
+    MEVU = np.empty((N,N)) #tiled version of EVU
+    
+    delta = 1.
+    i = 0
+    while delta >= 1e-9:
+        i+=1
+        
+        #update tiled value functions
+        MVE[:,:] = VE.reshape((1,N))
+        MEVU[:,:] = EVU.reshape((N,1))
+        
+        #calculate new value functions
+        VU1 = uaw + beta*np.max(np.dstack([MEVU, MVE]), axis=2)
+        VE1 = uw + beta*((1-gamma)*VE + gamma*EVU)
+        
+        #test for convergence
+        d1 = ((VE1-VE)**2).sum()
+        d2 = ((VU1-VU)**2).sum()
+        delta = max(d1,d2)
+        
+        #update
+        VU = VU1
+        VE = VE1
+        EVU = np.dot(VU,f).ravel()
+    
+    #calculate policy function
+    PSI = np.argmax(np.dstack([MEVU,MVE]), axis=2)
+    
+    #calculate and plot reservation wage function
+    wr_ind = np.argmax(np.diff(PSI), axis = 1)
+    wr = w[wr_ind]
+    plt.plot(w,wr)
+    plt.savefig('reservation_wage.pdf')
+    plt.clf()
+plot_reservation_wage()
 
 #plot discrete policy function
 def plot_disc_policy():

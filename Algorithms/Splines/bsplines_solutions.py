@@ -44,7 +44,7 @@ def circle_interp(m, k, res=401):
     # Make the knot vector.
     t = np.array([0]*(k) + range(m) + [m]*(k+1))
     # Preallocate the array 'c' of control points.
-    c = np.empty((2, l + k + 1))
+    c = np.empty((2, m + k + 1))
     c[:,-1] = 0.
     # Construct the circle.
     # Use n + k control points.
