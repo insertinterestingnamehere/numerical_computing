@@ -71,9 +71,9 @@ def fft_eigs():
     # Returns an estimate for the eigenvalues of the
     # Discrete Fourier Transform.
     m = 2**20
-    b = rand(m)
+    b = rand(m) + 1.0j * rand(m)
     k = 10
-    H = arnoldi(b, fft, k)
+    H = arnoldi(b, fft, k, tol=1E-12)
     H_eigs = eig(H, right=False)
     H_eigs /= sqrt(m)
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
@@ -113,7 +113,7 @@ def lanczos(b, Amul, k, tol=1E-8):
     # We will use $q_0$ and $q_1$ to store the needed $q_i$
     q0 = 0
     q1 = b / sqrt(np.inner(b.conjugate(), b))
-    alpha = np.empty(k)
+    alpha = np.empty(k, dtype=complex)
     beta = np.empty(k)
     beta[-1] = 0.
     # Perform the iteration.
@@ -179,7 +179,7 @@ def verify_connected():
     d = np.ones(m)
     d[1:-1] += np.ones(m-2)
     l = ss.diags([-np.ones(m-1), d, -np.ones(m-1)], [-1, 0, 1])
-    return eigsh(l, which='SM', return_eigenvectors=False)
+    return eigsh(l, which='SM', return_eigenvectors=False)[-2]
 
 def verify_disconnected():
     # The idea here is to notice that two of
@@ -192,4 +192,4 @@ def verify_disconnected():
     d1[cut] = 0
     d[[cut, cut+1]] =1
     l = ss.diags([d1, d, d1], [-1, 0, 1])
-    return eigsh(l, which='SM', return_eigenvectors=False)
+    return eigsh(l, which='SM', return_eigenvectors=False)[-2]

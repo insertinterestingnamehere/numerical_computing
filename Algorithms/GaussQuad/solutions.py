@@ -21,7 +21,7 @@ def funcplot(f, a, b, n=401):
     Y = f(X1)
     plt.plot(X1, Y)
     plt.show()
-    plt.plot(X2, Y)
+    plt.plot(X2, ((b - a) / 2.) * Y)
     plt.show()
 
 # alternate version matching what the lab describes
@@ -59,9 +59,7 @@ def construct_jacobi(a, b, c):
     three term recurrence relation."""
     alpha = - b / a
     beta = np.sqrt(c[1:] / (a[:-1] * a[1:]))
-    print beta
     i = np.arange(1, a.size+1, dtype=float)
-    print np.sqrt(1 / (4 - 1 / i**2))
     j = np.zeros((a.size, a.size))
     np.fill_diagonal(j, alpha)
     np.fill_diagonal(j[1:], beta)
@@ -78,12 +76,12 @@ def points_and_weights(n):
     c = (i - 1) / i
     j = construct_jacobi(a, b, c)
     # terribly slow to do it this way...
-    evals, evects = eig(-j)
-    return evals, evects[0]
+    evals, evects = eig(j)
+    return evals, evects[0]**2 * 2
 
 # normal distribution cdf problem
 def normal_cdf(x):
     """Compute the CDF of the standard normal
     distribution at the point 'x'."""
     pdf = lambda x: exp(- x**2 / 2.) / sqrt(2 * np.pi)
-    return quad(pdf, -5, x)
+    return quad(pdf, -5, x)[0]
