@@ -52,3 +52,17 @@ def studentGPA():
         pass
     finally:
         con.close()
+        
+def likec():
+    con = get_con()
+    cur = con.cursor()
+    
+    try:
+        cur.execute("""select name, majorcode from students where name like '% C%';""")
+        results = cur.fetchall()
+        cur.close()
+        return results
+    except:
+        pass
+    finally:
+        con.close()
