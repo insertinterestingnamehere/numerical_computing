@@ -91,7 +91,7 @@ def sampletables():
         cur = con.cursor()
         for x in creates:
             cur.execute(x)
-        cur.executemany('insert into stduents values(?, ?, ?);', data['students'])
+        cur.executemany('insert into students values(?, ?, ?);', data['students'])
         cur.executemany('insert into majors values(?, ?);', data['majors'])
         cur.executemany('insert into grades values(?, ?, ?);', data['grades'])
         cur.executemany('insert into classes values(?, ?);', data['classes'])
