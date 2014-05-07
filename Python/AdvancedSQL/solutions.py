@@ -38,13 +38,13 @@ def studentGPA():
     cur = con.cursor()
     
     try:
-        cur.execute("""select round(sum(
+        cur.execute("""select round(avg(
                         case when grade in ('A+', 'A', 'A-') then 4.0
                             when grade in ('B+', 'B', 'B-') then 3.0
                             when grade in ('C+', 'C', 'C-') then 2.0
                             when grade in ('D+', 'D', 'D-') then 1.0
                             else 0.0
-                        end)/count(*), 2) as grade
+                        end), 2) as grade
                     from students join grades on students.studentid=grades.studentid 
                     where grade is not null;""")
         result = cur.fetchall()
