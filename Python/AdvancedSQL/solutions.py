@@ -22,7 +22,9 @@ def studentmajors():
     cur = con.cursor()
     
     try:
-        cur.execute("select majors.name, count(students.name) from students left outer join majors on students.majorcode=majors.id group by students.majorcode order by majors.name asc;")
+        cur.execute("""select majors.name, count(students.name) 
+            from students left outer join majors on students.majorcode=majors.id 
+            group by students.majorcode order by majors.name asc;""")
         results = cur.fetchall()
         cur.close()
         return results
@@ -44,21 +46,39 @@ def studentGPA():
                             else 0.0
                         end)/count(*), 2) as grade
                     from students join grades on students.studentid=grades.studentid 
-                    where grade is not NULL;""")
-        result = cur.fetchall()[0]
+                    where grade is not null;""")
+        result = cur.fetchall()
         cur.close()
-        return results
+        return result
     except:
         pass
     finally:
         con.close()
         
 def likec():
-    con = get_con()
+    con = get_conn()
     cur = con.cursor()
     
     try:
-        cur.execute("""select name, majorcode from students where name like '% C%';""")
+        cur.execute("""SELECT students.name, majors.name 
+            FROM students LEFT OUTER JOIN majors ON students.majorcode=majors.id 
+            WHERE students.name LIKE '% C%';""")
+        results = cur.fetchall()
+        cur.close()
+        return results
+    except:
+        pass
+    finally:
+        con.close()
+
+def manygrades():
+    con = get_conn()
+    cur = con.cursor()
+    
+    try:
+        cur.execute("""select name, count(*) 
+                    from students join grades on students.studentid=grades.studentid 
+                    where grade is not null group by name having count(*)>2;""")
         results = cur.fetchall()
         cur.close()
         return results
