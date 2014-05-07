@@ -8,23 +8,23 @@ import matplotlib.pyplot as plt
 def Example():
 	a, ya, b = 0., 2., 1.6
 	def ode_f(t,y): return np.array([-1.*y+6.+2.*t])
-	
-	
-	example = ode(ode_f)
-	example.set_integrator('dopri5',atol=1e-5).set_initial_value(ya,a)
-	print example.integrate(b)[0]
-	
-	example = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
-	example.set_initial_value(ya,a) 
-	
+
+
+	ode_object = ode(ode_f).set_integrator('dopri5',atol=1e-5) 
+	ode_object.set_initial_value(ya,a) 
+
 	dim, t = 1, np.linspace(a,b,51)
 	Y = np.zeros((len(t),dim))
 	Y[0,:] = ya
-	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
-	
-	# plt.plot(t,Y[:,0],'-k',linewidth=2.0)
+	for j in range(1,len(t)): Y[j,:] = ode_object.integrate(t[j])  
+
+	plt.plot(t,Y[:,0],'-k',linewidth=2)
+	plt.axis([a,b,ya,8],fontsize=16.)
+	plt.xlabel('$x$',fontsize=18.)
+	plt.ylabel('$y$',fontsize=18.)
+	plt.savefig('Example1.pdf')
 	# plt.show()
-	# plt.clf()
+	plt.clf()
 	return t, Y.T[0]
 
 
@@ -82,39 +82,40 @@ def Exercise_SIR(a,b,beta, gamma,ya):
 	plt.plot(t,Y[:,0],'-k',label='Susceptible')
 	plt.plot(t,Y[:,2],'-b',label='Recovered')
 	plt.plot(t,Y[:,1],'-r',label='Infected')
-	plt.axis([a,b,-.1,1.1])
+	plt.axis([a,b,-.1,1.1],fontsize=16)
 	plt.legend(loc=1)
-	plt.xlabel('T (days)',fontsize=16)
-	plt.ylabel('Proportion of Population',fontsize=16)
-	plt.show()
+	plt.xlabel('T (days)',fontsize=18)
+	plt.ylabel('Proportion of Population',fontsize=18)
+	plt.savefig("SIR1.pdf")
+	# plt.show()
 	# plt.clf()
 	return t, Y
 
-
-def Exercise_Zombies(a,b,alpha, beta, zeta, delta, ya): 
-	def Zombie_ode(t,y): 
-		return np.array([ -beta*y[0]*y[1]-delta*y[0], 
-						   beta*y[0]*y[1] + zeta*y[2] - alpha*y[0]*y[2], 
-										  - zeta*y[2] + alpha*y[0]*y[2] + delta*y[0]  ])
-	
-	example = ode(Zombie_ode).set_integrator('dopri5',atol=1e-7,rtol=1e-7) 
-	example.set_initial_value(ya,a) 
-	
-	dim, t = 3, np.linspace(a,b,501)
-	Y = np.zeros((len(t),dim))
-	Y[0,:] = ya
-	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
-	
-	plt.plot(t,Y[:,0],'-k',label='Susceptible')
-	plt.plot(t,Y[:,1],'-r',label='Zombies')
-	# plt.plot(t,Y[:,2],'-b',label='Recovered')
-	# plt.axis([a,b,-.1,1.1])
-	plt.legend(loc=1)
-	plt.xlabel('T (days)',fontsize=16)
-	plt.ylabel('Proportion of Population',fontsize=16)
-	plt.show()
-	# plt.clf()
-	return t, Y
+# 
+# def Exercise_Zombies(a,b,alpha, beta, zeta, delta, ya): 
+# 	def Zombie_ode(t,y): 
+# 		return np.array([ -beta*y[0]*y[1]-delta*y[0], 
+# 						   beta*y[0]*y[1] + zeta*y[2] - alpha*y[0]*y[2], 
+# 										  - zeta*y[2] + alpha*y[0]*y[2] + delta*y[0]  ])
+# 	
+# 	example = ode(Zombie_ode).set_integrator('dopri5',atol=1e-7,rtol=1e-7) 
+# 	example.set_initial_value(ya,a) 
+# 	
+# 	dim, t = 3, np.linspace(a,b,501)
+# 	Y = np.zeros((len(t),dim))
+# 	Y[0,:] = ya
+# 	for j in range(1,len(t)): Y[j,:] = example.integrate(t[j])  
+# 	
+# 	plt.plot(t,Y[:,0],'-k',label='Susceptible')
+# 	plt.plot(t,Y[:,1],'-r',label='Zombies')
+# 	# plt.plot(t,Y[:,2],'-b',label='Recovered')
+# 	# plt.axis([a,b,-.1,1.1])
+# 	plt.legend(loc=1)
+# 	plt.xlabel('T (days)',fontsize=16)
+# 	plt.ylabel('Proportion of Population',fontsize=16)
+# 	plt.show()
+# 	# plt.clf()
+# 	return t, Y
 
 
 
@@ -169,7 +170,7 @@ def Exercise_SIRS(a,b,beta, gamma, mu, f,ya):
 	# plt.clf()
 	return t, Y
 
-# Ans =Example()
+Ans =Example()
 # print Ans[0]; print Ans[1]
 # AnotherExample()
 
@@ -185,8 +186,8 @@ def Exercise_SIRS(a,b,beta, gamma, mu, f,ya):
 # beta, gamma = .340, .333
 # a, b, ya = 0., 1600., np.array([1.-(6.25e-7), 6.25e-7,0.])
 
-# beta, gamma = 0.5, 0.25   # Exercise 2 
-# a, b, ya = 0., 100., np.array([1.-(6.25e-7), 6.25e-7,0.])
+beta, gamma = 0.5, 0.25   # Exercise 2 
+a, b, ya = 0., 100., np.array([1.-(6.25e-7), 6.25e-7,0.])
 
 # beta, gamma = 1., 1./3.   # Exercise 3a
 # a, b, ya = 0., 50., np.array([1.-(1.667e-6), 1.667e-6,0.])
@@ -199,8 +200,8 @@ def Exercise_SIRS(a,b,beta, gamma, mu, f,ya):
 
 ###########################################################################
 
-# t,Y = Exercise_SIR(a,b,beta, gamma,ya)
-# print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])                    
+t,Y = Exercise_SIR(a,b,beta, gamma,ya)
+print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])                    
 
 
 ###########################################################################
@@ -246,12 +247,12 @@ def Exercise_SIRS(a,b,beta, gamma, mu, f,ya):
 ###########################################################################
 
 
-beta, gamma = 3./10., .7/4.  
-mu, f= .1, .3
-a, b, ya = 0., 3600., np.array([1.-50*(1.667e-6), 50*1.667e-6,0.])
-
-##########################################################################
-
-t,Y = Exercise_SIRS(a,b,beta, gamma, mu, f, ya)
-print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])
+# beta, gamma = 3./10., .7/4.  
+# mu, f= .1, .3
+# a, b, ya = 0., 3600., np.array([1.-50*(1.667e-6), 50*1.667e-6,0.])
+# 
+# ##########################################################################
+# 
+# t,Y = Exercise_SIRS(a,b,beta, gamma, mu, f, ya)
+# print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])
 
