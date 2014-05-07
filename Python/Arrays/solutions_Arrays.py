@@ -2,9 +2,9 @@ import math
 import timeit
 import numpy as np
 from numpy.random import randn
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from scipy.misc import factorial
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 #problem 1
 
@@ -30,7 +30,6 @@ B = [range(i, i+k) for i in range (0, k**2, k)]
 
 #timefunction(numpy.dot, NumA, NumA
 #timefunction(arrmul, A, B)
-
 '''
 Lists
 k=100: 0.195740438121
@@ -104,6 +103,111 @@ def large_numbers(n):
 	# as n increases, variance goes to 0.
     A = randn(n, n)
     return A.mean(axis=1).var()
+    
+    
+# problem 5
+def rgb():
+	A = np.random.randint(0, 256, (100, 100, 3))
+	A * [.5, .5, 1]
+
+# problem 6
+def egcd(a, b):
+    '''
+    Extended Euclidean algorithm
+    Returns (b, x, y) such that mx + ny = b
+    Source: http://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm
+    '''
+    x,y, u,v = 0,1, 1,0
+    while a != 0:
+        q,r = b//a,b%a; m,n = x-u*q,y-v*q
+        b,a, x,y, u,v = a,r, u,v, m,n
+    return b, x, y
+
+def modinv(a, m):
+    '''
+    Find the modular inverse.
+    Source: http://en.wikibooks.org/wiki/Algorithm_Implementation/Mathematics/Extended_Euclidean_algorithm
+    '''
+    g, x, y = egcd(a, m)
+    if g != 1:
+        return None  # modular inverse does not exist
+    else:
+        return x % m
+
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return itertools.izip_longest(fillvalue=fillvalue, *args)
+
+def blockize(msg, n):
+    lut = {a:i for i ,a in enumerate(string.lowercase)}
+    msg = "".join(msg.lower().split())
+    return list(map(np.array, grouper(map(lut.__getitem__, msg), n, fillvalue=lut['x'])))
+
+def inv_mat(n):
+    tries = 0
+    while True:
+        a = np.random.randint(1000, size=(n, n)) % 26
+        d = round(linalg.det(a))
+        
+        if gcd(int(d), 26) == 1:
+            break
+        tries += 1
+            
+    return a, d
+
+def encode(msg, k):
+    ciphertext = []
+    n = k.shape[0]
+    ilut = {i:a for i, a in enumerate(string.lowercase)}
+    for i in blockize(msg, n):
+        s = i.dot(k) % 26
+        ciphertext.append("".join(map(ilut.__getitem__, s)))
+    
+    return "".join(ciphertext)
+
+
+def inv_key(key):
+    d = round(linalg.det(key))
+    inv_d = modinv(int(d), 26)
+    ik = np.round(d*linalg.inv(key))
+    return (ik*inv_d) % 26
+    
+def decode(msg, k):
+    ik = inv_key(k)
+    n = ik.shape[0]
+    plaintext = []
+    ilut = {i:a for i, a in enumerate(string.lowercase)}
+    for i in blockize(msg, n):
+        s = i.dot(ik) % 26
+        plaintext.append("".join(map(ilut.__getitem__, s)))
+        
+    return "".join(plaintext)
+
+# problem 7 
+def arcsin_approx():
+	n = 70
+	s = 1. * np.arange(70,-1,-1)
+	r = factorial(2*s)/((2*s+1)*(factorial(s)**2)*(4**s)) # computes coefficients
+	q = np.zeros(142)
+	q[0::2] = r
+	P = np.poly1d(q)
+	return P(1/math.sqrt(2))*4
+
+def W_approx():
+	n = 20
+	s = 1. * np.arange(20,0,-1)
+	r = ((-s)**(s-1))/(factorial(s)) # computes coefficients
+	q = np.zeros(21)
+	q[0:-1] = r
+	P = np.poly1d(q)
+	return P(.25)
+	
+print W_approx()*math.e**W_approx() #verification! 
+    
+    
+    
 
 # The problems from here on are no longer in the first lab.
 def prob5():
