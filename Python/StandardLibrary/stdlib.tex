@@ -213,22 +213,25 @@ It is usually good to time lines of code in Python by using this module because 
 IPython's \li{\%timeit} magic function is a wrapper around this module.
 
 \begin{problem}
-For most timing situations, we rely on IPython's \li{\%timeit} magic function.
-One major drawback is that it only works in IPython.
+For most timing situations, we rely on IPython's \li{\%timeit} function.
+Since this is a special function only available inside IPython, we will write a more general timer that works anywhere with any function.
 The solution to this problem will be useful in other labs where you will be asked to time the execution of your coded solutions.
 Write a function that will time the execution of another function.
 You will need to use the \li{timeit} module.
-Your function should accept as arguments, a function, $f$, and any arguments that should be passed to $f$.
-Your function should return the minimum runtime.
+Your timing function should accept as its arguments: a function, $f$, the arguments for $f$, the keyword arguments for $f$, a number of repeats, and a number of loops.
+Your function should return the minimum runtime for one call of the function.
 
-Because of the way that Python's \li{timeit} module works, we must use a \emph{callable} function.
+Because of the way that Python's \li{timeit} module works, we can either evaluate a string of Python code or use a \emph{callable} function with no arguments.  
+For this problem, we will use the the callable function approach.
 This essentially means we have to wrap the function we are timing and all of its arguments into a function object that can be called by \li{timeit}.
-This is done by declaring a Python \li{lambda} function which takes no arguments.
+This wrapping fixes the arguments of the function so we can call it without any arguments later.
+This is done by declaring a Python \li{lambda}, or temporary, anonymous  function, which takes no arguments.  \li{pfunc} is a wrapper function for $f$ because its primary job is to call $f$ with little or no additional computation.
+In our program, we use \li{pfunc} only to modify how we call $f$.
 \begin{lstlisting}
 pfunc = lambda: f(*args, **kwargs)
 \end{lstlisting}
-where \li{args} is a tuple and \li{kwargs} is a dictionary.
-This syntax is explained in chapter 4 of the official Python tutorial.
+where \li{args} is a tuple of arguments and \li{kwargs} is a dictionary of keyword arguments to the function, $f$.
+You can refresh your memory of functions and their arguments and keyword arguments in sections 4.7.1-4.7.4 of the official Python tutorial.
 \end{problem}
 
 \section*{\texttt{collections} Module}
@@ -237,7 +240,7 @@ This module defines several specialized data structures to use in addition to th
 Named tuples are designed to help improve code readability in some cases.
 Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.
 
-A double-ended queue, or deque, can be thought of as a deck of cards.
+A double-ended queue, or deque (pronounced ``deck''), can be thought of as a deck of cards.
 Inserting and removing elements from either end is very efficient.
 Python's deque implementation only allows insertions at the left and right ends of the data structure (which is standard for deques).
 This differs from a list, which allows insertions anywhere, but is very inefficient for all but right end insertions.
@@ -276,13 +279,18 @@ def example():
     yield 1
     yield 2
     yield 3
+    
+g = example()   #initialize the generator
+g.next()        #returns 1, the first value
+g.next()        #returns 2, the second value
+g.next()        #returns 3, the third value
+g.next()        #raises a StopIteration exception, no more values to return
 \end{lstlisting}
 In a generator, the \li{yield} keyword acts like a special \li{return} statement.  
 It essentially pauses the execution of the generator and returns a value.
 When a generator is created, it simply returns a generator object.
 These generator objects have a \li{next()} method, which will request the next value from the generator.
 Calling \li{next()} on a generator object resumes execution in the generator until the next yield statement or the generator finishes.
-In our last code example, calling \li{next()} the first time will yield the value 1.  Calling \li{next()} again will yield 2.  Calling \li{next()} again will yield 3.  Finally, calling \li{next()} again will raise an exception signaling that the generator has finished executing and has yielded all its values.
 
 When are generators helpful? 
 If you encounter the situations below, consider trying to solve 
@@ -325,7 +333,7 @@ Generator & Example \\
 \li{combinations_with_replacement()} & \\
 \hline
 \end{tabular}
-\caption{Popular generators in \li{itertools} module}.
+\caption{Popular generators in \li{itertools} module.}
 \label{table:populargens}
 \end{table}
 
