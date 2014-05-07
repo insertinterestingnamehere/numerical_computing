@@ -1,6 +1,6 @@
 import timeit
-import pickle
 import collections
+import random
 
 def time_func(f, args=(), kargs={}, repeat=3, number=100):
     pfunc = lambda: f(*args, **kargs)
@@ -20,4 +20,13 @@ def rot_list(l):
 def rot_deque(d):
     for i in xrange(len(d)):
         d.appendleft(d.pop())
+        
+def deque_rot(d):
+    d.rotate(len(d))
+        
+def counter(maxInt):
+    x = [random.randrange(maxInt) for i in range(1000)]
+    return dict(Counter(x))
+    
+    
 
