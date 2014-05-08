@@ -1,194 +1,169 @@
 \lab{Python}{Scrapy}{Standard Library}
 \objective{Teach students how to scrape websites}
 
+\section*{Scrapying Data}
+Scrapping data from a website is a way to extract structured or unstructured data from the HTML of a page.
 
+Most websites have APIs that direct people how to take data from the webpage. Often you use the API. You use a scrapying tool if you want to extract data from a website that does not have an API or the data you want is not a part of the API. (Like extracting e-mail addresses of users)
 
-Modules can be imported via the \li{import} statement. Methods provided by the module may then be called.  For example
+There is a nice python package called scrapy that is an application framework for scrapying. This lan follows that you using version 0.16. THe offical documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
+
+Another package is BeautifulSoup the Documentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}
+
+\begin{info}
+You will making and editing python files in this lab, so you will not be using ipython.
+\end{info}
+
+\section*{Setting up}
+
+To begin a project go to the directory where you want to store the code and run
+\begin{lstlisting}
+scrapy startproject <project name>
+\end{lstlisting}
+This will create several files. \li{scrapy.cfg} is a configuration file. It will create folder called \li{<project name>} , that contains files \li{items.py}, \li{pipelines.py}, \li{settings.py} and a directory called \li{spiders}. We will use all this files.
+
+\section*{Items}
+Items are like python dictionaries with some addtional functionality. Go to the items.py found in the  \li{<project name>} directory. items are labels for the data that you be storing.
 
 \begin{lstlisting}
-import math
+from scrapy.item import Item, Field
 
-math.sqrt(4)
+class <project name>Item(Item):
+    <item1> = Field()
+    <item2> = Field()
+    <item3> = Field()
 \end{lstlisting}
 
-\section*{\texttt{math} Module}
-The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
-Common mathematical functions are defined in these modules, including \li{cos}, \li{sin}, \li{log}, and \li{sqrt}.
-These functions wrap around the functionality of the C math library.
+\section*{Spiders}
+Spiders are classes used to scrape data from a group of websites. You will define calsses that define the initail list of URLs to download, how to follow the links, and how to parse the contents of the pages into your items objects. There are two main spiders. \li{BaseSpider} and \li{CrawlSpider}. A BaseSpider is used for one website and a CrawlSpider used for crawling mulitple websites.
+
+We will start with a BaseSpider. Go in your spider directory and create a new file (the name of the file does not matter). Subcalss BaseSpider as shown below. A BaseSpider has three things. A name that is a unique identifier, start_urls which is a list of URLS from which the spider will begin to crawl from and parse(), a method which will be called with the Response object at the beginning of each url.
+
+the following is an example.
+\begin{lstlisting}
+from scrapy.spider import BaseSpider
+
+class DmozSpider(BaseSpider):
+    name = "example"
+    allowed_domains = ["example.org"]
+    start_urls = [
+        "http://www.example.org/Computers/",
+        "http://www.example.org/books/"
+    ]
+
+    def parse(self, response):
+        hxs = HtmlXPathSelector(response)
+        sites = hxs.select('//td')
+        for site in sites:
+            title = site.select('a/text()').extract()
+            link = site.select('a/@href').extract()
+            desc = site.select('text()').extract()
+            print title, link, desc
+\end{lstlisting}
+
+Next we are going to explain what is in the parse method.
+
+\section*{Parsing}
+Scrapy uses a mechanism called selectors to extract data from web pages.
+They have thhree methods.
+
+the \li{select(path)} method returns a list of selectors, each of them representing nodes by the expression given as the arguement.This involves knowing a little HTML. HTML has elements whose name is enclosed in <>. So in the code above \li{select('//td')} selects  all the \li{<td>} elements. \li{select('//a/text()')} selects the text inside the \li{<a>} elements. the \li{//div[@class="mine"]} selects all the \li{<div>} elements with the attirbute \li{class="mine"}.  
+
+The \li{extract()} methoed return a string with the data selected by the selector.
+
+The \li{re(string)} returns a list of strings extracted by applying the regular espression given as the argument.
+
+You can test this in a shell by typing in
+\begin{lstlisting}
+scrapy shell <URL of website>
+\end{lstlisting}
+
+try \li{scrapy shell http://www.dmoz.org/} and \li{hxs.select('//title')}. You will get feedback as if you were using the the \li{hxs.select()} in your code. You can try other methods to see what they do.
+
+\section*{Storing the data}
+To store the data we use our items. 
+
+Say we defined our items like so
+\begin{lstlisting}
+from scrapy.item import Item, Field
+
+from scrapy.item import Item, Field
+
+class SportscrapeItem(Item):
+    names = Field()
+    numbers = Field()
+\end{lstlisting}
+
+And we definded our spider like so.
+\begin{lstlisting}
+from scrapy.spider import BaseSpider
+from scrapy.selector import HtmlXPathSelector
+
+from tutorial.items import DmozItem
+
+class DmozSpider(BaseSpider):
+   name = "dmoz"
+   allowed_domains = ["dmoz.org"]
+   start_urls = [
+       "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/",
+       "http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"
+   ]
+
+   def parse(self, response):
+       hxs = HtmlXPathSelector(response)
+       sites = hxs.select('//ul/li')
+       items = []
+       for site in sites:
+           item = DmozItem()
+           item['title'] = site.select('a/text()').extract()
+           item['link'] = site.select('a/@href').extract()
+           item['desc'] = site.select('text()').extract()
+           items.append(item)
+       return items
+\end{lstlisting}
+
+Then I would go to the top directory and run
+\begin{lstlisting}
+scrapy crawl dmoz -o items.json -t json
+\end{lstlisting}
+which will generate a file \li{items.json} where all the scraped items are serialized in JSON. You can also store them in csv or xml by changing all the json to csv or xml.
+
+\section*{Crawling the Web}
+The spider above will only scrape one page. In order to scrape more pages you will need to inherit from \li{CrawlSpider}. The main difference is you set a list of rules for how you spider clicks on links and you do not over write the parse() method.
+
+\begin{warn}
+When using a \li{CrawlSpider} do not overwrite the parse method.
+\end{warn}
+
+For example if I were scrapying the ESPN website for basketball statistics, this code would start of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of strings and will click on those links has those words in the url. \li{deny} also takes in a list of strings and will not click on links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set |li{follow=True} which means that it will click on those links.
 
 \begin{lstlisting}
-import math
+from scrapy.contrib.spiders import CrawlSpider, Rule
+from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.spider import BaseSpider
+from scrapy.selector import HtmlXPathSelector
 
-math.sqrt(4)
+from sportscrape.items import SportscrapeItem
+
+class DmozSpider(CrawlSpider):
+   name = "espn"
+   allowed_domains = ["espn.go.com"]
+   start_urls = [
+       "http://espn.go.com/nba/statistics"
+   ]
+   rules = (
+        Rule(SgmlLinkExtractor(allow=('statistics/team/_/stat',),deny=('sort',)),callback='parse_page',follow=True),
+    )
+
+   def parse_page(self, response):
+       hxs = HtmlXPathSelector(response)
+       sites = hxs.select('//td')
+       items = []
+       for site in sites:
+           item = SportscrapeItem()
+           item['numbers'] = site.select('text()').extract()
+           item['names'] = site.select('a/text()').extract()
+           items.append(item)
+       return items
 \end{lstlisting}
 
-\section*{\texttt{math} Module}
-The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
-Common mathematical functions are defined in these modules, including \li{cos}, \li{sin}, \li{log}, and \li{sqrt}.  These functions wrap around the functionality of the C math library.
-
-\section*{\texttt{random} Module}
-Python includes an implementation of the Mersenne Twister pseudorandom number generator in the \li{random} module.
-The \li{random} module contains many helpful functions for obtaining random numbers.
-It also contains functions that operate on sequences.  For example
-\begin{enumerate}
-\item \li{randint()} returns a random integer from a desired interval,
-\item \li{randrange()} returns a random integer from a  range of integers,
-\item \li{choice()} returns a random integer from a list of integers,
-\item \li{sample()} returns a list of specified length of randomly sampled numbers from a list,
-\item \li{shuffle()} randomly shuffles a list of numbers.
-\end{enumerate}
-
-Here is example code for each of these functions.
-\begin{problem}
-Import the \li{random} module.  Experiment with each of the functions in the list.  What is the difference between \li{random.randint()} and \li{random.randrange()}?  You may want to consult the Python documentation.
-\end{problem}
-
-The \li{random} module can sample from several distributions such as the uniform, normal, beta, gamma, exponential, and many others.
-NumPy's \li{random} module has even more capability than the standard Python \li{random} module.
-
-\section*{\texttt{csv} Module}
-CSV files are commonly used for exchanging data between databases and tables. 
-Python has a very useful module for reading and writing data as comma separated values.
-The \li{csv} module provides \li{reader} and \li{writer} objects.
-There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
-
-For example, download \li{test.csv} and run the following code to print its contents.
-\begin{lstlisting}
-import csv
-
-#print the contents of a csv_file
-with open(`test.csv', `r') as csv_file:
-    csv_reader = csv.reader(csv_file)
-    for line in csv_reader:
-        print line
-\end{lstlisting}
-
-%Writing with a CSV \li{writer} object is very similar to writing with a regular file object.
-We can also write to a \li{csv} file using a CSV \li{writer} object.  The following code demonstrates how this may be done.
-
-\begin{lstlisting}
-contents = [["Column 1", "Column 2", "Column 3"],
-            [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
-with open(`test_out.csv', `w') as csv_file:
-    csv_writer = csv.writer(csv_file)
-    for record in contents:
-        csv_writer.writerow(record)
-\end{lstlisting}
-
-\begin{problem}
-Practice reading and writing a CSV file.
-Read \texttt{test.csv} and write it to \texttt{test\_out.csv}.
-When writing the CSV file, use a delimiter other than a comma.
-Read the Python documentation for instructions on how to do this.
-\end{problem}
-
-\section*{\texttt{sys} Module}
-The \li{sys} module allows you to access information specific to the system running Python.
-For example, we often import \li{sys} to get the list \li{sys.argv} which is a list of arguments passed to the current environment.
-It is sometimes useful to access these values when writing programs that are run from command line.
-Many programs are written to execute differently based on the various arguments and options specified at execution.
-For example, if we execute a script from the command line as follows:
-\begin{verbatim}
-python myscript.py 5 no yes yes
-\end{verbatim}
-then \li{sys.argv} would return the list
-\begin{verbatim}
-[`myscript.py', `5', `no', `yes', `yes']
-\end{verbatim}
-
-\section*{\texttt{pickle} Module}
-The \li{pickle} module saves a Python object to a file.
-It can also take the file and turn it back into a Python object.
-Pickle can be used to store any built-in Python data type such as lists, tuple, integers, etc.
-Not all Python objects can be pickled.
-Here is an example of saving an object to a file.
-\begin{lstlisting}
-import pickle
-a = range(10)
-pickle.dump(a, open(`out.pkl', `w'))
-\end{lstlisting}
-When given an object, the \li{pickle} module outputs a small program that will rebuild the object later.
-When unpickling a file, pickle executes this file in the interpreter.
-Because of this, pickle is meant to be used as a temporary storage and data persistence mechanism.
-It is not designed to be used for long term storage of data.
-The pickle documentation includes this warning
-\begin{quote}
-\textbf{The pickle module is not intended to be secure against erroneous or maliciously constructed data.
-Never unpickle data received from an untrusted or unauthenticated source.}
-\end{quote}
-To unpickle an object, use \li{pickle.load()}.
-It accepts a file handle and returns the Python object it creates.
-
-\begin{problem}
-Create a list of numbers and strings.
-Pickle the object to a file.
-Inspect the contents of the file you created when pickling.
-Unpickle the object.
-\end{problem}
-
-The \li{pickle} module only allows you to store one object per file.
-If you want to store many objects, you should consider the \li{shelve} module.
-This stores objects in a dictionary-like data structure with keys and values.
-The values are pickled objects.
-Since \li{shelve} relies on \li{pickle}, the same warning against untrusted sources applies to \li{shelve} as well.
-
-\section*{\texttt{timeit} Module}
-This module is used to time the execution of small bits of Python code.
-It is usually good to time lines of code in Python by using this module because it avoids a number of common pitfalls in measuring execution time.
-IPython's \li{\%timeit} magic function is a wrapper around this module.
-
-\begin{problem}
-For most timing situations, we rely on IPython's \li{\%timeit} magic function.
-One major drawback is that it only works in IPython.
-The solution to this problem will be useful in other labs where you will be asked to time the execution of your coded solutions.
-Write a function that will time the execution of another function.
-You will need to use the \li{timeit} module.
-Your function should accept as arguments, a function, $f$, and any arguments that should be passed to $f$.
-Your function should return the minimum runtime.
-
-Because of the way that Python's \li{timeit} module works, we must use a \emph{callable} function.
-This essentially means we have to wrap the function we are timing and all of its arguments into a function object that can be called by \li{timeit}.
-This is done by declaring a Python \li{lambda} function which takes no arguments.
-\begin{lstlisting}
-pfunc = lambda: f(*args, **kwargs)
-\end{lstlisting}
-where \li{args} is a tuple and \li{kwargs} is a dictionary.
-This syntax is explained in chapter 4 of the Official Python Tutorial.
-\end{problem}
-
-\section*{\texttt{collections} Module}
-This module defines several specialized data structures to use in addition to the built-in Python data structures.
-Some of these useful data structures are named tuples and deques.
-
-Named tuples are designed to help improve code readability in some cases.
-Standard tuples in Python are accessed by index.
-Named tuples allow access via index or by a field name.
-Compare the following:
-\begin{lstlisting}
-from collections import namedtuple
-pt = (32.1, 63.2)
-
-Pt = namedtuple(`Point', `x y')
-npt = Pt(32.1, 63.2)
-\end{lstlisting}
-The tuple \li{pt} is a standard tuple, which we can surmise represents the coordinates of a pt in 2D space.
-We must assume that \li{pt[0]} is the x-coordinate and \li{pt[1]} is the y-coordinate.
-When declaring a named tuple, we clearly defined what each index represents.
-We know for certain that \li{npt.x} is the x-coordinate and that \li{npt.y} is the y-coordinate.
-
-Ordered dictionaries are exactly like standard dictionaries except for one important difference.
-Ordered dictionaries remember the order in which key-value pairs were added to the data structure.
-This data structure is useful if we want to iterate over key-value pairs of a dictionary in a specific order.
-
-Default dictionaries are a very convenient way to set a default value for all new keys in a dictionary.
-While this can be done with standard dictionaries using the \li{setdefault()} method, using a default dictionary is simpler and faster.
-
-\begin{problem}
-A double-ended queue, or deque, can be thought of as a deck of cards.
-Inserting and removing elements from either end is very efficient.
-Python's deque implementation only allows insertions at the left and right ends of the data structure.
-This differs from a list, which allows insertions anywhere, but is very inefficient for all but right end insertions.
-Write two functions that will rotate the elements of a deque and a list respectively.
-To rotate, remove elements from the right end one by one and insert them on the left end.
-Compare the timings you obtain from a deque and a list of 10000 elements.
-\end{problem}
