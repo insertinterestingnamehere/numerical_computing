@@ -110,6 +110,32 @@ def rgb():
 	A = np.random.randint(0, 256, (100, 100, 3))
 	A * [.5, .5, 1]
 
+# problem 6 
+def arcsin_approx():
+	n = 70
+	s = 1. * np.arange(70,-1,-1)
+	r = factorial(2*s)/((2*s+1)*(factorial(s)**2)*(4**s)) # computes coefficients
+	q = np.zeros(142)
+	q[0::2] = r
+	P = np.poly1d(q)
+	return P(1/math.sqrt(2))*4
+
+def W_approx():
+	n = 20
+	s = 1. * np.arange(20,0,-1)
+	r = ((-s)**(s-1))/(factorial(s)) # computes coefficients
+	q = np.zeros(21)
+	q[0:-1] = r
+	P = np.poly1d(q)
+	return P(.25)
+	
+print W_approx()*math.e**W_approx() #verification! 
+    
+    
+    
+
+# The problems from here on are no longer in the first lab.
+
 # problem 6
 def egcd(a, b):
     '''
@@ -184,32 +210,8 @@ def decode(msg, k):
         plaintext.append("".join(map(ilut.__getitem__, s)))
         
     return "".join(plaintext)
-
-# problem 7 
-def arcsin_approx():
-	n = 70
-	s = 1. * np.arange(70,-1,-1)
-	r = factorial(2*s)/((2*s+1)*(factorial(s)**2)*(4**s)) # computes coefficients
-	q = np.zeros(142)
-	q[0::2] = r
-	P = np.poly1d(q)
-	return P(1/math.sqrt(2))*4
-
-def W_approx():
-	n = 20
-	s = 1. * np.arange(20,0,-1)
-	r = ((-s)**(s-1))/(factorial(s)) # computes coefficients
-	q = np.zeros(21)
-	q[0:-1] = r
-	P = np.poly1d(q)
-	return P(.25)
-	
-print W_approx()*math.e**W_approx() #verification! 
     
     
-    
-
-# The problems from here on are no longer in the first lab.
 def prob5():
     im = np.random.randint(1,256,(100,100,3))
     b = np.array([0.5,0.5,1])
