@@ -1,17 +1,15 @@
-\lab{Algorithms}{IVP Solvers}{IVP Solvers}
+\lab{Algorithms}{IVP Methods}{IVP Methods}
 \label{lab:IVP}
 
-\objective{Implement several basic numerical solvers for initial value problems, and use them to study harmonic oscillators.}
+\objective{Implement several basic numerical methods for initial value problems, and use them to study harmonic oscillators.}
 
-\section{Solvers for initial value problems}
-
+\section{Methods for initial value problems}
 Consider the initial value problem 
 \begin{align*}
 y' &= f(x,y),\,\, a \leq x \leq b, \\
 y(a) &= y_0,
 \end{align*}
 where $f$ is a continuous function. A solution is a continuously differentiable function $y(x)$ that satisfies the equation $y' = f(x,y)$ on the interval $[a,b]$ and for which $y(a) = y_0$.  
-
 
 There are many initial value problems (IVPs) where it is impossible to find a closed form (analytic) expression for the solution. 
 For other IVPs there is a closed form expression for the solution, but it may be difficult to interpret. 
@@ -38,11 +36,11 @@ In this case, to understand the general solution it helps to use an IVP solver t
 
 Numerical methods for solving intial value problems require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. We then look for values $y_0,y_1, \hdots, y_n$ that approximate our solution ( so $y_i \approx y(x_i)$).  
 
-Consider the following use of Taylor's theorem: For each $i, 1 \leq i \leq n$, we have
+For a fixed value of $i$, $ 1 \leq i \leq n$, Taylor's theorem says that 
 \begin{align*}
 y(x_{i+1}) &= y(x_{i}) + h y'(x_i) + \frac{h^2}{2} y''(\xi_i)\text{ for some }\xi_i \in [x_i,x_{i+1}].
 \end{align*}
-For small values of $h$, the quantity $\frac{h^2}{2} y''(\xi_i)$ will be negligible ($h^2$ is much smaller than $h$), and so we will have
+For small values of $h$ the quantity $\frac{h^2}{2} y''(\xi_i)$ will be negligible and so we will have
 \begin{align*}
 y(x_{i+1}) &\approx y(x_{i}) + h y'(x_i)  ,\\
 &\approx y(x_{i}) + h f(x_i,y(x_i)).
@@ -53,15 +51,19 @@ This approximation leads to a first order ($\mathcal{O}(h^1)$) method called Eul
 % \item For $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$. 
 % \end{enumerate}
 
-We can also use Taylor's theorem as follows: 
+Taylor's theorem also says that 
 \begin{align*}
 y(x_{i}) &= y(x_{i+1}) - h y'(x_{i+1}) + \frac{h^2}{2} y''(\xi_i) \text{ for some } \xi_i \in [x_i,x_{i+1}], \\
-y(x_{i+1}) &\approx  y(x_{i}) + h f(x_{i+1},y(x_{i+1}))  \text{ for small } h .
+\end{align*}
+so that for small $h$
+\begin{align*}
+y(x_{i+1}) &\approx  y(x_{i}) + h f(x_{i+1},y(x_{i+1})).
 \end{align*}
 This approximation leads to the backwards Euler method, another first order method: Let $y_0 = y(a)$ and for $i = 0, 1, \hdots, n-1$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$.
 
 Note that for both the Euler and backwards Euler methods, only $y_i, f, $ and other points in the interval $[x_i, x_{i+1}]$ are needed to find $y_{i+1}$. Because of this these are called \textit{one-step methods}. 
 
+Euler's method is an explicit method. The backwards Euler method is an implicit method since an equation must be solved at each step to find $y_{i+1}$. Explicit and implicit methods usually have their own advantages and disadvantages. While implicit methods require an equation to be solved at each time step, they also often have bettern stability properties than the corresponding explicit methods.
 
 \begin{figure}[ht]
 \centering
@@ -117,7 +119,7 @@ There are many Runge-Kutta methods with varying orders of accuracy. In practice,
 \item $K_2 = hf(x_i + \frac{h}{2}, y_i + \frac{1}{2} K_1),$
 \item $K_3 = hf(x_i + \frac{h}{2} , y_i + \frac{1}{2} K_2),$
 \item $K_4 = hf(x_{i+1} , y_i +  K_3),$
-\item $y_{i+1} = y_i + \frac{1}{6}(K_1 + K_2 + K_3 + K_4)$ for $i = 0,1,\hdots,n-1.$
+\item $y_{i+1} = y_i + \frac{1}{6}(K_1 + 2K_2 + 2K_3 + K_4)$ for $i = 0,1,\hdots,n-1.$
 \end{enumerate}
 
 
