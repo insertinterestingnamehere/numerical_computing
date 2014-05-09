@@ -102,8 +102,8 @@ One of the reasons Python is so useful as a scientific computing platform is bec
 Python has a very large and comprehensive standard library that is available with almost every Python environment.
 The standard library is comprised of over a hundred different modules that provide extra functionality to Python.
 Python modules are simply Python source files where classes, functions, variables are defined.
-We can import any Python source file and access the objects defined in it.
-In this lab, we will look at some of these modules.
+We can import any Python source file as a module and access the objects defined in it.
+In this lab, we will look at some of these modules available in the Python standard library.
 
 Python modules can be imported with the \li{import} statement. 
 Variables and methods defined by the module may then be called.
@@ -318,13 +318,15 @@ Compare the timings you obtain from a deque and a list of 10000 elements.
 \begin{problem}
 Write a function that takes in an integer maxInt and an integer n.
 Make a list of random integers between 0 and maxInt of length $n$, then use a Counter object to count how times each number appears in the list.
-Return a dictionary where the keys are the distinct integers in the list and values are the frequency of the integer.
+Return a dictionary where the keys are the distinct integers in the list and the values are the frequency of the integer.
 \end{problem}
 
 \section*{\texttt{itertools} Module}
 There is a very powerful library in the Python Standard Library that is built around the concept
 of generators and iterators.  The functions in \li{itertools} are designed to be used as
 building blocks in larger functions.  These functions are fast and memory efficient.
+This is efficiency is especially important in Python where code is generally executed slower than in a compiled language like C or Fortran.
+An efficient way of doing things goes a very long way in Python.
 
 \subsection*{Generators}
 Before discussing this module, let's briefly understand what a generator is.
@@ -350,7 +352,6 @@ Calling \li{next()} on a generator object resumes execution in the generator unt
 When are generators helpful? 
 If you encounter the situations below, consider trying to solve 
 your problem using generators.
-Generators have proven to be very useful in these situations.
 \begin{itemize}
 \item \emph{Iterating through only part of a sequence.}
 It is inefficient to create an entire sequence if we know that we will not need all of it.
@@ -358,34 +359,38 @@ Representing the sequence as a generator could possibly avoid excess memory use 
 \item \emph{Iterating through a sequence once.} Consider the statement 
 \li{sum([i for i in range(1000) if i\%2 == 0])}.
 We are creating two sequences just to iterate through them once and never use them again.
-We can make this more efficient using generators.
+We can make this more efficient using generators:
 \li{sum(i for i in xrange(1000) if i\%2 == 0)}
 Notice that we have used syntax similar to a list comprehension.
 The line \li{(i for i in xrange(1000) if i\%2 == 0)} will define a generator object similar to the list made by \li{[i for i in xrange(1000) if i\%2 == 0]}.
 The solution using generators will often execute faster, but it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
-\item \emph{Calculating large sequences.}  The sequence must be stored somewhere in computer memory.
+\item \emph{Calculating large sequences.}  A sequence must be stored somewhere in computer memory.
 If the sequence is large, we could exhaust all available memory.
 \item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite.  We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
 \end{itemize}
 
 \subsection*{Useful Generators in \texttt{itertools}}
-The \li{itertools} module contains three main types of generators.
-There are infinite generators, shortest sequence generators, and combinatoric generators.
+The \li{itertools} module contains three main types of generators: infinite generators, shortest sequence generators, and combinatoric generators.
 Some of the most used generators are summarized in table \ref{table:populargens}.  The examples are from the Python documentation.
 \begin{table}
 \begin{tabular}{|l|l|}
 \hline
 Generator & Example \\
 \hline
+\li{count()} & Counts to infinity \\
+\li{cycle()} & Infinitely cycles through a sequence \\
+\li{repeat()} & Repeats the input element infinitely (or up to $n$ times) \\
+\hline
 \li{chain()} & \li{chain('ABC', 'DEF') --> A B C D E F} \\
 \li{compress()} & \li{compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F} \\
 \li{islice()} & \li{islice('ABCDEFG', 2, None) --> C D E F G} \\
 \li{imap()} & \li{imap(pow, (2,3,10), (5,2,3)) --> 32 9 1000} \\
 \li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} \\
-\li{product()} & \\
-\li{permutations()} & \\
-\li{combinations()} & \\
-\li{combinations_with_replacement()} & \\
+\hline
+\li{product()} & Returns the Cartesian product \\
+\li{permutations()} & Return permutations of a sequence\\
+\li{combinations()} & Return combinations of a sequence\\
+\li{combinations_with_replacement()} & Make combinations with replacements of a sequence\\
 \hline
 \end{tabular}
 \caption{Popular generators in \li{itertools} module.}
@@ -397,7 +402,7 @@ The documentation for \li{itertools} also includes various recipes for other use
 Feel free to look through the documentation \url{http://docs.python.org/2/library/itertools.html}.
 
 \begin{problem}
-You have been tasked to write a simulator that will simulate a hunger games tournament.
+You have been tasked to write a simulator that will simulate a hunger games tournament (\url{http://thehungergames.wikia.com/wiki/The_Hunger_Games_(event)}).
 In this problem you will be using your cumulative knowledge of the standard library to write a simulator.
 
 You solution should accept a single argument from the command line that is a filename.  All the output you generate in your program will be written to this file.
