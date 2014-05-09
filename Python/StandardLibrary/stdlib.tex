@@ -196,13 +196,46 @@ Python has a very useful module for reading and writing data as comma separated 
 The \li{csv} module provides \li{reader} and \li{writer} objects.
 There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
 
+Using these reader and writer objects, we can define the format of our CSV file.  Contrary to the name, CSV files can be delimited with any character.  Tabs and spaces are two other popular delimiting characters.
+\begin{lstlisting}
+# set the delimiter to tabs
+csv_reader = csv.reader(csv_file, delimiter='\t')
+\end{lstlisting}
+
+We can become very specific about dialects.
+For example, we can define the characters that separate fields, terminate lines, escape special characters, and enclose strings.
+The \li{csv} module refers to these special settings as \emph{dialects}.
+The module comes with two dialects ready to use, excel and excel-tab.
+\begin{lstlisting}
+# change the formatting dialect to CSV
+csv_reader = csv.reader(csv_file, dialect='excel')
+# modify formatting characters
+csv_reader = csv.reader(csv_file, quotechar='*', lineterminator='\n')
+
+# custom dialect
+class MyDialect(csv.Dialect):
+    delimiter = '|'
+    quotechar = '*'
+    doublequote = True
+    skipinitialspace = False
+    lineterminator = '\n'
+    quoting = csv.QUOTE_MINIMAL
+# using our custom dialect
+csv_reader = csv.reader(csv_file, dialect=MyDialect)
+# finally we can register a dialect with the csv module
+csv.register_dialect("MyDialect2", delimiter='&', quotechar='@')
+csv_reader = csv.reader(csv_file, dialect='MyDialect2')
+\end{lstlisting}
+
 For example, to print the contents of a CSV file, \li{test.csv}, we would do the following.
 \begin{lstlisting}
 import csv
 
-#print the contents of a csv_file
+# open test.csv as read-only
 with open('test.csv', 'r') as csv_file:
+    # create csv reader object
     csv_reader = csv.reader(csv_file)
+    # we can now work with just the reader object
     for line in csv_reader:
         print line
 \end{lstlisting}
@@ -212,9 +245,14 @@ The following code demonstrates how this may be done.
 \begin{lstlisting}
 contents = [["Column 1", "Column 2", "Column 3"],
             [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
+            
+# open test_out.csv as a write-only file
+# this will overwrite test_out.csv if it exists!
 with open('test_out.csv', 'w') as csv_file:
+    # create a csv writer object
     csv_writer = csv.writer(csv_file)
     for record in contents:
+        # write rows using the csv writer object
         csv_writer.writerow(record)
 \end{lstlisting}
 
