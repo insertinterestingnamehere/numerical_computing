@@ -14,6 +14,10 @@ Another package is BeautifulSoup the Documentation can be found at \url{http://w
 You will making and editing python files in this lab, so you will not be using ipython.
 \end{info}
 
+\begin{warn}
+This Lab was written using version 0.16 of scrapy. If you are using a later version the code will not be exactly the same.
+\end{warn}
+
 \section*{Setting up}
 
 To begin a project go to the directory where you want to store the code and run
@@ -37,7 +41,7 @@ class <project name>Item(Item):
 \section*{Spiders}
 Spiders are classes used to scrape data from a group of websites. You will define calsses that define the initail list of URLs to download, how to follow the links, and how to parse the contents of the pages into your items objects. There are two main spiders. \li{BaseSpider} and \li{CrawlSpider}. A BaseSpider is used for one website and a CrawlSpider used for crawling mulitple websites.
 
-We will start with a BaseSpider. Go in your spider directory and create a new file (the name of the file does not matter). Subcalss BaseSpider as shown below. A BaseSpider has three things. A name that is a unique identifier, start_urls which is a list of URLS from which the spider will begin to crawl from and parse(), a method which will be called with the Response object at the beginning of each url.
+We will start with a BaseSpider. Go in your spider directory and create a new file (the name of the file does not matter). Subcalss BaseSpider as shown below. A BaseSpider has three things. A name that is a unique identifier, \li{start_urls} which is a list of URLS from which the spider will begin to crawl from and parse(), a method which will be called with the Response object at the beginning of each url.
 
 the following is an example.
 \begin{lstlisting}
@@ -132,10 +136,10 @@ which will generate a file \li{items.json} where all the scraped items are seria
 The spider above will only scrape one page. In order to scrape more pages you will need to inherit from \li{CrawlSpider}. The main difference is you set a list of rules for how you spider clicks on links and you do not over write the parse() method.
 
 \begin{warn}
-When using a \li{CrawlSpider} do not overwrite the parse method.
+When using a \li{CrawlSpider} do not overwrite the \li{parse} method.
 \end{warn}
 
-For example if I were scrapying the ESPN website for basketball statistics, this code would start of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of strings and will click on those links has those words in the url. \li{deny} also takes in a list of strings and will not click on links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set |li{follow=True} which means that it will click on those links.
+For example if I were scrapying the ESPN website for basketball statistics, this code would start of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of strings and will click on those links has those words in the url. \li{deny} also takes in a list of strings and will not click on links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set \li{follow=True} which means that it will click on those links.
 
 The following code will go to the espn nba statistics website and click on the links that have \li{'statistics/team/_/stat'} in the name but not \li{'sort'} and scrape those webpages.
 
@@ -147,7 +151,7 @@ from scrapy.selector import HtmlXPathSelector
 
 from sportscrape.items import SportscrapeItem
 
-class DmozSpider(CrawlSpider):
+class EspnSpider(CrawlSpider):
    name = "espn"
    allowed_domains = ["espn.go.com"]
    start_urls = [
@@ -169,4 +173,58 @@ class DmozSpider(CrawlSpider):
        return items
 \end{lstlisting}
 
-\section*{Database}
+\section*{Pipelining}
+Now you have a spider that crawls the web and dumps all the data into csv or json file. For some applications that will be enough. 
+
+In addition you can cleanse the data or put it into a database via pipelining. In your directory \li{<project name>} you will have a file called \li{pipelines.py}. In this file you can create a class that has three methods \li{process_item(item, spider)}, \li{open_spider(spider)} and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} all called when the project is started and ended respectively. The \li{process_item} is called when the \li{parse} method of the spider returns. 
+
+\subsection*{Cleansing}
+
+The following code drops an item if it does not have anything in the data part of the object and returns it otherwise.
+
+\begin{lstlisting}
+from scrapy.exceptions import DropItem
+
+class DataPipeline(object):
+
+    def process_item(self, item, spider):
+        if item['data']:
+            return item
+        else:
+            raise DropItem("Missing data in %s" % item)
+\end{lstlisting}
+
+\subsection*{Adding to a database}
+The following code puts the items where both its attributes are not null into a database. 
+\begin{lstlisting}
+import sqlite3 as sql
+class SportscrapePipeline(object):
+	
+	def open_spider(self,spider):
+		self.db = sql.connect("test1")
+		self.cur = self.db.cursor()
+		self.cur.execute('DROP TABLE IF EXISTS vals')
+		self.cur.execute('CREATE TABLE vals (name TEXT, numbers TEXT);')
+		self.statement = "INSERT INTO vals VALUES(?, ?);"
+		return
+
+	def close_spider(self, spider):
+		self.db.commit() #save changes made in the transaction
+		self.db.close()
+		return
+
+	def process_item(self, item, spider):
+		#data=(item['names'][0],item['numbers'][0])
+		if item['names'] and item['numbers']:
+			data=(item['names'][0],item['numbers'][0])
+			self.cur.execute(self.statement, data)
+		elif item['names'] and  not item['numbers']:
+			data=(item['names'][0],"null")
+			self.cur.execute(self.statement, data)
+		elif not item['names'] and item['numbers']:
+			data=("null",item['numbers'][0])
+			self.cur.execute(self.statement, data)
+\end{lstlisting}
+
+\subsection*{Activating your Pipeline}
+Once 
