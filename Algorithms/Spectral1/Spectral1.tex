@@ -1,53 +1,58 @@
 \lab{Algorithms}{The Pseudospectral method for Boundary Value Problems}{The Pseudospectral method for Boundary Value Problems}
 \label{lab:pseudospectral1}
 
-Suppose we have a set of grid points $\{x_i\}_{i=0}^N$ on an interval $I$, and function values $f(x_i)$ at those points. What is the best way to approximate the derivative $f'(x)$?
+Suppose we have a set of grid points $\{x_i\}_{i=0}^N$ on an interval $I$, and function values $u(x_i)$ at those points. What is the best way to approximate the derivative $u'(x)$?
 
-Here is one idea: We can construct a polynomial $p(x)$ that interpolates the data $(x_i,f(x_i))$. Then $p'(x)$ could be used as an approximation to $f'(x)$. However, if we recall Runge's phenomena we can easily see that in general $p(x)$ can be a very poor approximation for $f(x)$, and in this case we could hardly expect $p'(x)$ to approximate $f'(x)$ well. 
+Here is one idea: We can construct a polynomial $p(x)$ that interpolates the data $(x_i,u(x_i))$. Then $p'(x)$ could be used as an approximation to $u'(x)$. However, if we recall Runge's phenomena we can easily see that in general $p(x)$ can be a very poor approximation for $u(x)$, and in this case we could hardly expect $p'(x)$ to approximate $u'(x)$ well. 
 
-The key idea we need here is that the grid points $\{x_i\}$ can be carefully chosen. For example, suppose the interval $I = [-1,1]$. Instead of using equally spaced grid points $\{x_i\}$, let $\{x_i\}$ be the Chebychev points 
+The key idea we need here is that the grid points $x_i$ must be carefully chosen. For example, consider the interval $I = [-1,1]$. Instead of using equally spaced grid points, let the grid $\{x_i\}_{i=0}^N$ consist of the Chebychev points 
 \[x_i = \cos (i \pi /N), \quad i = 0, 1, \ldots, N.\]
+Experiment with the following code to view Runge's phenomena and see the convergence when the Chebychev points are used.
 
-Experiment with the following code to see view Runge's phenomena and see the convergence when the Chebychev points are used: 
 \begin{lstlisting}
-def f(x): 
-    return 1./(1.+16*x**2) 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import BarycentricInterpolator
 
-N = 60 # Number of subintervals; Grid points = N+1
-x = np.cos(np.pi*np.arange(N+1)/N)
-# x = np.linspace(-1,1,N+1)
-xx = np.linspace(-1,1,200)
-uu = (np.poly1d(np.polyfit(x,f(x),N)))(xx)
+def f(x):
+	return 1./(1.+16.*x**2.)
 
-plt.plot(xx,f(xx),'-k') # Graph of f(x)
-plt.plot(x,f(x),'*k')   # Interpolation values 
-plt.plot(xx,uu,'-r')    # Graph of the interpolant of f(x)
-print("The Maximum Error is ",np.max(np.abs(uu-f(xx))))
+N = 10
+# grid = np.cos(np.pi*np.arange(N+1)/N)		# Chebychev grid
+grid = np.linspace(-1,1,N+1)
+p = BarycentricInterpolator(grid,f(grid) )
+
+x = np.linspace(-1,1,200)
+print "The Maximum Error is ", np.max(np.abs((p(x)-f(x))))
+plt.plot(x,f(x),'-k')
+plt.plot(grid,f(grid),'*k')
+plt.plot(x,p(x),'-r')
+plt.show()
 \end{lstlisting}
 
-As long as the function $f(x)$ is smooth, the interpolating polynomial $p(x)$ will converge to $f(x)$ rapidly. For example, if $f$ is analytic then $p(x)$ will converge to $f(x)$ at the rate $\mathcal{O}(p^n)$ where $0<p<1$. This convergence rate is faster than $\mathcal{O}(h^p)$ for any $p$. $p'(x)$ converges to $f'(x)$ at a similar rate. 
+As long as the function $u(x)$ is smooth, the interpolating polynomial $p(x)$ will converge to $u(x)$ rapidly. For example, if $u$ is analytic then $p(x)$ will converge to $u(x)$ at the rate $\mathcal{O}(k^n)$ where $0<k<1$. This convergence rate is faster than $\mathcal{O}(1/N^k)$ for any $k$. $p'(x)$ converges to $u'(x)$ at a similar rate. 
 
 
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=9cm]{equally_spaced_points.png}
-\caption{Runge's Phenomenon: A polynomial interpolant $p(x)$ of  $1/(1+16x^2)$ at 17 equally spaced grid points has an error of 5.88. This error grows as the number of grid points increases.}
+\caption{Runge's Phenomenon: The polynomial interpolant $p(x)$ of  $1/(1+16x^2)$ at 17 equally spaced grid points has an error of 5.88. This error grows as the number of grid points increases.}
 \label{Spectral1:equally_spaced_points}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=9cm]{chebychev_points.png}
-\caption{A polynomial interpolant $p(x)$ of $1/(1+16x^2)$ at 17 chebychev grid points has an error of 0.0175. This error decreases rapidly as the number of grid points increases.}
+\caption{The polynomial interpolant $p(x)$ of $1/(1+16x^2)$ at 17 chebychev grid points has an error of 0.0175. This error decreases rapidly as the number of grid points increases.}
 \label{Spectral1:chebychev_points}
 \end{figure}
 
 
-\section{The Derivative Matrix}
+\section{The Differentation Matrix}
 Let $u$ be a function defined on $[-1,1]$. The polynomial $p(x)$ that interpolates $u$ at the Chebyshev points can be expanded in the form 
 \[p(x) = \sum_{j=0}^N u(x_j)C_j(x),\]
-where the basis functions $C_j(x)$ are the cardinal functions. The cardinal function $C_j$ is defined to be the polynomial of least degree satisfying
+where each of the basis functions $C_j$ are cardinal functions, defined to be the polynomials of least degree satisfying
 \begin{equation*}
 C_j(x_i) = \begin{cases} 1 & i=j \\ 0 & i \not = j.
    \end{cases}
@@ -55,28 +60,39 @@ C_j(x_i) = \begin{cases} 1 & i=j \\ 0 & i \not = j.
 
 Then 
 \[
-u'(x_i) \approx p'(x_i) = \sum_{j=0}^N u(x_j)C_j'(x_i). 
+u'(x_i) \approx p'(x_i) = \sum_{j=0}^N u(x_j)C_j'(x_i) \quad \text{ where } i = 0, \ldots N.
 \]
-Let $U = [u(x_0),\ldots, u(x_N)]^T$ and $U' = [u'(x_0),\ldots, u'(x_N)]^T$.
-Let $D$ be the matrix given by
+This can be written in matrix form as 
+ \begin{equation*}
+ 	\left[\begin{array}{c}p'(x_0) \\p'(x_1)\\\vdots \\p'(x_N)\end{array}\right] = 
+\left[\begin{array}{cccc}C_0'(x_0) & C_1'(x_0) & \ldots & C_N'(x_0) \\C_0'(x_1) & C_1'(x_1) & \ldots & C_N'(x_1) \\\vdots &  &  & \vdots \\C_0'(x_N) & C_1'(x_N) & \ldots & C_N'(x_N)\end{array}\right]
+	\left[\begin{array}{c}u(x_0) \\u(x_1)\\\vdots \\u(x_N)\end{array}\right],
+ \end{equation*}
+or in shorthand as 
+\[U' = D U,\]
+where $U'$ represents the approximation to $u'$ using the polynomial $p'$.
+% Let $U = [u(x_0),\ldots, u(x_N)]^T$ and $U' = [u'(x_0),\ldots, u'(x_N)]^T$.
+The matrix $D$ is given by
 \begin{equation*}
 D_{ij} = C_j'(x_i) = \begin{cases} (1+2N^2)/6 & i=j=0 \\ -(1+2N^2)/6 & i=j=N \\
 -x_j/[2(1-x_j^2)] & i=j, \, 0<j<N \\ 
-(-1)^{i+j}p_i/[p_j(x_i-x_j)] & i \not = j
+(-1)^{i+j}\alpha_i/[\alpha_j(x_i-x_j)] & i \not = j
    \end{cases}
 \end{equation*}
-where $p_0 = p_N = 2,$ and $p_j = 1$ otherwise. $D$ is called a differentiation matrix, since $U' \approx DU$.
-$u'(x)$ can be approximated for values of $x$ not on the grid by interpolating $p'$ at the grid points: 
-\[
-u'(x) \approx \sum_{j=0}^N p'(x_j)C_j(x_i). 
-\]
-Note that this formula provides an analytic solution that approximates $u'(x)$.
+where $\alpha_0 = \alpha_N = 2,$ and $\alpha_j = 1$ otherwise. 
+
+$u'(x)$ can be approximated for values of $x$ not on the grid by interpolating the values of $p'$ at the grid points.
+% \begin{equation*}
+% u'(x) \approx p'(x) =  \sum_{j=0}^N p'(x_j)C_j(x).
+% \end{equation*}
+% Thus $p'$ is an analytic function that approximates $u'$, and not just at the grid points. 
+To evaluate $p'(x),$ use barycentric interpolation on the grid $(x_i,p'(x_i))$.
 
 \begin{problem}
 	Create a function \li{cheb} that takes in a positive integer $N$ and returns the grid $\{x_j\}_{j=0}^N$ of Chebychev points and the differentation matrix $D$ associated with that grid. 
 	
 	Use the differentiation matrix to find the numerical derivative of $u(x) = e^{x}\cos(6x)$ on a grid of Chebychev points for several values of $N:$ $N=6, 8, 10.$
-	 Use those values to approximate $u'$ on the grid \li{np.linspace(-1,1,100)}. Graphically compare those values to the exact derivative. 
+	 Then use barycentric interpolation to approximate $u'$ on the grid \li{np.linspace(-1,1,100)}. Graphically compare those values to the exact derivative. 
 \end{problem}
 
 
@@ -91,7 +107,7 @@ u(1) &= 0,
 \end{align*}
 on the grid $\{x_i\}$ amounts to solving the system 
 \[D^2 U = F,\]
-where $F = [f(x_0),\ldots, f(x_N)]^T$. We can enforce the Dirichlet boundary condition by forcing $U[0] = U[N] = 0$. This allows us to ignore the first and last equations in the system, giving us the new system 
+where $F = [f(x_0),\ldots, f(x_N)]^T$. We can satisfy the Dirichlet boundary condition by forcing $U[0] = U[N] = 0$. This allows us to ignore the first and last equations in the system, giving us the new system 
 \[\tilde{D}^2 \tilde{U} = \tilde{F},\]
 where $\tilde{D} = D[1:N,1:N]$, $\tilde{U} = U[1:N]$, and $\tilde{F} = F[1:N]$.
 
@@ -109,12 +125,23 @@ where $\tilde{D} = D[1:N,1:N]$, $\tilde{U} = U[1:N]$, and $\tilde{F} = F[1:N]$.
 \begin{problem}
 	Use the pseudospectral method to solve the boundary value problem 
 	\begin{align*}
-	u'' + u' &= 3/2 + e^{3x}, \\
+	u'' + u' &= e^{3x}, \\
 	u(-1) &= 2, \\
 	u(1) &= -1.
 	\end{align*}
-	Check that your numerical solution is converging. Hint: Reduce the problem to one with zero Dirichlet conditions by letting $u = U+G$, where $G$ is a (simple) function satisfying the boundary conditions.
+	Check that your numerical solution is converging. How many subintervals are required to find the solution correct to three decimal places? See Figure \eqref{nonzeroDirichlet}.
+	
+	Hint: Reduce the problem to one with zero Dirichlet conditions by letting $u = U+G$, where $G$ is a (simple) function satisfying the boundary conditions.
 \end{problem}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=12cm]{nonzeroDirichlet.pdf}
+\caption{The solution of $u'' + u' = e^{3x}$, subject to the boundary conditions 
+$u(-1) = 2$, $u(1) = -1$.
+ }
+\label{nonzeroDirichlet}
+\end{figure}
 
 % 
 % \section*{The Method of Weighted Residuals}
