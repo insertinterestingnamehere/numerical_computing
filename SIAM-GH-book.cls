@@ -1128,7 +1128,8 @@
 
 \def\examplebox{\ifdim\exboxwd=1pt\hspace{12\proofboxwd}\mbox{\rule{5.36pt}{7.91pt}}\else\fi}
 
-\def\endexample{\examplebox\global\exboxwd1pt\relax\vspace{.9\baselineskip}}
+%%% Remove endexample box.
+%\def\endexample{\examplebox\global\exboxwd1pt\relax\vspace{.9\baselineskip}}
 
 
 \newcounter{rmnum}
