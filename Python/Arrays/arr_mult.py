@@ -1,4 +1,4 @@
-def arrmul(A,B):
+def arr_mult(A,B):
     new = []
     for i in range(len(A)):
         newrow = []
