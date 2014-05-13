@@ -7,10 +7,10 @@ We will now look into one of the many applications of Finite Difference Methods.
 It is often useful in image processing to remove extra static from an image.
 This is most easy done by simply blurring the image, but this has the unfortunate consequence of also blurring the boundary lines between distinct elements of the image.
 This blurring can be done by treating the image as a rectangular domain where we are applying the diffusion equation:
-$$u_t = b \Delta u$$
+\[u_t = b \Delta u\]
 where $b$ is some diffusion constant and $\Delta$ is the Laplace Operator.
 A more general form of the diffusion equation in two dimensions is:
-$$u_t = div \left( c(x,y,t) \nabla u \right)$$
+\[u_t = div \left( c(x,y,t) \nabla u \right)\]
 where $c$ is a function representing the diffusion coefficient at each given point and time.
 In this case, $div$ is the divergence operator and $\nabla$ is the gradient.
 If we want to blur a picture uniformly, we can allow $c$ to be constant, but we are often interested in \textit{preserving the edges} between features of the image.
@@ -27,12 +27,12 @@ The idea here is that $c$ will be small where $E$ is large, so there will be lit
 
 We will implement this idea of limiting diffusion at edges in the following way:
 The following finite difference scheme is consistent with the Laplace Operator:
-$$\Delta u = u_{xx}+u_{yy} \approx \frac{v_{l-1,m}^n - 2 v_{l,m}^n + v_{l+1,m}^n}{(\Delta x)^2} + \frac{v_{l,m-1}-2 v_{l,m}^n + v_{l,m+1}^n}{(\Delta y)^2}$$
+\[\Delta u = u_{xx}+u_{yy} \approx \frac{v_{l-1,m}^n - 2 v_{l,m}^n + v_{l+1,m}^n}{(\Delta x)^2} + \frac{v_{l,m-1}-2 v_{l,m}^n + v_{l,m+1}^n}{(\Delta y)^2}\]
 Since we are working with images, we may say, without loss of generality, that the distance between pixels is always one, so $\Delta x = \Delta y = 1$. Rearranging the terms we have:
-$$ \Delta u \approx (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$
+\[\Delta u \approx (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})\]
 
 Again, since we are working with images and not some time based problem, we may say, without loss of generality, that $\Delta t = 1$, so we will have the following finite difference scheme:
-$$v_{l,m}^{n+1} = v_{l,m}^n + (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})$$
+\[v_{l,m}^{n+1} = v_{l,m}^n + (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})\]
 We will now limit the diffusion near the edges of objects by making the following modification:
 \begin{equation*}
 \begin{split}
