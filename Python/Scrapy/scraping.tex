@@ -1,4 +1,4 @@
-\lab{Python}{Scrapy}{Standard Library}
+\lab{Python}{Scrapy}{Scrapping}
 \objective{Teach students how to scrape websites}
 
 \section*{Scrapying Data}
@@ -6,7 +6,7 @@ Scrapping data from a website is a way to extract structured or unstructured dat
 
 Most websites have APIs that direct people how to take data from the webpage. Often you use the API. You use a scrapying tool if you want to extract data from a website that does not have an API or the data you want is not a part of the API. (Like extracting e-mail addresses of users)
 
-There is a nice python package called scrapy that is an application framework for scrapying. This lan follows that you using version 0.16. THe offical documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
+There is a nice python package called scrapy that is an application framework for scrapying. . THe offical documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
 
 Another package is BeautifulSoup the Documentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}
 
@@ -15,11 +15,33 @@ You will making and editing python files in this lab, so you will not be using i
 \end{info}
 
 \begin{warn}
-This Lab was written using version 0.16 of scrapy. If you are using a later version the code will not be exactly the same.
+This Lab was written using version 0.22 of scrapy. If you are using a different version, the code will not be exactly the same.
 \end{warn}
 
-\section*{Setting up}
+\section*{Installation}
 
+To learn how to install Scrapy go to the website \url{http://doc.scrapy.org/en/latest/intro/install.html}
+
+\section*{Setting up}
+A good tutorial is found on scrapy's website
+\url{http://doc.scrapy.org/en/latest/intro/tutorial.html}
+
+\begin{problem}
+Work thourgh the tutorial from the url above. You should turn in items.json as specified in the tutorial.
+\end{problem}
+
+When you run
+\begin{lstlisting}
+scrapy crawl dmoz -o items.json -t json
+\end{lstlisting}
+which generates a file \li{items.json} where all the scraped items are serialized in JSON. You can also store them in csv or xml by changing all the json to csv or xml.
+For example
+\begin{lstlisting}
+scrapy crawl dmoz -o items.csv -t csv
+\end{lstlisting}
+generates a file \li{items.csv} where all the scraped items are stored in a csv file.
+
+\begin{comment}
 To begin a project go to the directory where you want to store the code and run
 \begin{lstlisting}
 scrapy startproject <project name>
@@ -132,22 +154,26 @@ scrapy crawl dmoz -o items.json -t json
 \end{lstlisting}
 which will generate a file \li{items.json} where all the scraped items are serialized in JSON. You can also store them in csv or xml by changing all the json to csv or xml.
 
+\end{comment}
+
 \section*{Crawling the Web}
-The spider above will only scrape one page. In order to scrape more pages you will need to inherit from \li{CrawlSpider}. The main difference is you set a list of rules for how you spider clicks on links and you do not over write the parse() method.
+This follows the section \url{http://doc.scrapy.org/en/latest/topics/spiders.html} subsection CrawlSpider.
+
+The spider you wrote from the tutorial will only scrape one page. In order to scrape more pages you will need to inherit from \li{CrawlSpider}. The main difference is you set a list of rules for how you spider clicks on links and you do not overwrite the parse() method.
 
 \begin{warn}
 When using a \li{CrawlSpider} do not overwrite the \li{parse} method.
 \end{warn}
 
-For example if I were scrapying the ESPN website for basketball statistics, this code would start of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of strings and will click on those links has those words in the url. \li{deny} also takes in a list of strings and will not click on links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set \li{follow=True} which means that it will click on those links.
+For example if I were scrapying the ESPN website for basketball statistics (do not do because it is illegal to scrape data the ESPN website), this code would start of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of strings and will click on those links has those words in the url. \li{deny} also takes in a list of strings and will not click on links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set \li{follow=True} which means that it will click on those links.
 
 The following code will go to the espn nba statistics website and click on the links that have \li{'statistics/team/_/stat'} in the name but not \li{'sort'} and scrape those webpages.
 
+To do change
 \begin{lstlisting}
 from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.spider import BaseSpider
-from scrapy.selector import HtmlXPathSelector
+from scrapy.selector import Selector
 
 from sportscrape.items import SportscrapeItem
 
@@ -162,18 +188,20 @@ class EspnSpider(CrawlSpider):
     )
 
    def parse_page(self, response):
-       hxs = HtmlXPathSelector(response)
-       sites = hxs.select('//td')
+       sel = Selector(response)
+       sites = sel.xpath('//td')
        items = []
        for site in sites:
            item = SportscrapeItem()
-           item['numbers'] = site.select('text()').extract()
-           item['names'] = site.select('a/text()').extract()
+           item['numbers'] = site.xpath('text()').extract()
+           item['names'] = site.xpath('a/text()').extract()
            items.append(item)
        return items
 \end{lstlisting}
 
 \section*{Pipelining}
+
+The documentation can be found \url{http://doc.scrapy.org/en/latest/topics/item-pipeline.html}
 Now you have a spider that crawls the web and dumps all the data into csv or json file. For some applications that will be enough. 
 
 In addition you can cleanse the data or put it into a database via pipelining. In your directory \li{<project name>} you will have a file called \li{pipelines.py}. In this file you can create a class that has three methods \li{process_item(item, spider)}, \li{open_spider(spider)} and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} all called when the project is started and ended respectively. The \li{process_item} is called when the \li{parse} method of the spider returns. 
@@ -227,4 +255,12 @@ class SportscrapePipeline(object):
 \end{lstlisting}
 
 \subsection*{Activating your Pipeline}
-Once 
+Once you have written your pipeline code to activate it you go to your \li{settings.py} file and add the line
+\begin{lstlisting}
+ITEM_PIPELINES = '<directory>.pipelines.<name of class>': 300
+\end{lstlisting}
+where \li{<directory>} is the directory, \li{pipelines} stands for \li{pipelines.py} file, and \li{<name of class>} is what you named your pipeline class. In the example above it would be \li{SportscrapePipeline}. The \li{300} is a precedence operator that takes effect if you have multiple pipelines.
+
+\begin{problem}
+Really awesome problem. That invoves scrapying data from a webpage into a database 
+\end{problem}
