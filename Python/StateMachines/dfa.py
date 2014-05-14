@@ -2,7 +2,41 @@
 #In simulating a DFA, we don't need to give the set of all states
 #We just need the transition function.
 #The transition function is of the form {(origin, char): transition state,...}
-DFA_1 = (set("01"), {(0, '0'): 1}, 0, set([1]))
+reprDFA_a = (set('ab'),
+             {(0, 'a'): 0,
+              (0, 'b'): 1,
+              (1, 'b'): 0,
+              (1, 'a'): 1},
+             0,
+             {1})
+reprDFA_b = (set('01'),
+             {(0, '1'): 0,
+              (0, '0'): 1,
+              (1, '1'): 1,
+              (1, '0'): 2,
+              (2, '1'): 2,
+              (2, '0'): 3,
+              (3, '0'): 3,
+              (3, '1'): 3}
+             0,
+             {2})
+reprDFA_c = (set('01'),
+             {(0, '0'): 2,
+              (0, '1'): 1,
+              (1, '0'): 2,
+              (1, '1'): 3,
+              (3, '0'): 2,
+              (3, '1'): 4,
+              (4, '0'): 2,
+              (4, '1'): 2,
+              (2, '0'): 2,
+              (2, '1'): 2},
+             0,
+             {1, 2})
+
+equiv_regex_a = "a*(ba*b)*"
+equiv_regex_b = "1*01*01*(0+1)*"
+equiv_regex_c = ""
 
 def dfa_sim(input_str, machine):
     #unpack the machine
@@ -20,6 +54,5 @@ def dfa_sim(input_str, machine):
         if i == input_len and curr in accept:
             return True
     return False
-            
-        
+
         
