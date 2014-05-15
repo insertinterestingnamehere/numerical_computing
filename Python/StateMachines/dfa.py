@@ -55,4 +55,17 @@ def dfa_sim(input_str, machine):
             return True
     return False
 
-        
+def email_validator(email):
+    pattern = r'([\w\d\.-]+)@([\w\d\.-]+)\.([a-z]{2,4})'
+    
+    mo = re.match(pattern, email)
+    if mo:
+        s = slice(*mo.span(2))
+        xs = 'x'*len(email[s])
+    else:
+        raise ValueError("invalid email")
+    
+    # replace domain with x's
+    return ''.join([mo.group(1), 
+                    '@', xs, '.',
+                    mo.group(3)])
