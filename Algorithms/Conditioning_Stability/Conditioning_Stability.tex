@@ -30,13 +30,13 @@ Since $X$ and $Y$ are vector spaces of infinite cardinality, we cannot represent
 
 We define the \emph{condition number} of $f$ at $x$. Let $\delta x$ denote a small perturbation of $x$, and let $\delta f = f(x+\delta x) - f(x)$. Then the \emph{absolute condition number} of $f$ at $x$ is 
  \[
-\hat{\mathcal{K}} = \lim_{\delta \rightarrow 0} \sup_{||\delta x|| \leq \delta} { \frac{|| \delta f||}{||\delta x||} } 
+\hat{\mathcal{K}} = \lim_{\delta \rightarrow 0} \sup_{\norm{\delta x} \leq \delta} { \frac{\norm{\delta f}}{\norm{\delta x}} } 
 \]
 
 This is the ratio of output error to input error. These are \emph{absolute} errors; however, the error introduced by floating point arithmetic on a computer is \emph{relative} error. Therefore we define also \emph{relative condition number}:
 
 \begin{equation}
-\mathcal{K} = \lim_{\delta \rightarrow 0} \sup_{||\delta x|| \leq \delta} \left({ \frac{|| \delta f||}{||f(x)||} } \middle/ { \frac{|| \delta x||}{||x||} }\right)
+\mathcal{K} = \lim_{\delta \rightarrow 0} \sup_{\norm{\delta x} \leq \delta} \left({ \frac{\norm{\delta f}}{\norm{f(x)}} } \middle/ { \frac{\norm{\delta x}}{\norm{x}} }\right)
 \label{def:relativeconditionnumber}
 \end{equation}
 
@@ -44,18 +44,18 @@ Relative condition number is usually a more useful concept that absolute conditi
 
 We say that a problem $f$ is \emph{well-conditioned} at $x$ if $\mathcal{K}$ is small. In this case, small changes to $x$ result in small changes to $f(x)$. We say $f$ is \emph{ill-conditioned} at $x$ if $\mathcal{K}$ is large. In this case, small changes to $x$ may result in large changes to $f(x)$. 
 
-\paragraph{Example 1: The Wilkinson Polynomial}
+\begin{example}[The Wilkinson Polynomial]
 Polynomial root finding is a notoriously ill-conditioned problem. Root-finding for a degree $n$ polynomial can be described by a function $f$, which takes a vector $x$ of $n+1$ coefficients and returns a vector $y$ of $n$ roots. If two of the roots in $y$ are close to each other, the condition number of $f$ at $x$ will be large. In fact if $y$ contains repeated roots, the condition number is $\infty$.
  
- James Wilkinson illustrated that root-finding can be extremely ill-conditioned even if the roots are far apart. His classic example is called the \emph{Wilkinson polynomial}:
+James Wilkinson illustrated that root-finding can be extremely ill-conditioned even if the roots are far apart. His classic example is called the \emph{Wilkinson polynomial}:
  
- \[
- w(x) = (x-1)(x-2)(x-3)\hdots(x-20)
- \]
+\[
+w(x) = (x-1)(x-2)(x-3)\hdots(x-20)
+\]
  
- Expanding this polynomial to obtain coefficients gives
+Expanding this polynomial to obtain coefficients gives
  
- \[\begin{array}{cl}
+\[\begin{array}{cl}
  w(x)=& x^{20}-210x^{19} +20615x^{18} -1256850 x^{17} +53327946 x^{16}\\ 
  &-1672280820x^{15} + 40171771630x^{14} -756111184500x^{13}\\
 &+11310276995381 x^{12} -135585182899530 x^{11}\\ 
@@ -68,12 +68,13 @@ Polynomial root finding is a notoriously ill-conditioned problem. Root-finding f
       \end{array} \]
 Figure \ref{fig:wilkinsonpolynomial} shows what happens to the roots of $w(x)$ when we make tiny perturbations to the coefficients. The condition number of this polynomial is $\mathcal{K} \approx 5.1 \times 10^{13}$.
 
-\begin{figure}[h!]
+\begin{figure}
 \centering
 \includegraphics[height=2in]{wilkinsonpolynomial.pdf}
 \caption{The blue dots are the roots of w(x). The red dots in the complex plane are roots of a randomly perturbed polynomial with coefficients $\hat{a}_k = a_k(1+r_k)$, where the $r_k$ are normally distributed with mean $0$ and standard deviation $10^{-5}$.}
 \label{fig:wilkinsonpolynomial}
 \end{figure}
+\end{example}
 
 \begin{problem}
 Write a function to reproduce Figure \ref{fig:wilkinsonpolynomial}.
@@ -81,13 +82,12 @@ Perturb $w(x)$ as described in the caption for this Figure.
 Instead of plotting the roots for just one random pertubation of $w(x)$, plot the roots for several random perturbations.
 
 Write another function that, given an array of roots for a polynomial, computes the polynomial object representing the polynomial with the desired roots, then finds the roots of the resulting polynomial and plots them with the original roots.
-You may find the \li{numpy.poly} function useful for this.
+You may find the \li{numpy.poly()} function useful for this.
 Be sure you use different colors for the different sets of points.
 Using equispaced points at integer values, what does the degree of the polynomial have to be for this computation to return incorrect answers?
 \end{problem}
 
-\paragraph{Example 2: Calculating Eigenvalues}
-
+\begin{example}[Calculating Eigenvalues]
 Consider the problem of finding the eigenvectors of a given $n \times n$ matrix $A$. If $A$ is symmetric, then fortunately the eigenvalue problem is well-conditioned. However the problem can be extremely ill-conditioned for non-symmetric matrices, even if $n$ is small. For example, the two matrices 
 \[ \left( \begin{array}{cc}
 1 & 1000 \\
@@ -100,33 +100,34 @@ Consider the problem of finding the eigenvectors of a given $n \times n$ matrix 
 \end{array} \right)
 \]
 have eigenvalues $\{ 1,1\}$ and $\{0,2 \}$ respectively.
+\end{example}
 
 \begin{problem}
-Let $f:X\rightarrow Y$ be a function that accepts an $n\times n$ matrix $A$ and returns an $n \times 1$ vector of eigenvalues $y$. Write your own function that accepts a matrix $A$ and estimates the condition number $\mathcal{K}$ of $f$ at $A$. Recall that the definition of $\mathcal{K}$ in Equation \ref{def:relativeconditionnumber} includes the limit as $\delta \rightarrow 0$ and the supremum over all possible $\delta x \leq \delta$. To mimic this on a computer, simply take $\delta$ to be very small. Then calculate $\mathcal{k} =  { \frac{|| \delta f||}{||f(x)||} } / { \frac{|| \delta x||}{||x||} } $ a large number of times, taking a random $\delta x$ each time such that $||\delta x|| \leq \delta$. Let $\mathcal{K}$ be the largest of the values $\mathcal{k}$ calculated. (Hint: Let each $\delta x$ be a random normal matrix with mean $0$ and standard deviation $\approx 10^{-4}$.)
+Let $f:X\rightarrow Y$ be a function that accepts an $n\times n$ matrix $A$ and returns an $n \times 1$ vector of eigenvalues $y$. Write your own function that accepts a matrix $A$ and estimates the condition number $\mathcal{K}$ of $f$ at $A$. Recall that the definition of $\mathcal{K}$ in Equation \ref{def:relativeconditionnumber} includes the limit as $\delta \rightarrow 0$ and the supremum over all possible $\delta x \leq \delta$. To mimic this on a computer, simply take $\delta$ to be very small. Then calculate $\mathcal{k} =  { \frac{\norm{\delta f}}{\norm{f(x)}} } / { \frac{\norm{\delta x}}{\norm{x}} }$ a large number of times, taking a random $\delta x$ each time such that $\norm{\delta x} \leq \delta$. Let $\mathcal{K}$ be the largest of the values $\mathcal{k}$ calculated. (Hint: Let each $\delta x$ be a random normal matrix with mean $0$ and standard deviation $\approx 10^{-4}$.)
 
 Experiment with inputting random symmetric and non-symmetric matrices. Remember that if $A$ is any matrix, then $A'A$ is symmetric. What kinds of condition numbers do you get for symmetric vs. non-symmetric matrices? What kinds of matrices give the biggest condition numbers for the eigenvalue problem?
 \end{problem}
 
-\paragraph{Example 3: Condition of a System of Equations}
+\begin{example}[Condition of a System of Equations]
 Consider the system of equations
-\[ Ax = b
-\] for an $n \times n$ matrix $A$ and $n \times 1$ vectors $x$ and $b$. If we hold $A$ fixed, consider the problem of computing $b$ with respect to small changes in $x$. Alternatively, hold $A$ fixed and consider the problem of computing $x = A^{-1} b$ with respect to small changes in $b$. Finally, we may hold $b$ fixed and consider the problem of computing $x = A^{-1}b$ with respect to small changes in $A$.
+\[ Ax = b \] 
+for an $n \times n$ matrix $A$ and $n \times 1$ vectors $x$ and $b$. If we hold $A$ fixed, consider the problem of computing $b$ with respect to small changes in $x$. Alternatively, hold $A$ fixed and consider the problem of computing $x = A^{-1} b$ with respect to small changes in $b$. Finally, we may hold $b$ fixed and consider the problem of computing $x = A^{-1}b$ with respect to small changes in $A$.
 
 It turns out that each of these problems has the \emph{same} relative condition number. This number is 
 \[
-\mathcal{K} (A) = \|A\|_2 \|A^{-1}\|_2
+\mathcal{K} (A) = \norm{A}_2 \norm{A^{-1}}_2
 \]
 
 This is called the \emph{condition number of $A$}.
-The condition number of a matrix can be computed using \li{numpy.linalg.cond}.
+The condition number of a matrix can be computed using \li{numpy.linalg.cond()}.
 
 Notice that the condition number of a matrix cannot be less that $1$.
 It is almost always best to work with orthonormal matrices (or operations that can be mathematically represented by orthonormal matrices).
 Since orthonormal matrices have a norm of $1$, as do their inverses, these transformations have the best possible condition number.
 The low condition number of orthonormal matrices is one of the primary reasons that Householder reflections and Givens rotations are used in so many algorithms.
+\end{example}
 
 \section*{Stability of an Algorithm}
-
 The analysis of problem-solving given above assumed that for a given input $\hat{x}$, we could determine the correct output $f(\hat{x})$ exactly. In other words, even if $\hat{x} \neq x$, we assumed that we could calculate $f(\hat{x})$ exactly although it may be different from $f(x)$. 
 
 In practice, our calculation of $f(\hat{x})$ is not always accurate, \emph{even if} the problem $f$ is well-conditioned. Our method of solving the problem may introduce new error. Sometimes the new error we introduce may be very large. 
@@ -144,7 +145,7 @@ A stable algorithm is, roughly speaking, an algorithm that will return a correct
 If a problem is poorly conditioned, special algorithmic changes may be necessary to ensure a reasonable degree of accuracy.
 \end{warn}
 
-\paragraph{Example 4: A Simple but Unstable Algorithm}
+\begin{example}[A Simple but Unstable Algorithm]
 Consider
 \[\int_0^1 x^n e^{x - 1} dx\]
 It is easily seen that this integral is always positive and always less than $1$.
@@ -197,14 +198,14 @@ $x^{50}e^{x}$: & $1.46150163733 \cdot 10^{48}$ & $0.0192377544343$ \\
 
 The algorithms that we have studied to solve linear systems have different levels of stability.
 LU decomposition (with pivoting) is usually good enough, but there are some pathological examples of matrices that cause it to break down.
-QR decompositoin (with pivoting) is generally considered to be a better option than the LU decomposition.
+QR decomposition (with pivoting) is generally considered to be a better option than the LU decomposition.
 Solving a linear system using the SVD is even more stable than the QR decomposition.
-(Pivoting is a modification that is commonly made to the LU decomposition and QR decompositoin algorithms we have discussed in earlier labs to make them more stable.)
-Unfortunately, in this case, the algorithms that more stable are also slower.
-The LU decomposition is used by \li{scipy.linalg.solve}.
-The SVD is used by \li{scipy.linalg.lstsq}.
+(Pivoting is a modification that is commonly made to the LU decomposition and QR decomposition algorithms we have discussed in earlier labs to make them more stable.)
+Unfortunately, in this case, the algorithms that are more stable are also slower.
+The LU decomposition is used by \li{scipy.linalg.solve()}.
+The SVD is used by \li{scipy.linalg.lstsq()}.
 Here is some code that uses the QR decomposition of a matrix $A$ to solve the linear system $A x = b$ for $x$.
-It uses a lower-level function included in scipy to perform the back substitution required to solve this system.
+It uses a lower-level function included in SciPy to perform the back substitution required to solve this system.
 \begin{lstlisting}
 from scipy import linalg as la
 from scipy.linalg.flapack import dtrtrs
@@ -238,6 +239,7 @@ def bad_arr_2(n, peturbation = 1E-8):
     A = rand(n, n // 2)
     return A.dot(A.T) + peturbation * rand(n, n)
 \end{lstlisting}
+\end{example}
 
 \begin{problem}
 For each of the array creation routines above, plot the error $\norm{\text{solve}\left(A, A b\right) - b}$ of each of the methods mentioned above for solving a linear system.
