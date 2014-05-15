@@ -36,7 +36,6 @@ reprDFA_c = (set('01'),
 
 equiv_regex_a = "a*(ba*b)*"
 equiv_regex_b = "1*01*01*(0+1)*"
-equiv_regex_c = ""
 
 def dfa_sim(input_str, machine):
     #unpack the machine
@@ -69,3 +68,21 @@ def email_validator(email):
     return ''.join([mo.group(1), 
                     '@', xs, '.',
                     mo.group(3)])
+
+#Reading Regex
+#Patterns from RegexLib.com
+#1. Match 32 alphanumeric characters
+#This regex can be used to match hashes
+#2. (19|20)\d\d match 4 digit numbers beginning with 19 or 20
+    #[- /.] Match one of four chars
+    #(0[1-9]|1[012]) Match two digits 01-12
+    #[- /.] Match one of four chars
+    #(0[1-9]|[12][0-9]|3[01]) Match two digits 01-31
+#This regex matches dates of the form yyyy[- /.]mm[- /.]dd
+#3. ([0-1]?[0-9]) Match zero or one zeros or ones and another digit 0-9 Matches times 00-19
+    #OR ([2][0-3]) Match 20-23
+    #: Match a colon literal
+    #([0-5]?[0-9]) match minutes 00-59
+    #(:([0-5]?[0-9]))? match a colon literal then 00-59 for seconds (matches 0 or 1 repetitions)
+#This regex matches 24hr times with optional seconds
+
