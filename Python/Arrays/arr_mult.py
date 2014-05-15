@@ -8,7 +8,7 @@ def arr_mult(A,B):
         # len(B[0]) returns the length of the first row 
         # (the number of columns).
         for j in range(len(B[0])):
-            # Initializes an empty total.
+            # Initialize an empty total.
             tot = 0
             # Multiply the elements of the row of A with 
             # the column of B, then sum the products.
