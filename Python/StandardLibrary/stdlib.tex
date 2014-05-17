@@ -1,162 +1,192 @@
 \lab{Python}{The Standard Library}{Standard Library}
 \objective{Become familiar with the Python standard library}
 
-One of the reasons Python is so useful as a scientific computing platform is because it is not limited to only scientific computing.
-Python has a very large and comprehensive standard library that is available with almost every Python environment.
-The standard library is comprised of over a hundred different modules that provide extra functionality to Python.
-In this lab, we will look at some of these modules.
+Python has a very rich set of tools available by default.
+There are about 80 built-in functions that are always present in any Python environment.
+In addition to these 80 core functions, the standard library includes thousands of useful routines and classes that cover almost every imaginable need.
+Python has a ``batteries included'' philosophy in its standard library.
+This philosophy makes complex tasks almost trivial to implement using the standard library.
+There are many sophisticated and robust modules available in the standard library.
 
-Modules can be imported via the \li{import} statement. Methods provided by the module may then be called.
-If we only want to one thing from a Module, we can use \li{from module import class}.
-If we want a shorter name to call a Module when using methods, we can use the word \li{as}
+\section*{File Objects in Python}
+One of the built-in functionalities of Python is working with files.
+Python has a useful file object which acts as an interface to all kinds of different streams.
+File objects are created using the built-in \li{open} command.
+The \li{open} command accepts up to three arguments, or parameters: filename, mode, and buffering.
+The mode determines the kind of access to use when opening the file.
+Possible mode strings are:
+\begin{description}
+\item \li{'r'} Opens a file for read-only access. 
+This is the default mode.
+\item \li{'w'} Opens a file for write-only access.
+This mode will create the file if it doesn't exist, or overwrite the file if it does exist.
+\item \li{'a'} Opens a file for appending. 
+The file pointer is at the end of the file.
+Creates a new file if none exists.
+\end{description}
+There are also two possible modifiers for the mode: \li{b} (binary) and \li{+} (read-write access).
+Binary mode will open the file as-is, without any newline conversions.
+The plus mode will open a file for reading and writing.
+It is important to know that the modes \li{r+} and \li{w+} are not equivalent!
+If your file cannot be opened for any reason, an exception is raised (usually an \li{IOException})
+Every file object has several attributes and methods (Table \ref{table:fileattribs}).
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Attribute & Description \\
+\hline
+\li{closed} & True if file object is closed. \\
+\li{mode} & The access mode used to open the file object. \\
+\li{name} & The name of the file. \\
+\hline
+\hline
+Method & Description \\
+\hline
+\li{close()} & Flush any buffered writes and close the file object. \\
+\li{flush()} & Flush any buffered writes.  File object remains open. \\
+\li{read()} & Read the next string of the file. \\
+\li{readline()} & Read a line of the file. \\
+\li{readlines()} & Read lines of the file until end of file. \\
+\li{seek(offset)} & Place the file pointer at a certain position within the file. \\
+\li{tell()} & Return the current position of the file pointer. \\
+\li{write()} & Write a string to the file. \\
+\li{writelines()} & Write a sequence of strings to the file. \\
+\hline
+\end{tabular}
+\caption{File object attributes and methods.}
+\label{table:fileattribs}
+\end{table}
 
+\begin{info}
+When opening a file in text mode, Python automatically converts all end-of-line characters to the newline character, \li{\\n}.
+However, this causes strange issues on Windows machines since the newline character on Windows is \li{\\r\\n}.
+To prevent this automatic conversion in text mode, you can open the file in binary mode or, in Python 2.7, use the universal newline mode.
 \begin{lstlisting}
-import random as rand
-from collections import deque
-
-m.sqrt(3) #uses the square root method from the math module.
+open(filename, 'rb')    # open a file read-only in binary mode.  No newline conversion.
+open(filename, 'rU')    # Universal newline support. Recognizes any newline character.
 \end{lstlisting}
-
-\section*{\texttt{math} Module}
-The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
-Common mathematical functions are defined in these modules, including \li{cos}, \li{sin}, \li{log}, and \li{sqrt}.
-These functions wrap around the functionality of the C math library.
-
-\begin{lstlisting}
-import math
-
-math.sin(4)
-\end{lstlisting}
-
-\begin{problem}
-Import the \li{math} module and \li{cmath} module. Write a function that prints out the results of \li{math.sqrt(5)} and \li{cmath.sqrt(5)}, and \li{cmath.sqrt(-5)}.
-\end{problem}
-
-\section*{\texttt{random} Module}
-The \li{random} module contains many helpful functions for obtaining random numbers.
-For example, it includes an implementation of the Mersenne Twister pseudorandom number generator.
-It also contains functions that operate on sequences.  For example
-\begin{enumerate}
-\item \li{randint()} returns a random integer from a desired interval,
-\item \li{randrange()} returns a random integer from a range of integers,
-\item \li{choice()} returns a random integer from a list of integers,
-\item \li{sample()} returns a list of specified length of randomly sampled numbers from a list,
-\item \li{shuffle()} randomly shuffles a list of numbers.
-\end{enumerate}
-
-Here's some examples of how to use the random module.
-
-\begin{lstlisting}
-import random
-
-# get a random integer between 5 and 12
-random.randint(5,12)
-
-#get a random sample of 5 people from the list. 
-people = ['Kevin', 'Jean', 'Alex', 'Ian', 'Bob', 'John', 'Melissa', 'Christy', 'Dave']
-random.sample(people,5)
-
-\end{lstlisting}
+\end{info}
 
 
-\begin{problem}
-Import the \li{random} module.  Write a function that takes in a list of integers and shuffles it. Then it takes a random integer between 0 and the length of the list minus one and outputs the number that is in the suffled list at that spot.
-\end{problem}
-
-The \li{random} module can sample from several distributions such as the uniform, normal, beta, gamma, exponential, and many others.
-NumPy's \li{random} module has even more capability than the standard Python \li{random} module.
-We will do more with NumPy in a later lab.
-
-\section*{Reading and Writing into Text Files}
-One useful way to store data is in a text file.
-This allows us to use data from outside sources as well as write strings that can be accessed outside of the python environment.
-
-To start, we need to use the \li{open()} method to access our file.
-The method takes two strings, the filename and whether we want to read, write, or both.
-We use \li{'r'} for reading, \li{'w'} for writing, and \li{'r+'} for reading and writing.
-After we finish working with a file, we close the connection with the \li{close()} method.
-
-\begin{lstlisting}
-f = open('filename.txt', 'r')
-#f is now how we access our file.
-# We can read one line at a time by using
-f.readline()
-#We can read the entire file by using
-f.read()
-
-f.close()
-\end{lstlisting}
-
-The methods \li{read()} and \li{readline()} return strings.
-We can also iterate through our file and look at each line.
-
+We can open a file as follows
 \begin{lstlisting}
 f = open('filename.txt','r')
 #This will iterate through our entire file and print each line.
 for line in f:
-	print line
+        print line
 f.close()
 \end{lstlisting}
-
-Writing to a file is similar, we open the file and then use methods. 
-However, the \li{write()} method will only accept strings, so everything we write needs to be a string.
-
+However, it is preferred to open files in the following manner.
+Notice that we don't have to explicitly close the file.
+The moment we exit the \li{with} block, the file is automatically closed safely.
+Using the method below is preferred because your files are guaranteed to be closed properly, even if an unexpected error happens.
 \begin{lstlisting}
-num = 17
-f = open('output.txt','w')
-f.write('My favorite number: ')
-s = str(num) #convert num to a string
-f.write(s)
-f.close()
-\end{lstlisting}
-
-Working with files can often cause errors if we don't know exactly what is in the file.
-To avoid errors, we can use \li{try} and \li{except} blocks, or use Python's \li{with} statement.
-This will close the file when we are done without us having to call the \li{close()} method even if an exception is raised while working.
-
-\begin{lstlisting}
-#read our file using a with statement
 with open('filename.txt', 'r') as f:
-	read_data = f.read()
-\end{lstlisting}
-
-
-
-\section*{\texttt{csv} Module}
-Comma separated value (CSV) files are commonly used for exchanging data between databases and tables. 
-Python has a very useful module for reading and writing data as comma separated values.
-The \li{csv} module provides \li{reader} and \li{writer} objects.
-There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
-
-For example, download \li{test.csv} and run the following code to print its contents.
-\begin{lstlisting}
-import csv
-
-#print the contents of a csv_file
-with open(`test.csv', `r') as csv_file:
-    csv_reader = csv.reader(csv_file)
-    for line in csv_reader:
+    for line in f:
         print line
 \end{lstlisting}
 
-%Writing with a CSV \li{writer} object is very similar to writing with a regular file object.
-We can also write to a \li{csv} file using a CSV \li{writer} object.  The following code demonstrates how this may be done.
-
+To write to a file, we would do something similar to the following.
 \begin{lstlisting}
-contents = [["Column 1", "Column 2", "Column 3"],
-            [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
-with open(`test_out.csv', `w') as csv_file:
-    csv_writer = csv.writer(csv_file)
-    for record in contents:
-        csv_writer.writerow(record)
+num = 17
+with open('output.txt', 'w'):
+    f.write("My favorite number: ")
+    # we can only write strings to a file
+    f.write(str(num))
 \end{lstlisting}
 
-\begin{problem}
-Practice reading and writing a CSV file.
-Read \texttt{test.csv} and write it followed by your name and student id number to \texttt{test\_out.csv}.
-When writing the CSV file, use a ; as your delimiter.
-Read the Python documentation for instructions on how to do this.
-\end{problem}
+Note that we can declare variables inside the \li{with} block that are accessible outside that block.
+\begin{lstlisting}
+#read our file using a with statement
+with open('filename.txt', 'r') as f:
+        read_data = f.read()
+# read_data is accessible outside of with-block
+print read_data
+\end{lstlisting}
+
+One of the reasons Python is so useful as a scientific computing platform is because it is not limited to scientific computing alone.
+Python has a very large and comprehensive standard library that is available with almost every Python environment.
+The standard library is comprised of over a hundred different modules that provide extra functionality to Python.
+Python modules are simply Python source files where classes, functions, variables are defined.
+We can import any Python source file as a module and access the objects defined in it.
+In this lab, we will look at some of these modules available in the Python standard library.
+
+\section*{Namespaces and Importing Modules}
+Before we can understand what a namespace is, we need to grasp the fundamental concept of names in Python.
+What we normally call variables in other languages are \emph{names} in Python, but with a few minor differences.
+Names act as labels for Python objects in memory.  
+An object can have one or more names.
+\begin{lstlisting}
+a = 5
+b = [1, 2, 3, 4]
+\end{lstlisting}
+In the code above, there exist two Python objects in memory: an integer and a list.
+We attach the name \li{a} to the integer object and the name \li{b} to the list object.
+If we make the assignment \li{a = b}, the names \li{a} and \li{b} now both point to the same list object in memory.
+Since functions in Python are simply objects, we can assign names for those too!
+\begin{lstlisting}
+def func():
+    return 42
+f = func
+\end{lstlisting}
+Whenever we want to call \li{func()}, we can call \li{f()} instead.
+
+A \emph{namespace} is simply a collection of names.
+Now, a \emph{module} in Python is simply a Python file with code.
+Each module gets its own namespace, so every name in that namespace must be unique.
+You can think of module as simply a collection of names assigned to various Python objects.
+Since every module has its own namespace, these namespaces are completely isolated.
+The main Python program gets a special namespace called \li{__main__}.
+The name of namespace is stored in the \li{__name__} attribute.
+This is incredibly useful for checking to see if a namespace we are in has been imported, or is being run directly by the interpreter.
+\begin{lstlisting}
+if __name__ == "__main__":
+    print "I am being run from the python interpreter."
+elif __name__ != "__main__":
+    print "I have imported by another python module."
+    print __name__
+\end{lstlisting}
+
+There are three ways to import names from a module.
+\begin{description}
+\item \li{import module [as alias]} This will import a module's namespace into the main namespace.
+We can define an optional alias if the module name is too long.
+The names in the module are accessed by \li{module.name}.
+\item \li{from module import name [as alias]} This will import a particular name in the module directly into the main namespace.
+This might replace a name in the main namespace if the imported name is not unique.
+The names imported this way can be accessed directly by \li{name}.
+\item \li{from module import *} This will import all names in the module's namespace directly into the main namespace.
+This form is generally considered bad practice as it completely circumvents all the protections that namespaces provide.
+However convenient this form might be, it is strongly discouraged to import modules this way as it can lead to many unknown name conflicts.
+\end{description}
+
+\begin{warn}
+Be careful when importing modules using the \li{from module import item} syntax.
+Consider the following scenario.
+Suppose we defined the following two function in a file named \texttt{my\_functions.py}.
+\begin{lstlisting}
+def min(seq):
+    return 0
+def max(seq):
+    return 1
+\end{lstlisting}
+
+We import the functions into our main program as follows
+\begin{lstlisting}
+from my_functions import min, max
+
+def calc_median(seq):
+    #calculate the median value of a sequence
+    return (min(seq)+max(seq))/2.
+\end{lstlisting}
+Our main program will return the 
+Suddenly our main program doesn't work as expected anymore!  What happened?
+The functions \li{min()} and \li{max()} are defined in the core Python language.
+However, when we imported the functions from our module, we ended up overwriting Python's \li{min()} and \li{max()}.
+Now, whenever we call \li{min()}, it will always return 0!
+In this case, there is no way to revert back to the Python functions without restarting the interpreter.
+This is a classic demonstration of name collisions.
+\end{warn}
 
 \section*{\texttt{sys} Module}
 The \li{sys} module allows us to access information specific to the system running Python.
@@ -164,63 +194,143 @@ For example, we often import \li{sys} to get the list \li{sys.argv} which is a l
 It is sometimes useful to access these values when writing programs that are run from command line.
 Many programs are written to execute differently based on the various arguments and options specified at execution.
 Here is an example.
-\begin{lstlisting}[title = echo.py]
-def echo(word):
-	print word
-	
-if __name__=='__main__':
-	import sys
-	echo(sys.argv[1])
-\end{lstlisting}
-When we run from the command line with a single argument, inside the main function, \li{sys.argv} returns the arguments thus letting the echo function print out the given argument.
-If we execute the following script from the command line as follows:
-\begin{verbatim}
-python echo.py ACME
-\end{verbatim}
-We should get
-\begin{verbatim}
-ACME
-\end{verbatim}
-
-
-
-\begin{comment}
-\section*{\texttt{pickle} Module}
-The \li{pickle} module saves a Python object to a file.
-It can also take the file and turn it back into a Python object.
-Pickle can be used to store any built-in Python data type such as lists, tuple, integers, etc.
-Not all Python objects can be pickled.
-Here is an example of saving an object to a file.
 \begin{lstlisting}
-import pickle
-a = range(10)
-pickle.dump(a, open(`out.pkl', `w'))
+import sys
+
+def square(n):
+    return n*n
+        
+if __name__ == '__main__':
+    print sys.argv[0]
+    n = float(sys.argv[1])
+    print square(n)
 \end{lstlisting}
-When given an object, the \li{pickle} module outputs a small program that will rebuild the object later.
-When unpickling a file, pickle executes this file in the interpreter.
-Because of this, pickle is meant to be used as a temporary storage and data persistence mechanism.
-It is not designed to be used for long term storage of data.
-The pickle documentation includes this warning
-\begin{quote}
-\textbf{The pickle module is not intended to be secure against erroneous or maliciously constructed data.
-Never unpickle data received from an untrusted or unauthenticated source.}
-\end{quote}
-To unpickle an object, use \li{pickle.load()}.
-It accepts a file handle and returns the Python object it creates.
+When we run from the command line with a single argument, the code will print the name of the program along with the square of the number passed as the first argument.
+If we execute the following script from the command line as follows:
+\begin{lstlisting}[style=ShellInput]
+python echo.py 4
+\end{lstlisting}
+We should get the following output.
+\begin{lstlisting}[style=ShellOutput]
+echo.py
+16.0
+\end{lstlisting}
+
+\begin{info}
+\li{sys.argv} should only be used for the most simple of command line argument parsing.
+Python has another module in the standard library, \li{argparse}, which is many times more powerful for accepting and parsing complex command line arguments.  This module allows you to build user-friendly command line interfaces.  Using \li{argparse} is the recommended way to parse command line arguments.
+\end{info}
+
+\section*{\texttt{math} Module}
+The \li{math} module and its companion, \li{cmath} (for complex numbers), are very useful modules.
+Common mathematical functions are defined in these modules, including \li{cos}, \li{sin}, \li{log}, and \li{sqrt}.
+These functions wrap around the functionality of the C math library.
+\begin{lstlisting}
+import math
+math.sin(4)
+\end{lstlisting}
 
 \begin{problem}
-Create a list of numbers and strings.
-Pickle the object to a file.
-Inspect the contents of the file you created when pickling.
-Unpickle the object.
+Import the \li{math} module and \li{cmath} module. Write a function that prints out the results of $\sqrt{5}$ for both complex and floating point variants of the appropriate function.  What are the results for $\sqrt{-5}$?
 \end{problem}
 
-The \li{pickle} module only allows you to store one object per file.
-If you want to store many objects, you should consider the \li{shelve} module.
-This stores objects in a dictionary-like data structure with keys and values.
-The values are pickled objects.
-Since \li{shelve} relies on \li{pickle}, the same warning against untrusted sources applies to \li{shelve} as well.
-\end{comment}
+\section*{\texttt{random} Module}
+The \li{random} module contains many helpful functions for obtaining random numbers.
+These random numbers are not completely random, however, for most applications they are seemingly random enough.
+Some of the more commonly used functions of the \li{random} are demonstrated below.
+\begin{lstlisting}
+import random
+
+# get a random integer from interval [5, 12]
+random.randint(5,12)
+
+# get a random integer from a range of integers [5, 12)
+random.randrange(5, 12)
+
+# get a random element of a sequence.
+random.choice("This is a sentence")
+
+# get a random sample of length n from a sequence
+random.sample(range(50), 10)
+
+# shuffle a sequence in place
+random.shuffle(range(15))
+\end{lstlisting}
+The \li{random} module has functions that can sample from a variety of different statistical distributions such as: uniform, normal, beta, gamma, exponential, etc.
+
+\begin{problem}
+Write a function that will generate a random map between two lists that are equal in length of arbitrary items.
+\label{prob:random_map}
+\end{problem}
+
+\section*{\texttt{csv} Module}
+Comma separated value (CSV) files are commonly used for exchanging data between databases and tables. 
+Python has a very useful module for reading and writing data as comma separated values.
+The \li{csv} module provides \li{reader} and \li{writer} objects.
+There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
+
+Using these reader and writer objects, we can define the format of our CSV file.
+Contrary to the name, CSV files can be delimited with any character. 
+A delimiter is the special character that separates fields in a line.
+Tabs and spaces are two other popular delimiting characters.
+\begin{lstlisting}
+# set the delimiter to tabs
+csv_reader = csv.reader(csv_file, delimiter='\t')
+\end{lstlisting}
+
+We can become very specific about dialects.
+For example, we can define the characters that separate fields, terminate lines, escape special characters, and enclose strings.
+The \li{csv} module refers to these special settings as \emph{dialects}.
+The module comes with two dialects ready to use, excel and excel-tab.
+\begin{lstlisting}
+# change the formatting dialect to CSV
+csv_reader = csv.reader(csv_file, dialect='excel')
+# modify formatting characters
+csv_reader = csv.reader(csv_file, quotechar='*', lineterminator='\n')
+
+# custom dialect
+class MyDialect(csv.Dialect):
+    delimiter = '|'
+    quotechar = '*'
+    doublequote = True
+    skipinitialspace = False
+    lineterminator = '\n'
+    quoting = csv.QUOTE_MINIMAL
+# using our custom dialect
+csv_reader = csv.reader(csv_file, dialect=MyDialect)
+# finally we can register a dialect with the csv module
+csv.register_dialect("MyDialect2", delimiter='&', quotechar='@')
+csv_reader = csv.reader(csv_file, dialect='MyDialect2')
+\end{lstlisting}
+
+For example, to print the contents of a CSV file, \li{test.csv}, we would do the following.  A CSV reader will parse each line of a CSV file into a list of items.
+\begin{lstlisting}
+import csv
+
+# open test.csv as read-only
+with open('test.csv', 'r') as csv_file:
+    # create csv reader object
+    csv_reader = csv.reader(csv_file)
+    # we can now work with just the reader object
+    for line in csv_reader:
+        print line
+\end{lstlisting}
+
+Writing with a CSV \li{writer} object is very similar to writing with a regular file object.  Notice that we only need to pass a sequence of items to the CSV writer.  The CSV writer will take care of formatting things properly before writing it the CSV file.
+The following code demonstrates how this may be done.
+\begin{lstlisting}
+contents = [["Column 1", "Column 2", "Column 3"],
+            [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
+            
+# open test_out.csv as a write-only file
+# this will overwrite test_out.csv if it exists!
+with open('test_out.csv', 'w') as csv_file:
+    # create a csv writer object
+    csv_writer = csv.writer(csv_file)
+    for record in contents:
+        # write rows using the csv writer object
+        csv_writer.writerow(record)
+\end{lstlisting}
 
 \section*{\texttt{timeit} Module}
 This module is used to time the execution of small bits of Python code.
@@ -228,79 +338,199 @@ It is usually good to time lines of code in Python by using this module because 
 IPython's \li{\%timeit} magic function is a wrapper around this module.
 
 \begin{problem}
-For most timing situations, we rely on IPython's \li{\%timeit} magic function.
-One major drawback is that it only works in IPython.
+For most timing situations, we rely on IPython's \li{\%timeit} function.
+Since this is a special function only available inside IPython, we will write a more general timer that works anywhere with any function.
 The solution to this problem will be useful in other labs where you will be asked to time the execution of your coded solutions.
 Write a function that will time the execution of another function.
 You will need to use the \li{timeit} module.
-Your function should accept as arguments, a function, $f$, and any arguments that should be passed to $f$.
-Your function should return the minimum runtime.
+Your timing function should accept as its arguments: a function, $f$, the arguments for $f$, the keyword arguments for $f$, a number of repeats, and a number of loops.
+Your function should return the minimum runtime for one call of the function.
 
-Because of the way that Python's \li{timeit} module works, we must use a \emph{callable} function.
+Because of the way that Python's \li{timeit} module works, we can either evaluate a string of Python code or use a \emph{callable} function with no arguments.  
+For this problem, we will use the the callable function approach.
 This essentially means we have to wrap the function we are timing and all of its arguments into a function object that can be called by \li{timeit}.
-This is done by declaring a Python \li{lambda} function which takes no arguments.
+This wrapping fixes the arguments of the function so we can call it without any arguments later.
+This is done by declaring a Python \li{lambda}, or temporary, anonymous  function, which takes no arguments.  \li{pfunc} is a wrapper function for $f$ because its primary job is to call $f$ with little or no additional computation.
+In our program, we use \li{pfunc} only to modify how we call $f$.
 \begin{lstlisting}
 pfunc = lambda: f(*args, **kwargs)
 \end{lstlisting}
-where \li{args} is a tuple and \li{kwargs} is a dictionary.
-This syntax is explained in chapter 4 of the Official Python Tutorial.
+where \li{args} is a tuple of arguments and \li{kwargs} is a dictionary of keyword arguments to the function, $f$.
+You can refresh your memory of functions and their arguments and keyword arguments in sections 4.7.1-4.7.4 of the official Python tutorial.
 \end{problem}
 
 \section*{\texttt{collections} Module}
-This module defines several specialized data structures to use in addition to the built-in Python data structures. It includes namedTuple, deque, Counter, OrderedDict, and defaultDict.
+This module defines several specialized data structures to use in addition to the built-in Python data structures.
 
 Named tuples are designed to help improve code readability in some cases.
 Standard tuples in Python are accessed by index while named tuples allow access via index or by a field name.
 
-A deque is similar to a list, but instead of inserting and removing anywhere, it has very quick insert and removal from each end of the structure.
+A double-ended queue, or deque (pronounced ``deck''), can be thought of as a deck of cards.
+Inserting and removing elements from either end is very efficient.
+Python's deque implementation only allows insertions at the left and right ends of the data structure (which is standard for deques).
+This differs from a list, which allows insertions anywhere, but is very inefficient for all but right end insertions.
  
-Counters are a subclass of dictionaries, but are expecially useful for counting things. They remain ordered with the item with the highest count at the beginning of the dictionary.
+Counter objects are very efficient at counting items.  They behave like a Python dictionary.  Counts are allowed to be any integer including 0 and negative values.
  
 Ordered dictionaries are exactly like standard dictionaries except for one important difference.
 Ordered dictionaries remember the order in which key-value pairs were added to the data structure.
-This data structure is useful if we want to iterate over key-value pairs of a dictionary in a specific order.
+When iterating over an ordered dictionary, the items are returned in the order they were added from first to last.
 
 Default dictionaries are a very convenient way to set a default value for all new keys in a dictionary.
 While this can be done with standard dictionaries using the \li{setdefault()} method, using a default dictionary is simpler and faster.
 
 \begin{problem}
-Write a function that will read in a text file and then use a Counter to find the most common word in the file. Use it to find the most common word in \li{words.txt}.
+Write three functions that will rotate the elements of a deque and a list respectively.
+\begin{enumerate}
+\item Use a for-loop to rotate a deque.
+\item Use the rotate method of a deque.
+\item Use a for-loop to rotate a list.
+\end{enumerate}
 
-\end{problem}
-
-
-\begin{comment}
-\begin{problem}
-Write a function that takes in an integer maxInt and a integer n. Make a list of random integers between  0 and maxInt of length n, then use the Counter class to count how many there are of each one. Return a dictionary where the keys are the integers in the list and values are the frequency of the integer.
-\end{problem}
-
-
- are named tuples and deques.
-
-Named tuples are designed to help improve code readability in some cases.
-Standard tuples in Python are accessed by index.
-Named tuples allow access via index or by a field name.
-Compare the following:
-\begin{lstlisting}
-from collections import namedtuple
-pt = (32.1, 63.2)
-
-Pt = namedtuple(`Point', `x y')
-npt = Pt(32.1, 63.2)
-\end{lstlisting}
-The tuple \li{pt} is a standard tuple, which we can surmise represents the coordinates of a pt in 2D space.
-We must assume that \li{pt[0]} is the x-coordinate and \li{pt[1]} is the y-coordinate.
-When declaring a named tuple, we clearly defined what each index represents.
-We know for certain that \li{npt.x} is the x-coordinate and that \li{npt.y} is the y-coordinate.
-
-
-\begin{problem}
-A double-ended queue, or deque, can be thought of as a deck of cards.
-Inserting and removing elements from either end is very efficient.
-Python's deque implementation only allows insertions at the left and right ends of the data structure.
-This differs from a list, which allows insertions anywhere, but is very inefficient for all but right end insertions.
-Write two functions that will rotate the elements of a deque and a list respectively.
-To rotate, remove elements from the right end one by one and insert them on the left end.
+To rotate a sequence, remove elements from the right end one by one and insert them on the left end.
 Compare the timings you obtain from a deque and a list of 10000 elements.
 \end{problem}
-\end{comment}
+
+\begin{problem}
+Write a function that takes in an integer maxInt and an integer n.
+Make a list of random integers between 0 and maxInt of length $n$, then use a Counter object to count how times each number appears in the list.
+Return a dictionary where the keys are the distinct integers in the list and the values are the frequency of the integer.
+\end{problem}
+
+\section*{\texttt{itertools} Module}
+There is a very powerful library in the Python Standard Library that is built around the concept
+of generators and iterators.  The functions in \li{itertools} are designed to be used as
+building blocks in larger functions.  These functions are fast and memory efficient.
+This is efficiency is especially important in Python where code is generally executed slower than in a compiled language like C or Fortran.
+An efficient way of doing things goes a very long way in Python.
+
+\subsection*{Generators}
+Before discussing this module, let's briefly understand what a generator is.
+A generator ``generates'' values.  It is a special type of iterator that yields values on-demand.  Here is a simple example of a generator.
+\begin{lstlisting}
+def example():
+    yield 1
+    yield 2
+    yield 3
+    
+g = example()   #initialize the generator
+g.next()        #returns 1, the first value
+g.next()        #returns 2, the second value
+g.next()        #returns 3, the third value
+g.next()        #raises a StopIteration exception, no more values to return
+\end{lstlisting}
+In a generator, the \li{yield} keyword acts like a special \li{return} statement.  
+It essentially pauses the execution of the generator and returns a value.
+When a generator is created, it simply returns a generator object.
+These generator objects have a \li{next()} method, which will request the next value from the generator.
+Calling \li{next()} on a generator object resumes execution in the generator until the next yield statement or the generator finishes.
+Generators are a very convenient way to to return many values without having to return all at once.
+
+When are generators helpful? 
+If you encounter the situations below, consider trying to solve 
+your problem using generators.
+\begin{itemize}
+\item \emph{Iterating through only part of a sequence.}
+It is inefficient to create an entire sequence if we know that we will not need all of it.
+Representing the sequence as a generator could possibly avoid excess memory use and excess computation.
+\item \emph{Iterating through a sequence once.} Consider the statement 
+\li{sum([i for i in range(1000) if i\%2 == 0])}.
+We are creating two sequences just to iterate through them once and never use them again.
+We can make this more efficient using generators:
+\li{sum(i for i in xrange(1000) if i\%2 == 0)}
+Notice that we have used syntax similar to a list comprehension.
+The line \li{(i for i in xrange(1000) if i\%2 == 0)} will define a generator object similar to the list made by \li{[i for i in xrange(1000) if i\%2 == 0]}.
+The solution using generators will often execute faster, but it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
+\item \emph{Calculating large sequences.}  A sequence must be stored somewhere in computer memory.
+If the sequence is large, we could exhaust all available memory.
+\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite.  We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
+\end{itemize}
+
+\subsection*{Useful Generators in \texttt{itertools}}
+The \li{itertools} module contains three main types of generators: infinite generators, shortest sequence generators, and combinatoric generators.
+Some of the most used generators are summarized in table \ref{table:populargens}.  The examples are from the Python documentation.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Generator & Example \\
+\hline
+\li{count()} & Counts to infinity \\
+\li{cycle()} & Infinitely cycles through a sequence \\
+\li{repeat()} & Repeats the input element infinitely (or up to $n$ times) \\
+\hline
+\li{chain()} & \li{chain('ABC', 'DEF') --> A B C D E F} \\
+\li{compress()} & \li{compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F} \\
+\li{islice()} & \li{islice('ABCDEFG', 2, None) --> C D E F G} \\
+\li{imap()} & \li{imap(pow, (2,3,10), (5,2,3)) --> 32 9 1000} \\
+\li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} \\
+\hline
+\li{product()} & Returns the Cartesian product \\
+\li{permutations()} & Return permutations of a sequence\\
+\li{combinations()} & Return combinations of a sequence\\
+\li{combinations_with_replacement()} & Make combinations with replacements of a sequence\\
+\hline
+\end{tabular}
+\caption{Popular generators in \li{itertools} module.}
+\label{table:populargens}
+\end{table}
+
+We encourage you to view the documentation for \li{itertools} on the Python website.
+The documentation for \li{itertools} also includes various recipes for other useful generator functions.
+Feel free to look through the documentation \url{http://docs.python.org/2/library/itertools.html}.
+
+\begin{problem}
+You have been tasked to write a simulator that will simulate a hunger games tournament (\url{http://thehungergames.wikia.com/wiki/The_Hunger_Games_(event)}).
+In this problem you will be using your cumulative knowledge of the standard library to write a simulator.
+
+You solution should accept a single argument from the command line that is a filename.  All the output you generate in your program will be written to this file.
+
+You are provided with two files: a text file and a CSV file.
+The text file has a list of events, one per line.
+Note that on Windows or OSX, you might need to open the file with universal newlines support.
+The CSV file has two columns of names.
+The first column lists the male tributes and the second column lists the female tributes.
+
+First, create a named tuple that will contain information about each of the tributes such as their name, district, and gender.
+
+You will need to randomly pair the male and female tributes (read from the CSV file) together to form 12 pairs.
+Problem \ref{prob:random_map} might yield a useful approach.
+
+To simulate the game, you will need to do at least the following.
+For each day of the simulation, randomly choose the events from the list of events you read from the text file.
+Each tribute will experience one event per day.
+To determine the survival of a given tribute, randomly generate a number between 0 and 1 (probably with a uniform or Gaussian distribution). 
+If the random number is greater than a certain threshold, then the tribute survives their event for that day.
+You get to decide a survival threshold for all tributes (the probability of surviving the event).
+Be sure to remove the false start event after the first day of the games.
+
+Your goal is to use the standard library as much as possible.
+To pass off, you must use the standard library for the following parts:
+\begin{itemize}
+\item Accepting an arbitrary filename (sys)
+\item Generating random numbers (random)
+\item Pairing tributes (collections, itertools, random)
+\item Loading the data (csv, file I/O)
+\item Simulating the games (file I/O, random, itertools)
+\end{itemize}
+
+Stop the simulation when there is at most one surviving tribute.
+Print the winner to standard output.
+
+A sample output for the last two days would look like:
+\begin{lstlisting}[style=ShellOutput]
+Day 3
+Silver Herriot experienced Tracker Jackers and survived.
+Hammil Odinshoot experienced Wild Deer and died.
+End of Day 3
+Canon fired 1 times
+
+Day 4
+The final tribute was the girl from District 4: Silver Herriot
+\end{lstlisting}
+It is possible that there are no surviving tributes.  If there are no surviving tributes, indicate so in your outputs.
+The final result would be printed to standard output (appear in the console):
+\begin{lstlisting}[style=ShellOutput]
+The final tribute was the girl from District 4: Silver Herriot
+\end{lstlisting}
+\end{problem}
+
