@@ -12,7 +12,7 @@ There are many sophisticated and robust modules available in the standard librar
 One of the built-in functionalities of Python is working with files.
 Python has a useful file object which acts as an interface to all kinds of different streams.
 File objects are created using the built-in \li{open} command.
-The \li{open} command accepts up to three arguments: filename, mode, and buffering.
+The \li{open} command accepts up to three arguments, or parameters: filename, mode, and buffering.
 The mode determines the kind of access to use when opening the file.
 Possible mode strings are described in Table \ref{table:filemodes}.
 If your file cannot be opened for any reason, an exception is raised.
@@ -106,15 +106,82 @@ Python modules are simply Python source files where classes, functions, variable
 We can import any Python source file as a module and access the objects defined in it.
 In this lab, we will look at some of these modules available in the Python standard library.
 
-Python modules can be imported with the \li{import} statement. 
-Variables and methods defined by the module may then be called.
-If we only need access to particular variables or methods, we can import them into the main namespace explicitly using \li{from module import item}.
-For modules with longer names, we can bind it to a shorter alias using the \li{as} keyword.
+\section*{Namespaces and Importing Modules}
+Before we can understand what a namespace is, we need to grasp the fundamental concept of names in Python.
+What we normally call variables in other languages are \emph{names} in Python, but with a few minor differences.
+Names act as labels for Python objects in memory.  
+An object can have one or more names.
 \begin{lstlisting}
-import math
-import random as rand   #random is now aliased as rand
-from collections import deque   #only import the deque from collections
-math.sqrt(3)    #uses the square root method from the math module.\end{lstlisting}
+a = 5
+b = [1, 2, 3, 4]
+\end{lstlisting}
+In the code above, there exist two Python objects in memory; an integer and a list.
+We attach the name \li{a} to the integer object and the name \li{b} to the list object.
+If we make the assignment \li{a = b}, the names \li{a} and \li{b} now both point to the same list object in memory.
+Since functions in Python are simply objects, we can assign names for those too!
+\begin{lstlisting}
+def func():
+    return 42
+f = func
+\end{lstlisting}
+Whenever we want to call \li{func()}, we can call \li{f()} instead.
+
+A \emph{namespace} is simply a collection of names.
+Now, a \emph{module} in Python is simply a Python file with code.
+Each module gets its own namespace, so every name in that namespace must be unique.
+You can think of module as simply a collection of names assigned to various Python objects.
+Since every module has its own namespace, these namespaces are completely isolated.
+The main Python program gets a special namespace called \li{__main__}.
+The name of namespace is stored in the \li{__name__} attribute.
+This is incredibly useful for checking to see if a namespace we are in has been imported, or is being run directly by the interpreter.
+\begin{lstlisting}
+if __name__ == "__main__":
+    print "I am being run from the python interpreter."
+elif __name__ != "__main__":
+    print "I have imported by another python module."
+    print __name__
+\end{lstlisting}
+
+There are three ways to import names from a module.
+\begin{description}
+\item \li{import module [as alias]} This will import a module's namespace into the main namespace.
+We can define an optional alias if the module name is too long.
+The names in the module are accessed by \li{module.name}.
+\item \li{from module import name [as alias]} This will import a particular name in the module directly into the main namespace.
+This might replace a name in the main namespace if the imported name is not unique.
+The names imported this way can be accessed directly by \li{name}.
+\item \li{from module import *} This will import all names in the module's namespace directly into the main namespace.
+This form is generally considered bad practice as it completely circumvents all the protections that namespaces provide.
+However convenient this form might be, it is strongly discouraged to import modules this way as it can lead to many unknown name conflicts.
+\end{description}
+
+\begin{warn}
+Be careful when importing modules using the \li{from module import item} syntax.
+Consider the following scenario.
+Suppose we defined the following two function in a file named \texttt{my\_functions.py}.
+\begin{lstlisting}
+def min(seq):
+    return 0
+def max(seq):
+    return 1
+\end{lstlisting}
+
+We import the functions into our main program as follows
+\begin{lstlisting}
+from my_functions import min, max
+
+def calc_median(seq):
+    #calculate the median value of a sequence
+    return (min(seq)+max(seq))/2.
+\end{lstlisting}
+Our main program will return the 
+Suddenly our main program doesn't work as expected anymore!  What happened?
+The functions \li{min()} and \li{max()} are defined in the core Python language.
+However, when we imported the functions from our module, we ended up overwriting Python's \li{min()} and \li{max()}.
+Now, whenever we call \li{min()}, it will always return 0!
+In this case, there is no way to revert back to the Python functions without restarting the interpreter.
+This is a classic demonstration of name collisions.
+\end{warn}
 
 \section*{\texttt{sys} Module}
 The \li{sys} module allows us to access information specific to the system running Python.
