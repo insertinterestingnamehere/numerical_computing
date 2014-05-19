@@ -1,6 +1,6 @@
 import timeit
-import pickle
 import collections
+import random
 
 def time_func(f, args=(), kargs={}, repeat=3, number=100):
     pfunc = lambda: f(*args, **kargs)
@@ -13,17 +13,6 @@ def time_func(f, args=(), kargs={}, repeat=3, number=100):
     except:
         T.print_exc()
 
-def pickle_obj():
-    j = ['5', 4, 2, 1, 'Python', 99918]
-
-    with open('out.pkl', 'w') as f:
-        pickle.dump(j, f)
-
-    with open('out.pkl', 'r') as f:
-        a = pickle.load(f)
-
-    print a == j
-
 def rot_list(l):
     for i in xrange(len(l)):
         l.insert(0, l.pop())
@@ -31,4 +20,13 @@ def rot_list(l):
 def rot_deque(d):
     for i in xrange(len(d)):
         d.appendleft(d.pop())
+        
+def deque_rot(d):
+    d.rotate(len(d))
+        
+def counter(maxInt):
+    x = [random.randrange(maxInt) for i in range(1000)]
+    return dict(Counter(x))
+    
+    
 
