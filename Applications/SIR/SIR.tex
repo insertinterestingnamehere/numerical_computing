@@ -82,12 +82,12 @@ Individuals may move from one class to another as described by the flow
  
  Now consider the transition rate between $I$ and $R$. We assume that there is a fixed proportion $\gamma$ of the infectious group who will recover on a given day, so that 
  \[\frac{d}{dt}R(t) = -\gamma I(t).\]
- Note that the proportion who will recover on a given day is the reciprocal of the average length of time spent in the infectious phase. 
+ Note that $\gamma$ is the reciprocal of the average length of time spent in the infectious phase.
  
- Since we have $I'(t) = - S'(t) - R'(t)$, the  differential equations are given by
+ Since the derivatives sum to $0$, we have $I'(t) = - S'(t) - R'(t)$, so the  differential equations are given by
 \begin{align*}
 \frac{dS}{dt} &=-\beta IS ,\\
-\frac{dI}{dt} &= \beta I S-\gamma I, \\
+\frac{dI}{dt} &= \beta I S-\gamma I,\\
 \frac{dR}{dt} &=\gamma I.
 \end{align*}
 
@@ -159,7 +159,7 @@ SIRS model takes the previous model, and allows the transfer of individuals from
 
 The next exercise uses a variation of the basic SIR model to describe the spread of measles. 
 It assumes that the rate at which measles is contracted depends on the season, i.e. the rate is periodic. That means that likely the spread of measles is periodic, and can be described as the solution of a boundary value problem (BVP).
-Many-industry grade BVP solvers have been written in Fortran. One of these, \li{bvp_solver}, has been wrapped in Python as a scikit. The code below demonstrates how to use \li{bvp_solver} to solve the BVP
+Many-industry grade BVP solvers have been written in Fortran. One of these, \li{bvp_solver}, has been wrapped in Python as a scikit. If you have not installed it, you can install it by running the command \li{pip install scikits.bvp_solver} in the command line. The code below demonstrates how to use \li{bvp_solver} to solve the BVP
 \begin{align*}
 	\epsilon y'' + yy' - y &= 0, \quad y(-1) = 1, \quad y(1) = -1/3.
 \end{align*}
@@ -169,30 +169,39 @@ import numpy as np
 from scikits import bvp_solver
 import matplotlib.pyplot as plt
 
-epsilon, lbc, rbc = .1, 1., -1/3.
+epsilon, lbc, rbc = .1, 1., - 1. / 3.
 
 def ode(x , y):
-	return np.array([y[1] , (1./epsilon)*(y[0]- y[0]*y[1]) ]) 
+    return np.array([y[1] , (1. / epsilon) * (y[0] - y[0] * y[1])]) 
 
-def bcs(ya,yb): 				 # Boundary conditions
-    #bvp_solver forces these arrays to all 0's in it's solution
-	BCa = np.array([ya[0] - lbc])# 1 Boundary condition on the left
-	BCb = np.array([yb[0] - rbc])# 1 Boundary condition on the right
-	return BCa, BCb
+# The BVP solver package expects you to pass it the boundary
+# conditions as a callable function that computes the difference
+# between a guess at the boundary conditions
+# and the desired boundary conditions.
+# When we use the BVP solver, we will tell it how many constraints
+# there should be on each side of the domain so that it knows
+# how many entries to expect in the tuples BCa and BCb.
+# In this case, we have one boundary condition on either side.
+# These constraints are expected to evaluate to 0 when the
+# boundary condition is satisfied.
+def bcs(ya, yb):
+    BCa = np.array([ya[0] - lbc])   # 1 Boundary condition on the left
+    BCb = np.array([yb[0] - rbc])   # 1 Boundary condition on the right
+    return BCa, BCb
 
-problem = bvp_solver.ProblemDefinition(num_ODE = 2,
-                                     num_parameters = 0,
+problem = bvp_solver.ProblemDefinition(num_ODE=2,
+                                     num_parameters=0,
                                      num_left_boundary_conditions=1,
-                                     boundary_points = (-1, 1),
-                                     function = ode,
-                                     boundary_conditions = bcs)
-solution = bvp_solver.solve(problem,
-                            solution_guess = (-1/.3,-4./3))
+                                     boundary_points=(-1, 1),
+                                     function=ode,
+                                     boundary_conditions=bcs)
 
-A = np.linspace(-1.,1., 200); T = solution(A)
-plt.plot(A, T[0,:],'-k',linewidth=2.)
+solution = bvp_solver.solve(problem, solution_guess=(- 1. / .3, - 4. / 3.))
+
+A = np.linspace(-1., 1., 200)
+T = solution(A)
+plt.plot(A, T[0,:], '-k', linewidth=2.)
 plt.show()
-
 \end{lstlisting}
 
 \begin{problem}
@@ -215,7 +224,7 @@ to the system of odes given above (for a total of 6 equations). Then the boundar
 \begin{align*}
 	\begin{pmatrix}C_1(0) \\C_2(0) \\ C_3(0) \end{pmatrix} &= \begin{pmatrix}S(0) \\E(0) \\ I(0) \end{pmatrix}, \quad 	\begin{pmatrix}C_1(1) \\C_2(1) \\ C_3(1) \end{pmatrix} = \begin{pmatrix}S(1) \\E(1) \\ I(1) \end{pmatrix}.
 \end{align*}
-This translates to 3 boundry conditions for the left and 3 for the right. When you code your boundry conditions, note that \li{bvp_solver} changes the initial conditions to force all the entries in the two arrays to be zero. You can use the initial conditions from the solution below as your initial guess (which will be a array of 6 elements).
+This translates to 3 boundry conditions for the left and 3 for the right. The formulae you will want to use for the boundary conditions can be formed by subtracting one side of these equations from the other. When you code your boundry conditions, note that \li{bvp_solver} changes the initial conditions to force all the entries in the two arrays to be zero. You can use the initial conditions from the solution below as your initial guess (which will be a array of 6 elements).
 
 \label{sir_measles}
 \end{problem}
