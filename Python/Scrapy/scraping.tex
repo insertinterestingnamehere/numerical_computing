@@ -41,11 +41,11 @@ You use a scraping tool if you want to extract data from a website that does not
 There is a nice python package called \li{scrapy} that is an application framework for scrapying.
 The offical documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
 
-Another package is BeautifulSoup the Documentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}
+Another package is BeautifulSoup. Its ocumentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}
 
 \begin{warn}
 This lab was written using version 0.22 of scrapy. 
-If you are using a different version, the code will not be exactly the same.
+If you are using a different version, the examples will not work.
 \end{warn}
 
 \section*{Installation}
@@ -125,7 +125,7 @@ class ExampleSpider(Spider):
 \end{lstlisting}
 
 The two penultimate lines save each page in a file so that we can examine the actual HTML that Scrapy sees.
-Now we will explain the actual parsing the the \li{parse} method.
+Now we will explain the actual parsing done in the \li{parse} method.
 
 \section*{Parsing}
 Scrapy uses classes called selectors to extract data from web pages.
@@ -171,7 +171,7 @@ For example, if we were to apply our parser to the following piece of html
 </div>
 \end{lstlisting}
 \li{hits} would be populated with four Selectors ( the <div> tag is completely ignored), each will produce an item in our \li{items} list. 
-The first will have \li{item.title="This is our link text"}, \li{item.link="http://this/is/our/link.html", and \li{item.desc} would be the entire text between \li{<th>} and \li{</th>}. 
+The first will have \li{item.title="This is our link text"}, \li{item.link="http://this/is/our/link.html"}, and \li{item.desc} would be the entire text between \li{<th>} and \li{</th>}. 
 The second item will have \li{item.title} and \li{item.desc} empty.
 
 \li{xpath} can also select nodes with a specific values for it's atributes. 
@@ -192,6 +192,7 @@ scrapy shell <URL of website>
 
 Try \li{scrapy shell http://www.dmoz.org/} and \li{sel.xpath('//title')}. You will get feedback as if you were using the the \li{sel.xpath()} in your code. You can try other methods to see what they do.
 
+\begin{comment}
 \begin{problem}
 Create a new project called \li{dmoz} and create a spider to scrape from the domain \url{dmoz.org} the two links \url{http://www.dmoz.org/Computers/Programming/Languages/Python/Books/} and \url{http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/}. 
 Use the same item class ( but you should rename it appropriately) and modify the \li{parse} function of the spider to produce items for each \li{li} in a \li{ul} tag. 
@@ -199,6 +200,13 @@ Store the text of each \li{a} tag in \li{item.title} and the actual link in \li{
 Store the entire text of the \li{li} tag in \li{item.desc}. 
 You can leave in the two lines that store the html source when you first run your script, but you should not include them in your final solution. 
 Store the resulting items in a \li{.csv} file by running in the commandline \li{scrapy crawl yourSpider -o items.csv -t csv}.
+\end{problem}
+\end{comment}
+
+\begin{problem}
+Create a new project with a spider to scrape pages from the online directory on \url{http://math.byu.edu/peopleresearch/faculty/}. Use a few links to a few professors in your \li{start_urls} array. Parse each link to find the professor's name, email, office number, and phone number (not fax number). You can have your parse function store each page's source (although you will need to split the URL's differently to get unique file names) so you can see the html source that the spider actually sees.
+Hint: You will probably want to parse with xpath and regular expressions in tandem. Remember that you can string them together. For example, to find all the \li{href} links in \li{a} tags that also match a certain regular expression you can use \li{sel.xpath('//a/@href').re(r'myRegularExpression')}
+We will be extending this spider later to search the main page for all the links to follow.
 \end{problem}
 
 \section*{Crawling the Web}
@@ -209,7 +217,7 @@ When using a \li{CrawlSpider} do not overwrite the \li{parse} method.
 \li{CrawlSpider} uses \li{parse} internally.
 \end{warn}
 
-The following code is for scraping statistics from a 
+The following code is for scraping statistics from a sports website.
 
 \begin{lstlisting}
 from scrapy.contrib.spiders import CrawlSpider, Rule
@@ -240,25 +248,41 @@ class SportsSpider(CrawlSpider):
            items.append(item)
        return items
 \end{lstlisting}
-For example, to scrape a website for sports statistics, the spider codestart of the mainpage and click are the links as specified in the rules. So below I made a\li{rule} list and for each rule I cread a \li{Rule} object. The first varible a takes in is a link extractor. the most common one is the li{SgmlLinkExtractor}. Two of its many attributes it has is \li{allow} and \li{deny}. \li{allow} takes in a list of regular expressions (or just one) and will click on those links has those words in the url. \li{deny} also takes in a list of regular expressions and will not follow those links with those words in the url. \li{deny} has higher precedence than \li{allow}. For a \li{Rule} object you set \li{callback} as a string of the method that parses the pages that you click on with the link extractor.  And than you set \li{follow=True} which means that it will click on those links.
+In the code above he spider would start at \li{"http://mysports.com/statistics"} and follow the links it finds on that page if they satify the specified rules. 
+The \li{rules} list is simply a list of \li{Rule} objects that govern which links will be followed. 
+The first argument to initalize \li{Rule} is a link extractor. The most common one is \li{SgmlLinkExtractor}.
+ \li{SgmLinkExtractor} has to very important arguments, \li{allow} and \li{deny}. 
+\li{allow} takes in a list of regular expressions (or just one) and follow the links that contain the regular expression. 
+\li{deny} also takes in a list of regular expressions and will not follow those links with those words in the url. 
+\li{deny} has higher precedence than \li{allow}, meaning that if the regular expression in \li{deny} is satisfied \li{allow} will not be checked at all. 
+If \li{allow} is not specified, \li{allow} will match all links, and if \li{deny} is not specified \li{deny} will not exclude any links. 
+Additionally for a \li{Rule} object you may set \li{callback} as a string of the name of the method that will parse pages from the links that the link extractor produces. 
+The \li{follow=True} is necessary for it to actually follow those links.
 
-The code above and follows all the links under \li{teams} that have end with \li{stats.html} but do not contain \li{'sort'} and scrapes those webpages and whatever links found on those.
+The code above follows all the links under \li{http://mysports.com/statistics/teams/} that have end with \li{stats.html} but do not contain \li{'sort'} and scrapes those webpages and whatever links found on those.
 Note the \li{callback='parse_page'} which specifies the \li{parse_page} method to parse each page.
 
 
 \begin{problem}
-Write a webscraper that scrapes \url{http://math.byu.edu/peopleresearch/faculty/} clicks on each faculty link and stores the page the page (as before). 
-However, there is a catch. If you look at the html source to the given URL, you will not find that the links to each professor. The table is actually dynamically generated, where you would find the data there is a javascript for retreiving the data from a database. This is one of the limitations of scraping, dynamically generated content can be difficult to scrape. To get the data we need, we must call the same request that your browser does to get the information. For example, using Google Chrome, on the page go to Tools->Developer Tools. Click on the "Network" tab and refresh the page. This will generate a table of all the requests that Chrome made to load the page. Look for one that took the longest, and use that link instead as your starting url. 
+Write a webscraper that scrapes \url{http://math.byu.edu/peopleresearch/faculty/} clicks on each faculty link and stores page by the faculty member's name (as before, but you may need to change the way the URLs are split to get unique names of each page). 
+However, there is a catch. 
+If you look at the html source to the given URL, you will not find that the links to each professor. 
+The table is actually dynamically generated. 
+Where you would find the data there is a javascript for retreiving the data from a database.
+ This is one of the limitations of scraping, dynamically generated content can be difficult to scrape. 
+To get the data we need, we must call the same request that your browser does to get the information. 
+For example, using Google Chrome, on the page go to Tools->Developer Tools. Click on the "Network" tab and refresh the page. 
+This will generate a table of all the requests that Chrome made to load the page. 
+Look for one that took the longest, and use that link instead as your starting url. 
 \end{problem}
 
 \section*{Pipelining}
+Up to now we have a Spider that can follow links and parse data to dumpy it into a \li{csv} file. 
+While this may be sufficient for some appilications, we might want to do a bit more processing on the data.
 
-The documentation can be found \url{http://doc.scrapy.org/en/latest/topics/item-pipeline.html}
-Now you have a spider that crawls the web and dumps all the data into csv or json file. For some applications that will be enough. 
-
-In addition you can cleanse the data or put it into a database via pipelining. 
+For example, you may want to cleanse the data or put it into a database via pipelining. 
 In your directory \li{<project name>} you will have a file called \li{pipelines.py}. 
-In this file you can create a class that has three methods \li{process_item(item, spider)}, \li{open_spider(spider)} and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} all called when the project is started and ended respectively. The \li{process_item} is called when the \li{parse} method of the spider returns. 
+In this file you can create a class with the three methods \li{process_item(item, spider)}, \li{open_spider(spider)} and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} are called when the project is started and ended respectively. The \li{process_item} is called for each \li{Item} in the list of \li{Item}'s that the \li{parse} method of the spider returns.
 
 \subsection*{Cleansing}
 
@@ -277,7 +301,7 @@ class DataPipeline(object):
 \end{lstlisting}
 
 \subsection*{Adding to a database}
-The following code puts the items where both its attributes are not null into a database. 
+The following code puts the items that have non-null attributes into a database. 
 \begin{lstlisting}
 import sqlite3 as sql
 class SportscrapePipeline(object):
@@ -309,20 +333,13 @@ class SportscrapePipeline(object):
 \end{lstlisting}
 
 \subsection*{Activating your Pipeline}
-Once you have written your pipeline code to activate it you go to your \li{settings.py} file and add the line
+Once you have written your pipeline code to activate it go to your \li{settings.py} file and add the line
 \begin{lstlisting}
 ITEM_PIPELINES = '<directory>.pipelines.<name of class>': 300
 \end{lstlisting}
-where \li{<directory>} is the directory, \li{pipelines} stands for \li{pipelines.py} file, and \li{<name of class>} is what you named your pipeline class. In the example above it would be \li{SportscrapePipeline}. The \li{300} is a precedence operator that takes effect if you have multiple pipelines.
+where \li{<directory>} is the directory, \li{pipelines} stands for \li{pipelines.py} file, and \li{<name of class>} is what you named your pipeline class. In the example above it would be \li{SportscrapePipeline}. The \li{300} is a precedence operator that takes effect if you have multiple pipelines. You can string together multiple pipelines together and they will run in series from low to high.
 
 \begin{problem}
-Write a webscraper that starts \url{http://math.byu.edu/peopleresearch/faculty/} clicks on links  in order to store each the professors name, email, office number, phone number (not fax number), and email address. If data is missing on the webpage put null. Store it in a csv file. Turn in the csv file. Call it \li{ProfessorData.csv}.
-
-Hint: Use regular expressions.
+Modify your last spider from the last problem to use a pipeline to store the data in a sql database.
 \end{problem}
 
-\begin{problem}
-Create a pipeline to store the data from the last problem in a database. Turn in the database file. Call it \li{ProfessorData}.
-\end{problem}
-
-For this lab you turn in \li{items.json}, \li{ProfessorData.csv}, \li{ProfessorData} and your \li{spider.py} file from the second and third problem into your google drive.
