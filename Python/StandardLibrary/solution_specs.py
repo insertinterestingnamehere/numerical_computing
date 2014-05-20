@@ -32,8 +32,8 @@ def timefunction(f, args=(), kwargs={}, rep_num=3, loop_num=100):
         loop_num = number of loops
     '''
 
-    # Time the callable function
-    # Return the minimum runtime for one call of the function
+    # Time the callable function.
+    # Return the minimum runtime for one call of the function.
     pass
 
 # Problem 4
