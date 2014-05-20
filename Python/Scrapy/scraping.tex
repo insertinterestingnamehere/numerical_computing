@@ -33,23 +33,22 @@ It is your duty to honor the rules in \texttt{robots.txt} if they exist.
 \section*{Scraping Data}
 Scraping data from a website is a way to extract structured or unstructured data from the HTML of a page.
 
-Most websites have APIs that direct people how to take data from the webpage. 
+Most websites have APIs that direct people how to take data from the web page. 
 Often you use the API. 
 You use a scraping tool if you want to extract data from a website that does not have an API or the data you want is not a part of the API.
  (Like extracting e-mail addresses of users)
 
-There is a nice python package called \li{scrapy} that is an application framework for scrapying.
-The offical documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
+There is a nice python package called \li{scrapy} that is an application framework for scraping.
+The official documentation can be found at \url{http://doc.scrapy.org/en/latest/}. 
 
-Another package is BeautifulSoup. Its ocumentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}
+Another package is BeautifulSoup. Its documentation can be found at \url{http://www.crummy.com/software/BeautifulSoup/bs4/doc/}.
 
 \begin{warn}
-This lab was written using version 0.22 of scrapy. 
+This lab was written using version 0.22 of \li{scrapy}. 
 If you are using a different version, the examples will not work.
 \end{warn}
 
 \section*{Installation}
-
 To learn how to install Scrapy go to the website \url{http://doc.scrapy.org/en/latest/intro/install.html}. 
 This also contains helpful tutorials and documentation for Scrapy.
 
@@ -59,16 +58,16 @@ To begin a project go to the directory where you want to store the code and run
 scrapy startproject <project name>
 \end{lstlisting}
 This will create several files. \li{scrapy.cfg} is a configuration file. 
-It will create folder called \li{<project name>} , that contains files \li{items.py}, \li{pipelines.py}, \li{settings.py} and a directory called \li{spiders}. 
+It will create folder called \li{<project name>} that contains files \li{items.py}, \li{pipelines.py}, \li{settings.py}, and a directory called \li{spiders}. 
 We will use all this files.
 
-A scrapy project is broken into parts. 
+A \li{scrapy} project is broken into parts. 
 The \li{spiders} directory contain the ``spiders'' that will parse and follow link on the web, depending on what you dictate them.
 In the \li{items.py} file, which can be broken up into multiple files, there are definitions of the data items that your spiders will produce. 
-These items are then passed to functions in \li{pipelines.py}, which carry out what you want to be done with the items (i.e. save them in a SQL database or CSV file, further process them).
+These items are then passed to functions in \li{pipelines.py}, which carry out what you want to be done with the items (i.e. save them in a SQL database or CSV file or further process them).
 
 \section*{Items}
-Items are like python dictionaries with some additional functionality. 
+Items are like Python dictionaries with some additional functionality. 
 Go to the \li{items.py} found in the \li{<project name>} directory and put in it the following code.
 \begin{lstlisting}
 from scrapy.item import Item, Field
@@ -78,20 +77,20 @@ class ExampleItem(Item):
     link = Field()
     desc = Field()
 \end{lstlisting}
-
 This defines our items with the 3 fields \li{title},\li{link}, and \li{desc}. 
 Notice that our item class inherits from the Scrapy class \li{Item} and our fields are instances of \li{Field}. 
 These definitions will give us extra functionality from Scrapy.
 
 \section*{Spiders}
 Spiders are classes used to scrape data from a group of websites. 
-You will define classes that define the initial list of URLs to download and begin on, how to follow the links, and how to parse the contents of the pages into your items objects. We will use two spiders: \li{Spider} and \li{CrawlSpider}. 
-A \li{Spider} is used for a static number of links while a CrawlSpider can be used for crawling multiple links, searching each for more links to follow and crawl.
+You will define classes that define the initial list of URLs to download and begin on, how to follow the links, and how to parse the contents of the pages into your items objects.
+We will use two spiders: \li{Spider} and \li{CrawlSpider}. 
+A \li{Spider} is used for a static number of links while a \li{CrawlSpider} can be used for crawling multiple links, searching each for more links to follow and crawl.
 
 We will start with a \li{Spider}. 
 Go in your spider directory and create a new file (the name of the file does not matter). 
 Inherit from \li{Spider} as shown below. 
-A \li{Spider} has three important parts: \li{name} which is a unique identifier you will call it from the commandline later (note that it must be unique), \li{allowed_domains} which specifies the websites that the spider is allowed to crawl (more important for \li{CrawlSpider}, \li{start_urls} which is a list of URLS from which the spider will begin to crawl from and the method \li{parse} which will parse the \li{response} oject generated by Scapy when it queries each link. 
+A \li{Spider} has three important parts: \li{name} which is a unique identifier you will call it from the commandline later, \li{allowed_domains} which specifies the websites that the spider is allowed to crawl (more important for \li{CrawlSpider}, \li{start_urls} which is a list of URLS from which the spider will begin to crawl from, and the method \li{parse} which will parse the \li{response} object generated by Scapy when it queries each link. 
 
 The following is an example.
 \begin{lstlisting}
@@ -123,7 +122,6 @@ class ExampleSpider(Spider):
         return items
 
 \end{lstlisting}
-
 The two penultimate lines save each page in a file so that we can examine the actual HTML that Scrapy sees.
 Now we will explain the actual parsing done in the \li{parse} method.
 
@@ -131,16 +129,15 @@ Now we will explain the actual parsing done in the \li{parse} method.
 Scrapy uses classes called selectors to extract data from web pages.
 There are many methods in \li{Selector}, we will focus on three.
 
-The \li{xpath(expression)} method returns a list of selectors, each of them representing html nodes by the expression given as the arguement. 
+The \li{xpath(expression)} method returns a list of selectors, each of them representing HTML nodes by the expression given as the argument. 
 This involves knowing a little HTML. 
 HTML has elements whose name is enclosed in <>. 
 In the code above \li{xpath('//tr/td')} selects  all the \li{td}'s within a \li{tr} node ( the '//' in our expression specifies all matches in the document, even outside of the current scope). 
-For every \li{Selector} in the resulting list we apply \li{expression('a/text()')} to obtain the text inside of every \li{a} (hyperlink tag) and \li{xpath('a/@href')} to get the data from the \li{href} atribute from the \li{a} tag (in html the link that the hyperlink points to). 
+For every \li{Selector} in the resulting list we apply \li{expression('a/text()')} to obtain the text inside of every \li{a} (hyperlink tag) and \li{xpath('a/@href')} to get the data from the \li{href} attribute from the \li{a} tag (in HTML the link that the hyperlink points to). 
 
-The \li{extract()} methed simply returns the string of the data selected by the selector.
+The \li{extract()} method simply returns the string of the data selected by the selector.
 
-For example, if we were to apply our parser to the following piece of html
-
+For example, if we were to apply our parser to the following piece of HTML:
 \begin{lstlisting}[language=HTML]
 <div class="content" style="">
 	<table>
@@ -174,13 +171,13 @@ For example, if we were to apply our parser to the following piece of html
 The first will have \li{item.title="This is our link text"}, \li{item.link="http://this/is/our/link.html"}, and \li{item.desc} would be the entire text between \li{<th>} and \li{</th>}. 
 The second item will have \li{item.title} and \li{item.desc} empty.
 
-\li{xpath} can also select nodes with a specific values for it's atributes. 
+\li{xpath} can also select nodes with a specific values for it's attributes. 
 For example \li{/th[@class="link"]'} will select all \li{th} tags with it's \li{class} attribute equal to \li{"link"} starting at the root node ( because of the single '/', which refers to the \li{div} tag in this case). 
 \li{/th/a[1]} will select the first \li{a} tag within a \li{th}, \li{/th/a[last()]} will select the last and \li{/th/a[last()-1]} the second to last.
 
-We will also use \li{re(regular expression)}, which returns a list of all the strings extracted by applying the regular espression given as the argument.
+We will also use \li{re(regular expression)}, which returns a list of all the strings extracted by applying the regular expression given as the argument.
 
-To run this spider you would enter into the commandline
+To run this spider you would enter into the command line
 \begin{lstlisting}
 scrapy crawl myExampleSpider
 \end{lstlisting}
@@ -192,25 +189,21 @@ scrapy shell <URL of website>
 
 Try \li{scrapy shell http://www.dmoz.org/} and \li{sel.xpath('//title')}. You will get feedback as if you were using the the \li{sel.xpath()} in your code. You can try other methods to see what they do.
 
-\begin{comment}
 \begin{problem}
-Create a new project called \li{dmoz} and create a spider to scrape from the domain \url{dmoz.org} the two links \url{http://www.dmoz.org/Computers/Programming/Languages/Python/Books/} and \url{http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/}. 
-Use the same item class ( but you should rename it appropriately) and modify the \li{parse} function of the spider to produce items for each \li{li} in a \li{ul} tag. 
-Store the text of each \li{a} tag in \li{item.title} and the actual link in \li{link}. 
-Store the entire text of the \li{li} tag in \li{item.desc}. 
-You can leave in the two lines that store the html source when you first run your script, but you should not include them in your final solution. 
-Store the resulting items in a \li{.csv} file by running in the commandline \li{scrapy crawl yourSpider -o items.csv -t csv}.
-\end{problem}
-\end{comment}
+Create a new project with a spider to scrape pages from the online directory on \url{http://math.byu.edu/peopleresearch/faculty/}.
+Use a few links to a few professors in your \li{start_urls} array.
+Parse each link to find the professor's name, email, office number, and phone number (not fax number).
+You can have your parse function store each page's source (although you will need to split the URL's differently to get unique file names) so you can see the HTML source that the spider actually sees.
 
-\begin{problem}
-Create a new project with a spider to scrape pages from the online directory on \url{http://math.byu.edu/peopleresearch/faculty/}. Use a few links to a few professors in your \li{start_urls} array. Parse each link to find the professor's name, email, office number, and phone number (not fax number). You can have your parse function store each page's source (although you will need to split the URL's differently to get unique file names) so you can see the html source that the spider actually sees.
-Hint: You will probably want to parse with xpath and regular expressions in tandem. Remember that you can string them together. For example, to find all the \li{href} links in \li{a} tags that also match a certain regular expression you can use \li{sel.xpath('//a/@href').re(r'myRegularExpression')}
+Hint: You will probably want to parse with XPath and regular expressions in tandem. Remember that you can string them together.
+For example, to find all the \li{href} links in \li{a} tags that also match a certain regular expression you can use \li{sel.xpath('//a/@href').re(r'myRegularExpression')}
 We will be extending this spider later to search the main page for all the links to follow.
 \end{problem}
 
 \section*{Crawling the Web}
-The spiders discussed so far will only scrape the pages you specify in \li{start_urls}. In order to scrape more pages you will need to inherit from \li{CrawlSpider}. The main difference is that you set a list of rules for how you spider follows links.
+The spiders discussed so far will only scrape the pages you specify in \li{start_urls}.
+In order to scrape more pages you will need to inherit from \li{CrawlSpider}.
+The main difference is that you set a list of rules for how you spider follows links.
 
 \begin{warn}
 When using a \li{CrawlSpider} do not overwrite the \li{parse} method. 
@@ -218,7 +211,6 @@ When using a \li{CrawlSpider} do not overwrite the \li{parse} method.
 \end{warn}
 
 The following code is for scraping statistics from a sports website.
-
 \begin{lstlisting}
 from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
@@ -248,46 +240,46 @@ class SportsSpider(CrawlSpider):
            items.append(item)
        return items
 \end{lstlisting}
-In the code above he spider would start at \li{"http://mysports.com/statistics"} and follow the links it finds on that page if they satify the specified rules. 
+In the code above he spider would start at \li{"http://mysports.com/statistics"} and follow the links it finds on that page if they satisfy the specified rules. 
 The \li{rules} list is simply a list of \li{Rule} objects that govern which links will be followed. 
-The first argument to initalize \li{Rule} is a link extractor. The most common one is \li{SgmlLinkExtractor}.
- \li{SgmLinkExtractor} has to very important arguments, \li{allow} and \li{deny}. 
+The first argument to initialize \li{Rule} is a link extractor.
+The most common one is \li{SgmlLinkExtractor}.
+\li{SgmLinkExtractor} has to very important arguments, \li{allow} and \li{deny}. 
 \li{allow} takes in a list of regular expressions (or just one) and follow the links that contain the regular expression. 
-\li{deny} also takes in a list of regular expressions and will not follow those links with those words in the url. 
+\li{deny} also takes in a list of regular expressions and will not follow those links with those words in the URL. 
 \li{deny} has higher precedence than \li{allow}, meaning that if the regular expression in \li{deny} is satisfied \li{allow} will not be checked at all. 
 If \li{allow} is not specified, \li{allow} will match all links, and if \li{deny} is not specified \li{deny} will not exclude any links. 
 Additionally for a \li{Rule} object you may set \li{callback} as a string of the name of the method that will parse pages from the links that the link extractor produces. 
 The \li{follow=True} is necessary for it to actually follow those links.
 
-The code above follows all the links under \li{http://mysports.com/statistics/teams/} that have end with \li{stats.html} but do not contain \li{'sort'} and scrapes those webpages and whatever links found on those.
+The code above follows all the links under \li{http://mysports.com/statistics/teams/} that have end with \li{stats.html} but do not contain \li{'sort'} and scrapes those web pages and whatever links found on those.
 Note the \li{callback='parse_page'} which specifies the \li{parse_page} method to parse each page.
 
 
 \begin{problem}
-Write a webscraper that scrapes \url{http://math.byu.edu/peopleresearch/faculty/} clicks on each faculty link and stores page by the faculty member's name (as before, but you may need to change the way the URLs are split to get unique names of each page). 
+Write a web scraper that scrapes \url{http://math.byu.edu/peopleresearch/faculty/}, clicks on each faculty link, and stores page by the faculty member's name (as before, but you may need to change the way the URLs are split to get unique names of each page). 
 However, there is a catch. 
-If you look at the html source to the given URL, you will not find that the links to each professor. 
+If you look at the HTML source to the given URL, you will not find that the links to each professor. 
 The table is actually dynamically generated. 
-Where you would find the data there is a javascript for retreiving the data from a database.
- This is one of the limitations of scraping, dynamically generated content can be difficult to scrape. 
+Where you would find the data there is a Javascript for retrieving the data from a database.
+This is one of the limitations of scraping, dynamically generated content can be difficult to scrape. 
 To get the data we need, we must call the same request that your browser does to get the information. 
 For example, using Google Chrome, on the page go to Tools->Developer Tools. Click on the "Network" tab and refresh the page. 
 This will generate a table of all the requests that Chrome made to load the page. 
-Look for one that took the longest, and use that link instead as your starting url. 
+Look for one that took the longest, and use that link instead as your starting URL.
 \end{problem}
 
 \section*{Pipelining}
-Up to now we have a Spider that can follow links and parse data to dumpy it into a \li{csv} file. 
-While this may be sufficient for some appilications, we might want to do a bit more processing on the data.
+Up to now we have a Spider that can follow links and parse data to dumpy it into a CSV file. 
+While this may be sufficient for some applications, we might want to do a bit more processing on the data.
 
 For example, you may want to cleanse the data or put it into a database via pipelining. 
 In your directory \li{<project name>} you will have a file called \li{pipelines.py}. 
-In this file you can create a class with the three methods \li{process_item(item, spider)}, \li{open_spider(spider)} and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} are called when the project is started and ended respectively. The \li{process_item} is called for each \li{Item} in the list of \li{Item}'s that the \li{parse} method of the spider returns.
+In this file you can create a class with the three methods \li{process_item(item, spider)}, \li{open_spider(spider)}, and \li{close_spider(spider)}. The methods \li{open_spider} and \li{closed_spider} are called when the project is started and ended respectively.
+The \li{process_item} is called for each \li{Item} in the list of \li{Item}'s that the \li{parse} method of the spider returns.
 
 \subsection*{Cleansing}
-
 The following code drops an item if it does not have anything in the data part of the object and returns it otherwise.
-
 \begin{lstlisting}
 from scrapy.exceptions import DropItem
 
@@ -333,11 +325,14 @@ class SportscrapePipeline(object):
 \end{lstlisting}
 
 \subsection*{Activating your Pipeline}
-Once you have written your pipeline code to activate it go to your \li{settings.py} file and add the line
+Once you have written your pipeline code to activate it go to your \li{settings.py} file and add the line:
 \begin{lstlisting}
 ITEM_PIPELINES = '<directory>.pipelines.<name of class>': 300
 \end{lstlisting}
-where \li{<directory>} is the directory, \li{pipelines} stands for \li{pipelines.py} file, and \li{<name of class>} is what you named your pipeline class. In the example above it would be \li{SportscrapePipeline}. The \li{300} is a precedence operator that takes effect if you have multiple pipelines. You can string together multiple pipelines together and they will run in series from low to high.
+where \li{<directory>} is the directory, \li{pipelines} stands for \li{pipelines.py} file, and \li{<name of class>} is what you named your pipeline class.
+In the example above it would be \li{SportscrapePipeline}.
+The \li{300} is a precedence operator that takes effect if you have multiple pipelines.
+You can string together multiple pipelines together and they will run in series from low to high.
 
 \begin{problem}
 Modify your last spider from the last problem to use a pipeline to store the data in a sql database.
