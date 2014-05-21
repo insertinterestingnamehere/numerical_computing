@@ -28,7 +28,6 @@
 5. sq = {x: x**2 for x in range(2,11,2)}
 6. del(dict[key])
 7. dict.keys(); dict.values()
-	
 '''
 
 # Problem 3
@@ -41,8 +40,6 @@ Doing so shadows Python's built in list constructor.
 	for loop and if statement require a colon and nested indentation
 	i%2 == 0. Not an assignment. 
 	Grocery List[i]. Needs brackets.
-	
-	
 '''
 
 # Problem 4
@@ -57,6 +54,5 @@ my_list.sort(reverse=True)
 setA = {i for i in range(5)}
 setB = {str(i) for i in range(5)}
 union = set.union(setA, setB)
-
-
+or union = setA | setB
 '''
