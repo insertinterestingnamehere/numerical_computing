@@ -33,68 +33,141 @@ To this equation we add other equations, called constituve relations, which are 
 
 For example, suppose we wish to describe the flow of heat. Since heat flows from warmer regions to colder regions, and the rate of heat flow depends on the difference in temperature between regions, we usually assume that the flux vector $\vec{J}$ is given by 
 \[
-\vec{J}(x,t) = -D \nabla u(x,t).
+\vec{J}(x,t) = -\nu \nabla u(x,t),
 \]
+where $\nu$ is the diffusion constant.
 This constitutive relation is called Fick's law, and is the basic model for any diffusive process. Substituting into the conservation law we obtain 
-\[u_t -D \triangle u(x,t) = f(\vec{x},t,u).\]  
+\[u_t -\nu \triangle u(x,t) = f(\vec{x},t,u).\]  
 The function $f$ represents heat sources/sinks within the region. 
 
 \section{Numerically modelling heat flow}
-Consider the heat flow equation in one dimension on the interval $[0,1]$ together with appropriate initial conditions and homogeneous Dirichlet boundary conditions: 
+Consider the heat flow equation in one dimension together with appropriate initial conditions and homogeneous Dirichlet boundary conditions: 
 \begin{align*}
-	u_t &= u_{xx},\\
-	u(0,t) &= 0,\\
-	u(1,t) &= 0,\\
-	u(x,0) &= f(x).
+	&{ } u_t = \nu u_{xx}, \quad x \in [a,b],\quad t \in [0,T], \\
+	&{ } u(a,t) = 0,\quad u(b,t) = 0,\\
+	&{ } u(x,0) = f(x).
 \end{align*}
-A simple explicit method for numerically approximating the solution of this problem is to use a forward difference approximation in time and a centered difference approximation in space. Recall that
-\[u_t(x_i,t_j) = \frac{u(x_i,t_j + k) - u(x_i,t_j)}{k} + \mathcal{O}(k)
-\]
- and 
-\[u_{xx}(x_i,t_j) = \frac{u(x_i + h,t_j )-2 u(x_i,t_j)- u(x_i - h,t_j)}{h^2} + \mathcal{O}(h^2).
-\]
+We will look for an approximation $U^j_i$ to $u(x_i,t_j)$ on the grid $x_i = a +  hi$, $t_j = kj$, where $h = \triangle x$, $k = \triangle t$.
 
-Let $U_{i,j}$ represent our approximation to $u(x_i,t_j)$. The difference approximations above give us the method 
+A common method for modelling ordinary and partial differential equations is the finite difference method, so-named because equations containing derivatives are replaced with equations containing difference schemes. These difference schemes can often be found using Taylor's theorem. For example, the equation 
 \begin{align*}
-	\frac{U_{i,j+1} - U_{i,j}}{k} &= \frac{U_{i+1,j}- 2U_{i,j} + U_{i-1,j} }{h^2} ,\\
-	U_{i,j+1} &= U_{i,j} + \frac{k}{h^2} (U_{i+1,j}- 2U_{i,j} + U_{i-1,j} ).
+	u(x,t_j + k) = u(x,t_j) + u_t(x,t_j)k + \mathcal{O}(k^2)
 \end{align*}
-This method requires an approximation to the solution at the current step to approximate the solution at the following step.
-We can get this method started by using the initial condition given in our problem, so that $U_{i,0} = f(x_i)$. 
+yeilds a first-order forward difference approximation to $u_t(x,t_j)$, namely, 
+\begin{align*}
+	u_t(x,t_j ) = \frac{u(x,t_j+k) - u(x,t_j)}{k} + \mathcal{O}(k).
+\end{align*}
+Similarly, by adding the equations 
+\begin{align*}
+	u(x_i+h,t) &= u(x_i,t) + u_x(x_i,t)h + u_{xx}(x_i,t)h^2 + u_{xxx}(x_i,t)h^3 + \mathcal{O}(h^4),\\
+		u(x_i-h,t) &= u(x_i,t) + u_x(x_i,t)(-h) + u_{xx}(x_i,t)(-h)^2 + u_{xxx}(x_i,t)(-h)^3 + \mathcal{O}(h^4),
+\end{align*}
+we obtain a second-order centered difference approximation to $u_{xx}(x_i,t)$:
+\begin{align*}
+	u_{xx}(x_i,t_j) &= \frac{u(x_i + h,t_j )-2 u(x_i,t_j)- u(x_i - h,t_j)}{h^2} + \mathcal{O}(h^2).
+\end{align*}
 
-Let $f(x) = \sin(2\pi x)$, $h = .2$, and $k=.2$. We will approximate the solution $u(x,t)$ at time $t = 2.$ We need to solve for $U_{i,j}$ on a grid $\{x_i\}_{i=0}^5 \times \{t_j\}_{j=0}^{10}$. Let $U^j = [U_{0,j}, U_{1,j}, U_{2,j}, U_{3,j}, U_{4,j},  U_{5,j}]^T$, so that $U^j$ represents the approximation at time step $j$.
-Then 
+
+% A simple explicit method for numerically approximating the solution of this problem is to use a forward difference approximation in time and a centered difference approximation in space. % Recall that
+% \[u_t(x_i,t_j) = \frac{u(x_i,t_j + k) - u(x_i,t_j)}{k} + \mathcal{O}(k)
+% \]
+%  and 
+% \[u_{xx}(x_i,t_j) = \frac{u(x_i + h,t_j )-2 u(x_i,t_j)- u(x_i - h,t_j)}{h^2} + \mathcal{O}(h^2).
+% \]
+% Let $U_{i,j}$ represent our approximation to $u(x_i,t_j)$. 
+These difference approximations give us the $\mathcal{O}(h^2 + k)$ explicit method 
+\begin{align}
+	\begin{split}
+	\frac{U_{i}^{j+1} - U_{i}^{j}}{k} &= \nu \frac{U_{i+1}^{j}- 2U_{i}^{j} + U_{i-1}^{j} }{h^2} ,\\ 
+	U_{i}^{j+1} &= U_{i}^{j} + \frac{\nu k}{h^2} (U_{i+1}^{j}- 2U_{i}^{j} + U_{i-1}^{j} ). 
+	\end{split}\label{firstorder_explicit}
+\end{align}
+This method can be written in matrix form as 
 \[
-U^0 = 
-\left[\begin{array}{c} 0 \\\sin(.4 \pi) \\\sin(.8 \pi) \\\sin(1.2 \pi) \\\sin(1.6 \pi) \\ 0 \end{array}\right]
-\]
-and 
-\[
-U^{j+1} = A U^j + U^j,
-% \left[\begin{array}{c}U_{0,j} \\U_{1,j} \\U_{2,j} \\U_{3,j} \\U_{4,j} \\U_{5,j}\end{array}\right]
+U^{j+1} = A U^j,
 \]
 where $A$ is the tridiagonal matrix given by 
 \[
-A = \frac{k}{h^2} \left[\begin{array}{cccccc}-2 & 1 &  &  &  &  \\1 & -2 & 1 &  &  &  \\ & 1 & -2 & 1 &  &  \\ &  & 1 & -2 & 1 &  \\ &  &  & 1 & -2 & 1 \\ &  &  &  & 1 & -2\end{array}\right]
+A = \left[\begin{array}{cccccc}1-2\lambda & \lambda &  &  &   \\ \lambda & 1-2\lambda & \lambda &  &   \\  & \ddots & \ddots & \ddots &  \\  &  & \lambda & 1-2\lambda & \lambda \\  &  &  & \lambda & 1-2\lambda\end{array}\right],
 \]
-Iterating forward in time, we find that 
-\[
-U^{10} = .
-\]
+$\lambda = \nu k/h^2$, and $U^j$ represents the approximation at time $t_j$. We can get this method started by using the initial condition given in our problem, so that $U_{i}^{0} = f(x_i)$. 
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=9cm]{heatexercise1a.pdf}
+\caption{The graph of $U^{0}$, the approximation to the solution $u(x,t=0)$ for \ref{heat_exercise1}.}
+\label{figure1a}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=9cm]{heatexercise1b.pdf}
+\caption{The graph of $U^{10}$, the approximation to the solution $u(x,t=.4)$ for \ref{heat_exercise1}.}
+\label{figure1b}
+\end{figure}
+
 
 \begin{problem}
-	Using the explicit method, numerically approximate the solution $u(x,t)$ of the problem 
-	\begin{align*}
-		u_t &= u_{xx},\\
-		u(0,t) &= 0,\\
-		u(1,t) &= 0,\\
-		u(x,0) &= \sin(2 \pi x).
-	\end{align*}
-	Let $h = .05$ and $k= .05$. Then do it for ...(break the CFL condition).
-	Animate your results. 
+	Consider the specific initial boundary value problem
+	\begin{align}
+		\begin{split}
+		&{ } u_t = .05 u_{xx}, \quad x \in [0,1], \\
+		&{ } u(0,t) = 0,\quad u(1,t) = 0,\\
+		&{ } u(x,0) = 2\max\{.2 - |x-5.|,0\}.
+		\end{split}\label{heat_exercise1}
+	\end{align}
+	Approximate the solution $u(x,t)$ at time $t = .4$ be taking 6 subintervals in the $x$ dimension and 10 subintervals in time. 
+	The graphs for $U^0$ and $U^{10}$ are given in \eqref{figure1a} and \ref{figure1b}.
 \end{problem}
-Mention the CFL condition, and the possibility of a fully implicit method. 
-Show the Crank Nicolson method. 
+
+
+\begin{problem}
+	Solve the specific initial boundary value problem
+	\begin{align}
+		\begin{split}
+		&{ } u_t = u_{xx}, \quad x \in [-12,12],\quad t \in [0,1], \\
+		&{ } u(0,t) = 0,\quad u(1,t) = 0,\\
+		&{ } u(x,0) = \max\{1 - x^2,0\}
+		\end{split}\label{heat_exercise2}
+	\end{align}
+	using the first order explicit method \ref{firstorder_explicit}.  Use 140 subintervals in the $x$ dimension and 70 subintervals in time. The initial and final states are shown in \ref{heat_exercise2}. Animate your results. 
+	
+	Explicit methods usually have a stability condition, called a CFL condition (for Courant-Friedrichs-Lewy). For method \ref{firstorder_explicit} the CFL condition that must be satisfied is that 
+	\[ \frac{\nu \triangle t}{(\triangle x)^2} \leq \frac{1}{2}.\]
+	Repeat your computations using 140 subintervals in the $x$ dimension and 66 subintervals in time. For these values the CFL condition is broken; you should easily see the result of this instability in the approximation $U^{66}$.
+	% Then the graphs for $U^0$ and $U^{70}$ are given in \eqref{heatexercise2a} and \ref{heatexercise2b}.
+\end{problem}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=12cm]{heatexercise2.pdf}
+\caption{The initial and final states for \ref{heat_exercise2}.}
+\label{figure2}
+\end{figure}
+
+Implicit methods often have better stability properties than explicit methods. The Crank-Nicolson method for example is unconditionally stable and has order $\mathcal{O}(h^2 + k^2)$. To derive the Crank-Nicolson method we use the following approximations: 
+\begin{align*}
+	u_t(x_i,t_{j+1/2}) &= \frac{u_t(x_i,t_{j+1}) - u_t(x_i,t_j)}{k} + \mathcal{O}(k^2), \\
+	u_{xx}(x_i,t_{j+1/2}) &= \frac{u_{xx}(x_i,t_{j+1}) + u_{xx}(x_i,t_j)}{2} + \mathcal{O}(h^2).
+\end{align*}
+These approximations give the method 
+\begin{align}
+	\begin{split}
+	\frac{U^{j+1}_i - U^j_i}{k} &= \frac{1}{2}\left( \frac{U^j_{i+1} - 2U^j_{i} + U^j_{i-1}}{h^2} + \frac{U^{j+1}_{i+1} - 2U^{j+1}_{i} + U^{j+1}_{i-1}}{h^2}  \right) ,\\
+	U^{j+1}_i  &= U^j_i + \frac{k}{2h^2} \left( U^j_{i+1} - 2U^j_{i} + U^j_{i-1} + U^{j+1}_{i+1} - 2U^{j+1}_{i} + U^{j+1}_{i-1}   \right).
+\end{split}
+\end{align}
+This method can be written in matrix form as 
+\[
+BU^{j+1} = A U^j ,
+\]
+where $A$ and $B$ are tridiagonal matrices given by 
+\begin{align*}
+B &= \left[\begin{array}{cccccc}1+2\lambda & -\lambda &  &  &  \\ -\lambda & 1+2\lambda &  -\lambda & &  \\ &  \ddots &   \ddots & \ddots \\ & &  -\lambda &  1+2\lambda & -\lambda \\ &  &  & -\lambda & 1+2\lambda\end{array}\right], \\
+A &= \left[\begin{array}{cccccc}1-2\lambda & \lambda &  &  &  \\ \lambda & 1-2\lambda &  \lambda & &  \\ &  \ddots &   \ddots & \ddots \\ & &  \lambda &  1-2\lambda & \lambda \\ &  &  & \lambda & 1-2\lambda\end{array}\right], 
+\end{align*}
+where $\lambda = \nu k/(2h^2)$, 
+and $U^j$ represents the approximation at time $t_j$.
 
 
 \begin{problem}
