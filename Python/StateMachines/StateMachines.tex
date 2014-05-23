@@ -1,0 +1,429 @@
+\lab{Algorithms}{State Machines}{State Machines}
+\objective{Explore deterministic and non deterministic finite automatons.}
+
+A state machine is the simplest machine that can be considered a computer.
+It is very similar to a Markov chain.
+Both have a set of states and have a defined set of transitions between states.
+
+\begin{definition}
+A deterministic finite automaton (DFA) is described by a 5-tuple $(Q, \Sigma, \delta, q_0, A)$,
+where
+\begin{itemize}
+\item $Q$ is a finite set of states
+\item $\Sigma$ is a finite alphabet of recognized input symbols
+\item $\delta$ is the machine's transition function
+\item $q_0 \in Q$ is the machine's start state
+\item $A \subseteq Q$ is the set of accept states
+\end{itemize}
+\end{definition}
+
+A DFA describes a language or set of accepted inputs.  
+If we give a DFA a particular input, it will tell us if that input exists in its language or not.
+Let's look at a simple example in Figure \ref{fig:simple_dfa}.  
+We assume a two symbol alphabet, \{0, 1\}.  
+All the other elements of the DFA are shown graphically ($q_1$ is an accept state, denoted by the double circle).
+\begin{figure}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial](q0) {$q_0$};
+\node[state,accepting] (q1) [right=of q0]{$q_1$};
+
+\path[->] (q0) edge node {0} (q1);
+\end{tikzpicture}
+\caption{A simple deterministic finite automaton.}
+\label{fig:simple_dfa}
+\end{figure}
+This only input accepted by this DFA is the string \texttt{0}.
+That means, only the string \texttt{0} will cause the machine to transition to an accepting state, namely $q_1$.
+Once we have consumed all the input, we stop.
+If the final state is an accepting state, then the string is a member of the language represented by this DFA.
+You can think of every state having a transition to an implied failure state on unmatched input.
+For example, if we gave this DFA the input \texttt{1} or \texttt{01} we would transition immediately to the failure state on the unmatched symbol.
+A symbol is matched if there is a transition defined for it.
+Otherwise, we automatically transition to a failure state.
+One possible way to represent this DFA in Figure \ref{fig:simple_dfa} is:
+\begin{lstlisting}
+def consume(in_str):
+    for char in in_str:
+        yield char
+    
+def state0(scanner):
+    try:
+        if scanner.next() == '0':
+            return state1(scanner)
+    except:
+        pass
+    return False
+    
+def state1(scanner):
+    try:
+        c = scanner.next()
+    except StopIteration:
+        return True
+    return False
+    
+def dfa(in_str):
+    scanner = consume(in_str)
+    return state0(scanner)
+\end{lstlisting}
+
+
+\begin{problem}
+Write a Python function that will simulate any given DFA.  
+The above approach will not work (each state requires a new function).
+Your function should accept as parameters an input string and a 4-tuple, \li{machine}, that describes the DFA as $(\Sigma, \delta, q_0, A)$ in the following format
+\begin{itemize}
+\item[$\Sigma$:] A set with all symbols of the language's alphabet represented as strings.
+\item[$\delta$:] A dictionary that defines the transition function.
+It should map tuples of the form \li{(m, c)} to values, $n$, to represent the transition $q_m \xrightarrow{c} q_n$ ($m, n \in \mathbb{Z}$ and $c$ is a string character).
+\item[$q_0$:] An integer, $i$, representing $q_i$, the initial state.
+\item[$A$:] A set of integers representing the accepting states.
+\end{itemize}
+You function should return true if the given input string is a member of the language described by the DFA and false otherwise.
+Your function should test the entire input string.  Be careful not to return true prematurely.
+\label{prob:dfa_sim}
+\end{problem}
+
+\begin{problem}
+Define the following DFAs using the format in Problem \ref{prob:dfa_sim} for describing a DFA.
+
+\begin{figure}[H]
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial,accepting] (q0) {$q_0$};
+\node[state] (q1) [right=of q0] {$q_1$};
+
+\path[->] 
+(q0) edge[loop above] node {a} (q0)
+(q1) edge[loop above] node {a} (q1)
+(q0) edge[bend left] node {b} (q1)
+(q1) edge[bend left] node {b} (q0);        
+\end{tikzpicture}
+\caption*{\ref{prob:reprDFA}(a)}
+\label{prob:reprDFA_a}
+\end{figure}
+
+\begin{figure}[H]
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state] (q1) [right=of q0] {$q_1$};
+\node[state,accepting] (q2) [right=of q1] {$q_2$};
+\node[state] (q3) [right=of q2] {$q_3$};
+
+\path[->]
+(q0) edge[loop above] node {1} (q0)
+(q0) edge node {0} (q1)
+(q1) edge[loop above] node {1} (q1)
+(q1) edge node {0} (q2)
+(q2) edge[loop above] node {1} (q2)
+(q2) edge node {0} (q3)
+(q3) edge[loop above] node {0,1} (q3);
+\end{tikzpicture}
+\caption*{\ref{prob:reprDFA}(b) The self-loop on $q_3$ transitions to itself on either a 0 or 1.}
+\label{prob:reprDFA_b}
+\end{figure}
+
+\begin{figure}[H]
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state,accepting] (q1) [right=of q0] {$q_1$};
+\node[state,accepting] (q2) [above right=of q0] {$q_2$};
+\node[state] (q3) [right=of q1] {$q_3$};
+\node[state] (q4) [right=of q3] {$q_4$};
+
+\path[->]
+(q0) edge node {1} (q1)
+(q0) edge node {0} (q2)
+(q1) edge node {1} (q3)
+(q1) edge node {0} (q2)
+(q2) edge[loop above] node {0,1} (q2)
+(q3) edge node {1} (q4)
+(q3) edge node {0} (q2)
+(q4) edge node {0,1} (q2);
+\end{tikzpicture}
+\caption*{\ref{prob:reprDFA}(c)}
+\label{prob:reprDFA_c}
+\end{figure}
+\label{prob:reprDFA}
+\end{problem}
+
+\section*{Non-Deterministic Finite Automatons}
+A non-deterministic finite automaton (NFA) are a generalization of deterministic state machines.
+The difference between and NFA and a DFA is the transition function.
+A transition for a DFA maps the current state and the input symbol to exactly one result state.
+In contrast, an NFA can map the current state and the input symbol (or the empty string, $\epsilon$) to a set of resulting states.
+If the set of resulting states has a cardinality greater than 1, the computation separates into independent branches.
+For example, in Figure \ref{fig:simple_nfa}, given the input \texttt{0100}, we start at state $q_0$.  We match the first 0 and the active state is again $q_0$.  Next, we match a 1 and the resulting states are \{$q_0$, $q_1$, $q_2$\}.
+At this point, our machine is in three states simultaneously (we transition to state $q_2$ on the $\epsilon$ transition).
+This is the non-deterministic behavior of our state machine.
+Our next input symbol is 0.
+It is helpful to think of three separate and independent branches of computations.
+\begin{enumerate}
+\item State $q_0$ transitions back to $q_0$
+\item State $q_1$ transitions to $q_2$
+\item State $q_2$ transitions to $q_3$
+\end{enumerate}
+Our matching could terminate here, but since we have not completely read out input, we must still keep going.
+The most we can say at this point is the string \texttt{010} is in the NFA's language.
+Our current states are the set \{$q_0$, $q_2$, $q_3$\}.
+Our last symbol is another 0.
+\begin{enumerate}
+\item State $q_0$ transitions back to itself
+\item State $q_2$ transitions to $q_3$
+\item State $q_3$ transitions to the implied fail state
+\end{enumerate}
+Now that we have read all of our input, and one of our final resulting states is an accepting state, we accept the entire string.
+Does the string \texttt{01000} exist in the NFA's language?
+
+You might think that this new power of NFAs will allow us to represent many more languages.
+However, every language that can be represented as an NFA can also be represented by an equivalent DFA.
+This is to say that an NFA is equivalent to a DFA in computing power.
+In fact a method exists that will transform any NFA into an equivalent DFA.
+This is, however, beyond the scope of this lab.
+NFAs are quite useful though because they can often represent complex languages very simply and intuitively.
+\begin{figure}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state] (q1) [right=of q0] {$q_1$};
+\node[state] (q2) [right=of q1] {$q_2$};
+\node[state,accepting] (q3) [right=of q2] {$q_3$};
+
+\path[->]
+(q0) edge node {1} (q1)
+(q0) edge[loop above] node {0,1} (q0)
+(q1) edge node {0,1,$\epsilon$} (q2)
+(q2) edge node {0,1} (q3);
+\end{tikzpicture}
+\caption{A simple non-deterministic finite automaton.}
+\label{fig:simple_nfa}
+\end{figure}
+
+\begin{problem}
+Draw a non-deterministic finite automaton that can match the following language.
+
+\emph{Let $w \in L$ where the number of a's is a multiple of 3, or contains least 4 b's, or where the number of c's is odd.}
+\label{prob:drawnfa}
+\end{problem}
+
+
+\section*{Operations on Regular Languages}
+We can build machines that represent more complex languages by concatenating several simpler DFAs or NFAs together.
+The format expression for concatenating the languages $A$ and $B$ is $A \circ B$.
+We can also union the machines and thus union the languages they each represent (expressed as $A \cup B$).  
+There are two more basic operations, \emph{star} and \emph{plus}, that are extremely useful.
+Given a language, $L$, $L^*$ means that we can concatenate any number of strings in $L$ to get another string in $L^*$.  $L^+$ denotes one or more strings of $L$ have been attached to form a new string in $L^+$.
+Note that $L^*$ and $L^+$ are different languages than $L$.
+
+\section*{Introduction to Regular Expressions}
+Regular expressions are not trivial or easy, but understanding them can be very straightforward.
+The best way to think of regular expressions is the view them as operations on regular languages.  
+The entire regular expression represents a regular language.  
+In fact, the definition of being a regular language, $L$ means that there is a regular expression that represents $L$.
+Since a every regular language can be represented by a DFA, we have an equivalence between regular expressions and DFAs.
+And, because every NFA is equivalent to some DFA, we have a three-way equivalence (DFA=NFA=RE).
+Regular epxressions are a \emph{very} compact way of representing complex state machines.
+Sometimes it can be easier to use a DFA representation (much easier to write and define) or other times it can be easier to use a regular expression (more expressive, more compact).
+As noted, regular expressions can only represent a language if it is regular.
+There exist languages that are non-regular.
+There are ways to rigorously prove that a language is non-regular, but that is beyond the scope of this lab.
+A regular language is any language that can be represented as a regular expression, an NFA, or a DFA.
+
+Regular expressions are especially useful and powerful for finding and matching patterns in text.
+Many tools can take advantage of the powerful matching features of regular expressions.
+You can think of regular expressions as operations on state machines.
+For example, the regular expression $(a^*b)^* b^*a$ could be represented as the NFA in \ref{fig:nfa_concat}.
+\begin{figure}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q0) {$q_0$};
+\node[state] (q1) [right=of q0] {$q_1$};
+\node[state] (q2) [right=of q3] {$q_2$};
+\node[state] (q3) [right=of q1] {$q_3$};
+\node[state,accepting] (q4) [right=of q2] {$q_4$};
+
+\path[->]
+(q0) edge node {$\epsilon$} (q1)
+(q0) edge[bend right] node {$\epsilon$} (q2)
+
+(q1) edge[loop above] node {a} (q1)
+(q1) edge node {b} (q3)
+(q3) edge node {$\epsilon$} (q2)
+(q2) edge[loop below] node {b} (q2)
+(q2) edge node {a} (q4);
+\end{tikzpicture}
+\caption{An NFA for the regular expression $(a^*b)^* b^*a$.}
+\label{fig:nfa_concat}
+\label{fig:simple_nfa}
+\end{figure}
+Which is simply a concatenation of the NFAs \ref{fig:nfa1} and \ref{fig:nfa2}.
+\begin{figure}
+\centering
+\begin{subfigure}[b]{.5\textwidth}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q1) {$q_1$};
+\node[state,accepting] (q3) [right=of q1] {$q_3$};
+
+\path[->]
+(q1) edge[loop above] node {a} (q1)
+(q1) edge node {b} (q3);
+\end{tikzpicture}
+\caption{NFA for $a^*b$.}
+\label{fig:nfa1}
+\end{subfigure}
+
+\begin{subfigure}[b]{.5\textwidth}
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid,auto]
+\node[state,initial] (q2) {$q_2$};
+\node[state,accepting] (q4) [right=of q2] {$q_4$};
+
+\path[->]
+(q2) edge[loop above] node {b} (q2)
+(q2) edge node {a} (q4);
+\end{tikzpicture}
+\caption{NFA for $b^*a$.}
+\label{fig:nfa2}
+\end{subfigure}
+\end{figure}
+
+\begin{problem}
+For parts a and b in Problem \ref{prob:reprDFA}, write a  regular expression that is equivalent to state machine.
+\label{prob:equiv_regex}
+\end{problem}
+
+Because of a regular expression's ability to compactly represent complex state machines, they are very useful in matching patterns in a string (both trivial and non-trivial).
+Instead of matching exact strings (a standard string search find and replace), the regular expression matches the form or pattern of a string (like a formatted date or email address pattern).
+For example, we can use a regular expression to match phone numbers, email addresses, HTTP addresses.
+
+There are many libraries that implement regular expression matching.
+Most programming languages also have their own regular expression library.
+Unfortunately, the syntax for regular expressions may be slightly different in each implementation. 
+There is no universal standard for all regular expressions across all platforms. 
+However, a common syntax with a few variations is very widely used, so most regular expression patterns can be used with any library.
+
+\begin{warn}
+Theoretically, regular expressions have a linear runtime.
+However, because of more advanced features that many regular expression libraries have, poorly written regular expressions can have exponential runtime!
+Profiling regular expressions is tricky because of their syntax.
+A single character or two  could mean the difference between an efficient regular expression and a regular expression that has practically infinite runtime for long inputs.
+\end{warn}
+
+\section*{Using Regular Expressions in Python}
+The Python Standard Library includes a module that will handle regular expressions.
+You can read the documentation for the module at \url{http://docs.python.org/2/library/re.html}.
+We begin by importing the \li{re} module from the standard library.
+\begin{lstlisting}
+>>> import re
+>>> m = re.match(r"(a*b)*b*a", "abba")
+>>> type(m)
+_sre.SRE_Match
+\end{lstlisting}
+We have just performed our first match!
+As you can see, \li{re.match} returns an \li{SRE_Match} object (or MatchObject).
+If there was not match to the regular expression, \li{None} is returned.
+The MatchObject object has several methods and attributes that give us information about the match.
+We mention a few here, but all of them are explained in the standard library documentation.
+To view what a regular expression matched, we can use the \li{group()} method.
+\begin{lstlisting}
+>>> m = re.match(r"(.*) (.*) (.*)", "These are a lot of words!")
+>>> m.group()
+'These are a lot of words!'
+>>> m.groups()
+('These are a lot', 'of', 'words!')
+>>> m.group(1)
+'These are a lot'
+>>> m.group(3)
+'words!'
+\end{lstlisting}
+As you can see, we matched the entire string.
+Our regular expression split the string into 3 groups.
+We can access all the groups with \li{groups()} or individual subgroups with \li{group()}.
+We can know the span of the group with the \li{span()} method.
+\begin{lstlisting}
+>>> m.span(1)
+(0, 15)
+>>> m.span(3)
+(19, 25)
+>>> m.string[19:25]
+'words!'
+>>> m.regs #gives the span of each group
+((0, 25), (0, 15), (16, 18), (19, 25))
+\end{lstlisting}
+
+We have compiled a table of the important characters and their meanings in Python.
+You can think of each of these characters representing simple state machines.
+A worthwhile exercise would be to define the state machines that correspond to each row in Table \ref{table:regexchars}.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Character & Meaning \\
+\hline
+\li{.} & Matches any character (except newlines) \\
+\li{^} & Matches at the start of a line \\
+\li{\$} & Matches at the end of a line \\
+\li{*} & Matches 0 or more repetitions of a regular expression (greedy) \\
+\li{+} & Matches 1 or more repetitions of a regular expression (greedy) \\
+\li{?} & Matches 0 or 1 repetition of a regular expression \\
+\li{(m)} & Matches exactly $m$ repetitions of a regular expression \\
+\li{(m, n)} & Matches between $m$ and $n$ repetitions of a regular expression \\
+\li{[]} & Matches a set or range of characters \\
+\li{[^ ]} & Matches the complement of a range of characters \\
+\li{A|B} & A, B are regular expression.  Match either A or B \\
+\li{\\w} & Matches any alphanumeric character and underscore \\ 
+\li{\\W} & Matches any non-alphanumeric character \\
+\li{\\s} & Matches any whitespace character \\
+\li{\\S} & Matches any non-whitespace character \\
+\hline
+\end{tabular}
+\caption{Common character sequences in regular expressions.}
+\label{table:regexchars}
+\end{table}
+Notice that some of the operator characters in Table \ref{table:regexchars} are \emph{greedy} operators.
+This means that this part of the regular expression will try to consume as much of the input as possible needed to make a match.
+There are cases where this is not desirable.
+We can make these greedy operators non-greedy, or lazy, by suffixing them with a question mark.
+The lazy star operator is then \texttt{*?}.
+A lazy operator will consume as little of the input as possible needed to make a match.
+\begin{lstlisting}
+# greedy + operator
+>>> re.match(r"<.+>", '<a href="super.png">Superman</a>').group()
+<a href="super.png">Superman</a>
+# non-greedy/lazy + operator
+>>> re.match(r"<.+?>", '<a href="super.png">Superman</a>').group()
+<a href="super.png">
+\end{lstlisting}
+
+\subsection*{Matching, Searching, Splitting, and Substituting}
+Having now an understanding of the MatchObject, we can begin to talk about how to use the powerful features of Python's regular expression library.
+Most of your regular expression use will revolve around \li{re.match()}, \li{re.search()}, \li{re.split()}, and \li{re.sub}.
+\begin{description}
+\item \emph{re.match(pattern, string, flags=0)}:  Apply a pattern beginning at start of \emph{string}.  Returns a MatchObject if successful, otherwise None.
+\item \emph{re.search(pattern, string, flags=0)}:  Look in \emph{string} for any occurrence of \emph{pattern}.  Returns a MatchObject if the pattern is found.
+\item \emph{re.split(pattern, string, maxsplit=0, flags=0)}: Split \emph{string} by occurrences of \emph{pattern}.  Returns a list of all matching substrings.
+\item \emph{re.sub(pattern, repl, string, count=0, flags=0)}: Search \emph{string} for occurrences of \emph{pattern}, and replace each occurrence with the result of \emph{repl} (can be a string or function that returns a string).
+\end{description}
+Notice that all four of these commands operate from the same workflow.
+Each accepts a pattern or regular expression and a string.
+That pattern is run on the string and then results are returned.
+In the case of splitting and substituting, we manipulate the string based off the matching parts of the pattern.
+\begin{lstlisting}
+# match one or more words (non-alphanumeric characters)
+>>> re.split('\W+', 'Hi there! This is a splitted sentence.')
+['Hi', 'there', 'This', 'is', 'a', 'splitted', 'sentence', '']
+\end{lstlisting}
+
+\begin{problem}
+Write an expression that can be used to validate most email addresses of the form a@b.c where a is any character (including periods, dashes and underscores), b can be any domain (including periods, dashes, and underscores), and c is any three or four character alphanumeric sequence.
+
+Your expression should split the email address into three groups: a, b, and c (using the notation above).
+Substitute the letter x for group b.
+For example, your substitution should transform abc123@email.com to abc123@xxxxx.com (the number of x's should be equal to the number of characters in group b).
+\label{prob:emailvaldiator}
+\end{problem}
+
+\begin{problem}
+Using Table \ref{table:regexchars}, describe the parts of the following regular expressions:
+\begin{enumerate}
+\item \li{^([a-z0-9]\{32\})\$}
+\item \li{^(19|20)\\d\\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])\$}
+\item \li{^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?\$}
+\end{enumerate}
+\label{prob:readingregex}
+\end{problem}
+
