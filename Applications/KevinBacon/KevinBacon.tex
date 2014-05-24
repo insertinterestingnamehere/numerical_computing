@@ -1,6 +1,6 @@
 \lab{Application}{Depth and Breath First Search with Kevin Bacon}{Depth and Breath First Search with Kevin Bacon}
 \label{lab:SixDegreesKevinBacon}
-\objective{This section uses the parlor game the Six Degrees of Kevin Bacon as an application to graphs}
+\objective{This section teachings about shearching graphs and uses the parlor game the Six Degrees of Kevin Bacon as an application to graphs}
 
 \section*{Searching Graphs}
 There are two commons ways to search a graph.
@@ -14,32 +14,66 @@ The other way is breadth first search (BFS).  BFS searches the graph one level a
 \label{fig:bfs_dfs_graph}
 \end{figure}
 
-Both algorithms start at a root node where the search begins.
-In our first example, we will use node D as the root node and E will be our target node.
-DFS will visit nodes D, F, and E (in that order).
-When we use A as the root node and search for B, DFS will visit nodes A, D, F, E.
-At this point, it has gone as deep as it can go and has not found node B.
-DFS has to backup and try another branch of nodes.
-The algorithm backtracks to node F and tries another route, visiting node C.
-Since we have marked node D as already visited, we go no further.
+Both algorithms start at a root node - where the search begins.
+We will walk through two examples of a DFS.
+In these example, when a node has multiple branches originating from it, we visit the latest (greater) letter in the alphabet first.
+First, we will use D as the root node and E will be our target node.
+Starting at D, we look at it's greatest neighbor, F, then F's greatest neighbor E.
+Since E was our target, the algorithm ends.
+
+Second, we will start at A and search for B. 
+We visit nodes A, D, F, E.
+At this point, we gone as deep as we can go and have not found node B.
+So we backup and try another branch of nodes.
+The algorithm backtracks to F and tries another route, visiting C.
+Since we have marked D as already visited, we go no further.
 This is important, otherwise DFS will loop infinitely around the cycle in the graph.
-We back up again to node F.  We have tried all possible branches from node F, we we back up again to node D.
-We have exhausted all sub-branches originating from node D.
-We travel back to node A and try any unexplored branches.
-We then happen to find node B.
+We back up again to F.  We have tried all possible branches from F, we we back up again to D.
+We have exhausted all sub-branches originating from D so we travel back to A and try any unexplored branches.
+We then find B and the alogrithm ends.
 
 Let's try the same two searches with BFS.
-In the first search, we start at node D.
-We then search for node B among the neighbors of D, which are nodes A, C, and F.
-We still have not found node B, we search among the the neighbors of A, C, and F (that we have not already visited).
-We find that node B is a neighbor of node A.
-In the second search, we start at node A.  Since node B is a neighbor of node A, we find it immediately.
+In the first search, we start at D and look for E.
+We search for E among the neighbors of D, which are A, C, and F.
+We have not found E, so we search among the the neighbors of A, C, and F (that we have not already visited).
+We look at F first because F  is later than A and C.
+F has one neighbor, E, which is our target so the algorithm ends.
+
+In the second search, we start at A.
+Since B is a neighbor of A, we find it immediately.
 
 Both DFS and BFS have advantages.  
 If we can choose a root node that is in someway local to the target node, BFS is obviously the better choice.
 DFS, in some case, is much more efficient when the solution is far from the target node.
 DFS can also be implemented very elegantly as a recursive algorithm (an algorithm that references itself to solve a smaller sub-problem).
-However, with large graphs, a recursive algorithm will not perform very well computationally.
+However, with large graphs a recursive algorithm will not perform very well computationally.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{BFS/DFS}{$G, root, destination$}
+	\State $Q \gets \text{Deque (BFS) or list (DFS) with root node in it}$	\Comment{Initialization steps}
+	\State $marked \gets \text{Set with root node in it}$	
+	\State $visited \gets \text{empty list}$	
+	\While{$Q \text{ has elements}$}						\Comment{Go through the graph}
+		\State $t \gets Q\text{'s left (BFS) or right (DFS) element}$	
+		\State $\text{add }t \text{ to the visited list}$
+		\If{$t==destination$}							\Comment{Found the destination node}
+			\State \pseudoli{return} $t,visited$
+		
+		\Else										\Comment{Visit $t$'s neighbors}
+			\For{$k \text{ in the adjacent nodes of } t$}
+				\If{$k \text{ not in } marked$}
+					\State $\text{add } k \text{ to } marked$
+					\State $\text{add } k \text{ to } Q$
+				\EndIf
+			\EndFor
+		\EndIf
+	\EndWhile
+\EndProcedure
+\end{algorithmic}
+\caption{Breadth first and depth first search}
+\label{alg:BFSDFS}
+\end{algorithm}
 
 \begin{problem}
 Implement methods that will perform depth first and breadth first searches on a graph.
@@ -51,11 +85,11 @@ The difference is how a particular data structure is used.  What data structure 
 \end{problem}
 
 \section*{Shortest Path Algorithms for Unweighted Graph}
-Let $A$ be a unweighted graph. We want to find the shortest path between to nodes. One way we can calculate this is we can do a breath first search and stop when reach the target node. The downside to doing it this way is that the algorithm will look through every node on any level before we reach the target node. Let us pretend that for two nodes $a, b \in A$ that the distance between $a$ and $b$ is 5. Also supose that going from $a$to $b$ you have to check $2^n$ elements where $n$ in the level. So 2 nodes are one away from $a$ four nodes are 2 away from $a$ and so on. You would have to check at least 32 nodes before you would get to $b$.
+Let $A$ be a unweighted graph. We want to find the shortest path between two nodes. We can calculate this by doing a breath first search and stoping when we reach the target node. The downside to doing it this way is that the algorithm will look through every node on every level before we reach the target node. Let us pretend that for two nodes $a, b \in A$ that the distance between $a$ and $b$ is 5. Also suppose that going from $a$ to $b$ you have to check $2^n$ elements where $n$ in the level. So 2 nodes are one away from $a$, four nodes are 2 away from $a$, and so on. Then you would have to check at least 32 nodes before you would get to $b$.
 
-A better way to find the shortest path is to do a breath first search from both $a$ and $b$. So you calculate all the nodes one away from $a$ and then all the nodes one away from $b$, then two away from $a$, then two away from $b$ and so on until you find a node that is connected to $a$ and $b$. If you assume there is also $2^n$ at the nth level away from $b$ then the number of nodes you have to check before reaching the shortest path is only at least 12 and at most 20.
+A better way to find the shortest path is to do a breath first search from both $a$ and $b$. So you calculate all the nodes one away from $a$ and then all the nodes one away from $b$, then two away from $a$, then two away from $b$ and so on until you find a node that is connected to both $a$ and $b$. Using the same example as before, if you assume there is $2^n$ nodes at the nth level away from $b$ then the number of nodes you have to check before reaching the shortest path is at least 12 and at most 20.
 
-When you have much more nodes each level away the speed up from doing a breath first search from both sides is much greater. This is one of the best way to find shortest paths in unwieghted undirected graphs. For weighted graphs there are many algorthms that find the shortest path. Those interested should look at Dijkstra's algorithm, Bellman–Ford algorithm, A* search algorithm, Floyd–Warshall, and Johnson's algorithm.
+When you have many more nodes each level away the speed up from doing a breath first search from both sides is much greater. This is one of the best ways to find shortest paths in unwieghted undirected graphs. For weighted graphs there are many algorthms that find the shortest path. Those interested should look at Dijkstra's algorithm, Bellman–Ford algorithm, A* search algorithm, Floyd–Warshall, and Johnson's algorithm.
 
 
 \section*{Six Degrees of Kevin Bacon}
