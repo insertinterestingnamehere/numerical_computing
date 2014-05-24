@@ -42,10 +42,9 @@ using both the function and the NumPy Method. (Be sure know the difference
  between doing element-wise multiplication and matrix multiplication).
 
 In IPython you can time how long it takes for a line of code to execute
-by prefacing it with \li{\%timeit}. To be able to time your function in any environment, however, 
-you will need to write a timer function similar to the following.
+by prefacing it with \li{\%timeit}. If you aren't using IPython, you will need
+to use the timeit function documented here: \url{https://docs.python.org/2/library/timeit.html}.
 
-\lstinputlisting[style=fromfile]{timefunction.py}
 \end{problem}
 
 % Below is a comparison of runtimes needed to square a matrix
@@ -281,9 +280,12 @@ Another powerful function is
 \li{np.tile()}. Tiling allows us to construct an arbitrary-dimensional array by repeating an existing array
  in a specified pattern. \li{np.tile()} allows us to tile arrays across one or more dimensions. 
 \begin{lstlisting}
->>> j = np.array([1, 9, 5, 2]) 
+>>> j = np.array([1, 9, 5, 2])
+# Repeat j three times in the first dimension 
 np.tile(j, 3)
 array([1, 9, 5, 2, 1, 9, 5, 2, 1, 9, 5, 2])
+# Make an array of three lists (third dimension) of three lists 
+# (second dimension) of two copies of j each (first dimension)
 >>> k = np.tile(j, (3, 3, 2)) 
 >>> k
 array([[[1, 9, 5, 2, 1, 9, 5, 2],
@@ -319,8 +321,8 @@ array([[4, 4, 4, 4],
        [6, 6, 6, 6],
        [7, 7, 7, 7]])
 \end{lstlisting} 
-As you can see, \li{X} is an array representing the $x$-coordinates for a grid of points and \li{Y} is an array representing the
-$y$-coordinates of that same grid of points. 
+As you can see, \li{X} is an array representing the $x$-coordinates for a 4x4 grid of points and \li{Y} is an array representing the
+$y$-coordinates of that same grid of points. For example, the (0,0) entries in X and Y correspond to the point (0,4), the (2,3) entries correspond to the point (3,6), and so on.
 
 \begin{comment} 
 When
@@ -379,15 +381,24 @@ lab. \begin{lstlisting}
 % 
 \end{comment}
 
+\section*{Iterating Through Arrays} Iterating through an array
+mitigates most, if not all, speed advantages of NumPy. The advantage
+of NumPy is that all of the iterating has been pushing into the highly
+efficient looping structures of C or Fortran. Implementing that loop
+in Python dramatically slows down the speed of execution. There are
+however some valid cases where iterating over the array is necessary.
+NumPy provides several efficient iterators that can be used in such
+instances.
+
 \section*{Array Views and Copies} It is important to understand that
 NumPy has two ways of returning an array. Slice operations always return
 a \emph{view} and fancy indexing always returns a \emph{copy}.
 Understand that even though they may look the same, views and copies are
 very different.
 
-Views are special arrays that reference the same memory as other arrays.
-Changing elements in a view changes the array it references. Below, we
-demonstrate the behavior of a view. Notice that \li{m} looks like a copy
+Views are special arrays that are unique objects, but reference the same memory as the array they 
+reference; changing elements in a view also changes the array it references. 
+Below, we demonstrate the behavior of a view. Notice that \li{m} looks like a copy
 of \li{k} even though it is not. 
 The \li{np.reshape()} method will be discussed in greater detail 
 further on in this lab.
@@ -407,9 +418,10 @@ array([[ 0,  1,  2,  3,  4],
        [10, 11, 12, 13, 14],
        [15, 16, 17, 18, 19],
        [20, 21, 22, 23, 24]]) 
-# This indicates unique objects.
+# This indicates that m and k are unique objects.
 >>> id(m) == id(k) 
 False
+# Change the third element of m (itself a list) to 500
 >>> m[2] = 500 
 >>> m
 array([[  0,   1,   2,   3,   4],
@@ -433,8 +445,8 @@ Views reduce the overhead of making copies of arrays and are useful when
 we want to change certain parts of the array.
 
 A copy of an array is a separate array with its own memory. An array can
-be copied using the \li{np.copy()} function (also available as an array
-method). 
+be copied using the \li{np.copy()} function (also available as a method of 
+the array object). 
 
 \begin{lstlisting}
 >>> j = np.reshape(np.arange(25), (5,5))
@@ -468,13 +480,15 @@ Changing the data in a copy of an array does not affect the data in the
 original array because the two arrays have different locations in memory.
 
 \section*{Indexing and Slicing} Every element of an array has a unique
-numeric address, or index, that can be used for accessing that element.
-All indexing in Python and NumPy starts with \li{0} as the first value. 
+numeric address, or index, that can be used for accessing that element. "Indexing" 
+refers to the methods we use to access elements with specified indices.
+All indices in Python and NumPy starts with \li{0} as the first value. 
 Negative indexing can also be used for NumPy arrays. 
 \begin{lstlisting}
 >>> a = np.arange(3, 9) 
 >>> a[0]
 3
+# Return the last element of a; a[-2] would return the second to last element
 >>> a[-1]
 8 
 \end{lstlisting} 
@@ -483,19 +497,19 @@ tempting to use the \li{f[i][j][k]} form of indexing. This is a \emph{very}
 inefficient way to access NumPy arrays. NumPy has provided an optimized
 indexing syntax in which the precise index is expressed as a tuple (the
 \li{k[i,j,k]} form).  This optimized indexing becomes significantly
-faster with arrays with more than one dimension. The reason that the
-unoptimized indexing is slow is because each bracket is returning an
+faster when we work with arrays of more than one dimension. The reason that the
+unoptimized \li{f[i][j][k]} indexing is slow is that each bracket is returning an
 array slice. For a 3D array, \li{k[0][0][0]} will create temporary
 slices of \li{k} from each dimension (\li{k[0]}, \li{k[0][0]}, and
-\li{k[0][0][0]}) and return the last slice. Using tuples as indices lets
-NumPy efficiently access the element directly without creating all the
-intermediate slices along the way.
+\li{k[0][0][0]}) and return the last slice. Using tuples as indices allows
+NumPy to access the element directly (without creating intermediate slices 
+along the way), which is much more efficient.
 
 It is also possible to index an array with an object such as a list or
-an array, but in this case NumPy behaves a little differently. This
-feature is commonly referred to as fancy indexing. One difference is
-that fancy indexing always returns a copy of an array instead of returning 
-a view. 
+an array instead of requesting slices with specified indices, but in this case 
+NumPy behaves a little differently. This feature is commonly referred to as fancy
+indexing. One difference is that fancy indexing always returns a copy of an array
+instead of a view. 
 There are two types of fancy indexing: boolean and integer. 
 Boolean indexing uses an array of \li{True} or \li{False} values to 
 determine which elements of the array to take. 
@@ -507,8 +521,10 @@ array([[ 0,  1,  2,  3,  4],
        [10, 11, 12, 13, 14],
        [15, 16, 17, 18, 19],
        [20, 21, 22, 23, 24]])
+# We refer to this array as "bmask" because we are "masking" the
+# values not specified instead of deleting them.
 >>> bmask = (b > 15) & (b < 23) 
-# Notice that logic operations on arrays result in true-false valued arrays.
+# Note that logic operations on arrays result in true-false valued arrays.
 >>> bmask 
 array([[False, False, False, False, False],
        [False, False, False, False, False],
@@ -525,12 +541,12 @@ array([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23, 24])
 # Return an array of elements b[0,0], b[2,2], and b[4,4].
 >>> b[(0, 2, 4), (0, 2, 4)] 
 array([ 0, 12, 24])
-# This is the same as above, but with ranges because the range(0, 5, 2)
-# is equivalent to the tuple (0, 2, 4).
+# This is the same as above, but with ranges instead of tuples; 
+# the range(0, 5, 2) is equivalent to the tuple (0, 2, 4).
 >>> b[range(0, 5, 2), range(0, 5, 2)] 
 array([ 0, 12, 24])
-# Take the first (0) and last (-1) columns. The : indicates a slice 
-# including all of that axis.
+# Take the first (0) and last (-1) columns. Note that this is a list of discrete
+# indices, not a slice. The : indicates a slice including all of that axis.
 >>> b[:, [0, -1]]  
 array([[ 0,  4], [ 5,  9], [10, 14], [15, 19], [20, 24]])
 \end{lstlisting}
@@ -692,7 +708,7 @@ it as the tolerance parameter your function accepts.
 to the tolerance 
 \begin{enumerate} 
 \item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors. Use the values from the old array for this computation. 
-This should only take one line and should be based entirely on array slicing.
+This should only take one line and should be based entirely on array slicing, NOT iterating through the array.
 (Hint: given a 2D array \li{A}, the slice \li{A[1:-1,1:-1]} references
 all non-edge entries, \li{A[:-2,1:-1]} references the upper neighbors,
 and \li{A[1:-1,2:]} references the right neighbors.) 
@@ -1021,7 +1037,9 @@ array([[ 0,  3,  6],
 \end{lstlisting}
 
 It is important to note that broadcasting does not explicitly construct the 
-larger array. In fact, internally, broadcasting uses no extra memory.
+larger array. In fact, internally, broadcasting uses no extra memory. However, 
+you should still be careful when broadcasting large arrays because you can fill the 
+RAM on your computer, which can sometimes freeze the system completely.
 For a more detailed description of array broadcasting rules, see 
 \url{http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html}.
 
@@ -1048,9 +1066,9 @@ entries of $A$. Other simple examples from NumPy include \li{cos}, \li{sqrt},
 in the \li{scipy.misc} submodule. There are far more functions available in 
 NumPy than could possibly be included here, so become 
 familiar with the NumPy and SciPy documentation at \url{docs.scipy.org/doc/}.
-If you need to do any sort of simple operation on an array, there is very 
-often a function available to do so. These functions are almost always faster and 
-more convenient than iterating through the entire array.
+If you need to do any sort of simple operation on the individual elements of an array, 
+you can usually find a universal function to do so. These functions are almost always 
+faster and more convenient than iterating through the entire array.
 
 Most of these functions also allow you to specify an array for the output.
 This can be useful to avoid unnecessary memory allocation. The output array does need to be the correct shape 
@@ -1090,11 +1108,12 @@ when using a \texttt{ufunc} on a single value.
 10000000 loops, best of 3: 144 ns per loop
 \end{lstlisting}
 
-We can see that decent performance increases when we know how to use a 
-\texttt{ufunc}. They were not designed to handle single values efficiently.
+We can see that performance increases when we know how to use a 
+\texttt{ufunc}. However, they should only be used on arrays as they are 
+not designed to handle single values efficiently.
 
 \section*{Linear Algebra}
-One of the most useful set of functions available in NumPy and SciPy are the 
+Among the most useful functions available in NumPy and SciPy are the 
 linear algebra functions. Even though NumPy has a linear algebra library, 
 SciPy contains all the functions that NumPy has as well as a few more advanced 
 functions. The linear algebra library is typically imported as
@@ -1299,7 +1318,8 @@ np.polyval(p, X)
 \[
 \arcsin x = \sum_{n=0}^{\infty} \frac{\left(2 n\right) ! x^{2 n + 1}}{\left(2 n + 1\right)\left(n!\right)^2 4^n}
 \]
-Use your approximation to find a close approximation of $\pi$.
+Use your approximation to find a close approximation of $\pi$. Hint: think of the powers of $x$ that
+are not included in the series as having zero coefficients.
 
 \item The lambert W function is the inverse of $x e^x$.
 It's taylor series is
