@@ -1,7 +1,6 @@
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 # from scipy.integrate import ode
-from __future__ import division
 import numpy as np
 from numpy.linalg import solve
 from solution import cheb
@@ -56,6 +55,7 @@ def exercise2():
 	plt.plot(xx, anal_sol(xx), '-k')
 	plt.axis([-1.,1.,-2.5,.5])
 	plt.savefig('chebyshev_points.pdf')
+	plt.clf()
 	
 
 def nonzeroDirichlet():
@@ -96,14 +96,14 @@ def nonzeroDirichlet():
 	# plt.plot(x,u+G(x), '*k')
 	# plt.plot(xx,uu+G(xx), '-r')
 	plt.plot(xx, anal_sol(xx))
-	plt.xlabel('$x$', fontsize=18)
-	plt.ylabel('$u$', fontsize=18)
+	plt.xlabel('$x$')
+	plt.ylabel('$u$')
 	# plt.axis([-1.,1.,-2.5,.5])
 	plt.savefig('nonzeroDirichlet.pdf')
-
+        plt.clf()
 
 
 if __name__ == "__main__":
-    deriv_matrix_exercise1()
-    exercise2()
+    #deriv_matrix_exercise1()
+    #exercise2()
     nonzeroDirichlet()
