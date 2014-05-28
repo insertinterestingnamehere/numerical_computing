@@ -7,26 +7,7 @@ As was mentioned in the MPI Introduction lab \ref{lab:MPI_Intro}, the simplest m
 \section*{Simple Message Passing}
 Let us begin by demonstrating a program designed for two processes. One will draw a random number and then send it to the other. We will do this using the routines \li{Comm.Send} and \li{Comm.Recv} (short for ``receive''):
 
-\begin{lstlisting}
-#passValue.py
-import numpy as np
-from mpi4py import MPI
-
-
-COMM = MPI.COMM_WORLD
-RANK = COMM.Get_rank()
-
-if RANK == 1:  # This process chooses and sends a random value
-    num_buffer = np.random.rand(1)
-    print "Process 1: Sending: {num_buffer} to process 0.".format(**locals())
-    COMM.Send(num_buffer, dest=0)
-    print "Process 1: Message sent."
-if RANK == 0:  # This process recieves a value from process 1
-    num_buffer = np.zeros(1)
-    print "Process 0: Waiting for the message... current num_buffer={num_buffer}.".format(**locals())
-    COMM.Recv(num_buffer, source=1)
-    print "Process 0: Message recieved! num_buffer={num_buffer}.".format(**locals())
-\end{lstlisting}
+\lstinputlisting[style=FromFile]{passValue.py}
 
 To illustrate simple message passing, we have one process choose a random number and then pass it to the other. Inside the recieving process, we have it print out the value of the variable \li{num_buffer} \emph{before} it calls \li{Recv} to prove that it really is recieving the variable through the message passing interface.
 
@@ -45,21 +26,7 @@ Parameters:
 \item[tag (integer)] – message tag
 \end{description}
 Example:
-\begin{lstlisting}
-#Send_example.py
-from mpi4py import MPI
-import numpy as np
-
-RANK = MPI.COMM_WORLD.Get_rank()
-
-a = np.zeros(1, dtype=int)  # This must be an array
-if RANK == 0:
-    a[0] = 10110100
-    MPI.COMM_WORLD.Send(a, dest=1)
-elif RANK == 1:
-    MPI.COMM_WORLD.Recv(a, source=0)
-    print a[0]
-\end{lstlisting} 
+\lstinputlisting[style=FromFile]{Send_example.py}
 \item[Comm.Recv(buf, source=0, tag=0, Status status=None)]
 Basic point-to-point receive of data.
 Parameters:
