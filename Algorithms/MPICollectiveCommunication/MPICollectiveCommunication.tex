@@ -2,10 +2,10 @@
 \objective{Learn how to use collective communication to increase the efficiency of parallel programs}
 \label{lab:MPI_Collective_Communication}
 
-In the lab on the Trapezoidal Rule [\ref{lab:MPI_Trapezoidal_Rule}], we worked to increase the efficiency of the trapezoidal rule by parallelizing the code and by load-balancing the parallel processes. However, the algorithm is still far from being optimized.
+In the lab on the Trapezoidal Rule [Lab \ref{lab:MPI_Trapezoidal_Rule}], we worked to increase the efficiency of the trapezoidal rule by parallelizing the code and by load-balancing the parallel processes. However, the algorithm is still far from being optimized.
 
 Look back at the summation that the root process (process 0) does. After each process independently calculates its estimate, the results must be compiled somehow, and the method we have chosen is rather inefficient. While the root process sums the data, the other processors sit idly. A more efficient algorithm would balance the work-load so that there are non-idling processes. Additionally, the root process is solely responsible for communicating with each of the other processes. The communication involved in parallel programs is usually a substantial bottleneck, and this is no exception. 
-  % TODO learn/explain why communication is such a huge bottleneck
+% TODO learn/explain why communication is such a huge bottleneck
 
 Both of these problems can be somewhat corrected through what is called ``Collective Communication.'' Besides helping to alleviate load imbalances, however, collective communication has a more important purpose: it helps to optimize message passing among separate processes. Communication among processes is expensive. Because each message must be sent over some sort of network, we must minimize and optimize this inter-process communication.
 
@@ -44,7 +44,7 @@ Knowing this, let's take another look at the trapezoidal rule.
 \section*{The Parallel Trapezoidal Rule 2.0}
 Below is the code for our revised edition of the trapezoid rule. (This code requires that the number of trapezoids is evenly divisible by the the number of processes). The main change is that the statement \li{comm.Reduce(integral, total)} has replaced the entire if-else statement that was used to compile the results, including the for loop. Not only does the code look cleaner, it runs faster.
 
-\lstinputlisting[style=fromfile]{trapParallel_2.py}
+\lstinputlisting[style=FromFile]{trapParallel_2.py}
 
 Some explanation is necessary for the call to \li{COMM.Reduce}. The first argument, \li{integral}, is the number which is going to be added up. This number is different for every process. The variable \li{total_buffer} will hold the result in the root process after this line runs. The parameter \li{op=MPI.SUM} tells the communicator to use the addition operator to combine the values.
 
@@ -70,21 +70,7 @@ Parameters:
 \item[root (int)] – rank of root of operation
 \end{description}
 Example:
-\begin{lstlisting}
-#Reduce_example.py
-from mpi4py import MPI
-import numpy as np
-
-COMM = MPI.COMM_WORLD
-RANK = COMM.Get_rank()
-operand_buffer = np.array(float(RANK))
-SIZE_buffer = np.zeros(1)
-
-COMM.Reduce(operand_buffer, SIZE_buffer, op=MPI.MAX)
-if RANK == 0:
-    SIZE = 1 + int(SIZE_buffer[0])
-    print "The size is {SIZE}.".format(**locals())
-\end{lstlisting} 
+\lstinputlisting[style=FromFile]{Reduce_example.py}
 \item[Comm.Allreduce(sendbuf, recvbuf, Op op=MPI.SUM)]
 Reduces values on all processes to a single value on all processes.
 Parameters:
@@ -97,7 +83,7 @@ Example:
 Same as the example for Reduce except replace COMM.Reduce with COMM.Allreduce and remove the if statement. Notice that all process now have the “reduced” value.
 \end{description}
 
-The following table contains the predefined operations that can be used for the input parameters \emph{Op}. There are also methods that allow the creation of user-defined operations. Full documentation is found here: \href{http://mpi4py.scipy.org/docs/apiref/mpi4py.MPI.Op-class.html}{http://mpi4py.scipy.org/docs/apiref/mpi4py.MPI.Op-class.html}
+The following table contains the predefined operations that can be used for the input parameters \emph{Op}. There are also methods that allow the creation of user-defined operations. Full documentation is found here: \url{http://mpi4py.scipy.org/docs/apiref/mpi4py.MPI.Op-class.html}.
 
 TODO figure out how to format this table
 
@@ -191,7 +177,7 @@ In order to parallelize this, we can divide up the work among different processo
 
 The code looks like this:
 
-\lstinputlisting[style=fromfile]{dot.py}
+\lstinputlisting[style=FromFile]{dot.py}
 
 The actual distributing of the data occurs with the calls to \li{Scatter}. \li{Scatter} takes an array, divides it up, and distributes one piece to each process. Afterward, the serial dot product (using \li{np.dot}) is run to calculate a local dot product within each process. Finally, \li{Reduce} is called to collect the results into the root process.
 
@@ -297,17 +283,6 @@ Alter your code from the previous exercise so that it calculates the supremum no
 \begin{problem}
 Use \li{Scatter} to parallelize the multiplication of a matrix and a vector. There are two ways that this can be accomplished. Both use \li{Scatter} to distribute the matrix, but one uses \li{Bcast} to distribute the vector and \li{Gather} to finish while the other uses \li{Scatter} to segment the vector and finishes with \li{Reduce}. Outline how each would be done. Discuss which would be more efficient (hint: think about memory usage). Then, write the code for the better one. Generate an arbitrary matrix on the root node. You may assume that the number of processes is equal to the number of rows (columns) of a square matrix. Example code demonstrating scattering a matrix is shown below:
 
-\begin{lstlisting}
-#matrix_scatter_example
-from mpi4py import MPI
-import numpy as np
-
-COMM = MPI.COMM_WORLD
-RANK = COMM.Get_rank()
-A = np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,9.]])
-local_a = np.zeros(3)
-COMM.Scatter(A, local_a)
-print "Process {RANK} has {local_a}.".format(**locals())
-\end{lstlisting}
+\lstinputlisting[style=FromFile]{matrix_scatter_example.py}
 \end{problem}
 
