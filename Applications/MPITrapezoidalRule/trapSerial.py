@@ -33,4 +33,4 @@ b = float(argv[2])
 n = int(argv[3])
 
 result = integrate_range(function, a, b, n)
-print "With {n} trapezoids, the estimate of the integral of x^2 from {a} to {b} is: \n\t{result}".format(**locals())
+print "With {0} trapezoids, the estimate of the integral of x^2 from {1} to {2} is: \n\t{3}".format(n, a, b, result)
