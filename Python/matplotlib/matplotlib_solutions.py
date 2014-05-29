@@ -16,7 +16,7 @@ def problem2():
 	f = lambda X: 1./(X - 1)
 	Y1 = f(X1)
 	Y2 = f(X2)
-	plt.plot(X1, Y1, 'b', X2, Y2, 'b')
+	plt.plot(X1, Y1, 'm--', X2, Y2, 'm--', linewidth=5.0)
 	plt.ylim((-6,6))
 	plt.show()
 
