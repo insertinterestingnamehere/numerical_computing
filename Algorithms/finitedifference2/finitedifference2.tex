@@ -13,25 +13,44 @@
 % 	u_x(t,x) & \approx \frac{u(t,x+h)-u(t,x-h)}{2h}.
 % \end{align*}
 
+Recall that the heat equation is given by $u_t = \nu u_{xx} + f(x,t,u)$. Suppose that we want to describe the flow of heat throughout a region $\Omega$. If the temperature on the boundary of $\Omega$ is fixed at $g$, and the $\Omega$ has an initial heat profile of $f$, then the flow of heat can be described by the boundary value problem 
+\begin{align}
+	\begin{split}
+		& { } u_t = \nu \triangle u + f(x,t,u), \quad x \in \Omega, \quad t >0,\\
+		& { }u(x,t) = h(x), \quad x \in \partial \Omega, \\
+		& { }u(x,0) = g(x).
+	\end{split}
+\end{align}
+When the source term $f$ does not depend on time, there is often a steady-state heat profile $u_{\infty}$ that is achieved as $t \to \infty$. This steady state $u_{\infty}$ is a solution of the boundary value problem 
+\begin{align}
+	\begin{split}
+		& { }  \triangle u + f(x)/\nu = 0, \quad x \in \Omega,\\
+		& { }u(x,t) = h(x), \quad x \in \partial \Omega.
+	\end{split}
+\end{align}
+The partial differential equation $\triangle u = -f$ is commonly known as Poisson's equation. This equation is satisfied by the steady-state solutions of certain evolutionary processes. Poisson's equation is often used in electrostatics, image processing, and other areas. 
+
+\section{Poisson's equation in one dimension}
+Consider the boundary value problem defined by
+\begin{align}
+	\begin{split}
+u'' &= f(x), \quad a \leq x \leq b,\\
+	u(a) &= \alpha,\quad u(b) = \beta,
+	\end{split}
+\end{align}
+where $f$ is continuous. 
 The basic idea behind most numerical methods for differential equations is to 
 approximate the exact solution $u(x)$ at some finite collection of points in the 
 domain of the problem. Instead of analytically solving an infinite-dimensional
-problem, we look for a simple finite collection of algebraic equations that approximate
- the original problem.
+problem, we look for a simple finite collection of algebraic equations that approximate the original problem.
 
-For example, consider the following simple boundary value problem:
-\begin{align}
-u'' &= f(x), \quad a \leq x \leq b,\nonumber\\
-	u(a) &= \alpha,\nonumber\\
-	u(b) &= \beta,
-\end{align}
-where $f$ is continuous. %Note that this equation can easily be solved by integrating twice 
+%Note that this equation can easily be solved by integrating twice 
 %and using the boundary conditions to determine the constants of integration. 
 Solving this boundary
 value problem is equivalent to solving the equation $Du = f,$
 where $D\frac{d^2}{dx^2}$ is a differential operator defined on the infinite-dimensional space 
 of functions $u:[a,b] \to \mathbb{R}$ that are twice continuously differentiable and 
-satisfy the boundary conditions $u(a) = \alpha$, $u(b) = \beta$. Finite difference method in general attempt to replace infinite-dimensional differential operators with finite difference operators. For example, recalling that $\frac{d^2}{dx^2}u(x) = \frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right) + \mathcal{O}(h^2),$ we could  approximate $Du$ with the finite difference $\frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right).$
+satisfy the boundary conditions $u(a) = \alpha$, $u(b) = \beta$. The finite difference method in general attempts to replace infinite-dimensional differential operators with finite difference operators. For example, recalling that $\frac{d^2}{dx^2}u(x) = \frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right) + \mathcal{O}(h^2),$ we could  approximate $Du$ with the finite difference $\frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right).$
 
 
 We consider an approximate solution $\{u_i\}_{i=0}^N$ on an evenly spaced grid $a = x_0, x_1, \ldots, x_N = b$ with $h = x_{i+1}-x_i$ for each $i.$
@@ -55,10 +74,9 @@ We can further modify the system to obtain an $(N-1)\times (N-1)$ tridiagonal ma
 The following code uses the finite difference method just described to solve the boundary value problem
 \begin{align*}
 u'' &= -3 \sin{x}, \quad 0 \leq x \leq 2,\\
-	u(0) &= -2,\\
-	u(2) &= 1.
+	u(0) &= -2,\quad u(2) = 1.
 \end{align*}
-Note the use of matrix functions from \li{scipy.sparse}. Several variations of this matrix will be built throughout this lab. 
+Note the use of matrix functions from \li{scipy.sparse}. %Several variations of this matrix will be built throughout this lab. 
 
 \begin{lstlisting}
 from __future__ import division
@@ -66,24 +84,29 @@ import numpy as np
 from scipy.sparse import spdiags
 from scipy.sparse.linalg import spsolve
 
-def fd_example1(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
-	h, F = (b-a)/(N), np.zeros(N-1.)
+def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
+	h = (b-a)/N 				# The length of each subinterval
+	
+	# Initialize and define the vector F on the right
+	F = np.empty(N-1.)			
 	F[0] = func(a+1.*h)-alpha*h**(-2.)
 	F[N-2] = func(a+(N-1)*h)-beta*h**(-2.)
+	for j in xrange(1,N-2): 
+		F[j] = func(a + (j+1)*h)
 	
-	for j in xrange(1,N-2): F[j] = func(a + (j+1)*h)
-	
-	D0,D1,diags = -2.*np.ones((1,N-1)), np.ones((1,N-1)), np.array([0,-1,1])
-	data = np.concatenate((D0,D1,D1),axis=0) # This stacks up rows
+	# Here we define the arrays that will go on the diagonals of A
+	D0, D1 = -2.*np.ones((1,N-1)), np.ones((1,N-1))  
+	# Next we concatenate the arrays, and specify on which diagonals they will be placed
+	diags = np.array([0,-1,1])
+	data = np.concatenate((D0,D1,D1),axis=0) 
 	A=h**(-2.)*spdiags(data,diags,N-1,N-1).asformat('csr')
 	
+	# We create and return the numerical approximation
 	U = spsolve(A,F)
 	U = np.concatenate( ( np.array([alpha]), U, np.array([beta]) ) )
 	return np.linspace(a,b,N+1), U
 
-
-a,b = 0., 2.
-x, y = fd_example1(lambda x:(-3.*np.sin(x)), a, b, alpha=-2., beta=1, N=30)
+x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
 \end{lstlisting}
 
 How do we know if a numerical approximation is reasonable? One way to determine this 
@@ -100,48 +123,59 @@ stepsize $h_k, k < m,$ is
 \end{align*}
 Thus on a log-log plot of $E(h)$ vs. $h,$ these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. 
 
-Here we generate the figure (TODO)
+The following code generates the log-log plot in \ref{figure1}, and demonstrates second-order convergence for this finite difference approximation. 
 \begin{lstlisting}
 import matplotlib.pyplot as plt
+a, b = 0., 1.
 num_approx = 10 # Number of Approximations
 N = np.array([5*2**j for j in range(num_approx)])
 h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
 
-mesh_best, num_sol_best = fd_example1(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
+mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
 for j in range(len(N)-1): 
-    mesh, num_sol = fd_example1(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
+    mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
     max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
 plt.loglog(h,max_error,'.-r',label="$E(h)$")
 plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
 plt.xlabel("$h$")
 plt.legend(loc='best')
+plt.show()
 print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
     np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
 \end{lstlisting}
 
-
+\begin{figure}[ht]
+\centering
+\includegraphics[width=12cm]{example_convergence.pdf}
+\caption{TODO}
+\label{figure1}
+\end{figure}
 
 
 \begin{problem}
 Extend the given finite difference code to the case of a general second order linear boundary value problem with Dirichlet conditions:
 \begin{align*}
-	a_1(x)y'' +a_2(x)y'+ a_3(x) y&= f(x), \quad 0 \leq x \leq 1,\\
-	y(0) &= \alpha,\\
-	y(1) &= \beta.
+	&{ } a_1(x)y'' +a_2(x)y'+ a_3(x) y = f(x), \quad x \in (0,1),\\
+	&{ } y(0) = \alpha, \quad y(1) = \beta.
 \end{align*}
 Use your code to solve the singularly perturbed boundary value problem
 \begin{align*}
-	\epsilon y''(x)-y'&= f(x) \quad \text{ for } \,\,0 < x < 1, \\
-	y(0) &= \alpha, \\
-	y(1) &= \beta. 
+	&{ } \epsilon y''(x)-y'= f(x), \quad x \in (0,1), \\
+	&{ } y(0) = 1, \quad y(1) = 3,
 \end{align*}
+with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of accuracy? 
 
 % If $\alpha = 1,$  $\beta = 3,$ and $f(x) = -1$, there is an exact solution: 
 % \[y(x) = \alpha + x+ (\beta - \alpha -1)\frac{e^{x/\epsilon -1}}{e^{1/\epsilon -1}}
 % .\]
 \end{problem}
 
-
+\begin{figure}[ht]
+\centering
+\includegraphics[width=12cm]{figure2.pdf}
+\caption{TODO}
+\label{figure2}
+\end{figure}
 
 
 
@@ -172,7 +206,7 @@ Here $A$ is the block tridiagonal matrix
 \]
 where $I$ is the $m\times m$ identity matrix, and $T$ is the tridiagonal matrix
 \[
-\frac{1}{h^2} \begin{bmatrix}-4 & 1 & &  &\\ 1 &-4 & 1 & &\\  &\ddots  & \ddots & \ddots & \\  &  & 1 & -4 & 1 \\
+ \begin{bmatrix}-4 & 1 & &  &\\ 1 &-4 & 1 & &\\  &\ddots  & \ddots & \ddots & \\  &  & 1 & -4 & 1 \\
  &  &  & 1 & -4
 \end{bmatrix}.
 \]
@@ -199,9 +233,9 @@ q^1 = \frac{1}{h^2}\begin{bmatrix} g_{1,0} + g_{0,1} \\ g_{2,0} \\ \vdots \\ g_{
 	Find the solution $u$ of the 2D Laplace equation $\Delta u = 0$ on the unit 
 	square $[0,1]\times [0,1] \subset \mathbb{R}^2,$ subject to the (Dirichlet) condition that 
 	$u(x,y) = x^3$ on the boundary. 
-	
-	Graph your solution, and demonstrate convergence of the numerical approximation by 
-	creating a log-log plotof the error $E(h).$
+	% 
+	% Graph your solution, and demonstrate convergence of the numerical approximation by 
+	% creating a log-log plotof the error $E(h).$
 \end{problem}
 
 \begin{problem}
