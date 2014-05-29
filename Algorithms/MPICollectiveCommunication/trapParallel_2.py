@@ -66,4 +66,4 @@ total = total_buffer[0]
 
 # Now the root process prints the results:
 if RANK == 0:
-    print "With {n} trapezoids, the estimate of the integral of x^2 from {a} to {b} is: \n\t{total}".format(**locals())
+    print "With {0} trapezoids, the estimate of the integral of x^2 from {1} to {2} is: \n\t{3}".format(n, a, b, total)
