@@ -84,17 +84,24 @@ def Transcritical_bifurcation():
 def Hysteresis():
 	def F(x,lmbda):	return lmbda + x - x**3.
 	
-	plot_continuation_curve(np.linspace(-5,2,1400),-2,F,'-k')
+	plot_continuation_curve(np.linspace(-5,2,1400),-2,F,'-k',"Stable equilibria")
 	plot_continuation_curve(np.linspace(5,-2,1400),2,F,'-k') 
-	plot_continuation_curve(np.linspace(0,-2,700),0,F,'-k') 
-	plot_continuation_curve(np.linspace(0,2,700),0,F,'-k') 
+	plot_continuation_curve(np.linspace(0,-2,700),0,F,'--k',"Unstable equilibria") 
+	plot_continuation_curve(np.linspace(0,2,700),0,F,'--k') 
 	x0, x1 = 1./np.sqrt(3), -1./np.sqrt(3)
 	l0,l1 = x0**3 -x0,x1**3 -x1
 	plt.plot([l0,l1],[x0,x1],'ok')
+	plt.arrow(-.5, 0, 0, -.5, head_width=0.1, head_length=0.05, fc='k', ec='k',linewidth=1.5)
+	plt.arrow(.5, 0, 0, .5, head_width=0.1, head_length=0.05, fc='k', ec='k',linewidth=1.5)
+	plt.arrow(.4, 1.5, -.5, -.2, head_width=0.1, head_length=0.05, fc='k', ec='k',linewidth=1.5)
+	plt.arrow(-.4, -1.5, .5, .2, head_width=0.1, head_length=0.05, fc='k', ec='k',linewidth=1.5)
+	
 	# plot_axes()
+	plt.legend(loc='best')
 	plt.axis([-3,3,-3,3])
-	# plt.title("Hysteresis loop\n Prototype equation: $x' = \lambda + x - x^3$")
+	plt.title("Hysteresis loop\n Prototype equation: $x' = \lambda + x - x^3$")
 	plt.xlabel('$\lambda$',fontsize=16)
+	plt.xlabel('$x$',fontsize=16)
 	plt.show()
 	plt.clf()	
 	return
@@ -134,13 +141,13 @@ def Another_bifurcation(gamma):
 
 
 
-Another_bifurcation(-1)
-Another_bifurcation(-.2)
-Another_bifurcation(0)
-Another_bifurcation(.2)
-Another_bifurcation(1)
+# Another_bifurcation(-1)
+# Another_bifurcation(-.2)
+# Another_bifurcation(0)
+# Another_bifurcation(.2)
+# Another_bifurcation(1)
 # SaddleNode_bifurcation()
-# Hysteresis()
+Hysteresis()
 # Pitchfork_bifurcation()
 # Transcritical_bifurcation()
 
