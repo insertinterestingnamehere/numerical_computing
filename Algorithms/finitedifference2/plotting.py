@@ -4,6 +4,62 @@ from solution import general_secondorder_ode_fd, poisson_square
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
+from scipy.sparse import spdiags
+from scipy.sparse.linalg import spsolve
+
+def example():
+	# First Code block in the lab manual
+	# from __future__ import division
+	# import numpy as np
+	from scipy.sparse import spdiags
+	from scipy.sparse.linalg import spsolve
+	
+	def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
+		h = (b-a)/N 				# The length of each subinterval
+		
+		# Initialize and define the vector F on the right
+		F = np.empty(N-1.)			
+		F[0] = func(a+1.*h)-alpha*h**(-2.)
+		F[N-2] = func(a+(N-1)*h)-beta*h**(-2.)
+		for j in xrange(1,N-2): 
+			F[j] = func(a + (j+1)*h)
+			
+		# Here we define the arrays that will go on the diagonals of A
+		D0, D1 = -2.*np.ones((1,N-1)), np.ones((1,N-1))  
+		# Next we concatenate the arrays, and specify on which diagonals they will be placed
+		diags = np.array([0,-1,1])
+		data = np.concatenate((D0,D1,D1),axis=0) 
+		A=h**(-2.)*spdiags(data,diags,N-1,N-1).asformat('csr')
+		
+		# We create and return the numerical approximation
+		U = spsolve(A,F)
+		U = np.concatenate( ( np.array([alpha]), U, np.array([beta]) ) )
+		return np.linspace(a,b,N+1), U
+	
+	x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
+	
+	
+	# Second code block in the lab manual
+	import matplotlib.pyplot as plt
+	a, b = 0., 1.
+	num_approx = 10 # Number of Approximations
+	N = np.array([5*2**j for j in range(num_approx)])
+	h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
+	
+	mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
+	for j in range(len(N)-1): 
+	    mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
+	    max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
+	plt.loglog(h,max_error,'.-r',label="$E(h)$")
+	plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
+	plt.xlabel("$h$")
+	plt.legend(loc='best')
+	plt.savefig('example_convergence.pdf')
+	plt.show()
+	print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
+	    np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
+	plt.clf()
+	return 
 
 
 def Exercise1():
@@ -18,29 +74,33 @@ def Exercise1():
 	    return out
 	
 	
-	eps, subintervals = 0.005, 400
+	eps, subintervals = 0.1, 400
 	X,Y = problem1(eps, subintervals)
 	plt.plot(X,Y,'-k',mfc="None",linewidth=2.0)
 	plt.axis([0.,1.1,.8,3.2])
+	plt.ylabel('$y$',fontsize=16)
+	plt.xlabel('$x$',fontsize=16)
+	plt.savefig('figure2.pdf')
 	plt.show()
+	plt.clf()
 	
 	
-	N = np.array([5,10,20,40,80,160,320,640,1280])
+	N = np.array([5,10,20,40,80,160,320,640,1280,2560])
 	h, MaxError = 2./N, np.ones(len(N))
-	eps = .4
+	eps = .1
 	for j in range(len(N)): 
 		Mesh, Sol = problem1(epsilon=eps,subintervals=N[j])
 		MaxError[j] = (max(abs( Sol- AnalyticSolution(Mesh,alpha=1.,beta=3.,epsilon=eps) ) ) )
-		
+	print "Number of subintervals = ", N
+	print "MaxError = ",MaxError
 	plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$" )
 	plt.loglog(h,MaxError,'.-r',label="$E(h^2)$")
 	plt.xlabel("$h$")
 	plt.legend(loc='best')
-	plt.show()
+	# plt.show()
 	print "Order of the Approximation is about ", ( (np.log(MaxError[0]) - 
                 np.log(MaxError[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) )
 	return 
-
 
 
 def ExercisePoisson():
@@ -119,7 +179,8 @@ def ExercisePoisson():
 
 
 
+# example()
+Exercise1()
+# ExercisePoisson()
 
-# Exercise1()
 
-ExercisePoisson()
