@@ -1,0 +1,161 @@
+\lab{Applications}{Lorenz Equations}{Lorenz Equations}
+\label{lab:lorenz}
+
+\objective{Investigate the behavior of a system that exhibits chaotic behavior.
+Demonstrate methods for visualizing the evolution of a system.}
+
+Chaos is everywhere.
+It can crop up in unexpected places and in remarkably simple systems, and a great deal of work has been done to describe the behavior of chaotic systems.
+One primary characteristic of chaos is that small changes in initial conditions result in large changes over time in the solution curves.
+
+\section*{The Lorenz System}
+One of the earlier examples of chaotic behavior was discovered by Edward Lorenz.
+In 1963, while working to study atmospheric dynamics he derived the simple system of equations
+\begin{align*}
+\frac{\partial x}{\partial t} &= \sigma \left(y - x\right) \\
+\frac{\partial y}{\partial t} &= \rho x - y - x z \\
+\frac{\partial z}{\partial t} &= x y - \beta z
+\end{align*}
+where $\sigma$, $\rho$, and $\beta$ are all constants.
+After deriving these equations, he plotted the solutions and observed some unexpected behavior.
+For appropriately chosen values of $\sigma$, $\rho$, and $\beta$, the solutions did not tend toward any steady fixed points, nor did the system permit any stable cycles.
+The solutions did not tend off toward infinity either.
+With further work, he began the study of what was called a strange attractor.
+This system, though relatively simple, exhibits chaotic behavior.
+
+\begin{problem}
+Use Mayavi's \li{plot3d} function to plot the trajectories of several points in the Lorenz system.
+Use $\sigma = 10$, $\beta = \frac{8}{3}$, and $\rho = 28$.
+Choose random initial values between $-15$ and $15$.
+\end{problem}
+
+\section*{Animation in Mayavi}
+Here we will take a brief diversion into some tools for plotting that will help us to visualize the evolution of systems like the one we are studying here.
+Both Matplotlib and Mayavi allow for some kind of visualization.
+% As of this writing, Mayavi's support for 3D plotting is much more robust than the plotting in Matplotlib, so we will encourage students to use it instead of Matplotlib.
+Here we will work primarily with the animation functions in Mayavi, though similar functionality is available in Matplotlib.
+
+Said simply, most things you plot in Mayavi, allow you to change their data.
+For things you plot using the basic built in plotting functions in the \li{mlab} api this can be done using the \li{set} and \li{reset} methods of the \li{mlab_source} attribute of the object created by the plotting function.
+For example, the following short script will plot the curve $(t, \cos(t), 0)$, in spite of the fact that we originally plot the data corresponding to the curve $(t, \sin(t), 0)$.
+\begin{lstlisting}
+import numpy as np
+from mayavi import mlab
+
+x = np.linspace(- 2 * np.pi, 2 * np.pi)
+y = np.sin(x)
+z = np.zeros_like(x)
+# Plot the first curve.
+curve = mlab.plot3d(x, y, z)
+# Change the y values.
+curve.mlab_source.set(y=np.cos(x))
+# Show the new curve.
+mlab.show()
+\end{lstlisting}
+
+We can use this functionality in conjunction with some function decorators included in Mayavi to make a plot that continually evolves.
+For example, we can continuously shift the phase of a curve like the one above using something like this:
+\begin{lstlisting}
+from mayavi import mlab
+import numpy as np
+
+def animate_sine(resolution=101, step=1, delay=20):
+    # Compute the initial values for the curve.
+    # Leave off the last point so we can update by rolling the entries of the array from
+    # the end to the beginning.
+    x = np.linspace(0, 4 * np.pi, resolution)[:-1]
+    # Make the surface object and the initial plot.
+    c = mlab.plot3d(x, np.sin(x), np.zeros_like(x), line_width=.2)
+    # Use decorators to call the update the plot
+    # periodically with a given time delay.
+    # 'animate' is a generator that updates
+    # the plot each time it is called.
+    # The show decorator takes care of showing the figure.
+    @mlab.show
+    @mlab.animate(delay=delay)
+    def animate():
+        # Get 'y' back from the surface object.
+        y = c.mlab_source.y
+        # Update the plot at each iteration of this loop.
+        while True:
+            y = np.roll(y, step)
+            c.mlab_source.set(y=y)
+            yield
+    # Run the animation on the figure.
+    animate()
+# Run the full animation.
+animate_sine()
+\end{lstlisting}
+
+The \li{set} method can also be used on 3D surfaces.
+The following two examples show how this is done.
+\begin{lstlisting}
+from mayavi import mlab
+import numpy as np
+
+def animate_harmonic(resolution=51, delay=25):
+    # Make the initial data for the surface.
+    x = np.linspace(0, np.pi, resolution)
+    y = np.linspace(0, np.pi, resolution)
+    x, y = np.meshgrid(x, y, copy=False)
+    z = np.sin(x) * np.sin(y)
+    # Plot the surface.
+    # For now use zeros as the z values.
+    # It will use the scalars values to select colors,
+    # so we'll have it match the colors to the z values now.
+    c = mlab.mesh(x, y, np.zeros_like(z), scalars=z)
+    # Animate it by changing the 'z' values.
+    @mlab.show
+    @mlab.animate(delay=delay)
+    def animate():
+        # We'll have it oscillate between its current value
+        # and the negative of its current value.
+        # We'll have scale range from values of 0 to 2 * np.pi.
+        scale = 0.
+        while True:
+            # Update the scale
+            scale += .05
+            # Cycle back toward 0 if necessary.
+            if scale > 2 * np.pi:
+                scale -= 2 * np.pi
+            # Update the plot
+            c.mlab_source.set(z = np.sin(scale) * z)
+            yield
+    # Run the animation on the figure.
+    animate()
+# Run the full animation.
+animate_harmonic()
+\end{lstlisting}
+
+Here is an example that uses this same approach to plot a more generic oscillating surface.
+\begin{lstlisting}
+import numpy as np
+from mayavi import mlab
+
+def oscillate(x, y, z, delay=20):
+    @mlab.show
+    @mlab.animate(delay=delay)
+    def animate(x, y, z):
+        # Make the initial plot.
+        surface = mlab.mesh(x, y, np.zeros_like(z), scalars=z)
+        # Use this variable to scale it at each step in the animation.
+        scale = 0.
+        while True:
+            scale += .05
+            if scale > 2 * np.pi:
+                scale -= 2 * np.pi
+            # Update the 'z' values for the surface.
+            surface.mlab_source.set(z = np.sin(scale) * z)
+            yield
+    # Run the animation
+    animate(x, y, z)
+
+# Here's another fun example.
+# Construct the data for the plot.
+x = np.linspace(0, np.pi)
+y = np.linspace(0, np.pi)
+x, y = np.meshgrid(x, y, copy=False)
+z = np.sin(2 * x) * np.sin(2 * y)
+# Run the animation.
+oscillate(x, y, z)
+\end{lstlisting}
