@@ -106,7 +106,7 @@ def problem8():
     	opener = urllib.urlopen('https://s3.amazonaws.com/storage.enthought.com/www/sample_data/N36W113.hgt.zip')
     	open('N36W113.hgt.zip', 'wb').write(opener.read())
 	data = np.fromstring(zipfile.ZipFile('N36W113.hgt.zip').read('N36W113.hgt'), '>i2')
-	#data = np.load("gcdata.npy")
+	#data = np.load("GCdata.npy")
 	data.shape = (3601, 3601)
 	data = data.astype(np.float32)
 	data = data[:1000, 900:1900]
