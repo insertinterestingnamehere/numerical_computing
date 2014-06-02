@@ -13,17 +13,18 @@ Matplotlib has many different plotting functions and we strongly
 encourage you to visit \url{http://matplotlib.org} for more
 information.
 
-\subsection*{simple plots} To get started, matplotlib is typically imported
-like so 
-\begin{lstlisting} 
-from matplotlib import pyplot as plt
-\end{lstlisting}
+\subsection*{simple plots} 
 
 The basic line plotting function in matplotlib is \li{plot}. It takes a
 set of data points and plots the line that is formed between those points. 
 These plots are pieced together using a state machine environment, meaning that 
 we can run several different functions and they will all display or modify the 
 plot we are creating. 
+
+To get started, import pyplot from matplotlib like so
+\begin{lstlisting} 
+from matplotlib import pyplot as plt
+\end{lstlisting}
 
 To plot and show our function, the final two lines of code are always
 \begin{lstlisting} 
@@ -316,10 +317,11 @@ We can add titles to each subplot using the \li{plt.title} function. The
 \li{plt.suptitle} function allows us to give the entire figure a title
 as well.
 
-\begin{problem} Make a plot with 4 subplots. In the subplots place
-graphs of $e^x$, $sin(x)$, $cos(x)$, and $x^2$. Plot all of them on the
-interval $(-\pi,\pi)$. Title each of them accordingly. Title the entire
-figure ``My Different Plots." 
+\begin{problem} 
+Make a plot with 4 subplots. In the subplots place graphs of $e^x$,
+$sin(x)$, $cos(x)$, and $x^2$. Plot all of them on the interval
+$(-\pi,\pi)$. Title each of them accordingly. Title the entire figure
+``My Different Plots." 
 \end{problem}
 
 \begin{comment} 
@@ -381,52 +383,212 @@ figure ``My Different Plots."
     
     \end{comment}
 
-
-
-
 \section*{mayavi}
 
-Matplotlib is the preferred library for 2D plotting.  
-We will now consider Mayavi for 3D plotting. 
-It is a general scientific data visualizer that seeks to provide interactive 
-visualization of 3D data. 
-It provides easy integration with Python scientific libraries and maintains a 
-rich user interface that allows interaction with all data and objects. 
+Matplotlib is the preferred library for 2D plotting. We will now
+consider Mayavi for 3D plotting. It is a general scientific data
+visualizer that seeks to provide interactive visualization of 3D data.
+It provides easy integration with Python scientific libraries and
+maintains a rich user interface that allows interaction with all data
+and objects.
 
+We strong encourage you to visit their formal documentation at
+\url{docs.enthought.com/mayavi/mayavi/} for more information. 
 
-
-
-Matplotlib is one of Python's many plotting libraries. Its high quality
-and user interface explains why matplotlib serves as our primary
-plotting library for 2D graphs in this text. It has an active
-development community and was designed to resemble MATLAB.
-
-Matplotlib has many different plotting functions and we strongly
-encourage you to visit \url{http://matplotlib.org} for more
-information.
-
-
-\subsection*{simple plots} To get started, matplotlib is typically imported
-like so 
-\begin{lstlisting} 
-from matplotlib import pyplot as plt
+In mayavi we will be using the \li{mlab} API which is imported like so
+\begin{lstlisting}
+from mayavi import mlab
 \end{lstlisting}
 
-The basic line plotting function in matplotlib is \li{plot}. It takes a
-set of data points and plots the line that is formed between those points. 
-These plots are pieced together using a state machine environment, meaning that 
-we can run several different functions and they will all display or modify the 
-plot we are creating. 
+\li{mlab} has many plotting functions including
+\begin{itemize}
+\item barchart
+\item contour3d
+\item flow
+\item imshow
+\item mesh
+\item molecule
+\item plot3d
+\item points3d
+\item quiver 3d
+\item surf
+\end{itemize}
 
-To plot and show our function, the final two lines of code are always
-\begin{lstlisting} 
-plt.plot(x,y) 
-plt.show() 
+All these can be "tested" by typing the command
+\begin{lstlisting}
+mlab.test_<plotting function>()
+\end{lstlisting}
+Note that pressing tab after typing \li{mlab.test_} will provide a 
+list of available commands. 
+
+To test the fancy mesh, type the following command
+\begin{lstlisting}
+mlab.test_fancy_mesh()
 \end{lstlisting}
 
-The user provides the x and y coordinates of these points. It is important that the 
-coordinates provided are the same dimension for \li{plot} to work. 
+The result should resemble Figure \ref{mayavi:fancymesh}
 
-We can generate a basic plot of $e^x$ using the following lines of code:
-\lstinputlisting[style=fromfile]{explot.py}
+\begin{figure} 
+\includegraphics[width=\textwidth]{fancymesh.pdf}
+\caption{An example of the fancy mesh plotting function} 
+\label{mayavi:fancymesh}
+\end{figure}
+
+
+We will focus our attention on introducing the \li{surf}, \li{mesh}, 
+\li{plot3d}, and \li{points3d} functions. 
+
+
+\subsection*{3D Plotting} Similar to matplotlib, \li{mlab} takes a set
+of data points and plots it. Instead of passing just \li{x} and \li{y}
+coordinates like we did in matplotlib, we will also send \li{z}
+coordinates to produce a 3D plot. 
+
+\subsection*{surf}
+
+The \li{surf} function is great for simple structures like orthogonal grids 
+because it will create efficient data structures. 
+It is common to use 2D arrays returned by \li{np.meshgrid}. 
+
+For more complex structures, the \li{mesh} function is more appropriate. 
+
+\subsection*{mesh}
+\li{mesh} plots a surface using grid-spaced data. 
+It expects three 2D numpy arrays. As with matplotlib, it is important that 
+all three arrays to be the same shape. 
+
+\subsection*{plot3d}
+\li{plot3d} is used to draw lines between points. It expects three numpy 
+arrays to provide the position of the line. 
+
+The following illustrates a simple floral design.
+
+\lstinputlisting[style=fromfile]{plot3d.py}
+
+This will produce Figure \ref{mayavi:plot3d.pdf}
+
+\begin{figure} 
+\includegraphics[width=\textwidth]{plot3d.pdf}
+\caption{A simple floral. } 
+\label{mayavi:plot3d.pdf}
+\end{figure}
+
+
+\subsection*{points3d}
+\li{points3d} is very similar to \li{plot3d} except it plots glyphs at the 
+position of the supplied data. It takes the same arguments. This time we 
+will use a keyword argument, \li{s}, which provides an associated scalar 
+value for each point given. It modifies the size and color of the points. 
+
+The following illustrates a simple heart - given the right perspective. 
+
+\lstinputlisting[style=fromfile]{points3d.py}
+
+This will produce Figure \ref{mayavi:points3d.pdf}
+
+\begin{figure} 
+\includegraphics[width=\textwidth]{points3d.pdf}
+\caption{A simple heart. } 
+\label{mayavi:points3d.pdf}
+\end{figure}
+
+\subsection*{Changing Looks}
+The color of your object can be explicitly defined using the \li{color} 
+keyword argument. It is specified as a triplet (red, green, blue) of 
+floating points ranging from 0 to 1. 
+For example, (1.0, 1.0, 1.0) is white. 
+
+If, however, you would prefer to vary the colors across your visualization, 
+using a colormap is suggested. Table \ref{mayavi:colormaps} provides 
+all possible colormaps. 
+
+\begin{table} 
+\begin{center}
+\begin{tabular}{|l|c|r|}
+
+    \hline
+    \multicolumn{2}{c}
+
+    {Colormaps} \\
+
+    \hline
+
+    \li{Accent} & \li{autumn} & \li{black-white} \\
+
+    \li{blue-red} & \li{Blues} & \li{bone} \\
+    
+    \li{BrBG} & \li{BuGn} & \li{BuPu} \\
+    
+    \li{cool} & \li{copper} & \li{Dark2} \\
+    
+    \li{flag} & \li{gist_earth} & \li{gist_gray} \\
+    
+    \li{gist_heat} & \li{gist_ncar} & \li{gist_rainbow} \\
+    
+    \li{gist_stern} & \li{gist_yarg} & \li{GnBu} \\
+    
+    \li{gray} & \li{Greens} & \li{Greys} \\
+    
+    \li{hot} & \li{hsv} & \li{jet} \\
+    
+    \li{Oranges} & \li{OrRd} & \li{Paired} \\
+    
+    \li{Pastel1} & \li{Pastel2} & \li{pink} \\
+    
+    \li{PiYG} & \li{PRGn} & \li{prism} \\
+
+    \li{PuBu} & \li{PuBuGn} & \li{PuOr} \\
+    
+    \li{PuRd} & \li{PurpLes} & \li{RdBu} \\
+    
+    \li{RdGy} & \li{RdPu} & \li{RdYlBu} \\
+    
+    \li{RdYlGn} & \li{Reds} & \li{Setl} \\
+    
+    \li{Set2} & \li{Set3} & \li{Spectral} \\
+    
+    \li{spring} & \li{summer} & \li{winter} \\
+    
+    \li{YlGnBu} & \li{YlGn} & \li{YlOrRd} \\
+    
+    \li{YlOrBr} \\
+    
+    
+    \hline
+
+    \end{tabular} 
+    \end{center} 
+    \caption{Colormaps} 
+    \label{mayavi:colormaps} 
+    \end{table} 
+
+
+\subsection*{Useful Features} 
+One of the most useful features in \li{mayavi} is the record feature. 
+In the pipeline view (far left corner) there is a round, red button. 
+Clicking it opens a recorder that keeps track of all the changes made 
+interactively to the visualization. It also generates valid lines of Python code. 
+
+\begin{problem} 
+Provided Grand Canyon topological radar data from NASA, 
+do the following.
+
+\begin{itemize}
+\item resize the data to be 3601x3601
+\item Cast the type of be \li{float32}. 
+\item Resize the data to take the first 1000 rows and columns 900-1900.
+\item There is some missing data so set the minimum of your data equal to the minimum of the the positive data points. 
+\item Do the following to preset the figure. mlab.figure(size=(400,320), bgcolor = (.16, .28, .46))
+\item Now plot using mlab.surf using the colormap gist earth with a warp scale of .2, vmin of 1200, and a vmax of 1610.
+\item Take a smaller view of the canyon. mlab.view(-5.9, 83, 570, [5.3, 20, 238])
+\end{itemize}
+
+This should result in Figure \ref{mayavi:GrandCanyon}
+\end{problem}
+
+\begin{figure} 
+\includegraphics[width=\textwidth]{GrandCanyon.pdf}
+\caption{A view of the Grand Canyon} 
+\label{mayavi:GrandCanyon}
+\end{figure}
 
