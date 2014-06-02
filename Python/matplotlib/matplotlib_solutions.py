@@ -16,7 +16,7 @@ def problem2():
 	f = lambda X: 1./(X - 1)
 	Y1 = f(X1)
 	Y2 = f(X2)
-	plt.plot(X1, Y1, 'b', X2, Y2, 'b')
+	plt.plot(X1, Y1, 'm--', X2, Y2, 'm--', linewidth=5.0)
 	plt.ylim((-6,6))
 	plt.show()
 
@@ -97,3 +97,20 @@ def problem7():
 	plt.plot(x, x**2)
 	plt.suptitle("My Different Plots")
 	plt.show()
+	
+def problem8():
+	import os
+	import zipfile
+	if not os.path.exists('N36W113.hgt.zip'):
+    	import urllib
+    	opener = urllib.urlopen('https://s3.amazonaws.com/storage.enthought.com/www/sample_data/N36W113.hgt.zip')
+    	open('N36W113.hgt.zip', 'wb').write(opener.read())
+	data = np.fromstring(zipfile.ZipFile('N36W113.hgt.zip').read('N36W113.hgt'), '>i2')
+	#data = np.load("gcdata.npy")
+	data.shape = (3601, 3601)
+	data = data.astype(np.float32)
+	data = data[:1000, 900:1900]
+	data[data == -32768] = data[data>0].min()
+	mlab.figure(size=(400, 320), bgcolor = (.16, .28, .46))
+	mlab.surf(data, colormap="gist_earth", warp_scale=.2, vmin=1200, vmax=1610)
+	mlab.view(-5.9, 83, 570, [5.3, 20, 238])
