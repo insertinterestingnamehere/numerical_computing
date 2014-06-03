@@ -44,7 +44,7 @@ def harmonic2(name):
     mlab.savefig(name)
     mlab.clf()
 
-def lorenz_ode((x, y, z), t0, sigma=10., beta=8./3, rho=28.0):
+def lorenz_ode((x, y, z), t, sigma=10., beta=8./3, rho=28.0):
         return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z]
 
 def lorenz_plot(name, N=10, res=2000, step=2, t=10, seed_=120):
@@ -77,25 +77,33 @@ def lorenz_plot(name, N=10, res=2000, step=2, t=10, seed_=120):
     mlab.savefig(name)
     mlab.clf()
 
-def lyapunov_plot(name, res=10001, t0=10, t1=20, seed_=5, epsilon=1E-8, steps=10):
+def lyapunov_plot(name, res=10001, initial_time=10., t=10, seed_=5, epsilon=1E-8, steps=20, atol=1E-15):
     # Get starting points.
     seed(seed_)
-    x1 = -15 + 30 * np.random.rand(3)
+    x1 = - 15 + 30 * np.random.rand(3)
+    # Run till the point is already in the attractor.
+    x1 = odeint(lorenz_ode, x1, np.linspace(0, initial_time, res), atol=atol)[-1]
+    # Change it slightly.
     x2 = x1 * (1. + epsilon)
     
     # Find the trajectories.
-    t = np.linspace(0, t1, res)
+    t = np.linspace(0, t, res)
     y1 = odeint(lorenz_ode, x1, t, atol=1E-15)
     y2 = odeint(lorenz_ode, x2, t, atol=1E-15)
+    # Plot the separation.
+    plt.semilogy(t[::steps], np.sqrt(((y1 - y2)**2).sum(axis=1))[::steps])
     
-    indices = (t0 <= t) * (t <= t1)
-    plt.semilogy(t[indices][::steps] - t0, np.sqrt(((y1 - y2)**2).sum(axis=1))[indices][::steps])
-
-    slope, intercept, r_value, p_value, std_err = linregress(t[indices], np.log(np.sqrt(((y1 - y2)**2).sum(axis=1))[indices]))
-    yapprox = slope * t[indices] + intercept
-    plt.plot(t[indices][::steps] - t0, np.exp(yapprox[::steps]))
+    # Compute the regression.
+    slope, intercept, r_value, p_value, std_err = linregress(t, np.log(np.sqrt(((y1 - y2)**2).sum(axis=1))))
+    # Compute the approximation.
+    yapprox = slope * t[::steps] + intercept
+    # Plot the line.
+    plt.plot(t[::steps], np.exp(yapprox))
+    
+    # Label the axes.
     plt.xlabel('Time')
     plt.ylabel('Separation')
+    # Save the plot.
     plt.savefig(name)
     plt.clf()
 
