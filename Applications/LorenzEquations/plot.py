@@ -45,7 +45,7 @@ def harmonic2(name):
     mlab.clf()
 
 def lorenz_ode((x, y, z), t, sigma=10., beta=8./3, rho=28.0):
-        return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z]
+        return sigma * (y - x), x * (rho - z) - y, x * y - beta * z
 
 def lorenz_plot(name, N=10, res=2000, step=2, t=10, seed_=120):
     # Select initial conditions
