@@ -390,33 +390,14 @@ building blocks in larger functions.
 This efficiency is especially important in Python where code is generally executed more slowly than in a compiled language like C or Fortran; an efficient way of doing things goes a very long way.
 
 \subsection*{Generators}
-Before discussing this module, let's briefly understand what a generator is.
-A generator ``generates'' values.  It is a special type of iterator that yields values on-demand.  Here is a simple example of a generator.
-\begin{lstlisting}
-def example():
-    yield 1
-    yield 2
-    yield 3
+Before discussing this module, let's briefly understand what a generator is, and the difference between generators and iterators.
 
-# Initialize the generator.
-g = example()
-# Return 1 (the first value).
-g.next()
-g.next()        # return 2
-g.next()        # return 3
-# Raises a StopIteration exception. There are no more values to return.
-g.next()
-\end{lstlisting}
-In a generator, the \li{yield} keyword acts like a special \li{return} statement.
-It essentially pauses the execution of the generator and returns a value.
-When a generator is created, it simply returns a generator object.
-These generator objects have a \li{next()} method, which will request the next value from the generator.
-Calling \li{next()} on a generator object resumes execution in the generator until the next yield statement or the generator finishes.
-Generators are a very convenient way to to return many values without having to return them all at once.
+Lists, tuples, sets and dictionaries are all examples of sequences in Python. It is frequently useful and necessary to visit all the elements of a sequence once; the process of doing so is called \emph{iteration}.
+Each of the Python types we have mentioned define their own iterators, which you use every time you execute the statement \li{for <elem> in <sequence>}.
 
-When are generators helpful?
-If you encounter one of the situations below, consider trying to solve
-your problem using generators.
+Python also has a special type of object called a \emph{generator}.
+Similar to an iterator, a generator returns a sequence of values, but unlike an iterator, a generator computes the next value in the sequence and returns it instead of storing the entire sequence and returning one element at a time. It never has to store all the values in a sequence. When is this helpful?
+
 \begin{itemize}
 \item \emph{Iterating through only part of a sequence.}
 It is inefficient to create an entire sequence if we know that we will not need all of it.
@@ -431,8 +412,42 @@ The line \li{(i for i in xrange(1000) if i\%2 == 0)} will define a generator obj
 The solution using generators will often execute faster, and it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
 \item \emph{Calculating large sequences.}  A sequence must be stored somewhere in computer memory.
 If the sequence is large, we could exhaust all available memory.
-\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite.  We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
+\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite; we simply cannot do computations involving infinite sequences with normal iterators. We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
 \end{itemize}
+
+Now that we understand what generators are and why they are important, we can discuss how to create and use them. Python uses the \li{yield} keyword to define a generator. As an example, consider the following, where we re-implement Python's \li{range} function as an iterator and a generator.
+\begin{lstlisting}
+def range_iter(start, stop, step=1):
+    i = start
+    r = []
+    while i < stop:
+       r.append(i)
+       i = i + step
+    return r
+\end{lstlisting}
+\begin{lstlisting}
+def range_gen(start, stop, step=1):
+    i = start
+    while i < stop:
+        yield i
+        i = i + step
+\end{lstlisting}
+The two functions look very similar, but they behave very differently.
+The first function when executed will immediately build a list, one element at a time until finished
+at which point it will return the entire list.  On the author's computer, this function takes about 1.43ms
+to build and return a list of 10000 elements.  The second function is only marginally better at
+returning the 10000 elements in approximately 1.09ms, but this gap between the two functions grows much wider as the input size is increased.
+
+The real difference in the two functions lies in the time the function takes to execute when
+it is first called.  The first function requires 1.43ms to execute the first time.  The second function,
+a mere .00000041ms!  The reason for this is that the first function calculates its results and returns them all at once. The second function only creates a \emph{generator} object.  
+
+Generator objects have several methods.
+The most important and most useful method is the \li{next()} method.  Every time this method is called, 
+the generator resumes from its previous state and computes the next value in the sequence. After computing and yielding this value, the generator is suspended until \li{next} is called again.
+
+When you are writing \li{for} loops, you should use a generator whenever it is reasonable to do so.
+The \li{xrange()} function that is built into Python is a generator based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}.
 
 \subsection*{Useful Generators in \texttt{itertools}}
 The \li{itertools} module contains three main types of generators: infinite generators, shortest sequence generators, and combinatoric generators.
