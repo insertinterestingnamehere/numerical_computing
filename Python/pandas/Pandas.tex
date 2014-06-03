@@ -1,15 +1,21 @@
-\lab{Python}{Intro to pandas}{Intro to pandas}
+\lab{Python}{Intro to pandas I}{Intro to pandas I}
 
 In volumes 1 and 2, we solved data problems primarily using NumPy and SciPy.
-We now turn our attention to a Python library that is more specifically built for data analysis. Welcome to \emph{pandas}.
+We now turn our attention to a Python library that is more specifically built 
+for data analysis. Welcome to \emph{pandas}.
 
 \section*{Data Structures in pandas}
-Just as NumPy is built on the ndarray data structure suited for efficient scientific and numerical computation, pandas is centered around a handful of core data structures custom built for data analysis. These data structures include the Series, DataFrame, and Panel, which correspond roughly to one-,two-, and three-dimensional arrays. We explore each in turn.
+Just as NumPy is built on the ndarray data structure suited for efficient scientific 
+and numerical computation, pandas is centered around a handful of core data structures 
+custom built for data analysis. These data structures include the Series, DataFrame, 
+and Panel, which correspond roughly to one-, two-, and three-dimensional arrays. 
+We explore each in turn.
 
 \subsection*{Series}
 The Series is a one-dimensional array whose entries are labeled. The values of the array may be
 any data type, including integers, strings, or general Python objects. Further, the array
-need not be homogeneous. That is, it can hold values of different data types. Together, the array values are referred to as the data of the Series.
+need not be homogeneous. That is, it can hold values of different data types. Together, 
+the array values are referred to as the data of the Series.
 
 The labels must consist of hashable types. They are commonly integers or strings.
 Together, the labels are referred to as the index of the Series.
@@ -83,7 +89,8 @@ e5    94
 dtype: int64
 \end{lstlisting}
 Note that we didn't need to specify the index: the keys of the dict are used as the index for the Series.
-
+There are many more ways to create Series objects, and the reader is referred to the pandas 
+documentation.
 \begin{problem}
 Create the following pandas Series.
 
@@ -226,15 +233,14 @@ B	 0.803829	 0.662237	 0.200592	 0.137713
 C	 0.288801	 0.956662	 0.817915	 0.951016
 3 rows ï¿½ 4 columns
 \end{lstlisting}
-As with Series, if we don't specify the index or columns, the default is \li{range(n)}, where \li{n} is either the number of
-rows or columns.
+As with Series, if we don't specify the index or columns, the default is \li{range(n)}, where \li{n} 
+is either the number of rows or columns.
 
 It is also possible to create multi-indexed arrays, for example
 \begin{lstlisting}
 >>> grade=['eighth','ninth','tenth']
 >>> subject=['math','science','english']
->>> myindex = pd.MultiIndex.from_product([grade,subject], names=['grade','subje
-t'])
+>>> myindex = pd.MultiIndex.from_product([grade,subject], names=['grade','subject'])
 >>> myseries = pd.Series(np.random.randn(9),index=myindex)
 >>> myseries
 grade   subject
@@ -250,9 +256,11 @@ tenth   math      -0.924962
 dtype: float64
 \end{lstlisting}
 
-Multi-indexing is visually convenient, but not strictly necessary for most applications. The interested reader is invited to explore the documentation to learn more.
+Multi-indexing is visually convenient, but not strictly necessary for most applications. 
+The interested reader is invited to explore the documentation to learn more.
 
-A DataFrame behaves in certain respects like a dict of Series, where each column label and the corresponding column form the key-value pairs.
+A DataFrame behaves in certain respects like a dict of Series, where each column label and 
+the corresponding column form the key-value pairs.
 We can access a desired column via its column label:
 \begin{lstlisting}
 >>> df1[2]
@@ -276,8 +284,8 @@ c	 0.399212	      NaN	      NaN	    const
 d	 0.130365	-2.352364	-0.306666	    const
 e	      NaN	 0.789419	      NaN	    const
 f	      NaN	-0.859482	      NaN	    const
-6 rows ï¿½ 4 columns
->>> del df1['constant']
+6 rows      4 columns
+>>> del df1['constant']               #delete the constant column
             1	        2	  product	
 a	-0.924259	-0.708301	 0.654653	
 b	 0.767422	-2.214516	-1.699469	
@@ -285,7 +293,7 @@ c	 0.399212	      NaN	      NaN
 d	 0.130365	-2.352364	-0.306666	
 e	      NaN	 0.789419	      NaN	
 f	      NaN	-0.859482	      NaN	
-6 rows ï¿½ 4 columns
+6 rows      4 columns
 \end{lstlisting}
 
 We can also select specified rows, either using the row label, or its integer position:
@@ -331,7 +339,7 @@ A particularly slick way to slice rows is by boolean indexing, in which a criter
 12  0.834592 -0.197040 -0.133127   asdf
 
 [212 rows x 4 columns]
->>> df[df['C']>0] #Get all the rows of df for which the element in the C column is positive.
+>>> df[df['C']>0] #Get all the rows having positive entry in column C
            A         B         C strcol
 0   0.628435  1.910799  0.194874   asdf
 4   0.529262  1.063394  0.304336   asdf
@@ -342,7 +350,9 @@ A particularly slick way to slice rows is by boolean indexing, in which a criter
 [6 rows x 4 columns]
 \end{lstlisting}
 
-Boolean indexing is particularly useful for selecting data that satisfy certain criteria, including when it comes time for data cleaning. One caution: if multiple statements are used to select rows, they must be separated by parenthesis:
+Boolean indexing is particularly useful for selecting data that satisfy certain criteria, 
+including when it comes time for data cleaning. One caution: if multiple statements are used 
+to select rows, they must be separated by parenthesis:
 
 \begin{lstlisting}
 >>> df[(df['C']>0) & (df['A']> 0.3)] #Note the parenthesis
@@ -361,19 +371,23 @@ Boolean indexing is particularly useful for selecting data that satisfy certain 
 
 
 
-The third fundamental object in \li{pandas} is ``Panel.'' It is analogous to a three-dimensional array and was designed for dealing with panel data, which is common in economic research, among other fields. In economics, for instance, one might want to track information for several countries over multiple years. Panel is the least-commonly used of the three fundamental pandas datatypes, but it is worth knowing about.
+The third fundamental object in \li{pandas} is the Panel. It is analogous to a three-dimensional 
+array and was designed for dealing with panel data, which is common in economic research, among 
+other fields. In economics, for instance, one might want to track information for several 
+countries over multiple years. Panel is the least-commonly used of the three fundamental pandas 
+datatypes, but it is worth knowing about.
 
-The three axes of a Panel are \li{items}, \li{major_axis}, and \li{minor_axis}, so a panel can be initialized from a 3-dimensional array as follows:
+The three axes of a Panel are \li{items}, \li{major_axis}, and \li{minor_axis}, so a panel can 
+be initialized from a 3-dimensional array as follows:
 
 \begin{lstlisting}
-pan = pd.Panel(np.random.randn(3,2,3), items=['1','2','3'],major_axis=['A','B'],minor_axis=['a','b','c'])
+>>> pan = pd.Panel(np.random.randn(3,2,3), items=['1','2','3'], major_axis=['A','B'], minor_axis=['a','b','c'])
 \end{lstlisting}
 
-To see what this looks like, use the command \li{to_frame}, which lists out the data as a multi-indexed DataFrame.
+To see what this looks like, use the command \li{to_frame}, which lists out the data as a 
+multi-indexed DataFrame.
 
 \begin{lstlisting}
->>> pan = pd.Panel(np.random.randn(3,2,3), items=['1','2','3'],major_axis=['A',
-B'],minor_axis=['a','b','c'])
 >>> pan
 <class 'pandas.core.panel.Panel'>
 Dimensions: 3 (items) x 2 (major_axis) x 3 (minor_axis)
@@ -392,95 +406,147 @@ B     a     -0.959360  2.475628  0.900854
 
 [6 rows x 3 columns]
 \end{lstlisting}
+Note that the \li{items} field in the Panel constructor is analogous to the columns in a DataFrame,
+while the two axes arguments behave like a multi-dimensional index.
 
-Alternatively, a panel can be constructed from a dict of DataFrames, as follows:
+Alternatively, a panel can be constructed from a dict of DataFrame objects, as follows:
 
 \begin{lstlisting}
-paneldata = {'2001' : pd.DataFrame(np.random.randn(2, 3)),
-'2011' : pd.DataFrame(np.random.randn(3, 2))}
-paneldata=pd.Panel(paneldata)
+>>> df1 = pd.DataFrame(np.random.randn(2, 3))
+>>> df2 = pd.DataFrame(np.random.randn(3, 2))
+>>> paneldata = pd.Panel({'2001' : df1, '2011' : df2})
+>>> paneldata.to_frame(filter_observations=False)
+                        2001	     2011
+major	minor		
+0	    0	        1.190182	-0.578198
+        1	        0.728126	-0.848281
+        2	       -0.103827	 NaN
+1	    0	       -0.278637	-0.454951
+        1	        0.128356	-0.828686
+        2	       -0.439030	 NaN
+2	    0	        NaN	        -2.167289
+        1	        NaN	         0.428068
+        2	        NaN	         NaN
+        
+[9 rows × 2 columns]
 \end{lstlisting}
 
-The operation above deals nicely with the asymmetric data, inserting \li{NaN}, where needed. If you want to view the panel using \li{to_frame}, however, the default is to drop the asymmetric parts and reduce to a $2\times 2\times 2$ structure. Another way to access the data in a particular item is simply to use \li{paneldata['2011']}.
+The operation above deals nicely with the asymmetric data, inserting \li{NaN}, where needed. 
+If you want to view the panel using \li{to_frame}, however, the default is to drop the asymmetric parts and 
+reduce to a $2\times 2\times 2$ structure. The argument \li{filter_observations=False} prevents this.
+Another way to access the data in a particular item is simply to use \li{paneldata['2011']}.
 
-Many of the functions of the DataFrame type perform similarly on the Panel type. These include transposition, adding/deleting items, and accessing data. Another way to use panel is to use \li{squeeze} to
+Many of the functions of the DataFrame type perform similarly on the Panel type. These include transposition, 
+adding/deleting items, and accessing data. Another way to use panel is to use \li{squeeze} to
 
 \section*{Viewing Data}
 
 \subsection*{Plotting}
+Plotting is often a much more effective way to view and gain understanding of a dataset than simply
+viewing the raw numbers. Fortunately, pandas interfaces well with matplotlib, enabling relatively
+painless data visualization functionality.
 
-Another way of viewing your data is through the plotting functionalities. Fortunately, this is just done through \li{matplotlib}, without much modification. Here are some examples, the first two of which are from the pandas documentation
-
+We start by plotting a Series. Doing so is easy, as the Series object is equipped with its own plot 
+function. 
+Let's start with visualizing a simple random walk. By way of background, a \emph{random walk} is a 
+stochastic process used to model a non-deterministic path through some space. It is a useful construct in 
+many fields, from explaining the motion of a molecule as it travels through a liquid to modeling the fluctuations
+of stock prices. Here we will simulate a one-dimensional symmetric random walk on the integers, which can be
+described as follows.
+\begin{itemize}
+  \item[Step 1] Start at 0.
+  \item[Step 2] Flip a fair coin.
+  \item[Step 3] If heads, move one unit to the right. Otherwise, move one unit to the left.
+  \item[Step 4] Go to Step 2.
+\end{itemize}
+How can we simulate this random walk efficiently? Note that the walk is really characterized by the outcomes
+of the coin flip. If we represent heads by the number $1$ and tails by $-1$, then our position at a given moment
+is just the cumulative sum of all previous outcomes. Below, we simulate a sequence of coin flips, build the 
+resulting random walk, and plot the outcome.  
 \begin{lstlisting}
 >>> import matplotlib.pyplot as plt
->>> s=pd.Series(np.random.randn(1000))
->>> s=s.cumsum()
->>> plt.plot(s)
-[<matplotlib.lines.Line2D object at 0x000000000A185208>]
+>>> N = 1000        #length of random walk
+>>> s = np.zeros(N)
+>>> s[1:] = np.random.binomial(1, .5, size=(N-1,))*2-1 #coin flips
+>>> s = pd.Series(s)
+>>> s = s.cumsum()  #random walk
+>>> s.plot()
+>>> plt.ylim([-50,50])
 >>> plt.show()
 \end{lstlisting}
 
-Here's the output:
+The random walk is shown in Figure \ref{pandas:randomWalk}.
 
 \begin{figure}
 \centering
-\includegraphics[width=.5 \textwidth]{cumsumplot.png}
-\caption{ Graph of s.
-}
-\label{pandas:cumsumplot}
+\includegraphics[width=.7 \textwidth]{randomWalk.pdf}
+\caption{Random walk of length 1000.}
+\label{pandas:randomWalk}
 \end{figure}
 
 \begin{problem}
-Run the above code 5 times to get 5 images. Then change the number of steps to 100 and to 10,000. What happens to the max/min and number of ``big'' peaks and troughs when the scale changes? (If you're really clever, you can guess how this would generalize to arbitrarily long series.)
+Create five random walks of length 100, and plot them together.
+
+Next, create a ``biased" random walk by changing the coin flip probability of head from 0.5 to 0.51.
+Plot this biased walk with lengths 100, 10000, and then 100000. Notice the definite trend that emerges.
+Your results should be comparable to those in Figure \ref{pandas:biasedRandomWalk}. 
 \end{problem}
+
+\begin{figure}
+\centering
+\includegraphics[width=.7 \textwidth]{biasedRandomWalk.pdf}
+\caption{Biased random walk of length 100 (above) and 10000 (below).}
+\label{pandas:biasedRandomWalk}
+\end{figure}
 
 Using DataFrames, one can also plot one column against another.
 
 \begin{lstlisting}
->>> import matplotlib.pyplot as plt #Need this to plot
->>> xvals=pd.Series(range(1000))
->>> xvals=np.sqrt(xvals) #Make some interesting x-values
->>> yvals=pd.Series(np.random.randn(1000).cumsum()) #And interesting y-values
->>> df=pd.DataFrame({'xvals':xvals,'yvals':yvals}) #Put in in a dataframe
->>> df.plot(x='xvals',y='yvals') #Plot, specifying which column is to be used to x and y values. A reference is returned.
-<matplotlib.axes.AxesSubplot object at 0x000000000B459320>
->>> plt.show() #Look at it!
-\end{lstlisting}
-
-Here's the output:
-
-\begin{figure}
-\centering
-\includegraphics[width=.5 \textwidth]{cumsumplot1.png}
-\caption{ Graph generated when one coordinate is taken from the xvals column and the other from the yvals column.
-}
-\label{pandas:cumsumplot1}
-\end{figure}
-
-A variety of other types of plots are possible. Here's a histogram:
-
-\begin{lstlisting}
->>> df['yvals'].diff().hist() #Using the same df as in the previous example, takes the yvals column and makes a histogram.
-<matplotlib.axes.AxesSubplot object at 0x000000000B4696D8>
+>>> xvals = pd.Series(np.sqrt(np.arange(1000)))
+>>> yvals = pd.Series(np.random.randn(1000).cumsum())
+>>> df = pd.DataFrame({'xvals':xvals,'yvals':yvals}) #Put in in a dataframe
+>>> df.plot(x='xvals',y='yvals') #Plot, specifying which column is to be used to x and y values.
 >>> plt.show()
 \end{lstlisting}
 
-Here's the output:
+The result is displayed in Figure \ref{pandas:dfPlot}.
 
 \begin{figure}
 \centering
-\includegraphics[width=.5 \textwidth]{cumsumplot2.png}
-\caption{ Histogram of the y-values of df.
-}
-\label{pandas:cumsumplot2}
+\includegraphics[width=.7 \textwidth]{dfPlot.pdf}
+\caption{ Graph generated when one coordinate is taken from the xvals column and the other from the yvals column.}
+\label{pandas:dfPlot}
 \end{figure}
 
+A variety of other types of plots are possible. One of the more useful plots when trying to estimate or 
+visualize the distribution of data is a histogram. The code listed below demonstrates how to generate
+a histogram for each column in a DataFrame, with the result shown in Figure \ref{pandas:histogram}.
+
+\begin{lstlisting}
+>>> col1 = pd.Series(np.random.randn(1000))         #normal distribution
+>>> col2 = pd.Series(np.random.gamma(5, size=1000)) #gamma distribution
+>>> df = pd.DataFrame({'normal':col1, 'gamma':col2})
+>>> df.hist()
+>>> plt.plot()
+\end{lstlisting}
+
+\begin{figure}
+\centering
+\includegraphics[width=.7 \textwidth]{histogram.pdf}
+\caption{Histogram of two columns of a DataFrame.}
+\label{pandas:histogram}
+\end{figure}
+
+\subsection*{SQL Operations in pandas}
+The DataFrame, being a tabular data structure, bears an obvious resemblance to a standard relational
+database table. SQL is the standard for working with relational databases, and in this section we will 
+explore how pandas accomplishes some of the same tasks as SQL. The SQL-like functionality of pandas is
+one of its big advantages, since it can eliminate the need to switch between programming languages 
+for different tasks. Within pandas we can handle both the querying \emph{and} data analysis.
+
+Let's first look at the pandas equivalent of a SQL SELECT statement.
 
 
-
-\subsection*{SQL Joins and Selects}
-
-One of the advantages of pandas is that it has high-powered implementations of some central SQL operations, thus reducing the temptation to switch between programming languages for different tasks. For instance, all major types of joins are supported. Here are some examples:
 
 \begin{lstlisting}
 >>> df1 #First data frame
