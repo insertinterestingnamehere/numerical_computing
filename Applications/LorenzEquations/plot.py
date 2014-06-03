@@ -77,28 +77,44 @@ def lorenz_plot(name, N=10, res=2000, step=2, t=10, seed_=120):
     mlab.savefig(name)
     mlab.clf()
 
-def lyapunov_plot(name, res=10001, initial_time=10., t=10, seed_=5, epsilon=1E-8, steps=20, atol=1E-15):
+def lyapunov_plot(name, res=10001, initial_time=10., t=10, seed_=5,
+                  epsilon=1E-8, atol=1E-15, rtol=1E-13,
+                  sigma=10., beta=8./3, rho=28.):
+    """ Plot the separation between two trajectories through the Lorenz system.
+    Use a logarithmic scale on the y-axis.
+    Seed the random number generator with 'seed_'.
+    Run the ODE solver through 'initial_time' using the given tolerances and resolution.
+    Run the ODE solver an aditional 't' units of time on two new sets of initial conditions.
+    One should be the final value of the previous computation.
+    The other should be (1 + epsilon) times the other point.
+    Use the resolutions 'res' and tolerances 'atol' and 'rtol' again
+    when solving using the new initial values.
+    Plot a fitting exponential curve through the points.
+    On the log-scale, it will look like a line.
+    Show the plot, and return the resulting approximation to the Lyapunov exponent.
+    Use the values of 'sigma', 'beta', and 'rho' in the Lorenz ODE. """
     # Get starting points.
     seed(seed_)
-    x1 = - 15 + 30 * np.random.rand(3)
+    x1 = -15 + 30 * rand(3)
     # Run till the point is already in the attractor.
-    x1 = odeint(lorenz_ode, x1, np.linspace(0, initial_time, res), atol=atol)[-1]
+    x1 = odeint(lorenz_ode, x1, np.linspace(0, initial_time, res),
+                args=(sigma, beta, rho), atol=atol, rtol=rtol)[-1]
     # Change it slightly.
     x2 = x1 * (1. + epsilon)
     
     # Find the trajectories.
     t = np.linspace(0, t, res)
-    y1 = odeint(lorenz_ode, x1, t, atol=1E-15)
-    y2 = odeint(lorenz_ode, x2, t, atol=1E-15)
+    y1 = odeint(lorenz_ode, x1, t, atol=atol, rtol=rtol, args=(sigma, beta, rho))
+    y2 = odeint(lorenz_ode, x2, t, atol=atol, rtol=rtol, args=(sigma, beta, rho))
     # Plot the separation.
-    plt.semilogy(t[::steps], np.sqrt(((y1 - y2)**2).sum(axis=1))[::steps])
+    plt.semilogy(t, np.sqrt(((y1 - y2)**2).sum(axis=1)))
     
     # Compute the regression.
     slope, intercept, r_value, p_value, std_err = linregress(t, np.log(np.sqrt(((y1 - y2)**2).sum(axis=1))))
     # Compute the approximation.
-    yapprox = slope * t[::steps] + intercept
+    yapprox = slope * t + intercept
     # Plot the line.
-    plt.plot(t[::steps], np.exp(yapprox))
+    plt.semilogy(t, np.exp(yapprox))
     
     # Label the axes.
     plt.xlabel('Time')
