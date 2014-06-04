@@ -269,9 +269,8 @@ This \li{csv} module provides \li{reader} and \li{writer} objects.
 There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
 
 Using these reader and writer objects, we can define the format of our CSV file.
-Contrary to the name, CSV files can be delimited with any character.
-A delimiter is the special character that separates fields in a line.
-Tabs and spaces are two other popular delimiting characters.
+Contrary to what the name implies, CSV files can be delimited with any character.
+A delimiter is the special character that separates fields in a line. Commas are typical, but tabs and spaces are two other popular delimiting characters.
 \begin{lstlisting}
 # Set the delimiter to tabs.
 csv_reader = csv.reader(csv_file, delimiter='\t')
@@ -279,7 +278,7 @@ csv_reader = csv.reader(csv_file, delimiter='\t')
 
 We can also define the characters that separate fields, terminate lines, escape special characters, and enclose strings.
 The \li{csv} module refers to these special settings as \emph{dialects}.
-The module comes with two dialects ready to use, excel and excel-tab.
+The module comes with two dialects ready to use, excel (Windows Excel formatting) and excel-tab (Excel formatting, but tab-delimited).
 \begin{lstlisting}
 # Change the formatting dialect to CSV.
 csv_reader = csv.reader(csv_file, dialect='excel')
@@ -320,9 +319,39 @@ with open('test_out.csv', 'w') as csv_file:
 
 \section*{\texttt{timeit} Module}
 This module is used to time the execution of small bits of Python code.
-It is usually good to time lines of code in Python by using this module because it avoids a number of common pitfalls in measuring execution time.
+It is helpful to time lines of code in Python using the \li{timeit} module because it avoids a number of common pitfalls in measuring execution time; for example, it limits errors caused by startup and shutdown times by running the code repeatedly. In IPython, we usually time code using the built-in \li{\%timeit} function. \li{\%timeit} times a single line of code; to time an entire cell of code, use \li{\%\%timeit}. However, this will not work in all environments, notably in a command line setting, so it is important to know how to time code without the \li{\%timeit} function.
 
+We will now define a function that times the execution of another function \li{f} and returns the minimum runtime for one call of the \li{f}. This will be useful in other labs when you are asked to time the execution of your solutions. Before we can do this, we need to know what a wrapper function is. A wrapper function is so named because it wraps a function and its arguments into a function object that can be called by the \li{timeit} function. In Python, this is done by declaring a \li{lambda} function, which is a temporary, anonymous function that takes no arguments.
 
+\begin{lstlisting}
+import timeit
+
+# time_func takes as its arguments the name of a function f, a tuple of the
+# arguments of f, a dictionary of the keyword arguments of f, and two 
+# keyword arguments.
+def time_func(f, args=(), kargs={}, repeat=3, number=100):
+	# Wrap f into pfunc
+	pfunc = lambda: f(*args, **kargs)
+	# This is where we actually use the timeit module
+	T = timeit.Timer(pfunc)
+
+	# Time f several times, return the name of f and the minimum runtime
+	try:
+		#Note that repeat is a timeit module function
+		_t = T.repeat(repeat=repeat, number=int(number))
+		runtime = min(_t)/float(number)
+		return f.__name__, runtime
+	# Print an error statement if something goes wrong
+	except:
+		T.print_exc()
+\end{lstlisting}
+
+Remember that keyword arguments are arguments that are given a default value in the function declaration (after the non-keyword arguments), but can be overwritten. Therefore, when calling \li{time_func}, the dictionary of keyword arguments of \li{f} (where the names of the keyword arguments are the keys) is optional, and so are the keyword arguments of \li{time_func} itself.
+\li{repeat} defines the number of time to test the code, while \li{number} defines the number of times the code is run per test. If your code is small and simple, you can set the value of \li{number} very high without causing problems, but for large, slower code, \li{number} will need to be smaller, or you may have to wait a long time to get your timing results.
+
+For further information on the \li{timeit} module, see the documentation at \url{http://docs.python.org/2/library/timeit.html}. Resources found by a quick Google search may also be helpful.
+
+\begin{comment}
 \begin{problem}
 For most timing situations, we rely on IPython's \li{\%timeit} function.
 Since this is a special function only available inside IPython, however, we will write a more general timer that works anywhere with any function.
@@ -342,6 +371,8 @@ pfunc = lambda: f(*args, **kwargs)
 where \li{args} is a tuple of arguments and \li{kwargs} is a dictionary of keyword arguments to the function, $f$.
 You can refresh your memory of functions and their arguments and keyword arguments in sections 4.7.1-4.7.4 of the official Python tutorial.
 \end{problem}
+\end{comment}
+
 
 \section*{\texttt{collections} Module}
 This module defines several specialized data structures to use in addition to the built-in Python data structures.
@@ -374,7 +405,7 @@ Write three functions that will rotate the elements of a deque and a list respec
 \end{enumerate}
 
 To rotate a sequence, remove elements from the right end one by one and insert them on the left end.
-Compare the timings you obtain from a deque and a list of 10000 elements.
+Compare the timings you obtain from a deque and a list of 10000 elements, using the timer function defined earlier in this lab.
 \end{problem}
 
 \begin{problem}
@@ -401,10 +432,10 @@ Similar to an iterator, a generator returns a sequence of values, but unlike an 
 \begin{itemize}
 \item \emph{Iterating through only part of a sequence.}
 It is inefficient to create an entire sequence if we know that we will not need all of it.
-Representing the sequence as a generator could possibly avoid excess memory use and computation.
+Representing the sequence as a generator can avoid excess memory use and computation.
 \item \emph{Iterating through a sequence once.} Consider the statement
 \li{sum([i for i in range(1000) if i\%2 == 0])}.
-We are creating two sequences just to iterate through them once and never use them again.
+We are creating two sequences just to iterate through each them once and never use them again.
 We can make this more efficient using generators:
 \li{sum(i for i in xrange(1000) if i\%2 == 0)}
 Notice that we have used syntax similar to a list comprehension.
@@ -433,12 +464,12 @@ def range_gen(start, stop, step=1):
         i = i + step
 \end{lstlisting}
 These two functions look similar, but they behave very differently.
-The first function when executed will immediately build a list, one element at a time until finished
+The first function when executed will build a list one element at a time until finished
 at which point it will return the entire list.  On the author's computer, this function takes about 1.43ms
 to build and return a list of 10000 elements.  The second function is only marginally better,
 returning the 10000 elements in approximately 1.09ms, but this gap between the two functions grows much wider as the input size is increased.
 
-The real difference in the two functions lies in the time the function takes to execute when
+The main difference in the two functions lies in the time the function takes to execute when
 it is first called.  The first function requires 1.43ms to execute the first time.  The second function,
 a mere .00000041ms!  The reason for this is that the first function calculates its results and returns them all at once. The second function only creates a \emph{generator} object.  
 
