@@ -432,10 +432,10 @@ def range_gen(start, stop, step=1):
         yield i
         i = i + step
 \end{lstlisting}
-The two functions look very similar, but they behave very differently.
+These two functions look similar, but they behave very differently.
 The first function when executed will immediately build a list, one element at a time until finished
 at which point it will return the entire list.  On the author's computer, this function takes about 1.43ms
-to build and return a list of 10000 elements.  The second function is only marginally better at
+to build and return a list of 10000 elements.  The second function is only marginally better,
 returning the 10000 elements in approximately 1.09ms, but this gap between the two functions grows much wider as the input size is increased.
 
 The real difference in the two functions lies in the time the function takes to execute when
@@ -447,38 +447,45 @@ The most important and most useful method is the \li{next()} method.  Every time
 the generator resumes from its previous state and computes the next value in the sequence. After computing and yielding this value, the generator is suspended until \li{next} is called again.
 
 When you are writing \li{for} loops, you should use a generator whenever it is reasonable to do so.
-The \li{xrange()} function that is built into Python is a generator based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}.
+The \li{xrange()} function that is built into Python is a generator based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}. In a for loop, you can use \li{xrange()} the same way you would use \li{range}.
+
+In general, the generators in \li{itertools} are used like this:
+\begin{lstlisting}
+import itertools
+a = itertools.count(5) 
+# Returns natural numbers, starting at 5, increasing by 1 each time it is called.
+a.next()
+\end{lstlisting}
+
+Note that while \li{count()} takes an integer as input, most generators work over \emph{iterables}, or any Python object that can be iterated through; this includes strings, lists, tuples, and so on.
 
 \subsection*{Useful Generators in \texttt{itertools}}
 The \li{itertools} module contains three main types of generators: infinite generators, shortest sequence generators, and combinatoric generators.
-Some of the most frequently used generators are summarized in Table \ref{table:populargens}.  These examples come from the Python documentation.
+Some common generators are summarized in Table \ref{table:populargens}. Note that \li{islice} is particularly useful for efficiently iterating through only part of a sequence. For the argument values of and further information about these generators, as well as recipes for other useful generators, see the documentation at \url{http://docs.python.org/2/library/itertools.html}
 \begin{table}
 \begin{tabular}{|l|l|}
 \hline
 Generator & Example \\
 \hline
 \li{count()} & Count to infinity \\
-\li{cycle()} & Cycle through a sequence infinitely\\
-\li{repeat()} & Repeat the input element infinitely (or up to $n$ times) \\
+\li{cycle()} & Cycle through a sequence indefinitely\\
+\li{repeat()} & Repeat the input element indefinitely (or up to $n$ times) \\
 \hline
 \li{chain()} & \li{chain('ABC', 'DEF') --> A B C D E F} \\
 \li{compress()} & \li{compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F} \\
 \li{islice()} & \li{islice('ABCDEFG', 2, None) --> C D E F G} \\
 \li{imap()} & \li{imap(pow, (2,3,10), (5,2,3)) --> 32 9 1000} \\
-\li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} (like a zipper matching elements) \\
+\li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} \\
 \hline
-\li{product()} & Return the Cartesian product \\
+\li{product()} & Return the Cartesian product of two iterables\\
 \li{permutations()} & Return permutations of a sequence\\
 \li{combinations()} & Return combinations of a sequence\\
-\li{combinations_with_replacement()} & Make combinations with replacements of a sequence\\
 \hline
 \end{tabular}
+
 \caption{Popular generators in \li{itertools} module.}
 \label{table:populargens}
 \end{table}
-
-We encourage you to view the documentation for \li{itertools} on the Python website, which also includes various recipes for other useful generator functions.
-Feel free to look through the documentation at \url{http://docs.python.org/2/library/itertools.html}.
 
 \begin{problem}
 You have been tasked to write a simulator that will simulate a Hunger Games tournament (\url{http://thehungergames.wikia.com/wiki/The_Hunger_Games_(event)}).
@@ -514,6 +521,8 @@ To pass off, you must use the standard library for the following parts:
 \end{itemize}
 
 Stop the simulation when there is at most one surviving tribute and print the winner to standard output (it will appear in the console).  It is possible that there are no surviving tributes.  If there are no surviving tributes, indicate so in your outputs.
+
+Keep in mind good coding practice as you solve this problem. Compartmentalize tasks into functions as much as possible to make debugging easier, use comments to document what your code is doing, and most importantly, plan out how you are going to approach the problem \emph{before} you start actually coding. You may find it helpful to do this by using comments to make an outline of what you need to do and how you are going to do it.
 
 \end{problem}
 
