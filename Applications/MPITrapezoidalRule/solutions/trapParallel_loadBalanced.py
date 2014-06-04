@@ -20,7 +20,7 @@ RANK = COMM.Get_rank()
 SIZE = COMM.Get_size()
 ROOT = 0
 
-a, b, n = argv[1:]
+a, b, n = argv[1:4]
 a = float(a)
 b = float(b)
 n = int(n)
@@ -33,7 +33,7 @@ def g(x):
 def integrate_range(a, b, n, f=g):
     ''' Serially integrates from a to b with n trapezoids
         (We'll only call this on a small part of the full domain for each process) 
-        '''
+    '''
     integral = -(f(a) + f(b))/2.0
 
     # n+1 endpoints, but n trapezoids
@@ -67,7 +67,7 @@ def get_local_params(comm, a, b, n):
             local_n indexed by process = [2, 2, 2, 2]
             num_orphan_traps = 10 - 2*4 = 2
             local_n indexed by process = [3, 3, 2, 2]
-            '''
+    '''
     # h is the step size, n is the total number of trapezoids
     h = (b-a)/n
 
@@ -95,6 +95,6 @@ if RANK == ROOT:
         COMM.Recv(buf, MPI.ANY_SOURCE)
         total += buf[0]
     
-    print "With n = {n} trapezoids, the integral of f from {a} to {b} is: {total}.".format(**locals())
+    print "With n = {0} trapezoids, the integral of f from {1} to {2} is: {3}.".format(n, a, b, total)
     print "Parallel Computation:", total
     print "Serial Computation:  ", integrate_range(a, b, n)

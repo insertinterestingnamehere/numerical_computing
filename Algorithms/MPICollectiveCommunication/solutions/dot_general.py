@@ -5,8 +5,6 @@ Does NOT assume that SIZE | n
 CMD line argument: n, the length of the vector to dot with itself
 '''
 
-from __future__ import division
-
 from mpi4py import MPI
 import numpy as np
 import collective_utilities as cu
@@ -45,5 +43,5 @@ product_buf = np.zeros(1) if RANK == ROOT else None
 COMM.Reduce(buf, product_buf, MPI.SUM)
 
 if RANK == ROOT:
-    print("Parallel Dot Product: " + str(product_buf[0]))
-    print("Serial Dot Product: " + str(np.dot(x, y)))
+    print "Parallel Dot Product: ", str(product_buf[0])
+    print "Serial Dot Product: ", str(np.dot(x, y))
