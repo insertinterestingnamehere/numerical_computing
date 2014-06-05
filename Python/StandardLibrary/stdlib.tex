@@ -321,7 +321,7 @@ with open('test_out.csv', 'w') as csv_file:
 This module is used to time the execution of small bits of Python code.
 It is helpful to time lines of code in Python using the \li{timeit} module because it avoids a number of common pitfalls in measuring execution time; for example, it limits errors caused by startup and shutdown times by running the code repeatedly. In IPython, we usually time code using the built-in \li{\%timeit} function. Prefacing a line of code with \li{\%timeit} times that line; to time an entire cell of code, preface it with \li{\%\%timeit}. However, this will not work in all environments, notably in a command line setting, so it is important to know how to time code without the \li{\%timeit} function.
 
-We will now define a function that times the execution of another function \li{f} and returns the minimum runtime for one call of the \li{f}. This will be useful in other labs when you are asked to time the execution of your solutions. Before we can do this, we need to know what a wrapper function is. A wrapper function is so named because it wraps a function and its arguments into a function object that can be called by the \li{timeit} function. In Python, this is done by declaring a \li{lambda} function, which is a temporary, anonymous function that takes no arguments.
+We will now define a function that times the execution of another function \li{f} and returns the minimum runtime for one call of \li{f}. This will be useful in other labs when you are asked to time the execution of your solutions. Before we can do this, however, we need to know what a wrapper function is. A wrapper function is so named because it wraps a function and its arguments into a function object that can be called by the \li{timeit} function. In Python, this is done by declaring a \li{lambda} function, which is a temporary, anonymous function that takes no arguments.
 
 \begin{lstlisting}
 import timeit
@@ -330,26 +330,26 @@ import timeit
 # arguments of f, a dictionary of the keyword arguments of f, and two 
 # keyword arguments.
 def time_func(f, args=(), kargs={}, repeat=3, number=100):
-	# Wrap f into pfunc
+	# Wrap f into pfunc.
 	pfunc = lambda: f(*args, **kargs)
-	# This is where we actually use the timeit module
+	# Define an object T that times pfunc once.
 	T = timeit.Timer(pfunc)
 
-	# Time f several times, return the name of f and the minimum runtime
+	# Time f several times, return the name of f and the minimum runtime.
 	try:
-		#Note that repeat is a timeit module function
+		# Repeat is also a timeit module function
 		_t = T.repeat(repeat=repeat, number=int(number))
 		runtime = min(_t)/float(number)
 		return f.__name__, runtime
-	# Print an error statement if something goes wrong
+	# Print an error statement if something goes wrong.
 	except:
 		T.print_exc()
 \end{lstlisting}
 
-Remember that keyword arguments are arguments that are given a default value in the function declaration (after the non-keyword arguments), but can be overwritten. Therefore, when calling \li{time_func}, the dictionary of keyword arguments of \li{f} (where the names of the keyword arguments are the keys) is optional, and so are the keyword arguments of \li{time_func} itself.
-\li{repeat} defines the number of time to test the code, while \li{number} defines the number of times the code is run per test. If your code is small and simple, you can set the value of \li{number} very high without causing problems, but for large, slower code, \li{number} will need to be smaller, or you may have to wait a long time to get your timing results.
+Remember that keyword arguments are arguments that are given a default value in the function declaration after the positional (non-keyword) arguments, but can be overwritten. Therefore, when calling \li{time_func}, the dictionary of keyword arguments of \li{f} (where the names of the keyword arguments are the keys) is optional, and so are the keyword arguments of \li{time_func} itself.
+\li{repeat} defines the number of times to test the code, while \li{number} defines the number of times the code is run per test. If your code is small and simple, you can set the value of \li{number} very high without causing problems, but for bulky, slower code, \li{number} will need to be smaller, or you may have to wait a long time to get your timing results.
 
-For further information on the \li{timeit} module, see the documentation at \url{http://docs.python.org/2/library/timeit.html}. Resources found by a quick Google search may also be helpful.
+For further information on the \li{timeit} module, see the documentation at \url{http://docs.python.org/2/library/timeit.html}.
 
 \begin{comment}
 \begin{problem}
@@ -426,8 +426,8 @@ Before discussing this module, let's briefly understand what a generator is, and
 Lists, tuples, sets and dictionaries are all examples of sequences in Python. It is frequently useful and necessary to visit all the elements of a sequence once; the process of doing so is called \emph{iteration}.
 Each of the Python types we have mentioned define their own iterators, which you use every time you execute the statement \li{for <elem> in <sequence>}.
 
-Python also has a special type of object called a \emph{generator}.
-Similar to an iterator, a generator returns a sequence of values, but unlike an iterator, a generator computes the next value in the sequence and returns it instead of storing the entire sequence and returning one element at a time. It never has to store all the values in a sequence. When is this helpful?
+Python also has a special type of iterator object called a \emph{generator}.
+Like a standard iterator, a generator returns a sequence of values, but unlike a standard iterator, which computes an entire sequence and returns values from it, a generator computes and returns the next value in the sequence each time it is called.  It never has to store all the values in a sequence. When is this helpful?
 
 \begin{itemize}
 \item \emph{Iterating through only part of a sequence.}
@@ -478,13 +478,13 @@ The most important and most useful method is the \li{next()} method.  Every time
 the generator resumes from its previous state and computes the next value in the sequence. After computing and yielding this value, the generator is suspended until \li{next} is called again.
 
 When you are writing \li{for} loops, you should use a generator whenever it is reasonable to do so.
-The \li{xrange()} function that is built into Python is a generator based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}. In a for loop, you can use \li{xrange()} the same way you would use \li{range}.
+The \li{xrange()} function that is built into Python is a generator-based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}. In a for loop, you can use \li{xrange()} the same way you would use \li{range}.
 
 In general, the generators in \li{itertools} are used like this:
 \begin{lstlisting}
 import itertools
 a = itertools.count(5) 
-# Returns natural numbers, starting at 5, increasing by 1 each time it is called.
+# Returns natural numbers, starting at 5, increasing by 1 each time next() is called.
 a.next()
 \end{lstlisting}
 
@@ -553,7 +553,7 @@ To pass off, you must use the standard library for the following parts:
 
 Stop the simulation when there is at most one surviving tribute and print the winner to standard output (it will appear in the console).  It is possible that there are no surviving tributes.  If there are no surviving tributes, indicate so in your outputs.
 
-Keep in mind good coding practice as you solve this problem. Compartmentalize tasks into functions as much as possible to make debugging easier, use comments to document what your code is doing, and most importantly, plan out how you are going to approach the problem \emph{before} you start actually coding. You may find it helpful to do this by using comments to make an outline of what you need to do and how you are going to do it.
+Keep in mind good coding practice as you solve this problem. Compartmentalize tasks into functions as much as possible to make debugging easier, use comments to document what your code is doing, and most importantly, plan out how you are going to approach the problem \emph{before} you actually start coding. 
 
 \end{problem}
 
