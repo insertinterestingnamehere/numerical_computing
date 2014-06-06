@@ -3,6 +3,111 @@
 \objective{Understand some basic applications of Eigenvalues to graph theory}
 \label{lab:ImgSeg_eigenvalues}
 
+\section*{Uses in Graph Theory}
+\begin{figure}[h]
+\includegraphics[width=\textwidth/2]{graphExample}
+\caption{A simple graph}
+\label{fig:example_graph}
+\end{figure}
+
+Graphs are often used to represent relationships between objects.
+They are represented by a set of nodes (or vertices) and a set of edges where each edge connects exactly two nodes.
+A graph is \emph{directed} if connections are uni-directional, and \emph{undirected} if they are bi-directional.
+Every undirected edge can be represented as two directed edges.
+Figure \ref{fig:example_graph} shows a simple undirected graph.
+We can represent the connections of nodes as a matrix called an \emph{adjacency matrix}.
+The graph in Figure \ref{fig:example_graph} can be represented as the following adjacency matrix.
+\[
+A = \begin{pmatrix}
+0 & 1 & 0 & 0 & 1 & 0\\
+1 & 0 & 1 & 0 & 1 & 0\\
+0 & 1 & 0 & 1 & 0 & 0\\
+0 & 0 & 1 & 0 & 1 & 1\\
+1 & 1 & 0 & 1 & 0 & 0\\
+0 & 0 & 0 & 1 & 0 & 0
+\end{pmatrix}
+\]
+We order the nodes and each node represents one column and one row of the adjacency matrix.
+If an edge exists between node $i$ and node $j$ then the $A_{ij}$ entry is 1.
+For undirected graphs, the adjacency matrix will always be symmetric.
+The diagonal represents self-edges, or edges that connect a node to itself.
+While adjacency matrices are useful, many graph algorithms depend on another representation of a graph called an \emph{adjacency list}.
+
+Raising the adjacency matrix to a power yields some very interesting information.
+We can discover the number of paths of length $n$ between two nodes by raising a graph's adjacency matrix to the $n$th power.
+For example, by squaring $A$, we can find the number of paths of length 2 between every pair of nodes.
+\begin{lstlisting}
+>>> np.linalg.matrix_power(A,2)
+array([[2, 1, 1, 1, 1, 0],
+       [1, 3, 0, 2, 1, 0],
+       [1, 0, 2, 0, 2, 1],
+       [1, 2, 0, 3, 0, 0],
+       [1, 1, 2, 0, 3, 1],
+       [0, 0, 1, 0, 1, 1]])
+\end{lstlisting}
+We can see that no paths of length 2 exist between node 0 and node 5 because $A^2_{0,5} = 0$.
+By calculating $A^6$ we can find the number of paths length 6 from node 3 to itself.
+\begin{lstlisting}
+>>> np.linalg.matrix_power(A, 6)
+array([[45, 54, 38, 45, 54, 16],
+       [54, 86, 29, 77, 51, 11],
+       [38, 29, 55, 15, 70, 27],
+       [45, 77, 15, 75, 31,  4],
+       [54, 51, 70, 31, 93, 34],
+       [16, 11, 27,  4, 34, 14]])
+\end{lstlisting}
+We see that there are 55 unique paths of length 6 from node 3 to itself.
+Imagine trying to count all of those paths by hand!
+It would be very easy to count incorrectly.
+However, this method makes it very simple to count paths without any mistakes.
+
+Adjacency matrices can also be composed of \li{True} and \li{False} values.
+In this case, the $n$th power of such a matrix (using boolean arithmetic)
+is again a matrix of
+boolean values which simply indicate whether there exists a path of length $n$ between the given pair of nodes, rather than indicating the number of such
+paths.
+
+\begin{problem}
+Let the following matrix represent a directed graph
+\[
+\begin{pmatrix}
+0 & 0 & 1 & 0 & 1 & 0 & 1 \\
+1 & 0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+1 & 0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 1 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 1 \\
+0 & 1 & 0 & 0 & 0 & 0 & 0
+\end{pmatrix}
+\]
+Between which pair of nodes does there exist the greatest number of paths
+of length five?
+From which node to which node is there no path of length seven?
+\end{problem}
+
+Another useful way of representing an undirected graph is a Laplacian matrix.
+This special matrix can reveal a lot of information about a graph.
+\begin{definition}
+For a simple graph (an unweighted, undirected graph without self-edges), the Laplacian of a graph $G$ is
+\[ L_G = D_G - A_G \]
+where $D_G$ is the degree matrix of $G$ and $A_G$ is the adjacency matrix of $G$.
+\end{definition}
+An important question in working with graphs is the degree of its nodes.
+The degree of a node is the number of edges that connect to the node.
+For a directed graph, each node has an \emph{out-degree} (the number of edges directed away from a node) and an \emph{in-degree} (the number edges directed toward a node).
+The degree matrix of a graph is a diagonal matrix that has the degree of each node as the diagonal entries (thus, for a directed graph there in an in-degree matrix and an out-degree matrix).
+
+\begin{problem}
+Calculate the Laplacian matrix of the graph in Figure \ref{fig:example_graph} by calculating $D$ and $A$.
+Think about how to find the number of neighboring nodes using an adjacency matrix.
+
+Write a general solution that will calculate the Laplacian of any small graph.
+Use the adjacency matrix to check that the graph is unweighted, undirected, and contains no self-edges.
+\label{prob:laplacian}
+\end{problem}
+
+TO DO: edit this section
+
 A graph is a mathematical construct used to encode how things are connected. Let us briefly review the basic terminology.
 Recall that a graph is defined as a collection of vertices, which can be thought of as different destinations, and edges, which can be thought of as roads connecting destinations together.
 Figure \ref{segmentation:graph} is a simple example of a graph.
