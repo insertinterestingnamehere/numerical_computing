@@ -109,40 +109,36 @@ def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
 x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
 \end{lstlisting}
 
-How do we know if a numerical approximation is reasonable? One way to determine this 
-is to compute solutions for various step sizes $h$ and see if the solutions are 
-converging to something. To be more specific, suppose our finite difference method 
-is $\mathcal{O}(h^p)$ accurate. This means that the error $E(h) \approx Ch^p$ for some constant $C$ as $h \to 0$ (i.e., for $h>0$ small enough).
+% How do we know if a numerical approximation is reasonable?  One way to determine this is to compute solutions for various step sizes $h$ and see if the solutions are converging to something.  To be more specific, suppose our finite difference method is $\mathcal{O}(h^p)$ accurate.  This means that the error $E(h) \approx Ch^p$ for some constant $C$ as $h \to 0$ (i.e., for $h>0$ small enough).
+% 
+% So compute the approximation $y_k$ for each stepsize $h_k$, $h_1 > h_2> \ldots>h_m.$  We will think of $y_m$ as the true solution.  Then the error of the approximation for 
+% stepsize $h_k, k < m,$ is 
+% \begin{align*}
+% 	E(h_k) &= \max( \abs{ y_k - y_m}) \approx C h_k^p ,\\
+% 	\log(E(h_k)) &= \log(C) + p \log(h_k).
+% \end{align*}
+% Thus on a log-log plot of $E(h)$ vs. $h,$ these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. 
 
-So compute the approximation $y_k$ for each stepsize $h_k$, $h_1 > h_2> \ldots>h_m.$ 
-We will think of $y_m$ as the true solution. Then the error of the approximation for 
-stepsize $h_k, k < m,$ is 
-\begin{align*}
-	E(h_k) &= \max( \abs{ y_k - y_m}) \approx C h_k^p ,\\
-	\log(E(h_k)) &= \log(C) + p \log(h_k).
-\end{align*}
-Thus on a log-log plot of $E(h)$ vs. $h,$ these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. 
-
-The following code generates the log-log plot in \ref{figure1}, and demonstrates second-order convergence for this finite difference approximation. 
-\begin{lstlisting}
-import matplotlib.pyplot as plt
-a, b = 0., 1.
-num_approx = 10 # Number of Approximations
-N = np.array([5*2**j for j in range(num_approx)])
-h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
-
-mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
-for j in range(len(N)-1): 
-    mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
-    max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
-plt.loglog(h,max_error,'.-r',label="$E(h)$")
-plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
-plt.xlabel("$h$")
-plt.legend(loc='best')
-plt.show()
-print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
-    np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
-\end{lstlisting}
+% The following code generates the log-log plot in \ref{figure1}, and demonstrates second-order convergence for this finite difference approximation. 
+% \begin{lstlisting}
+% import matplotlib.pyplot as plt
+% a, b = 0., 1.
+% num_approx = 10 # Number of Approximations
+% N = np.array([5*2**j for j in range(num_approx)])
+% h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
+% 
+% mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
+% for j in range(len(N)-1): 
+%     mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
+%     max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
+% plt.loglog(h,max_error,'.-r',label="$E(h)$")
+% plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
+% plt.xlabel("$h$")
+% plt.legend(loc='best')
+% plt.show()
+% print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
+%     np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
+% \end{lstlisting}
 
 \begin{figure}[ht]
 \centering
@@ -181,53 +177,53 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
 
 \section{Poisson's equation in two dimensions}
 
-Consider Poisson's equation together with Dirichlet boundary conditions on a square domain:
-\begin{align*}
-	u_{xx} + u_{yy} &= f,\quad x \text{ in } [0,1]\times[0,1] \subset \mathbb{R}^2,\\
-	u &= g, \quad x \text{ on } \partial \left( [0,1]\times[0,1]\right).
-\end{align*}
-We will use the finite difference approximation
-\begin{align*}
-u_{xx}(x,y) + u_{yy}(x,y) &= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
-& \qquad{}+ 
-\frac{u(x,y+h) - 2u(x,y)+ u(x,y-h)}{h^2} + \mathcal{O}(h^2).
-\end{align*}
-Define the difference operator $\nabla^2_h$ by 
-\[
-\nabla^2_h U_{ij} = \frac{1}{h^2}(U_{i-1,\,j} + U_{i+1,\,j} + U_{i,\,j-1} + U_{i,\,j+1}-4U_{i,\,j}).
-\]
-Then the set of equations  $\nabla^2_h U_{ij} = f_{ij}$, $i,j = 1,\ldots,m$ can be written in matrix form as
-$$AU + q  = f$$
-Here $A$ is the block tridiagonal matrix 
-\[
-\frac{1}{h^2} \begin{bmatrix}T & I & &  &\\ I &T & I & &\\  &\ddots  & \ddots & \ddots & \\  &  & I & T & I \\
- &  &  & I & T
-\end{bmatrix}
-\]
-where $I$ is the $m\times m$ identity matrix, and $T$ is the tridiagonal matrix
-\[
- \begin{bmatrix}-4 & 1 & &  &\\ 1 &-4 & 1 & &\\  &\ddots  & \ddots & \ddots & \\  &  & 1 & -4 & 1 \\
- &  &  & 1 & -4
-\end{bmatrix}.
-\]
+% Consider Poisson's equation together with Dirichlet boundary conditions on a square domain:
+% \begin{align*}
+% 	u_{xx} + u_{yy} &= f,\quad x \text{ in } [0,1]\times[0,1] \subset \mathbb{R}^2,\\
+% 	u &= g, \quad x \text{ on } \partial \left( [0,1]\times[0,1]\right).
+% \end{align*}
+% We will use the finite difference approximation
+% \begin{align*}
+% u_{xx}(x,y) + u_{yy}(x,y) &= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
+% & \qquad{}+ 
+% \frac{u(x,y+h) - 2u(x,y)+ u(x,y-h)}{h^2} + \mathcal{O}(h^2).
+% \end{align*}
+% Define the difference operator $\nabla^2_h$ by 
+% \[
+% \nabla^2_h U_{ij} = \frac{1}{h^2}(U_{i-1,\,j} + U_{i+1,\,j} + U_{i,\,j-1} + U_{i,\,j+1}-4U_{i,\,j}).
+% \]
+% Then the set of equations  $\nabla^2_h U_{ij} = f_{ij}$, $i,j = 1,\ldots,m$ can be written in matrix form as
+% $$AU + q  = f$$
+% Here $A$ is the block tridiagonal matrix 
+% \[
+% \frac{1}{h^2} \begin{bmatrix}T & I & &  &\\ I &T & I & &\\  &\ddots  & \ddots & \ddots & \\  &  & I & T & I \\
+%  &  &  & I & T
+% \end{bmatrix}
+% \]
+% where $I$ is the $m\times m$ identity matrix, and $T$ is the tridiagonal matrix
+% \[
+%  \begin{bmatrix}-4 & 1 & &  &\\ 1 &-4 & 1 & &\\  &\ddots  & \ddots & \ddots & \\  &  & 1 & -4 & 1 \\
+%  &  &  & 1 & -4
+% \end{bmatrix}.
+% \]
 
-The vector $U$ is given by 
-\[
-U = \begin{bmatrix} U^1 \\ U^2 \\ \\ U^m \end{bmatrix} \text{ where } U^j = 
-\begin{bmatrix} U_{1,\,j} \\ U_{2,\,j} \\ \\ U_{m,\,j} \end{bmatrix} \text{ for each } j, 1\leq j \leq m.
-\]
-So $U^j$ represents the $j$th row of interior points in our grid, where $y_j = jh.$
-
-
-The vector $q$ is given by $u = [q^1 \ldots q^m]^T$, where 
-\[
-q^j = \frac{1}{h^2}
-\begin{bmatrix} g_{0,\,j} \\ 0 \\ \vdots \\0\\ g_{m+1,\,j} \end{bmatrix} , \,\,\, 2 \leq j \leq m-1,
-\]
-and 
-\[
-q^1 = \frac{1}{h^2}\begin{bmatrix} g_{1,0} + g_{0,1} \\ g_{2,0} \\ \vdots \\ g_{m-1,0}\\ g_{m,0} + g_{m+1,1}\end{bmatrix}, \quad q^m = \frac{1}{h^2}\begin{bmatrix} g_{1,m+1} + g_{0,m}\\ g_{2,m+1} \\ \vdots \\ g_{m-1,m+1}\\ g_{m,m+1} + g_{m+1,m}\end{bmatrix}.
-\]
+% The vector $U$ is given by 
+% \[
+% U = \begin{bmatrix} U^1 \\ U^2 \\ \\ U^m \end{bmatrix} \text{ where } U^j = 
+% \begin{bmatrix} U_{1,\,j} \\ U_{2,\,j} \\ \\ U_{m,\,j} \end{bmatrix} \text{ for each } j, 1\leq j \leq m.
+% \]
+% So $U^j$ represents the $j$th row of interior points in our grid, where $y_j = jh.$
+% 
+% 
+% The vector $q$ is given by $u = [q^1 \ldots q^m]^T$, where 
+% \[
+% q^j = \frac{1}{h^2}
+% \begin{bmatrix} g_{0,\,j} \\ 0 \\ \vdots \\0\\ g_{m+1,\,j} \end{bmatrix} , \,\,\, 2 \leq j \leq m-1,
+% \]
+% and 
+% \[
+% q^1 = \frac{1}{h^2}\begin{bmatrix} g_{1,0} + g_{0,1} \\ g_{2,0} \\ \vdots \\ g_{m-1,0}\\ g_{m,0} + g_{m+1,1}\end{bmatrix}, \quad q^m = \frac{1}{h^2}\begin{bmatrix} g_{1,m+1} + g_{0,m}\\ g_{2,m+1} \\ \vdots \\ g_{m-1,m+1}\\ g_{m,m+1} + g_{m+1,m}\end{bmatrix}.
+% \]
 
 \begin{problem}
 	Find the solution $u$ of the 2D Laplace equation $\Delta u = 0$ on the unit 
