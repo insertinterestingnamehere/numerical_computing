@@ -75,7 +75,7 @@ def Exercise2():	# SIR
 	return 
 
 
-def Exercise3a():	# SIR
+def Exercise2a():	# SIR
 	beta, gamma = 1., 1./3.   # Exercise 3a
 	a, b, ya = 0., 50., np.array([1.-(1.667e-6), 1.667e-6,0.])
 	
@@ -115,16 +115,28 @@ def Exercise3b():	# SIR
 	return 
 
 
-def Exercise4():	# SIR
+def Exercise3():	# SIR
 	beta, gamma = 3./10., 1./4.   # Exercise 4
-	a, b, ya = 0., 400., np.array([1.-(1.667e-6), 1.667e-6,0.])
+	a, b, ya = 0., 500., np.array([1.-(1.667e-6), 1.667e-6,0.])
 	
 	t,Y = SIR(a,b,beta, gamma,ya)
 	print "The Maximum fraction of the population that will be infected simultaneously is", max(Y[:,1])                    
+	
+	plt.plot(t,Y[:,0],'-k',label='Susceptible')
+	plt.plot(t,Y[:,2],'-b',label='Recovered')
+	plt.plot(t,Y[:,1],'-r',label='Infected')
+	plt.axis([a,b,0.,1.],fontsize=16)
+	plt.legend(loc=1)
+	plt.xlabel('T (days)',fontsize=18)
+	plt.ylabel('Proportion of Population',fontsize=18)
+	# plt.savefig("SIR.pdf")
+	plt.show()
+	plt.clf()
+	
 	return 
 
 
-def Exercise5():   # measles
+def Exercise4():   # measles
 	from math import pi, cos
 	a, b = 0., 1.  						# Interval of the BVP
 	n, N = 3, 80							# Dimension of the system/ Number of subintervals	
@@ -183,10 +195,10 @@ def Exercise5():   # measles
 # Example()
 # Exercise1()
 # Exercise2()
-# Exercise3a()
-# Exercise3b()
+# Exercise2a()
+# Exercise2b()
+Exercise3()
 # Exercise4()
-Exercise5()
 
 
 
