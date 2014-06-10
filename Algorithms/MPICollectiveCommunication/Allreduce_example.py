@@ -10,4 +10,4 @@ SIZE_buffer = np.zeros(1)
 COMM.Allreduce(operand_buffer, SIZE_buffer, op=MPI.MAX)
 
 SIZE = 1 + int(SIZE_buffer[0])
-print "Rank {RANK}: The size is {SIZE}.".format(**locals())
+print "Rank {0}: The size is {1}.".format(RANK, SIZE)

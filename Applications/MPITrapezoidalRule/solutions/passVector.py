@@ -31,11 +31,11 @@ if RANK == ROOT and SIZE != 2:
 if RANK == ROOT:
     # Generate and send a random array to the other process
     vec = np.random.rand(n)
-    print "Process {RANK}: Sent: vec={vec}".format(**locals())
+    print "Process {0}: Sent: vec={1}".format(RANK, vec)
     COMM.Send(vec, dest=1)
 else:
     # Prepare and recieve the array from the root process
     vec = np.zeros(n)
-    print "Process {RANK}: Before checking mailbox: vec={vec}".format(**locals())
+    print "Process {0}: Before checking mailbox: vec={1}".format(RANK, vec)
     COMM.Recv(vec)
-    print "Process {RANK}: Recieved: vec={vec}".format(**locals())
+    print "Process {0}: Recieved: vec={1}".format(RANK, vec)
