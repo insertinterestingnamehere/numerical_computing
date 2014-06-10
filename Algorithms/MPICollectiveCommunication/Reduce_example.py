@@ -10,4 +10,4 @@ SIZE_buffer = np.zeros(1)
 COMM.Reduce(operand_buffer, SIZE_buffer, op=MPI.MAX)
 if RANK == 0:
     SIZE = 1 + int(SIZE_buffer[0])
-    print "The size is {SIZE}.".format(**locals())
+    print "The size is {}.".format(SIZE)
