@@ -232,8 +232,8 @@ Import the \li{math} module and \li{cmath} module. Write a function that prints 
 
 \section*{\texttt{random} Module}
 The \li{random} module contains many helpful functions for obtaining random numbers.
-These ``random'' numbers are not actually completely random, however, they are seemingly-random enough for most applications.
-Some of the more commonly used methods of the \li{random} module are demonstrated below.
+These ``random'' numbers are not actually completely random; however, they are seemingly-random enough for most applications.
+Some of the more commonly used methods of the \li{random} module are shown below.
 \begin{lstlisting}
 import random
 
@@ -257,7 +257,8 @@ The \li{random} module has functions that can sample from a variety of different
 \end{comment}
 
 \begin{problem}
-Write a function that will generate a random bijective map of arbitrary items between two lists that are equal in length.
+Write a function that will generate a random bijective map between two lists of arbitrary items that are equal in length. Your
+output should be a list of tuples of the form \li{(list1[i], list2[j])}, where \li{list1[i]} maps to \li{list2[j]}.
 \label{prob:random_map}
 \end{problem}
 
@@ -268,18 +269,16 @@ This \li{csv} module provides \li{reader} and \li{writer} objects.
 There are also analogous \li{DictReader} and \li{DictWriter} objects that use dictionaries for handling data.
 
 Using these reader and writer objects, we can define the format of our CSV file.
-Contrary to the name, CSV files can be delimited with any character.
-A delimiter is the special character that separates fields in a line.
-Tabs and spaces are two other popular delimiting characters.
+Contrary to what the name implies, CSV files can be delimited with any character.
+A delimiter is the special character that separates fields in a line. Commas are typical, but tabs and spaces are two other popular delimiting characters.
 \begin{lstlisting}
 # Set the delimiter to tabs.
 csv_reader = csv.reader(csv_file, delimiter='\t')
 \end{lstlisting}
 
-We can become very specific about dialects.
-For example, we can define the characters that separate fields, terminate lines, escape special characters, and enclose strings.
+We can also define the characters that separate fields, terminate lines, escape special characters, and enclose strings.
 The \li{csv} module refers to these special settings as \emph{dialects}.
-The module comes with two dialects ready to use, excel and excel-tab.
+The module comes with two dialects ready to use, excel (Windows Excel formatting) and excel-tab (Excel formatting, but tab-delimited).
 \begin{lstlisting}
 # Change the formatting dialect to CSV.
 csv_reader = csv.reader(csv_file, dialect='excel')
@@ -308,7 +307,7 @@ contents = [["Column 1", "Column 2", "Column 3"],
             [0,1,2], [3, 2, 1], [4,5,2], [68, 38, 99]]
 
 # Open test_out.csv as a write-only file.
-# This will overwrite test_out.csv if it already exists!
+# Be careful! This will overwrite test_out.csv if it already exists.
 with open('test_out.csv', 'w') as csv_file:
     # Create a csv writer object.
     csv_writer = csv.writer(csv_file)
@@ -320,9 +319,39 @@ with open('test_out.csv', 'w') as csv_file:
 
 \section*{\texttt{timeit} Module}
 This module is used to time the execution of small bits of Python code.
-It is usually good to time lines of code in Python by using this module because it avoids a number of common pitfalls in measuring execution time.
+It is helpful to time lines of code in Python using the \li{timeit} module because it avoids a number of common pitfalls in measuring execution time; for example, it limits errors caused by startup and shutdown times by running the code repeatedly. In IPython, we usually time code using the built-in \li{\%timeit} function. Prefacing a line of code with \li{\%timeit} times that line; to time an entire cell of code, preface it with \li{\%\%timeit}. However, this will not work in all environments, notably in a command line setting, so it is important to know how to time code without the \li{\%timeit} function.
 
+We will now define a function that times the execution of another function \li{f} and returns the minimum runtime for one call of \li{f}. This will be useful in other labs when you are asked to time the execution of your solutions. Before we can do this, however, we need to know what a wrapper function is. A wrapper function is so named because it wraps a function and its arguments into a function object that can be called by the \li{timeit} function. In Python, this is done by declaring a \li{lambda} function, which is a temporary, anonymous function that takes no arguments.
 
+\begin{lstlisting}
+import timeit
+
+# time_func takes as its arguments the name of a function f, a tuple of the
+# arguments of f, a dictionary of the keyword arguments of f, and two 
+# keyword arguments.
+def time_func(f, args=(), kargs={}, repeat=3, number=100):
+	# Wrap f into pfunc.
+	pfunc = lambda: f(*args, **kargs)
+	# Define an object T that times pfunc once.
+	T = timeit.Timer(pfunc)
+
+	# Time f several times, return the name of f and the minimum runtime.
+	try:
+		# Repeat is also a timeit module function
+		_t = T.repeat(repeat=repeat, number=int(number))
+		runtime = min(_t)/float(number)
+		return f.__name__, runtime
+	# Print an error statement if something goes wrong.
+	except:
+		T.print_exc()
+\end{lstlisting}
+
+Remember that keyword arguments are arguments that are given a default value in the function declaration after the positional (non-keyword) arguments, but can be overwritten. Therefore, when calling \li{time_func}, the dictionary of keyword arguments of \li{f} (where the names of the keyword arguments are the keys) is optional, and so are the keyword arguments of \li{time_func} itself.
+\li{repeat} defines the number of times to test the code, while \li{number} defines the number of times the code is run per test. If your code is small and simple, you can set the value of \li{number} very high without causing problems, but for bulky, slower code, \li{number} will need to be smaller, or you may have to wait a long time to get your timing results.
+
+For further information on the \li{timeit} module, see the documentation at \url{http://docs.python.org/2/library/timeit.html}.
+
+\begin{comment}
 \begin{problem}
 For most timing situations, we rely on IPython's \li{\%timeit} function.
 Since this is a special function only available inside IPython, however, we will write a more general timer that works anywhere with any function.
@@ -342,6 +371,8 @@ pfunc = lambda: f(*args, **kwargs)
 where \li{args} is a tuple of arguments and \li{kwargs} is a dictionary of keyword arguments to the function, $f$.
 You can refresh your memory of functions and their arguments and keyword arguments in sections 4.7.1-4.7.4 of the official Python tutorial.
 \end{problem}
+\end{comment}
+
 
 \section*{\texttt{collections} Module}
 This module defines several specialized data structures to use in addition to the built-in Python data structures.
@@ -363,6 +394,8 @@ When iterating over an ordered dictionary, the items are returned in the order t
 Default dictionaries are a very convenient way to set a default value for all new keys in a dictionary.
 While this can be done with standard dictionaries using the \li{setdefault()} method, using a default dictionary is simpler and faster.
 
+For further information and examples of how to use these container objects, see section 8.3 of the official Python tutorial (\url{https://docs.python.org/2/library/collections.html}).
+
 \begin{problem}
 Write three functions that will rotate the elements of a deque and a list respectively.
 \begin{enumerate}
@@ -372,7 +405,7 @@ Write three functions that will rotate the elements of a deque and a list respec
 \end{enumerate}
 
 To rotate a sequence, remove elements from the right end one by one and insert them on the left end.
-Compare the timings you obtain from a deque and a list of 10000 elements.
+Compare the timings you obtain from a deque and a list of 10000 elements, using the timer function defined earlier in this lab.
 \end{problem}
 
 \begin{problem}
@@ -383,46 +416,26 @@ Return a dictionary where the keys are the distinct integers in the list and the
 
 \section*{\texttt{itertools} Module}
 There is a very powerful library in the Python Standard Library that is built around the concept
-of generators and iterators.  The functions in \li{itertools} are designed to be used as
-building blocks in larger functions.  These functions are fast and memory efficient.
-This efficiency is especially important in Python where code is generally executed more slowly than in a compiled language like C or Fortran.
-In Python, an efficient way of doing things goes a very long way.
+of generators and iterators.  The functions in \li{itertools} are fast and memory efficient and are designed to be used as
+building blocks in larger functions. 
+This efficiency is especially important in Python where code is generally executed more slowly than in a compiled language like C or Fortran; an efficient way of doing things goes a very long way.
 
 \subsection*{Generators}
-Before discussing this module, let's briefly understand what a generator is.
-A generator ``generates'' values.  It is a special type of iterator that yields values on-demand.  Here is a simple example of a generator.
-\begin{lstlisting}
-def example():
-    yield 1
-    yield 2
-    yield 3
+Before discussing this module, let's briefly understand what a generator is, and the difference between generators and iterators.
 
-# Initialize the generator.
-g = example()
-# Return 1 (the first value).
-g.next()
-g.next()        # return 2
-g.next()        # return 3
-# Raises a StopIteration exception. There are no more values to return.
-g.next()
-\end{lstlisting}
-In a generator, the \li{yield} keyword acts like a special \li{return} statement.
-It essentially pauses the execution of the generator and returns a value.
-When a generator is created, it simply returns a generator object.
-These generator objects have a \li{next()} method, which will request the next value from the generator.
-Calling \li{next()} on a generator object resumes execution in the generator until the next yield statement or the generator finishes.
-Generators are a very convenient way to to return many values without having to return them all at once.
+Lists, tuples, sets and dictionaries are all examples of sequences in Python. It is frequently useful and necessary to visit all the elements of a sequence once; the process of doing so is called \emph{iteration}.
+Each of the Python types we have mentioned define their own iterators, which you use every time you execute the statement \li{for <elem> in <sequence>}.
 
-When are generators helpful?
-If you encounter one of the situations below, consider trying to solve
-your problem using generators.
+Python also has a special type of iterator object called a \emph{generator}.
+Like a standard iterator, a generator returns a sequence of values, but unlike a standard iterator, which computes an entire sequence and returns values from it, a generator computes and returns the next value in the sequence each time it is called.  It never has to store all the values in a sequence. When is this helpful?
+
 \begin{itemize}
 \item \emph{Iterating through only part of a sequence.}
 It is inefficient to create an entire sequence if we know that we will not need all of it.
-Representing the sequence as a generator could possibly avoid excess memory use and computation.
+Representing the sequence as a generator can avoid excess memory use and computation.
 \item \emph{Iterating through a sequence once.} Consider the statement
 \li{sum([i for i in range(1000) if i\%2 == 0])}.
-We are creating two sequences just to iterate through them once and never use them again.
+We are creating two sequences just to iterate through each them once and never use them again.
 We can make this more efficient using generators:
 \li{sum(i for i in xrange(1000) if i\%2 == 0)}
 Notice that we have used syntax similar to a list comprehension.
@@ -430,20 +443,64 @@ The line \li{(i for i in xrange(1000) if i\%2 == 0)} will define a generator obj
 The solution using generators will often execute faster, and it will almost always be more memory efficient.  Consider using generators for any function that reduces a sequence to a single value.  Examples of such functions are \li{min()}, \li{max()}, and \li{sum()}.
 \item \emph{Calculating large sequences.}  A sequence must be stored somewhere in computer memory.
 If the sequence is large, we could exhaust all available memory.
-\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite.  We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
+\item \emph{Calculations involving infinite sequences.}  Pre-computed sequences are necessarily finite; we simply cannot do computations involving infinite sequences with normal iterators. We cannot create a list that stores all natural numbers, but we can create a generator that returns the next natural number every time it is called.
 \end{itemize}
+
+Now that we understand what generators are and why they are important, we can discuss how to create and use them. Python uses the \li{yield} keyword to define a generator. As an example, consider the following, where we re-implement Python's \li{range} function as an iterator and a generator.
+\begin{lstlisting}
+def range_iter(start, stop, step=1):
+    i = start
+    r = []
+    while i < stop:
+       r.append(i)
+       i = i + step
+    return r
+\end{lstlisting}
+\begin{lstlisting}
+def range_gen(start, stop, step=1):
+    i = start
+    while i < stop:
+        yield i
+        i = i + step
+\end{lstlisting}
+These two functions look similar, but they behave very differently.
+The first function when executed will build a list one element at a time until finished
+at which point it will return the entire list.  On the author's computer, this function takes about 1.43ms
+to build and return a list of 10000 elements.  The second function is only marginally better,
+returning the 10000 elements in approximately 1.09ms, but this gap between the two functions grows much wider as the input size is increased.
+
+The main difference in the two functions lies in the time the function takes to execute when
+it is first called.  The first function requires 1.43ms to execute the first time.  The second function,
+a mere .00000041ms!  The reason for this is that the first function calculates its results and returns them all at once. The second function only creates a \emph{generator} object.  
+
+Generator objects have several methods.
+The most important and most useful method is the \li{next()} method.  Every time this method is called, 
+the generator resumes from its previous state and computes the next value in the sequence. After computing and yielding this value, the generator is suspended until \li{next} is called again.
+
+When you are writing \li{for} loops, you should use a generator whenever it is reasonable to do so.
+The \li{xrange()} function that is built into Python is a generator-based version of \li{range()} and is generally faster when used in \li{for} loops; you should make a habit of using \li{xrange()} instead of \li{range()}. In a for loop, you can use \li{xrange()} the same way you would use \li{range}.
+
+In general, the generators in \li{itertools} are used like this:
+\begin{lstlisting}
+import itertools
+a = itertools.count(5) 
+# Returns natural numbers, starting at 5, increasing by 1 each time next() is called.
+a.next()
+\end{lstlisting}
+
+Note that while \li{count()} takes an integer as input, most generators work over \emph{iterables}, or any Python object that can be iterated through; this includes strings, lists, tuples, and so on.
 
 \subsection*{Useful Generators in \texttt{itertools}}
 The \li{itertools} module contains three main types of generators: infinite generators, shortest sequence generators, and combinatoric generators.
-Some of the most frequently used generators are summarized in Table \ref{table:populargens}.  These examples come from the Python documentation.
+Some common generators are summarized in Table \ref{table:populargens}. Note that \li{islice} is particularly useful for efficiently iterating through only part of a sequence. For the argument values of and further information about these generators, as well as recipes for other useful generators, see the documentation at \url{http://docs.python.org/2/library/itertools.html}
 \begin{table}
 \begin{tabular}{|l|l|}
 \hline
 Generator & Example \\
 \hline
 \li{count()} & Count to infinity \\
-\li{cycle()} & Cycle through a sequence infinitely\\
-\li{repeat()} & Repeat the input element infinitely (or up to $n$ times) \\
+\li{cycle()} & Cycle through a sequence indefinitely\\
+\li{repeat()} & Repeat the input element indefinitely (or up to $n$ times) \\
 \hline
 \li{chain()} & \li{chain('ABC', 'DEF') --> A B C D E F} \\
 \li{compress()} & \li{compress('ABCDEF', [1,0,1,0,1,1]) --> A C E F} \\
@@ -451,24 +508,21 @@ Generator & Example \\
 \li{imap()} & \li{imap(pow, (2,3,10), (5,2,3)) --> 32 9 1000} \\
 \li{izip()} & \li{izip('ABCD', 'xy') --> Ax By} \\
 \hline
-\li{product()} & Return the Cartesian product \\
+\li{product()} & Return the Cartesian product of two iterables\\
 \li{permutations()} & Return permutations of a sequence\\
 \li{combinations()} & Return combinations of a sequence\\
-\li{combinations_with_replacement()} & Make combinations with replacements of a sequence\\
 \hline
 \end{tabular}
+
 \caption{Popular generators in \li{itertools} module.}
 \label{table:populargens}
 \end{table}
-
-We encourage you to view the documentation for \li{itertools} on the Python website, which also includes various recipes for other useful generator functions.
-Feel free to look through the documentation at \url{http://docs.python.org/2/library/itertools.html}.
 
 \begin{problem}
 You have been tasked to write a simulator that will simulate a Hunger Games tournament (\url{http://thehungergames.wikia.com/wiki/The_Hunger_Games_(event)}).
 In this problem you will be using your cumulative knowledge of the standard library to write the simulator.
 
-You solution should accept a single argument from the command line that is a filename.  All the output you generate in your program will be written to this file.
+You solution should accept a single argument from the command line that is a filename.  All the output you generate in your program will be written to this file. The \li{sys} module section in this lab as well as documentation on the \li{sys} module will be  very helpful.
 
 You are provided with two files: a text file and a CSV file.
 The text file has a list of events, one per line.
@@ -479,7 +533,7 @@ The first column lists the male tributes and the second column lists the female 
 First, create a named tuple that will contain information about each of the tributes such as their name, district, and gender.
 
 You will need to randomly pair the male and female tributes (read from the CSV file) together to form 12 pairs.
-Problem \ref{prob:random_map} might yield a useful approach.
+Problem \ref{prob:random_map} might yield a useful approach, but there are several valid options.
 
 To simulate the game, you will need to do at least the following.
 For each day of the simulation, each (surviving) tribute will experience one event per day. Each event should be randomly chosen from the list of events you read from the text file.
@@ -498,6 +552,8 @@ To pass off, you must use the standard library for the following parts:
 \end{itemize}
 
 Stop the simulation when there is at most one surviving tribute and print the winner to standard output (it will appear in the console).  It is possible that there are no surviving tributes.  If there are no surviving tributes, indicate so in your outputs.
+
+Keep in mind good coding practice as you solve this problem. Compartmentalize tasks into functions as much as possible to make debugging easier, use comments to document what your code is doing, and most importantly, plan out how you are going to approach the problem \emph{before} you actually start coding. 
 
 \end{problem}
 
