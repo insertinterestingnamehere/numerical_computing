@@ -21,17 +21,16 @@ All of the abstract data types slow down in performance as the size of the data 
 Most abstract data types use an object called a \emph{node} to store data.
 A node essentially acts as a box in which we store an arbitrary piece of data.
 Nodes can store absoluetly anything, and what they contain will depend on the data structure and what data is being stored.
-A good way to understand an abstract data structure would be to think of it like the postal delivery system.
+A good way to understand an abstract data structure is to think of it like the postal delivery system.
 We start by inserting an item into the postal system.  (Because the data stored in a node is arbitrary, our item can be anything.)
-The first thing that the postal system will do with our item is put it into a box.
+The first thing that the postal system will do with our item is put it into a box and attach delivery specific data that would allow it to be processed more effectively, 
+like the return address or a little label indicating that the contents are ``fragile.''
 The postal system now only has to efficiently handle boxes;
 it doesn't have to worry about working with each item that goes through system.
-The postal system can attach delivery specific data to any box that would allow it to be processed more effectively, 
-like the return address or a little label indicating that the contents are ``fragile''.
 Thus, the postal system has abstracted itself from the items it delivers.
 
 If we didn't use nodes or ``data boxes'', we would have to build a new structure for each data type we wanted to store.
-Thus, nodes allow us to abstract the data structure from the kind of data we wish to store.
+Thus, nodes allow us to abstract the data structure from the kind of data we stored inside.
 Nodes allow us to generalize the functionality of a data structure.
 
 \section*{Linked Lists}
@@ -49,11 +48,11 @@ A circularly linked list is a singly or doubly-linked list where the tail points
 
 Unlike arrays, which have random access, a
 linked list has a reference to where the head is, but can only walk through each node to find later ones in the list.
-This means that to insert or delete nodes in the middle of the list, we must first locate the correct node by traversing the list, starting at the head and visiting each node.
+This means that to insert or delete nodes in the middle of the list, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
 Thus nodes can be inserted or removed from either end of a linked list in constant time, independent of the size of the list, but inserting and removing in the middle takes longer as the list grows.
 
 Linked Lists may also have a tail reference that points to the last node of the list and a counter to keep track of the size of the list.
-Keeping a counter takes more memory, but that way we don't need to recount the list everytime we want to know the size.
+Keeping a counter takes memory, but that way we don't need to recount the list everytime we want to know the size.
 
 
 \subsection*{Inserting and Removing}
@@ -61,11 +60,11 @@ Keeping a counter takes more memory, but that way we don't need to recount the l
 To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we have either).
 
 To remove a node, since it is in the middle of the list, we need to update the reference in the node before, the reference in the node after (if it is a doubly-linked list), and decrease the size counter (if we have one).
-If we are removing the last node in the list, we also need to update the reference to the tail, and if it is the only node in the list we need to set the reference to the head as None.
+If we are removing the last node in the list, we also need to update the reference to the tail, and if it is the only node in the list we need to set the reference to the head as \li{None}.
 
 
 \begin{problem}
-Implement a singly-linked list with methods for inserting, removing, and finding nodes. Insert nodes at the end of the list, but implement a method such that you can remove a node from anywhere in the list. You should also implement a method that clears the list. Below is a template.
+Implement a singly-linked list with methods for inserting, removing, and finding nodes. Insert nodes at the end of the list, but implement a method such that you can remove a node from anywhere in the list. The code below gives a structure for the class as well as methods for clearing the list and representing the list as a string.
 \begin{lstlisting}
 class Node():
     def __init__(self):
@@ -95,7 +94,7 @@ class Linkedlist():
 \end{problem}
 
 If you are familiar with other coding languages, you might be a bit worried about the \li{clear} method.
-You would think that setting the reference to the head to None would cause us to lose all access to all the nodes in the list without being able to delete them!
+You would think that setting the reference to the head to \li{None} would cause us to lose all access to all the nodes in the list without being able to delete them!
 In other languages, this would indeed cause serious memory leaks.
 However, Python is able to keep track of which variables are being used, and if there is no access to them, it automatically deletes them.
 This allows us to set the reference to the head to be None and let Python clean up the leftover nodes.
@@ -112,7 +111,7 @@ Deques are double ended queues, meaning that we can add and remove on either end
 
 \begin{problem}
 Implement a queue and a stack by having them inherit from your linked list class.
-Have the stack add and remove from the left.
+Have the stack add and remove from the right.
 Have the queue add on the right and remove from the left.
 \label{prob:Stack}
 \end{problem}
@@ -129,9 +128,9 @@ Thus, the heart of a hash table is a good hash function.
 What makes a good hash function?
 Hash functions need to distribute items evenly throughout the hash table.
 Since we usually mod by the table size at the end, we need to make sure the remainders mod $n$ are evenly distributed.
-For example, if our hash function is the length of a string mod $n$, once the table gets large very few strings wil be hashed to the end of the table.
+For example, if our hash function is the length of a string mod $n$, once the table gets large very few strings will be hashed to the end of the table.
 We can fix this by multiplying by a large prime number.
-A large number helps guarentee that the remainders will vary, and prime rids us of the chance that we are multiplying by a divisor or multiple of the table size (which would send us to 0 much more often). 
+A large number helps guarantee that the remainders will vary, and prime rids us of the chance that we are multiplying by a multiple of the table size (which would send us to 0 every time). 
 
 Let's walk through a simple example where we use a hash table to store strings.
 Our hash function will be the length of the string mod the size of the table.
@@ -148,8 +147,6 @@ Similarly, `lion' would be sent to 4 \% 4 = 0.
 \]
 
 
-%TODO: picture
-
 \begin{problem}
 Implement a hash table to store tuples of names and i.d.s with methods to add and remove items.
 Implement it so that when a hash table object is created, you pass in a parameter to specify the size.
@@ -160,18 +157,18 @@ Have your hash funtion take the i.d., multiply by 7927 (a prime number), and mod
 In our earlier example, our hash function is far from perfect.
 If we try to store `leopard', our hash function sends it to 7 \% 4 = 3.
 But `cat' is already stored in spot 3. 
+This is called a \emph{hash collision}.
 So how can we deal with collisions?
 
 An ideal hash function will map unique inputs to unique outputs that are uniformly distributed over the hash space.
 However, it is very difficult to create an ideal hash function. 
-Most hash functions will experience \emph{hash collisions}.
-This is where two unique inputs yield the same hash output.
+Most hash functions will experience hash collisions.
 Fortunately, there are ways to handle hash collisions. 
 The two methods that we will discuss are open addressing and chaining.
 
 \subsection*{Open Addressing}
-The term \emph{open addressing} indicates that the output of the hash function doesn't necessary identify the location of some data.
-One popular form of open addressing is probing.
+The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of some data.
+One popular form of open addressing is \emph{probing}.
 We will discuss linear probing and quadratic probing.
 
 In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
@@ -184,7 +181,7 @@ We start with $i = 0$, and if the spot is full, we iterate over $i$ until we fin
 However, when we want to retrieve that information we will be directed to the wrong location when we use our hash function.
 We then have to begin iterating through the table to look for our data.
 
-If we go back to our earlier example, we store `leopard' in our has table using linear probing.
+If we go back to our earlier example, we can store `leopard' in our hash table using linear probing.
 Our hash function sends us to spot 3, but it is already filled, so we start stepping through the table.
 Since 3 is at the end of the table, we go to the begining, spot 0 is already filled, so we go to spot 1.
 Spot 1 is empty, so we store `leopard' in spot 1.
@@ -249,7 +246,7 @@ It's important to avoid resizing the table whenever possible.
 After adding `leopard' into our earlier example, our hash table is very full. Let's re-hash it into a table with size 8.
 Our new hash function sends a string to it's size mod 8 (rather than mod 4 like before).
 `cat' gets sent to 3, `lion' to 4, and `leopard' to 7. 
-Now we have no hash colisions there are no lists to iterate through so our hash table performs much better.
+Now that we have no hash colisions there are no lists to iterate through and our hash table performs much better.
 
 \[
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
@@ -271,7 +268,7 @@ When the load factor exceeds $.75$, resize the hash table so that the load facto
 ``Trees sprout up just about everywhere in computer science'' - Donald Knuth
 
 Trees are similar to linked lists, but rather than just pointing to one node that comes after them, they can point to many.
-If our data can be sorted, we can add them in such a way that we know how to traverse the tree, which can substantially cut down search time.
+If our data can be sorted, we can add them in such a way that we know how to traverse the tree to find them, which can substantially cut down search time.
 This makes trees especially good if we need fast search times.
 
 There are many types of trees, but we will only cover one of the most basic ones: the \emph{binary search tree} (BST).
@@ -289,8 +286,6 @@ A node in a binary search tree holds a value and references to the left and righ
 A node's children are the nodes it references.
 The root of the tree has no parents, and is where we always start searching.
 A node with no children is called a leaf node.
- 
-BSTs are a recursive data structure because each of the left and right subtrees are themselves BST's.
 
 \begin{lstlisting}
 class Node(object):
@@ -300,12 +295,14 @@ class Node(object):
         self.right = None
 \end{lstlisting}
 
+BSTs are a recursive data structure because each of the left and right subtrees are themselves BST's.
+
 Many of the algorithms for working with binary search trees are also recursive.
 A recursive function is a function that calls itself until it reaches a base case.
 In the search function below, the two base cases either establish that we have the correct
 node, or that we don't have a node at all.
 In both these cases, we simply return what we have.
-If neither base case applies, we search either the left or the right subtree depending on if the data we are looking for is greater of less than the data of the node we are looking at.
+If neither base case applies, we search either the left or the right subtree depending on if the data we are looking for is greater or less than the data in the node we are looking at.
 While recursive functions are often useful and intuitive with trees, we don't have to use them if we don't want to.
 In fact, for large trees, a recursive algorithm will consume a lot of resources.
 
@@ -328,13 +325,14 @@ Thus, we always insert into leaf nodes.
 We never insert a non-leaf node into a BST.
 
 Let's walk through an example.
-If we start with an empty tree, and add 23 and 17.
+If we start with an empty tree, and add 23 and 17 then
 23 becomes the root of the tree, and 17 the left child becuase $17 < 23$. 
 Then if we add 476, it becomes the right child of 23 becuase $23 < 476$.
-Next, if we add 28, we start at the root, then go to the right to 476 becuase 28 is greater than the root.
+Next, if we add 28, we start at the root, then go to the right to 476 because 28 is greater than the root.
 Next, 28 becomes the left child of 476.
 
-% TODO: pictures showing each step.
+TODO: pictures showing each step.
+
 \begin{problem}
 Implement a binary tree with methods for finding and inserting nodes.
 Use the \li{Node} class given above for your node objects.
@@ -344,12 +342,12 @@ Use the \li{Node} class given above for your node objects.
 Removing nodes is only slightly more complicated.
 We have three cases to consider:
 \begin{enumerate} % TODO: need examples of all of these.
-\item No child nodes.  This is the simplest case.  We simply remove the node.
-\item One child node.  In this case, we have to worry about children.
-If we were to just delete the node, we would lose its entire subtree.
+\item No children.  This is the simplest case.  If the node we want to delete has no children then we simply remove the node.
+\item One child.  In this case, we have to worry about children.
+If we were to just delete the node, we would lose the entire subtree.
 The solution, however, is simple enough:
 we promote the child to take the place of the node we are deleting.
-\item Two child nodes.  We need to be a little careful in this case.
+\item Two children.  We need to be a little careful in this case.
 We can't simply promote a child node.  Indeed, how would we decide which child to promote?
 Fortunately, we can reduce this case down to one of the previous two cases.
 Suppose we are removing node, $n$, which has two children.
@@ -377,7 +375,7 @@ One method for solving these problems is to keep the tree balanced.
 On each insertion and removal, the tree is re-balanced to maintain optimal performance.
 AVL Trees and Red-Black Trees are examples of balanced trees.
 
-%TODO: pictures of a full tree versus adding in already sorted data.
+TODO: pictures of a full tree versus adding in already sorted data.
 
 \section*{Heaps}
 
@@ -402,7 +400,7 @@ To remove the maximum (the root), we compare the root's children and promote the
 
 \section*{Sparse Matrices}
 Matrices are powerful tools, but they can take a lot of space in memory.
-A $n$ x $n$ matrix takes $n^2$ places of storage!
+A $n \times n$ matrix takes $n^2$ places of storage!
 If every entry in the matrix is useful information this is fine, but if the matrix is filled with a lot of zeros, that means we are using almost $n^2$ spots in memory to store useless zeros.
 Not only does this unnessesarily take up space, it means that during computation we will spend a lot of time adding and multiplying zeros.
 That can be a lot of useless computation. 
@@ -439,10 +437,10 @@ Key & Value \\
 In this case, we stored a 5 by 5 matrix in a dictionary with only 3 key-value pairs.
  
 SciPy has a nice implementation of sparse matrices.
-Not only does SciPy reduce the amount of space needed to store matrices, they have fast algorithms for matrix operations that takes advantage of the fact that there are so many zeros.
+Not only does SciPy reduce the amount of space needed to store matrices, it has fast algorithms for matrix operations that takes advantage of the fact that there are so many zeros.
  
 \begin{problem}
-Use your timefunction from Section 1 and the code given below to time matrix multiplication using sparse matrices versus normal matrix multiplication. Which is faster? What happens as the matrices grow larger?
+Use your time function from Section 1 and the code given below to time matrix multiplication using sparse matrices versus normal matrix multiplication for $ n = 100, 500, 1000, 1500,$ and $2000$. Which is faster? What happens as the matrices grow larger?
 \begin{lstlisting}
 from scipy import sparse
 import numpy as np
