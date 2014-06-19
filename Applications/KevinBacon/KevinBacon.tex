@@ -25,8 +25,7 @@ We can query the neighbors of any node in the graph in constant time.
 This makes algorithms that operate locally on the graph very efficient.
 
 \section*{Searching Graphs}
-There are two common ways to search a graph;
-the method used depends on the desired solution.
+There are two common ways to search a graph, which both present different advantages depending on the purpose of the search.
 One method is called a depth first search (DFS).  It is designed to search the deepest levels of a graph first.
 The other method is called a breadth first search (BFS).  BFS searches the graph one level at a time until it finds a solution.
 \begin{figure}[h]
@@ -38,25 +37,24 @@ The other method is called a breadth first search (BFS).  BFS searches the graph
 
 
 Here, we will walk through two examples of a DFS.
-In these examples, when a node has multiple branches originating from it, we visit the latest (greater) letter in the alphabet first. The piece of data from which the algorithm begins is called the root node.
+In this first example, when a node has multiple branches originating from it, we visit the latest (greater) letter in the alphabet first. The initial piece of data at which the algorithm begins is called the root node.
 First, we will use D as the root node and E will be our target node.
-Starting at D, we look at its greatest neighbor, F, then F's greatest neighbor, E.
+Starting at D, we look at its greatest neighbor, F, then at F's greatest neighbor, E.
 Since E was our target, the algorithm ends.
 
 Second, we will start with A and search for B.
 We visit node A, then D, then F, and finally, E.
-At this point, we have gone as deeply as we can go and have not found node B.
+At this point, we have gone as deeply as we can and have still not found node B.
 So, we back up and try another branch of nodes.
-The algorithm backtracks from E to F and tries another route, visiting C.
-Since we have marked D as already visited, we go no further.
-(This is important, otherwise our DFS will loop infinitely around the cycle in the graph.)
-We back up again to F.  We have tried all possible branches from F, so we backtrack, again, to D.
-We have exhausted all sub-branches originating from D so we travel back to A and try any unexplored branches.
-We then find B and the algorithm ends.
+The algorithm backtracks from E to F and tries another route.
+Since we have marked D as already visited, we visit F's final neighbor, C. It is important that we mark those nodes we have already visited, otherwise the algorithm would infinitely loop around the latter portion of the graph without reaching our target, B.
+We return to node F. Since we have tried all possible branches from F, we backtrack, again, to D.
+Because we have exhausted all sub-branches originating from D, we travel back to A and try any unexplored branches there.
+Finally, we find B and the algorithm ends.
 
 Let's try the same two searches using BFS. This time, however, we will visit the earliest (lesser) letter in the alphabet first while exploring our branches.
-In the first search, we start at D and look for E.
-We search for E among the neighbors of D: A, C, and F.
+In this first search, we use D as our root node and E as our target.
+We start by searching for E among the neighbors of D: A, C, and F.
 We have not found E, so we search among the neighbors of these adjacent nodes, starting with A.
 B is the only neighbor of A that we have not visited; we therefore backtrack to our previous collection of neighbors: A, C, and F.
 We have already visited both neighbors of C (D and F), so we continue to the adjacent nodes of F. Finally, we find E among the neighbors of F, and the algorithm ends.
@@ -65,7 +63,7 @@ In the second search, we start with A.
 Since B is a neighbor of A, we find it immediately.
 
 Both DFS and BFS have advantages.
-If we can choose a root node that is in some way local to the target node, BFS is obviously the better choice. However, DFS can be much more efficient when the solution is far from the target node. Algorithm \ref{alg:BFSDFS} outlines the process by which we may implement BFS and DFS methods, respectively.
+If we are able to choose a root node that is local to the target node, BFS is obviously the better choice. However, DFS can be much more efficient when the solution is far from the target node. Algorithm \ref{alg:BFSDFS} outlines the process by which we may implement BFS and DFS methods, respectively.
 \begin{comment}
 
 DFS can also be implemented very elegantly as a recursive algorithm (an algorithm that references itself to solve a smaller sub-problem).
@@ -101,28 +99,30 @@ However, with large graphs, a recursive algorithm will not perform very well com
 
 \begin{problem}
 Implement methods that will perform depth first and breadth first searches on a graph (in this case, an adjacency list).
-Use a \li{set()} to store the visited nodes;
-a set data structure supports very efficient membership testing because
-sets are often implemented using binary search trees.
+Use a \li{set()} to store the visited nodes. (Because sets are often actualized using binary search trees, they support very efficient membership testing).
 
-\textit{Hint: The implementation of depth and breadth first searches are almost exactly same, with one very important difference.
-The difference is how a particular data structure is used.  What data structure is used differently and how is it used differently?}
+\textit{Hint: The implementations of depth and breadth first searches are almost exactly same, but they use a particular data structure differently. Which data structure constitutes this important difference, and how is it used differently?}
 \end{problem}
 
 \section*{Bidirectional Searching an Unweighted Graph}
+
 \begin{comment}
 This is the location into which we need to include a new diagram to illustrate the example graph to which the new explanation corresponds.
+\begin{figure}[h]
+\includegraphics[scale = 1]{Bidirect.png}
+\caption{A Simple Graph Example}
+\end{figure}
 
 Let $A$ be an unweighted graph. This means that each edge of A does not have any value, or ``weight'' attached to it. How can we find the shortest path between two nodes?  One way is by doing a breadth first search and stopping when we reach the target node. The downside to doing it this way is that the algorithm will look through every node on every level before it reaches the target node. Let us pretend that for two nodes $a, b \in A$ that the distance between $a$ and $b$ is 5. Also suppose that, in going from $a$ to $b$, you have to check $2^n$ elements in each level, $n$, away from $a$. So 2 nodes are one level away from $a$, 4 nodes are two levels away from $a$, and so on. To get to  b, then, you must check at least $1 + 2 + 4 + 8 + 16 + 1 = 32$ nodes.
 
 A better way to find the shortest path is to do a breadth first search from both $a$ and $b$. So you calculate all the nodes one away from $a$ and all the nodes one away from $b$, then two away from $a$ and two away from $b$, and so on until you find a node that is connected to both $a$ and $b$. Using the same example as before, if you assume there is $2^n$ nodes at the nth level away from $b$ then the number of nodes you have to check before reaching the shortest path is at least 12 and at most 20.
 \end{comment}
 
-Let A be an unweighted graph. This means that each edge of A does not have any value, or ``weight’’ attached to it. How can we find the shortest path between two nodes? One way is by doing a breadth first search and stopping when we reach the target node. The downside to doing it this way is that the algorithm will look through every node on every level before it reaches the target node. Observe the example graph above. Let us use BFS to search for $O$, starting with $A$ as our root node. Then, we search through all of the neighbors of $A$,  all of the neighbors of $B$ and $C$, and so on until we finally locate $O$. Using this method, we are forced to check a total of 15 nodes.
+Let A be an unweighted graph. This means that none of the edges of A has any value, or ``weight'' attached to it. How can we find the shortest path between two nodes? One way would be to simply use a breadth first search, stopping when we reach the target node. The downside to doing it this way is that the algorithm would look through every node on every level before it could reach the target node. Observe the example graph above. Let us use BFS to search for $O$, starting with $A$ as our root node. Then, we search through all of the neighbors of $A$,  all of the neighbors of $B$ and $C$, and so on until we finally locate $O$. Using this method, we are forced to check a total of 15 nodes.
 
-A better way to find the shortest path is to do a breadth first search from both $A$ and $O$. Thus, you alternate searching the neighbors of A and O until you find a common node, which creates a path from $A$ to $O$.  Using our BFS algorithm from above, we start with $A$ and locate its least neighbor, $B$. Since we have not yet found $O$, or a connection to $O$, we visit $G$, the first neighbor of $O$. Continuing in this pattern, we return to the neighbors of $A$ to visit $C$, then visit the least neighbor of $G$, which is also $C$. We have found our connection, so the algorithm ends! Note that when we used a breadth first search with only one root node, we visited 15 nodes, but when we used a bidirectional search, we only had to visit 5 nodes to reach our target.
+A better way to find the shortest path is to do a breadth first search from both $A$ and $O$. Thus, we alternate between a BFS with $A$ as our root node and a BFS with $O$ as our root node until we find a common node between the two, which creates a path from $A$ to $O$.  Using our BFS algorithm from above, we start with $A$ and locate its least neighbor, $B$. Since we have not yet found $O$, or a connection to $O$, we visit $G$, the first neighbor of $O$. Continuing in this pattern, we return to the neighbors of $A$ to visit $C$, then visit the least neighbor of $G$, which is also $C$. We have found our connection, so the algorithm ends! Note that when we used a breadth first search with only one root node, we visited 15 nodes, but when we used a bidirectional search, we only had to visit a total of 5 nodes to reach our target.
 
-When you have many more nodes each level away, the speedup from doing a breadth first search from both sides is much greater. This is one of the best ways to find shortest paths in unweighted, undirected graphs. For weighted graphs there are many algorithms that find the shortest path. For further information look at Dijkstra's algorithm, Bellman–Ford algorithm, A* search algorithm, Floyd–Warshall, and Johnson's algorithm.
+When you have many more nodes each level away, the speedup from doing a breadth first search from both sides is much greater. This is one of the best ways to find shortest paths in unweighted, undirected graphs. For weighted graphs there are many algorithms that find the shortest path. For further information research Dijkstra's algorithm, Bellman–Ford algorithm, A* search algorithm, Floyd–Warshall, and Johnson's algorithm.
 
 \section*{Six Degrees of Kevin Bacon}
 \begin{figure}[h]
@@ -131,7 +131,7 @@ When you have many more nodes each level away, the speedup from doing a breadth 
 \end{figure}
 
 The theory of ``the 6 Degrees of Separation'' suggests that each person in the world can be linked to any other person by 6 or less steps of acquaintanceship.
-Similarly, the ``6 Degrees of Kevin Bacon'' is a game that contends that every actor in the film industry can be linked to Kevin Bacon. Kevin Bacon is a prolific American actor whose film career spans over 30 years in a variety of genres. As such, he once reputably commented that he had either worked with everyone in Hollywood or someone who has worked with them. The goal of the game is to find the lowest Bacon number for each actor, a process demonstrated as follows:
+Similarly, the ``6 Degrees of Kevin Bacon'' is a game that contends that every actor in the film industry can be linked to Kevin Bacon by 6 degrees or less. Kevin Bacon is a prolific American actor whose film career spans over 30 years in a variety of genres. As such, he once reputably commented that he had either worked with everyone in Hollywood or someone who has worked with them. The goal of the game is to find the lowest Bacon number for each actor, a process demonstrated as follows:
 \begin{enumerate}
 \item Kevin Bacon has a Bacon number of 0.
 \item Actors that have been in a movie with Kevin Bacon have a Bacon number of 1.
@@ -146,7 +146,7 @@ Similarly, the ``6 Degrees of Kevin Bacon'' is a game that contends that every a
 You can define a graph in the same way: where each actor is a node and there is an edge between any two nodes if the actors were in a movie together. From this you can find the shortest path between any actor and Kevin Bacon by using any of the algorithms listed above. Of course, this can be done with any actor and not simply Kevin Bacon. In fact, ``the Six Degrees of Separation'' can be applied to many different fields. The most famous of these applications is known as the Erdos numbers: how far away is a person from publishing a paper (rather than starring in a movie) with the prolific mathematician Paul Erdos?
 
 \section*{NetworkX}
-For this lab, we are going to use a network library called NetworkX. NetworkX allows us to create and manipulate large, complex networks.  Since NetworkX uses Python objects to represent its graphs internally, graphs with lots of nodes will take a large chunk of memory.  Other network libraries exist which are written in C++, like igraph, which may significantly reduce the overhead of storing the graph.
+For this lab, we are going to use a network library called NetworkX. NetworkX is a useful Python package that allows us to create and manipulate large, complex networks.  When considering efficiency, however, it is important to note that because NetworkX uses Python objects to represent its graphs internally, graphs with lots of nodes will take a large chunk of memory.  (Other network libraries, such as igraph, are written in C++ and may therefore significantly reduce the overhead of storing such a graph.) 
 To make an undirected graph in NetworkX you do the following:
 \begin{lstlisting}
 import networkx as nx
