@@ -146,17 +146,57 @@ Similarly, the ``6 Degrees of Kevin Bacon'' is a game that contends that every a
 You can define a graph in the same way: where each actor is a node and there is an edge between any two nodes if the actors were in a movie together. From this you can find the shortest path between any actor and Kevin Bacon by using any of the algorithms listed above. Of course, this can be done with any actor and not simply Kevin Bacon. In fact, ``the Six Degrees of Separation'' can be applied to many different fields. The most famous of these applications is known as the Erdos numbers: how far away is a person from publishing a paper (rather than starring in a movie) with the prolific mathematician Paul Erdos?
 
 \section*{NetworkX}
-For this lab, we are going to use a network library called NetworkX. NetworkX is a useful Python package that allows us to create and manipulate large, complex networks.  When considering efficiency, however, it is important to note that because NetworkX uses Python objects to represent its graphs internally, graphs with lots of nodes will take a large chunk of memory.  (Other network libraries, such as igraph, are written in C++ and may therefore significantly reduce the overhead of storing such a graph.) 
+For this lab, we are going to use a network library called NetworkX. NetworkX is a useful Python package that allows us to create and manipulate large, complex networks.  When considering efficiency, however, it is important to note that because NetworkX uses Python objects to represent its graphs internally, graphs with lots of nodes will take a large chunk of memory.  (Other network libraries, such as igraph, are written in C++ and may therefore significantly reduce the overhead of storing such a graph.)
 To make an undirected graph in NetworkX you do the following:
+
 \begin{lstlisting}
 import networkx as nx
 G = nx.Graph()
 \end{lstlisting}
-To add nodes you use the \li{add_node(x)} method where $x$ is the node you want to add.  If you add an edge between two non-existent nodes, the missing nodes will also be added to the graph. Adding an edge is done by the \li{add_edge(x,y)} method where $x$ and $y$ are previously added nodes. You can add multiple edges or nodes with the \li{add_edges_from()} and \li{add_nodes_from()} methods respectively.  There are also \li{has_node(x)} and \li{has_edge(x,y)} that tell you if the node or edge is already added.
+
+As an example, we will create a NetworkX graph that links the ingredients of delicious Italian foods together. We first want to add the ingredients as nodes to our graph. To add nodes you use the \li{add_node(x)} method where $x$ is the node you want to add, or you can use the \li{add_nodes_from} method to add multiple nodes at once.
+
 \begin{lstlisting}
-G.add_node(x)
-G.add_edge(x, y)
+import networkx as nx
+G = nx.Graph()
+
+G.add_node('dough')
+PizzaIngredients = ('dough','mozzarella cheese','tomato sauce','ham','pineapple')
+G.add_nodes_from(PizzaIngredients)
 \end{lstlisting}
+Note that even though we added 'dough' twice, the graph will only store this node once. NetworkX also has \li{has_node(x)} and \li{has_edge(x,y)} methods that tell us if the node or edge has already been added.
+
+Now we want to connect our pizza ingredients together. Adding an edge is done by the \li{add_edge(x,y)} method where $x$ and $y$ are previously added nodes. Similarly to adding nodes, we can add multiple edges using the \li{add_edges_from()} method. However, edges must be provided as 2-tuples (u,v), so we use our itertools module to create a list of the edges we want to add.
+
+\begin{lstlisting}
+from itertools import permutations
+Pizza = permutations(PizzaIngredients, 2)
+G.add_edges_from(Pizza)
+\end{lstlisting}
+
+If you add an edge between two non-existent nodes, the missing nodes will also be added to the graph. Let's add the ingredients for lasagna to the graph using only the \li{add_edges_from} method.
+
+\begin{lstlisting}
+LasagnaIngredients = ('lasagna noodles','sausage','mozzarella cheese','cottage cheese','tomato sauce','eggs','parsley')
+Lasagna = permutations(LasagnaIngredients, 2)
+G.add_edges_from(Lasagna)
+\end{lstlisting}
+
+We can also remove nodes using the \li{remove_node(x)} and \li{remove_nodes_from()} methods respectively. Let's say that we are vegetarians and want to remove the sausage and ham from our ingredient graph. Then, we simply run the following code:
+
+\begin{lstlisting}
+G.remove_nodes_from(('sausage','ham'))
+\end{lstlisting} 
+As always, there are many more methods associated with NetworkX graphs and we encourage you to look at the documentation for further useful tools.
+
+Sometimes, with smaller graphs, it can be useful to visualize how nodes are linked together. However, the overhead associated with displaying larger graphs makes this unwise for extensive data sets. For our example, though, it is easy to see the connections between the lasagna and pizza nodes:
+
+\begin{lstlisting}
+import matplotlib.pyplot as plt
+nx.draw(G)
+plt.show()
+\end{lstlisting}
+
 
 \begin{problem}
 The data file, \texttt{movieData.txt}, contains the entire casts of movies made from 2011 to August of 2013. The file is a delimited file with each field delimited by the '/' character.
