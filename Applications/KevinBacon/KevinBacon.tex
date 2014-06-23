@@ -12,8 +12,8 @@ The two ways to represent graphs are adjacency matrices and adjacency lists, whi
 
 \subsection*{Adjacency Matrices}
 An Adjacency matrix is two dimensional matrix used to represent a graph.
-If a graph has $n$ nodes, then representing it as an adjacency matrix requires a $n \times n$ matrix.
-The $ij$th entry of the adjacency matrix represents the presence of an edge between nodes $i$ and $j$.
+If a graph has $n$ nodes, then representing it as an adjacency matrix requires a $n \times n$ matrix. Each node corresponds to the same row and column number.
+The $ij$th entry of the adjacency matrix represents the presence of an edge between nodes associated with row $i$ and column $j$.
 If the entry is 0, then no edge exists between nodes $i$ and $j$, otherwise there is is an edge between nodes $i$ and $j$.
 An adjacency matrix allows us to query the existence of an edge, or its edge weight, in constant time.
 
@@ -36,35 +36,42 @@ The other method is called a breadth first search (BFS).  BFS searches the graph
 \end{figure}
 
 
-Here, we will walk through two examples of a DFS.
-In this first example, when a node has multiple branches originating from it, we visit the latest (greater) letter in the alphabet first. 
+Here, we will walk through two examples of a depth first search.
+In these examples, when a node has multiple branches originating from it,
+we will visit the latest (greater) letter in the alphabet first.
 We call the node at which the algorithm begins the ``root node''.
 First, we will use D as our root node and E as our target node.
-Starting at D, we look at its greatest neighbor, F, then at F's greatest neighbor, E.
-Since E is our target, the algorithm ends.
+Starting at D, we look at its greatest neighbor, F, then at F's greatest
+neighbor, E. Since E is our target, the algorithm ends.
 
 Second, we will start with A and search for B.
 We visit node A, then D, then F, and finally, E.
 At this point, we have gone as deeply as we can and have still not found node B.
-So, we back up and try another branch of nodes.
+We must then back up and try another branch of nodes.
 The algorithm backtracks from E to F and tries another route.
-Since we have marked D as already visited, we visit F's final neighbor, C. It is important that we mark those nodes we have already visited, otherwise the algorithm would infinitely loop around the latter portion of the graph without reaching our target, B.
-We return to node F. Since we have tried all possible branches from F, we backtrack, again, to D.
-Because we have exhausted all sub-branches originating from D, we travel back to A and try any unexplored branches there.
-Finally, we find B and the algorithm ends.
+Since we have marked D as already visited, we visit F's final neighbor, C.
+Note that it is very important that we mark those nodes we have already visited,
+otherwise the algorithm would infinitely loop around the latter portion of
+the graph without reaching our target, B. We return to node F. Since we have
+tried all possible branches adjacent to F, we backtrack, again, to D. Because we have
+exhausted all sub-branches originating from D, we travel back to A and try
+any unexplored branches there. Finally, we find B and the algorithm ends.
 
-Let's try the same two searches using a BFS. This time, however, we will visit the earliest (lesser) letter in the alphabet first while exploring our branches.
-In this first search, we use D as our root node and E as our target.
+Let's try the same two searches using a breadth first search. This time, however,
+we will visit the earliest (lesser) letter in the alphabet first while
+exploring our branches. In this first search, we use D as our root node and
+E as our target node.
 We start by searching for E among the neighbors of D: A, C, and F.
 We have not found E, so we search among the neighbors of these adjacent nodes, starting with A.
-B is the only neighbor of A that we have not visited; we backtrack to our previous collection of neighbors: A, C, and F.
+B is the only neighbor of A that we have not already visited; we backtrack to our previous collection of neighbors: A, C, and F.
 We have already visited both neighbors of C (D and F), so we continue to the adjacent nodes of F. Finally, we find E among the neighbors of F, and the algorithm ends.
 
 In the second search, we start with A.
 Since B is a neighbor of A, we find it immediately.
 
 Both DFS and BFS have advantages.
-If we are able to choose a root node that is local to the target node, BFS is obviously the better choice. However, DFS can be much more efficient when the solution is far from the target node. 
+If we are able to choose a root node that is local to the target node, BFS is obviously the better choice. However,
+DFS can be much more efficient when the solution is far from the target node.
 Algorithm \ref{alg:BFSDFS} outlines the process by which we may implement BFS and DFS methods, respectively.
 \begin{comment}
 
@@ -103,41 +110,39 @@ However, with large graphs, a recursive algorithm will not perform very well com
 Implement methods that will perform depth first and breadth first searches on a graph (in this case, an adjacency list).
 Use a \li{set()} to store the visited nodes. (Because sets are often actualized using binary search trees, they support very efficient membership testing).
 
-\emph{Helpful Hint}: The implementations of depth and breadth first searches are almost exactly same, but they use a particular data structure differently. Which data structure constitutes this important difference, and how is it used differently?
+\emph{Helpful Hint}: The implementations of depth and breadth first searches
+are almost exactly same, but they use a particular data structure differently.
+\begin{itemize}
+\item Which data structure constitutes this important difference?
+\item How is it used differently?
+\end{itemize}
 \end{problem}
 
 \section*{Bidirectional Searching an Unweighted Graph}
-
 \begin{comment}
-This is the location into which we need to include a new diagram to illustrate the example graph to which the new explanation corresponds.
 \begin{figure}[h]
-\includegraphics[scale = 1]{Bidirect.png}
-\caption{A Simple Graph Example}
+\centering
+\includegraphics[width=.75\textwidth]{Bidirectional.pdf}
+\caption{An example graph.}
+\label{fig:bfs_dfs_graph}
 \end{figure}
-
-Let $A$ be an unweighted graph. This means that each edge of A does not have any value, or ``weight'' attached to it. How can we find the shortest path between two nodes?  One way is by doing a breadth first search and stopping when we reach the target node. The downside to doing it this way is that the algorithm will look through every node on every level before it reaches the target node. Let us pretend that for two nodes $a, b \in A$ that the distance between $a$ and $b$ is 5. Also suppose that, in going from $a$ to $b$, you have to check $2^n$ elements in each level, $n$, away from $a$. So 2 nodes are one level away from $a$, 4 nodes are two levels away from $a$, and so on. To get to  b, then, you must check at least $1 + 2 + 4 + 8 + 16 + 1 = 32$ nodes.
-
-A better way to find the shortest path is to do a breadth first search from both $a$ and $b$. So you calculate all the nodes one away from $a$ and all the nodes one away from $b$, then two away from $a$ and two away from $b$, and so on until you find a node that is connected to both $a$ and $b$. Using the same example as before, if you assume there is $2^n$ nodes at the nth level away from $b$ then the number of nodes you have to check before reaching the shortest path is at least 12 and at most 20.
-
-Useful explanation: In an unweighted graph, it finds the shortest path using a pair of breadth first searches originating at the two target nodes.  It advances each breadth first search until they meet and then  constructs the shortest path of nodes between them.
-
 \end{comment}
+Let A be an unweighted graph. This means that none of the edges of A has any value, or ``weight'' attached to it. How can we find the shortest path between two nodes?
+One way would be to simply use a breadth first search, stopping when we reach the target node. The downside to doing it this way is that the algorithm would look through
+every node on every prior level before it could reach the target node. Observe the example graph above. Let us use a simple BFS to search for O, starting with A as our root node.
+Then, we search through all of the neighbors of A,  all of the neighbors of B and C, and so on until we finally locate O. Using this method, we are forced to check
+a total of $15$ nodes.
 
-Let A be an unweighted graph. This means that none of the edges of A has any value, or ``weight'' attached to it. How can we find the shortest path between two nodes? 
-One way would be to simply use a breadth first search, stopping when we reach the target node. The downside to doing it this way is that the algorithm would look through 
-every node on every level before it could reach the target node. Observe the example graph above. Let us use BFS to search for O, starting with A as our root node. 
-Then, we search through all of the neighbors of A,  all of the neighbors of B and C, and so on until we finally locate O. Using this method, we are forced to check 
-a total of 15 nodes.
+A better way to find the shortest path is to do a breadth first search from both A and O. Thus, we finds the shortest path between A and O using a pair of breadth first searches originating at the two target nodes.
+We advances each breadth first search one node at a time, alternating until they meet and then constructing the shortest path of nodes between them.
+ Using our BFS algorithm from above, we start with A and locate its
+least neighbor, B. Since we have not yet found O, or a connection to O, we visit G, the first neighbor of O. Continuing in this pattern, we return to the neighbors
+of A to visit C, then visit the least neighbor of G, which is also C. We have found our connection, so the algorithm ends! Note that when we used a breadth first
+search with only one root node, we visited $15$ nodes, but when we used a bidirectional breadth first search, we only had to visit a total of $5$ nodes to reach our target.
 
-A better way to find the shortest path is to do a breadth first search from both A and O. Thus, we alternate between a BFS with A as our root node and a BFS with O 
-as our root node until we find a common node between the two, which creates a path from A to O.  Using our BFS algorithm from above, we start with A and locate its 
-least neighbor, B. Since we have not yet found O, or a connection to O, we visit G, the first neighbor of O. Continuing in this pattern, we return to the neighbors 
-of A to visit C, then visit the least neighbor of G, which is also C. We have found our connection, so the algorithm ends! Note that when we used a breadth first 
-search with only one root node, we visited 15 nodes, but when we used a bidirectional search, we only had to visit a total of 5 nodes to reach our target.
-
-When you have many more nodes each level away, the speedup from doing a breadth first search from both sides is far greater. This is one of the best ways to find shortest 
-paths in unweighted, undirected graphs. For weighted graphs there are many algorithms that find the shortest path. For further information research  
-the Bellman–Ford algorithm,the Floyd–Warshall algorithm, A* search algorithm, Johnson's algorithm and Dijkstra's algorithm.
+When you have many more nodes each level away, the speedup from doing a breadth first search from both sides is far greater. This is one of the best ways to find shortest
+paths in unweighted, undirected graphs. For weighted graphs there are many algorithms that allow us to find the shortest path. For further information research
+the Bellman–Ford algorithm,the Floyd–Warshall algorithm, Johnson's algorithm, Dijkstra's algorithm, and A* search algorithm.
 
 \section*{Six Degrees of Kevin Bacon}
 \begin{figure}[h]
@@ -146,9 +151,9 @@ the Bellman–Ford algorithm,the Floyd–Warshall algorithm, A* search algorithm
 \end{figure}
 
 The theory of ``the 6 Degrees of Separation'' suggests that each person in the world can be linked to any other person by 6 or less steps of acquaintanceship.
-Similarly, the ``6 Degrees of Kevin Bacon'' is a game that contends that every actor in the film industry can be linked to Kevin Bacon by 6 degrees or less. Kevin Bacon 
-is a prolific American actor whose film career spans over 30 years in a variety of genres. As such, he once reputably commented that he had either worked with everyone in 
-Hollywood or someone who has worked with them. The goal of the game is to find the lowest Bacon number for each actor, a process demonstrated as follows:
+Similarly, the game ``6 Degrees of Kevin Bacon'' contends that every actor in the film industry can be linked to Kevin Bacon by 6 degrees or less. Kevin Bacon
+is a prolific American actor whose film career spans over 30 years in a variety of genres. As such, he once reputably commented that he had either worked with everyone in
+Hollywood or someone who has worked with them. The goal of the game, then, is to find the lowest Bacon number for each actor, a process demonstrated as follows:
 \begin{enumerate}
 \item Kevin Bacon has a Bacon number of 0.
 \item Actors that have been in a movie with Kevin Bacon have a Bacon number of 1.
@@ -160,37 +165,38 @@ Hollywood or someone who has worked with them. The goal of the game is to find t
 \caption{Jeffery Humphery was in \emph{End Game} with Cuba Gooding Jr. who was in \emph{A Few Good Men} with Kevin Bacon, so Jeffrey Humphrey has a Bacon Number of 2.  Image source: http://oracleofbacon.org/.}
 \end{figure}
 
-You can define a graph in the same way: where each actor is a node and there is an edge between any two nodes if the actors were in a movie together. From this you can find 
-the shortest path between any actor and Kevin Bacon by using any of the algorithms listed above. Of course, this can be done with any actor and not simply Kevin Bacon. In 
-fact, ``the Six Degrees of Separation'' can be applied to many different fields. The most famous of these applications is known as the Erdos numbers: how far away is a person
+You can define a graph in the same way: where each actor is a node and there is an edge between any two nodes if the actors were in a movie together. From this structure you can find
+the shortest path between any actor and Kevin Bacon by using any of the algorithms listed above. Of course, we could play this game with any actor as our ``root actor'' rather than Kevin Bacon. In
+fact, ``the Six Degrees of Separation'' can be applied to many different fields. The most famous of its applications is known as the Erdos numbers: how far away is a person
  from publishing a paper (rather than starring in a movie) with the prolific mathematician Paul Erdos?
 
 \section*{NetworkX}
-For this lab, we are going to use a network library called NetworkX. NetworkX is a useful Python package that allows us to create and manipulate large, complex networks.  
-When considering efficiency, however, it is important to note that because NetworkX uses Python objects to represent its graphs internally, graphs with many nodes will 
-take a large chunk of memory.  (Other network libraries, such as igraph, are written in C++ and may therefore significantly reduce the overhead of storing such a graph.)
-To make an undirected graph in NetworkX you do the following:
+For this lab, we are going to use a network library called NetworkX. NetworkX is a useful Python package that allows us to create and manipulate large, complex networks.
+When considering efficiency, however, it is important to note that because NetworkX uses Python objects to represent its graphs internally, graphs with many nodes will
+take a large chunk of memory. (Other network libraries, such as igraph, are written in C++ and may therefore significantly reduce the overhead of storing such a graph.)
+To make an undirected graph in NetworkX you code the following:
 
 \begin{lstlisting}
 import networkx as nx
 G = nx.Graph()
 \end{lstlisting}
 
-As an example, we will create a NetworkX graph that links the ingredients of delicious Italian foods together. We first want to add the ingredients as nodes to our graph. 
-To add nodes you use the \li{add_node(x)} method where $x$ is the node you want to add, or you can use the \li{add_nodes_from} method to add multiple nodes at once.
+As an example, we will create a NetworkX graph that links the ingredients of delicious Italian foods together. We first want to add the ingredients as nodes to our graph.
+To add nodes we can use the \li{add_node(x)} method where $x$ is the node we want to add or we can use the \li{add_nodes_from} method to add multiple nodes at once.
 
 \begin{lstlisting}
 import networkx as nx
 G = nx.Graph()
 
 G.add_node('dough')
-PizzaIngredients = ('dough','mozzarella cheese','tomato sauce','ham','pineapple')
+PizzaIngredients = ['dough','mozzarella cheese','tomato sauce','ham','pineapple']
 G.add_nodes_from(PizzaIngredients)
 \end{lstlisting}
-Note that even though we added \li{'dough'} twice, the graph will only store this node once. NetworkX also has \li{has_node(x)} and \li{has_edge(x,y)} methods that tell 
+Note that even though we added \li{'dough'} twice, the graph will only store this node once. NetworkX also comes with \li{has_node(x)} and \li{has_edge(x,y)} methods that tell
 us if the node \li{x} or edge \li{x,y} has already been added.
 
-Now we want to connect our pizza ingredients together. Adding an edge is done by the \li{add_edge(x,y)} method where $x$ and $y$ are previously added nodes. Similarly to adding nodes, we can add multiple edges using the \li{add_edges_from()} method. However, edges must be provided as 2-tuples (u,v), so we use our itertools module to create a list of the edges we want to add.
+Now we want to connect our pizza ingredients together. Adding an edge is simple; we use the \li{add_edge(x,y)} method, where $x$ and $y$ are previously added nodes.
+Again, we can also add multiple edges using the \li{add_edges_from()} method. However, these edges must be provided as 2-tuples (u,v), so we use the itertools module to create a list of the edges we want to add.
 
 \begin{lstlisting}
 from itertools import permutations
@@ -199,27 +205,31 @@ G.add_edges_from(Pizza)
 \end{lstlisting}
 If you add an edge between two non-existent nodes, the missing nodes will also be added to the graph. Let's add the ingredients for lasagna to the graph using only the \li{add_edges_from} method.
 \begin{lstlisting}
-LasagnaIngredients = ('lasagna noodles','sausage','mozzarella cheese','cottage cheese','tomato sauce','eggs','parsley')
+LasagnaIngredients = ['lasagna noodles','sausage','mozzarella cheese','cottage cheese','tomato sauce','egg','parsley']
 Lasagna = permutations(LasagnaIngredients, 2)
 G.add_edges_from(Lasagna)
 \end{lstlisting}
-We can also remove nodes using the \li{remove_node(x)} and \li{remove_nodes_from()} methods respectively. Let's say that we are vegetarians and want to remove the sausage and ham from our ingredient graph. Then, we simply run the following code:
+We can also remove nodes using the \li{remove_node(x)} and \li{remove_nodes_from()} methods respectively. Let's say, for example, that we are vegetarians and want to remove the sausage and ham from our graph. Then, we simply run the following code:
 \begin{lstlisting}
 G.remove_nodes_from(('sausage','ham'))
 \end{lstlisting}
-As always, there are many more methods associated with NetworkX graphs, and we encourage you to look at the documentation for further useful tools.
 
-Sometimes, with smaller graphs, it can be useful to visualize how the nodes are linked together. However, the overhead associated with displaying larger graphs makes this unwise for extensive data sets. For our example, though, it is easy to see the connections between our lasagna and pizza ingredients:
+Sometimes, with smaller graphs, it can be useful to visualize how nodes are linked together. However, the overhead associated with displaying larger graphs makes this unwise for extensive data sets.
+For our example, though, it is easy to see the connections between our lasagna and pizza ingredients:
 
 \begin{lstlisting}
+# MatPlotLib is a standard plotting library, it allows you to plot
+# and display your 2D graph.
 import matplotlib.pyplot as plt
+# Allows you to draw a simple diagram of the nodes and their connecting edges.
 nx.draw(G)
+# Displays your graph.
 plt.show()
 \end{lstlisting}
 
 
 \begin{problem}
-The data file, \texttt{movieData.txt}, contains the entire casts of movies made from 2011 to August of 2013. The file is a delimited file with each field delimited by the '/' character. Write a method that will implement the following:
+The data file, \texttt{movieData.txt}, contains the entire casts of movies made from 2011 to August of 2013. It is a delimited file with each field delimited by the '/' character. Write a method that will implement the following:
 \begin{itemize}
 \item Open the file.
 \item Generate a NetworkX graph, with the actors as nodes and with edges connecting all of the actors within the same movie. Do not include movie titles as nodes.
@@ -227,7 +237,7 @@ The data file, \texttt{movieData.txt}, contains the entire casts of movies made 
 \end{itemize}
 \emph{Helpful Hints:}
 \begin{itemize}
-\item For later solutions, it might be beneficial to also construct a lookup table that maps actors to the movies that they appeared in.
+\item For later solutions, it might be beneficial to also construct a map from actors to the movies that they appeared in.
 \item When opening your file with a Window's machine, take care to use universal newline support. See Lab 1 for further information.
 \end{itemize}
 \end{problem}
