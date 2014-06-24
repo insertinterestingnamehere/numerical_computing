@@ -51,7 +51,7 @@ def histogram():
     """Creat histogram of columns in DataFrame."""
     col1 = pd.Series(np.random.randn(1000))   #normal distribution
     col2 = pd.Series(np.random.gamma(5, size=1000)) #gamma distribution 
-    df = pd.DataFrame({'col1':col1, 'col2':col2})
+    df = pd.DataFrame({'normal':col1, 'gamma':col2})
     df.hist()
     plt.savefig("histogram.pdf")
 histogram()

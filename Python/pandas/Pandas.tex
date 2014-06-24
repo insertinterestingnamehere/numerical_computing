@@ -436,7 +436,11 @@ Another way to access the data in a particular item is simply to use \li{panelda
 Many of the functions of the \li{DataFrame} type perform similarly on the \li{Panel} type. These include transposition,
 inserting and deleting items, and accessing data. Another way to use the \li{Panel} is to use \li{squeeze} to
 
-\section*{Viewing Data}
+\section*{Viewing and Accessing Data}
+
+Once we have our data ready to go in pandas, how can we view it or gain access to certain parts of it?
+In this section we will explore some elementary plotting and querying techniques that enable us to maneuver through
+and gain insight into our data. 
 
 \subsection*{Plotting}
 Plotting is often a much more effective way to view and gain understanding of a dataset than simply
@@ -501,8 +505,8 @@ Using DataFrames, one can also plot one column against another.
 \begin{lstlisting}
 >>> xvals = pd.Series(np.sqrt(np.arange(1000)))
 >>> yvals = pd.Series(np.random.randn(1000).cumsum())
->>> df = pd.DataFrame({'xvals':xvals,'yvals':yvals}) #Put in a Dataframe
->>> df.plot(x='xvals',y='yvals') #Plot, specifying which column is to be used to x and y values.
+>>> df = pd.DataFrame({'xvals':xvals,'yvals':yvals})
+>>> df.plot(x='xvals',y='yvals') # specify x and y values
 >>> plt.show()
 \end{lstlisting}
 
@@ -535,13 +539,13 @@ a histogram for each column in a DataFrame, with the result shown in Figure \ref
 \end{figure}
 
 \subsection*{SQL Operations in pandas}
-The DataFrame, being a tabular data structure, bears an obvious resemblance to a standard relational
+The DataFrame, being a tabular data structure, bears an obvious resemblance to a typical relational
 database table. SQL is the standard for working with relational databases, and in this section we will
 explore how pandas accomplishes some of the same tasks as SQL. The SQL-like functionality of pandas is
 one of its big advantages, since it can eliminate the need to switch between programming languages
 for different tasks. Within pandas we can handle both the querying \emph{and} data analysis.
 
-For the following examples, we will use the following data:
+For the following examples, we will use this data:
 \begin{lstlisting}
 >>> #build toy data for SQL operations
 >>> name = ['Bill', 'Alice', 'Joe', 'Jenny', 'Ted', 'Taylor', 'Tracy', 'Morgan', 'Liz']
@@ -559,7 +563,21 @@ For the following examples, we will use the following data:
 >>> mathInfo = pd.DataFrame({'ID':mathID, 'Grade':mathGd, 'Math_Major':major})
 \end{lstlisting}
 
-Let's first look at the pandas equivalent of some SQL SELECT statements.
+Before querying our data, it is important to know some of its basic properties, such as
+number of columns, number of rows, and the datatypes of the columns. This can be done
+by simply calling the \li{info} method on the desired \li{DataFrame}:
+\begin{lstlisting}
+>>> mathInfo.info()
+
+Int64Index: 5 entries, 0 to 4
+Data columns (total 3 columns):
+Grade         5 non-null float64
+ID            5 non-null int64
+Math_Major    5 non-null object
+dtypes: float64(1), int64(1), object(1)
+\end{lstlisting}
+
+Now let's look at the pandas equivalent of some SQL SELECT statements.
 \begin{lstlisting}
 >>> # SELECT ID, Age FROM studentInfo
 >>> studentInfo[['ID', 'Age']]
@@ -682,103 +700,18 @@ same columns but possibly different rows.
 [7 rows x 3 columns]
 \end{lstlisting}
 The \li{ignore_index=True} argument means we discard the indexes of the two input DataFrames and create
-a new one for the concatenated DataFrame. The \li{drop_duplicates} method simply drop duplicate rows.
+a new one for the concatenated DataFrame. The \li{drop_duplicates} method simply drops duplicate rows.
 
 When you find yourself unsure of how to carry out a more involved SQL-like operation, the online
 pandas documentation will be of great service.
 
-ADD IN ABOUT SAVING TO SQL DATABASE
 
 
-\begin{lstlisting}
->>> df1 #First data frame
-      DATA1     DATA2  EMPLOYEEID
-0  0.763628  0.671691           1
-1  0.635869  1.486546           2
-2  1.917649 -0.432400           3
-3 -0.679496  0.794938           4
-4 -0.201446  1.936673           5
+\section*{Analyzing Data}
 
-[5 rows x 3 columns]
->>> df2 #Second data frame
-      DATA3     DATA4  EMPLOYEEID
-0 -1.194058  0.814376           2
-1  1.068904 -0.289241           3
-2  0.099272  0.595524           4
-3  0.688357 -0.207746           5
-4  0.292399  0.504268           6
-5 -0.259372  1.159809           7
+\subsection*{Basic Statistical Functions}
 
-[6 rows x 3 columns]
->>> pd.merge(df1,df2,on='EMPLOYEEID') #Use the merge function to do SQL joins. The default is inner join.
-      DATA1     DATA2  EMPLOYEEID     DATA3     DATA4
-0  0.635869  1.486546           2 -1.194058  0.814376
-1  1.917649 -0.432400           3  1.068904 -0.289241
-2 -0.679496  0.794938           4  0.099272  0.595524
-3 -0.201446  1.936673           5  0.688357 -0.207746
-
-[4 rows x 5 columns]
->>> pd.merge(df1,df2,on='EMPLOYEEID',how='outer') #The how keyword allows for the other major join types. Notice how NaN is used to fill missing spots.
-      DATA1     DATA2  EMPLOYEEID     DATA3     DATA4
-0  0.763628  0.671691           1       NaN       NaN
-1  0.635869  1.486546           2 -1.194058  0.814376
-2  1.917649 -0.432400           3  1.068904 -0.289241
-3 -0.679496  0.794938           4  0.099272  0.595524
-4 -0.201446  1.936673           5  0.688357 -0.207746
-5       NaN       NaN           6  0.292399  0.504268
-6       NaN       NaN           7 -0.259372  1.159809
-
-[7 rows x 5 columns]
->>> pd.merge(df1,df2,on='EMPLOYEEID',how='left') #Left outer join
-      DATA1     DATA2  EMPLOYEEID     DATA3     DATA4
-0  0.763628  0.671691           1       NaN       NaN
-1  0.635869  1.486546           2 -1.194058  0.814376
-2  1.917649 -0.432400           3  1.068904 -0.289241
-3 -0.679496  0.794938           4  0.099272  0.595524
-4 -0.201446  1.936673           5  0.688357 -0.207746
-
-[5 rows x 5 columns]
->>> pd.merge(df1,df2,on='EMPLOYEEID',how='right') #Right outer join
-      DATA1     DATA2  EMPLOYEEID     DATA3     DATA4
-0  0.635869  1.486546           2 -1.194058  0.814376
-1  1.917649 -0.432400           3  1.068904 -0.289241
-2 -0.679496  0.794938           4  0.099272  0.595524
-3 -0.201446  1.936673           5  0.688357 -0.207746
-4       NaN       NaN           6  0.292399  0.504268
-5       NaN       NaN           7 -0.259372  1.159809
-
-[6 rows x 5 columns]
-\end{lstlisting}
-
-The SQL command \li{select} also has an easy substitute.
-
-\begin{lstlisting}
->>> df1[['EMPLOYEEID','DATA1']] #Select only two of the columns
-   EMPLOYEEID     DATA1
-0           1  0.763628
-1           2  0.635869
-2           3  1.917649
-3           4 -0.679496
-4           5 -0.201446
-
-[5 rows x 2 columns]
->>> df1[['EMPLOYEEID','DATA1']].head(2) #Take only the first two rows
-   EMPLOYEEID     DATA1
-0           1  0.763628
-1           2  0.635869
-
-[2 rows x 2 columns]
->>> df1[['EMPLOYEEID','DATA1']].tail(3) #Take only the last three rows
-   EMPLOYEEID     DATA1
-2           3  1.917649
-3           4 -0.679496
-4           5 -0.201446
-
-[3 rows x 2 columns]
-\end{lstlisting}
-
-\section*{Manipulating Data}
-
+\subsection*{Dealing with Missing Data}
 Pandas is particularly well-suited to handling missing and anomalous data. The pandas default for a missing value is \li{NaN}. In basic arithmetic operations, missing values are dealt with in a conservative manner:
 
 \begin{lstlisting}
@@ -918,7 +851,9 @@ With these basic ideas and operations in hand, you'll be prepared to deal with t
 
 \section*{Analyzing Data}
 
-Of course, the whole point of \li{pandas} is to help you \emph{analyze} the data once it's inputted. Several upcoming labs will involve practicing different ways of using pandas for data analysis. We'll just cover the very basics right now.
+Of course, the whole point of \li{pandas} is to help you \emph{analyze} the data once it's inputted. 
+Several upcoming labs will involve practicing different ways of using pandas for data analysis. 
+We'll just cover the very basics right now.
 
 A good first step is just to determine the datatypes of each column in a data frame:
 
@@ -966,7 +901,7 @@ There are also easy commands to get covariance matrices (.cov()), correlation ma
 
 
 \section*{Data I/O}
-
+ADD IN ABOUT SAVING TO SQL DATABASE
 Before we can use \li{pandas} for anything, we need to have some data, and when we're done using the data, we need to store it in a convenient place and format. In other words, we need to do data input/output, or I/O. The process of input is called \textit{reading}, and the process of output is called \textit{writing}. Reading usually takes data from another file, such as a CSV file, and turns it into a \li{python} data type. Writing then creates or updates another file with the most recent configuration of the data.\\
 \indent The \li{pandas} package supports reading many different file types, using functions such as \li{pd.read_csv(),pd.read_stata(), pd.read_excel()}, etc. The output is a DataFrame object, although there is an option, \li{squeeze}, to make the output a Series object. For instance, to read a \li{.csv} file, one could use the following code:
 \begin{lstlisting}
