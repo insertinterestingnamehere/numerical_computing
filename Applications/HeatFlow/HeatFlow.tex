@@ -72,6 +72,13 @@ we obtain a second-order centered difference approximation to $u_{xx}(x_i,t)$:
 	u_{xx}(x_i,t_j) &= \frac{u(x_i + h,t_j )-2 u(x_i,t_j)- u(x_i - h,t_j)}{h^2} + \mathcal{O}(h^2).
 \end{align*}
 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{heatexercise1a.pdf}
+\caption{The graph of $U^{0}$, the approximation to the solution $u(x,t=0)$ for Problem \ref{prob:heat_exercise1}.}
+\label{fig:heatexercise1a}
+\end{figure}
+
 % A simple explicit method for numerically approximating the solution of this problem is to use a forward difference approximation in time and a centered difference approximation in space.
 % Recall that
 % \[u_t(x_i,t_j) = \frac{u(x_i,t_j + k) - u(x_i,t_j)}{k} + \mathcal{O}(k)
@@ -94,34 +101,28 @@ where $A$ is the tridiagonal matrix given by
 $\lambda = \nu k/h^2$, and $U^j$ represents the approximation at time $t_j$.
 We can get this method started by using the initial condition given in our problem, so that $U_{i}^{0} = f(x_i)$. 
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-\includegraphics[width=9cm]{heatexercise1a.pdf}
-\caption{The graph of $U^{0}$, the approximation to the solution $u(x,t=0)$ for \ref{prob:heat_exercise1}.}
-\label{fig:heatexercise1a}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=9cm]{heatexercise1b.pdf}
-\caption{The graph of $U^{10}$, the approximation to the solution $u(x,t=.4)$ for \ref{prob:heat_exercise1}.}
+\includegraphics[width=\textwidth]{heatexercise1b.pdf}
+\caption{The graph of $U^{10}$, the approximation to the solution $u(x,t=.4)$ for Problem \ref{prob:heat_exercise1}.}
 \label{fig:heatexercise1b}
 \end{figure}
 
 \begin{info}
-Finite difference schemes, though they can be represented using matrix multiplication, should not usually be \emph{implemented} directly using matrix multiplication.
+Finite difference schemes, though they can be \emph{represented} using matrix multiplication, should not be \emph{implemented} using raw matrix multiplication.
 Using NumPy, it is best to vectorize the difference scheme so that you do not have to loop over the spatial indices.
-If you are using a language that has faster loops (like C, C++, Fortran, or Cython), it could work well to loop directly through the indices in both time and space.
+If you are using a language with faster loops (like C, C++, Fortran, or Cython), it could work well to loop directly through the indices in both time and space.
 \end{info}
 
 \begin{problem}
+\label{prob:heat_exercise1}
 Consider the specific initial boundary value problem
 \begin{align}
 	\begin{split}
 	&{ } u_t = .05 u_{xx}, \quad x \in [0,1], \\
 	&{ } u(0,t) = 0,\quad u(1,t) = 0,\\
 	&{ } u(x,0) = 2\max\{.2 - |x-5.|,0\}.
-	\end{split}\label{prob:heat_exercise1}
+	\end{split}
 \end{align}
 Approximate the solution $u(x,t)$ at time $t = .4$ be taking 6 subintervals in the $x$ dimension and 10 subintervals in time. 
 The graphs for $U^0$ and $U^{10}$ are given in Figures \ref{fig:heatexercise1a} and \ref{fig:heatexercise1b}.
@@ -151,10 +152,7 @@ def sine_animation(res=100):
     line, = plt.plot([], [])
     # Define an animation function that will update the line to
     # reflect the desired data for the i'th frame.
-    # When this function is called, x and y aren't in
-    # the current scope, so include them as default
-    # arguments so they can be used in the body of the function.
-    def animate(i, x=x, y=y):
+    def animate(i):
         # Set the data for updated version of the line.
         line.set_data(x, np.roll(y, i))
         # Notice that this returns a tuple of length 1.
@@ -173,15 +171,16 @@ sine_animation()
 \end{lstlisting}
 
 \begin{problem}
+\label{prob:heat_exercise2}
 Solve the specific initial boundary value problem
 \begin{align}
 	\begin{split}
 	&{ } u_t = u_{xx}, \quad x \in [-12,12],\quad t \in [0,1], \\
 	&{ } u(-12,t) = 0,\quad u(12,t) = 0,\\
 	&{ } u(x,0) = \max\{1 - x^2,0\}
-	\end{split}\label{prob:heat_exercise2}
+	\end{split}
 \end{align}
-using the first order explicit method \ref{firstorder_explicit}.
+using the first order explicit method \ref{eqn:firstorder_explicit}.
 Use 140 subintervals in the $x$ dimension and 70 subintervals in time.
 The initial and final states are shown in Figure \ref{fig:heatexercise2}.
 Animate your results.
@@ -194,10 +193,10 @@ For these values the CFL condition is broken; you should easily see the result o
 % Then the graphs for $U^0$ and $U^{70}$ are given in \eqref{heatexercise2a} and \ref{heatexercise2b}.
 \end{problem}
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-\includegraphics[width=12cm]{heatexercise2.pdf}
-\caption{The initial and final states for \ref{prob:heat_exercise2}.}
+\includegraphics[width=\textwidth]{heatexercise2.pdf}
+\caption{The initial and final states for equation Problem \ref{prob:heat_exercise2}.}
 \label{fig:heatexercise2}
 \end{figure}
 
@@ -223,6 +222,7 @@ B &= \left[\begin{array}{cccccc}1+2\lambda & -\lambda &  &  &  \\ -\lambda & 1+2
 A &= \left[\begin{array}{cccccc}1-2\lambda & \lambda &  &  &  \\ \lambda & 1-2\lambda &  \lambda & &  \\ &  \ddots &   \ddots & \ddots \\ & &  \lambda &  1-2\lambda & \lambda \\ &  &  & \lambda & 1-2\lambda\end{array}\right], 
 \end{align*}
 where $\lambda = \nu k/(2h^2)$, and $U^j$ represents the approximation at time $t_j$.
+Note that here we have defined $\lambda$ differently than we did before!
 
 How do we know if a numerical approximation is reasonable?
 One way to determine this is to compute solutions for various step sizes $h$ and see if the solutions are converging to something.
@@ -238,25 +238,50 @@ Then the error of the approximation for stepsize $h_k, k < m,$ is
 \end{align*}
 Thus on a log-log plot of $E(h)$ vs. $h,$ these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-\includegraphics[width=12cm]{MaximumError.pdf}
-\caption{$E(h)$ represents the (approximate) maximum error in the numerical solution $U$ to problem \eqref{heat_exercise3} at time $t=1$, using a stepsize of $h$.}
-\label{figure3}
+\includegraphics[width=\textwidth]{MaximumError.pdf}
+\caption{$E(h)$ represents the (approximate) maximum error in the numerical solution $U$ to Problem \ref{prob:heat_exercise3} at time $t=1$, using a stepsize of $h$.}
+\label{fig:heatexercise3}
 \end{figure}
 
+% If dgtsv is ever included in SciPy, it would probably be better to use that here instead of a custom routine.
+When implementing the Crank-Nicolson method, you will need some way to solve a tridiagonal system.
+The following is a simple function that performs a tridiagonal solve.
+\li{a}, \li{b}, and \li{c} are assumed to contain the first subdiagonal, main diagonal, and first superdiagonal of the tridiagonal matrix.
+\li{x} is assumed to be the right hand side of the equation.
+This function overwrites \li{x} with the solution to the system.
+As has been shown in earlier labs, this function is better implemented in Cython, C, Fortran, or some other language with less overhead for array accesses and loops.
+\begin{lstlisting}
+def tridiag(a, b, c, x):
+    # Overrides c and x.
+    # The contents of x after computation will be the solution to the system.
+    size = x.size
+    temp = 0.
+    c[0] = c[0] / b[0]
+    x[0] = x[0] / b[0]
+    for n in range(size-2):
+        temp = 1. / (b[n+1] - a[n]*c[n])
+        c[n+1] *= temp
+        x[n+1] = (x[n+1] - a[n]*x[n]) * temp
+    x[size-1] = (x[size-1] - a[size-2]*x[size-2]) / (b[size-1] - a[size-2]*c[size-2])
+    for n in range(b.size-2, -1, -1):
+        x[n] = x[n] - c[n] * x[n+1]
+\end{lstlisting}
+
 \begin{problem}
+\label{prob:heat_exercise3}
 Using the Crank Nicolson method, numerically approximate the solution $u(x,t)$ of the problem
 \begin{align}
 	\begin{split}
 	&{ } u_t = u_{xx}, \quad x \in [-12,12],\quad t \in [0,1],\\
 	&{ } u(0,t) = 0,\quad u(1,t) = 0,\\
 	&{ } u(x,0) = \max\{1 - x^2,0\}.
-	\end{split}\label{heat_exercise3}
+	\end{split}
 \end{align}
 Demonstrate that the numerical approximation at $t = 1$ converges to  $u(x,t=1)$.
 (Hint: Compute $U$ at $t=1$ using stepsizes $h=k=20,40,80,160,320$, and $640$.
-Reproduce Figure \eqref{figure3}.
+Reproduce Figure \eqref{fig:heatexercise3}.
 Notice that since the Crank-Nicolson method is unconditionally stable, there is no CFL condition and we can let $h=k$.)
 \end{problem}
 
