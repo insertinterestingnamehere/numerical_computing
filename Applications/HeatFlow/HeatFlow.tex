@@ -127,12 +127,57 @@ Approximate the solution $u(x,t)$ at time $t = .4$ be taking 6 subintervals in t
 The graphs for $U^0$ and $U^{10}$ are given in Figures \ref{fig:heatexercise1a} and \ref{fig:heatexercise1b}.
 \end{problem}
 
+For the next problem, we need to show how Matplotlib can be used to create a 2D animation.
+The following is a simple working example that animates a sine wave.
+
+% Note: If an animation is running slowly, consider using the \li{blit=True} option when creating the animation.
+% If you do this, also define an initialization function that sets the line's data to empty lists and returns a 1-tuple containing the line object.
+% Pass the initialization function to the \li{FuncAnimation} function using the \li{init_func} keyword argument.
+
+\begin{lstlisting}
+import numpy as np
+from matplotlib import animation, pyplot as plt
+
+def sine_animation(res=100):
+    # Make the x and y data.
+    x = np.linspace(-1, 1, res+1)[:-1]
+    y = np.sin(np.pi * x)
+    # Initialize a matplotlib figure.
+    f = plt.figure()
+    # Set the x and y axes by constructing an axes object.
+    plt.axes(xlim=(-1,1), ylim=(-1,1))
+    # Plot an empty line to use in the animation.
+    # Notice that we are unpacking a tuple of length 1.
+    line, = plt.plot([], [])
+    # Define an animation function that will update the line to
+    # reflect the desired data for the i'th frame.
+    # When this function is called, x and y aren't in
+    # the current scope, so include them as default
+    # arguments so they can be used in the body of the function.
+    def animate(i, x=x, y=y):
+        # Set the data for updated version of the line.
+        line.set_data(x, np.roll(y, i))
+        # Notice that this returns a tuple of length 1.
+        return line,
+    # Create the animation object.
+    # 'frames' is the number of frames before the animation should repeat.
+    # 'interval' is the amount of time to wait before updating the plot.
+    # Be sure to assign the animation a name so that Python does not
+    # immediately garbage collect (delete) the object.
+    a = animation.FuncAnimation(f, animate, frames=y.size, interval=20)
+    # Show the animation.
+    plt.show()
+
+# Run the animation function we just defined.
+sine_animation()
+\end{lstlisting}
+
 \begin{problem}
 Solve the specific initial boundary value problem
 \begin{align}
 	\begin{split}
 	&{ } u_t = u_{xx}, \quad x \in [-12,12],\quad t \in [0,1], \\
-	&{ } u(0,t) = 0,\quad u(1,t) = 0,\\
+	&{ } u(-12,t) = 0,\quad u(12,t) = 0,\\
 	&{ } u(x,0) = \max\{1 - x^2,0\}
 	\end{split}\label{prob:heat_exercise2}
 \end{align}
@@ -143,7 +188,7 @@ Animate your results.
 
 Explicit methods usually have a stability condition, called a CFL condition (for Courant-Friedrichs-Lewy).
 For method \ref{eqn:firstorder_explicit} the CFL condition that must be satisfied is that
-\[\frac{\nu \triangle t}{(\triangle x)^2} \leq \frac{1}{2}.\]
+\[\lambda \leq \frac{1}{2}.\]
 Repeat your computations using 140 subintervals in the $x$ dimension and 66 subintervals in time.
 For these values the CFL condition is broken; you should easily see the result of this instability in the approximation $U^{66}$.
 % Then the graphs for $U^0$ and $U^{70}$ are given in \eqref{heatexercise2a} and \ref{heatexercise2b}.
