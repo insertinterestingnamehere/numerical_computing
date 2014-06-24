@@ -6,18 +6,21 @@
 \section*{Graphs}
 Graphs are often used to represent relationships between objects. They are 
 represented by a set of nodes (or vertices) and a set of edges where each edge
-connects exactly two nodes.  A graph is \emph{directed} if connections are uni-directional,
-and \emph{undirected} if they are bi-directional.
-There are two different data structures that can be used to represent graphs.
+connects exactly two nodes. We would indicate an edge from node $A$ to node $B$ by $(A, B)$
+and an edge from $B$ to $A$ by $(B,A)$. If \emph{all} of the edges within the graph are bidirectional 
+between their connecting nodes, the graph is said to be \emph{undirected}. If, however, the directions 
+of the graph's edges are specified, then the graph is said to be \emph{directed}. In this lab, however, we will largely be working
+with undirected graphs.
+
+There are two different data structures that can be used to represent graphs: adjacency matrices and adjacency lists.
 Each data structure has its own advantages and disadvantages;
-which one you use mostly depends upon the type of problem you are solving.
-The two ways to represent graphs are adjacency matrices and adjacency lists, which can both be used to represent directed or undirected graphs.
+which one you use mostly depends on the type of problem you are solving.
 
 \subsection*{Adjacency Matrices}
 An Adjacency matrix is two dimensional matrix used to represent a graph. We order
 the nodes of the graph and allow each node to correspond to one column and one
-row of the matrix. Therefore, if we have n nodes, we use an n by n matrix to 
-represent the edges between the nodes. In an unweighted graph, we indicate an 
+row of the matrix. Therefore, if we have $n$ nodes, we use an $n \times n$ matrix to 
+represent the edges between the nodes. In an unweighted graph (a graph where all the edges have the same value), we indicate an 
 edge between two nodes using either a 0 or a 1. 
 Consider the example graph in Figure 4.1. Because a bidirectional edge exists between A and D, for example, we put a 1 in the (4,1) position and 
 in the (1,4) position. Since no edge exists between A and C, we put a 0 in 
@@ -38,9 +41,16 @@ If the entry is 0, then no edge exists between nodes $i$ and $j$, otherwise ther
 An adjacency matrix allows us to query the existence of an edge, or its edge weight, in constant time.
 \end{comment}
 \subsection*{Adjacency Lists}
-We can also represent graphs as a nested list of neighbors.
-The $i$th index in the list contains a list of adjacent nodes to node $i$.
-If node $j$ is in this list, then there exists an edge between $i$ and $j$.
+An adjacency list links each node of the graph to a list of its corresponding neighbors, the nodes to which it is connected by an edge.
+There are many ways to index the nodes so their edges can be easily queried, but one of the most straightforward ways in Python is to use a simple dictionary. We might represent our example graph using the following code:
+\begin{lstlisting}
+AList = {'A': ['B', 'D', 'E'], 'B':['A', 'C'], 'C':['B', 'D'], 'D':['A', 'C'], 'E':['A']}
+# To obtain a list of the nodes adjacent to A, simply access the 
+# dictionary at the key 'A'.
+print Alist['A']
+# You should obtain the following output:
+['B', 'D', 'E']
+\end{lstlisting}
 We can query the neighbors of any node in the graph in constant time.
 This makes algorithms that operate locally on the graph very efficient.
 
@@ -66,20 +76,20 @@ neighbor, E. Since E is our target, the algorithm ends.
 
 Second, we will start with A and search for B.
 We visit node A, then D, then F, and finally, E.
-At this point, we have gone as deeply as we can and have still not found node B.
+At this point, we have gone as deeply as we can and have still not found our target, B.
 We must then back up and try another branch of nodes.
 The algorithm backtracks from E to F and tries another route.
-Since we have marked D as already visited, we visit F's final neighbor, C.
+Since we have marked D as previously visited, we visit F's final neighbor, C.
 Note that it is very important that we mark those nodes we have already visited,
 otherwise the algorithm would infinitely loop around the latter portion of
 the graph without reaching our target, B. We return to node F. Since we have
-tried all possible branches adjacent to F, we backtrack, again, to D. Because we have
+searched all possible nodes adjacent to F, we backtrack, again, to D. Because we have
 exhausted all sub-branches originating from D, we travel back to A and try
 any unexplored branches there. Finally, we find B and the algorithm ends.
 
 Let's try the same two searches using a breadth first search. This time, however,
 we will visit the earliest (lesser) letter in the alphabet first while
-exploring our branches. In this first search, we use D as our root node and
+exploring our branches. In this first search, we again use D as our root node and
 E as our target node.
 We start by searching for E among the neighbors of D: A, C, and F.
 We have not found E, so we search among the neighbors of these adjacent nodes, starting with A.
@@ -95,8 +105,6 @@ DFS can be much more efficient when the solution is far from the target node.
 Algorithm \ref{alg:BFSDFS} outlines the process by which we may implement BFS and DFS methods, respectively.
 \begin{comment}
 
-DFS can also be implemented very elegantly as a recursive algorithm (an algorithm that references itself to solve a smaller sub-problem).
-However, with large graphs, a recursive algorithm will not perform very well computationally.
 \end{comment}
 
 \begin{algorithm}
@@ -128,9 +136,9 @@ However, with large graphs, a recursive algorithm will not perform very well com
 
 \begin{problem}
 Implement methods that will perform depth first and breadth first searches on a graph (in this case, an adjacency list).
-Use a \li{set()} to store the visited nodes. (Because sets are often actualized using binary search trees, they support very efficient membership testing).
+Use a \li{set()} to store the visited nodes. (Because Python implements sets as hash tables, they have very efficient membership testing.)
 
-\emph{Helpful Hint}: The implementations of depth and breadth first searches
+\emph{Helpful Hint}: The implementations of a depth and a breadth first search
 are almost exactly same, but they use a particular data structure differently.
 \begin{itemize}
 \item Which data structure constitutes this important difference?
@@ -148,17 +156,17 @@ are almost exactly same, but they use a particular data structure differently.
 \end{figure}
 \end{comment}
 Let A be an unweighted graph. This means that none of the edges of A has any value, or ``weight'' attached to it. How can we find the shortest path between two nodes?
-One way would be to simply use a breadth first search, stopping when we reach the target node. The downside to doing it this way is that the algorithm would look through
-every node on every prior level before it could reach the target node. Observe the example graph above. Let us use a simple BFS to search for O, starting with A as our root node.
-Then, we search through all of the neighbors of A,  all of the neighbors of B and C, and so on until we finally locate O. Using this method, we are forced to check
-a total of $15$ nodes.
+One way would be to simply use a breadth first search, stopping when we reach the target node. The downside to doing it this way is that the algorithm would look through (at least)
+every node on every level prior to the target node before it could end. Observe the example graph above. Let us use a simple BFS to search for O, starting with A as our root node.
+We then search through all of the neighbors of A, all of the neighbors of B and C, and so on until we finally locate O. Using this method, we are forced to check
+a total of $15$ nodes before our algorithm ends.
 
-A better way to find the shortest path is to do a breadth first search from both A and O. Thus, we finds the shortest path between A and O using a pair of breadth first searches originating at the two target nodes.
-We advances each breadth first search one node at a time, alternating until they meet and then constructing the shortest path of nodes between them.
+A better way to find the shortest path is to do a breadth first search from both A and O. Thus, we find the shortest path between A and O using a pair of breadth first searches originating from the root node and target node, respectively.
+We advance each breadth first search one node at a time, alternating until they meet, and then construct the shortest path of nodes between them.
  Using our BFS algorithm from above, we start with A and locate its
-least neighbor, B. Since we have not yet found O, or a connection to O, we visit G, the first neighbor of O. Continuing in this pattern, we return to the neighbors
-of A to visit C, then visit the least neighbor of G, which is also C. We have found our connection, so the algorithm ends! Note that when we used a breadth first
-search with only one root node, we visited $15$ nodes, but when we used a bidirectional breadth first search, we only had to visit a total of $5$ nodes to reach our target.
+least neighbor, B. Since we have not yet found O (or a connection to O) we visit G, the first neighbor of O. Continuing in this pattern, we return to the neighbors
+of A to visit C. We return to our second search to visit the least neighbor of G, which is also C. We have found our connection, so the algorithm ends. Note that when we used a breadth first
+searched with only one root node, we visited $15$ nodes, but when we used a bidirectional breadth first search, we only had to visit a total of $5$ nodes to reach our target.
 
 When you have many more nodes each level away, the speedup from doing a breadth first search from both sides is far greater. This is one of the best ways to find shortest
 paths in unweighted, undirected graphs. For weighted graphs there are many algorithms that allow us to find the shortest path. For further information research
