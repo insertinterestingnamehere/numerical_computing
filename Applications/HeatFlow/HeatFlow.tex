@@ -114,6 +114,9 @@ Using NumPy, it is best to vectorize the difference scheme so that you do not ha
 If you are using a language with faster loops (like C, C++, Fortran, or Cython), it could work well to loop directly through the indices in both time and space.
 \end{info}
 
+To account for boundary conditions using this differencing scheme, simply set the boundary points to the appropriate values in the initial conditions, then avoid modifying them as you update for each time step.
+This would be the equivalent of replacing the first and last rows of the matrix representation of the differencing scheme with the first and last rows of the identity matrix.
+
 \begin{problem}
 \label{prob:heat_exercise1}
 Consider the specific initial boundary value problem
@@ -269,6 +272,9 @@ def tridiag(a, b, c, x):
         x[n] = x[n] - c[n] * x[n+1]
 \end{lstlisting}
 
+To account for boundary conditions when using the Crank-Nicolson method, set the boundary points at the beginning of the iteration and leave them constant when applying $A$ like you did before.
+In the Tridiagonal solve, replace the first row of the matrix $B$ with the first row of the identity and the last row of the matrix $B$ with the last row of the identity.
+
 \begin{problem}
 \label{prob:heat_exercise3}
 Using the Crank Nicolson method, numerically approximate the solution $u(x,t)$ of the problem
@@ -280,9 +286,15 @@ Using the Crank Nicolson method, numerically approximate the solution $u(x,t)$ o
 	\end{split}
 \end{align}
 Demonstrate that the numerical approximation at $t = 1$ converges to  $u(x,t=1)$.
-(Hint: Compute $U$ at $t=1$ using stepsizes $h=k=20,40,80,160,320$, and $640$.
-Reproduce Figure \eqref{fig:heatexercise3}.
-Notice that since the Crank-Nicolson method is unconditionally stable, there is no CFL condition and we can let $h=k$.)
+Do this by computing $U$ at $t=1$ using $20,40,80,160,320$, and $640$ steps.
+Use the same number of steps in both time and space.
+Reproduce the loglog plot shown in Figure \ref{fig:heatexercise3}.
+The slope of the line there shows the proper rate of convergence.
+
+To measure the error, use the solution with the smallest $h$ (largest number of intervals) as if it were the exact solution, then sample each solution only at the x-values that are represented in the solution with the largest $h$ (smallest number of intervals).
+Use the $\infty$-norm on the arrays of values at those points to measure the error.
+
+Notice that, since the Crank-Nicolson method is unconditionally stable, there is no CFL condition and we can let $h=k$.
 \end{problem}
 
 % The matrix $A$ is sparse, and so we can use several functions from the package \texttt{scipy.sparse.linalg}.
