@@ -135,6 +135,28 @@ unsigned long long & uint64 & 64 bit unsigned integer \\
 \label{table:cython_types}
 \end{table}
 
+Cython also has some experimental support for compiling the same set of operations for different types.
+For example, the following Cython file defines a function \li{myadd} that will work for both 32 and 64 bit floating point numbers.
+\begin{lstlisting}
+ctypedef fused floating:
+    float
+    double
+def myadd(floating a, floating b):
+    return a + b
+\end{lstlisting}
+\li{ctypedef} is a type declaration.
+The \li{fused} keyword tells Cython that we are defining a fused type.
+\li{floating} is the name of the fused type we are defining.
+Some specific fused types are already predefined in the Cython module.
+The following would be equivalent to the previous example:
+\begin{lstlisting}
+from cython cimport floating
+def myadd(floating a, floating b):
+    return a + b
+\end{lstlisting}
+Use fused types with caution.
+As of this writing they are a new and experimental feature.
+
 \section*{Optimized Array Access}
 Often, we want to iterate over large arrays very quickly.
 In Python, the \li{__getitem__} method (i.e. array access using \li{[ ]}) of NumPy arrays is written for Python and includes the corresponding overhead.
