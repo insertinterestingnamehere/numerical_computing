@@ -1,6 +1,6 @@
 \lab{Python}{Web Technologies}{Web Technologies}
-\objective{Learn about HTTP, XML, and WSGI.
-You will learn how to communicate using HTTP, parse XML, and use WSGI for web applications.}
+\objective{Learn about serialization and markup languages.
+You will also learn how to communicate using the HTTP protocol.}
 \label{lab:webtech}
 
 Since the dawn of computing, the ability to make computers talk to each other has captivated the minds of many.
@@ -10,7 +10,16 @@ The web is part of everyday life.
 Ever
 It is important that 
 
-\section*{JSON}
+\section*{Serialization}
+How would you store a Python list or dictionary outside of the interpreter?
+Suppose we calculated some results and stored them in a list that we wanted to send to a friend or colleague?
+However we choose to store our list, we need to be able to load it back into the Python interpreter and use it as a list.
+What if we wanted to store more complex objects?
+The process of serialization seeks to address this situation.
+Serialization is the process of storing an object and its properties in a form that can be saved or transmitted and later reconstructed back into an identical copy of the original object.
+
+
+\subsection*{JSON}
 JSON, pronounced ``Jason'', stands for \emph{JavaScript Object Notation}.
 It is easy for both humans and machines to read and write the format.
 Despite its name, it is a completely language independent format.
@@ -54,7 +63,7 @@ To perform the inverse operation, we use \li{load} or \li{loads} for reading fro
 Many websites and web APIs make extensive use of JSON.
 Twitter, for example, return JSON messages for all queries.
 
-\section*{XML}
+\subsection*{XML}
 XML is another data interchange format.  It is a markup language rather than a object notation language.
 To understand XML, we need to understand what tags are.
 A tag is a special command enclosed in angled brackets (<>) that describe something about the data it encloses.
@@ -71,6 +80,14 @@ For example, we can represent our car from above in the XML below.
 \subsection*{DOM}
 The DOM (Document Object Model) API allows you to work with an XML document as a tree.
 Python's XML module includes two version of DOM: \li{xml.dom} and \li{xml.minidom}.
+MiniDOM is a minimal, more simple implementation of the DOM API.
+
+The motivation behind DOM is to represent an XML as a hierarchy of elements.
+This is accomplished by building a tree of the elements as the XML tags are read from the file.
+DOM is useful when we want random access to all of the XML document.
+This requires loading the entire file into memory.
+If you have a large XML file (a couple of megabytes)
+
 DOM reads an entire XML into memory and builds a tree with the tag hierarchies on every parse.
 For large XML files, this could lead to massive memory consumption.
 The DOM tree of the car above would have \li{<car>} at the root element.
@@ -79,7 +96,9 @@ We would traverse this DOM tree just like we would any other tree structure.
 DOM trees can be searched by tag as well.
 
 \subsection*{SAX}
-SAX, Simple API for XML, is an event parser.
+SAX, Simple API for XML, is essentially an XML state machine.
+This method of reading an XML file requires that you read the XML file as the parser would.
+It is a very fast, efficient way to read an XML file.
 The main advantage of this method for reading an XML file is memory conservation.
 A SAX parser reads XML sequentially instead of all at once.
 It doesn't need to load the entire file into memory.
@@ -95,6 +114,18 @@ This will have all the benefits of reading XML via SAX.
 In addition to stream processing the XML, it will build the DOM tree as it iterates through each line of the XML input.
 ElementTree provides a DOM-like interface for reading XML files via its \li{parse()} method.
 This will create the tag tree that DOM creates.
+
+We will demonstrate ElementTree using the following XML.
+\lstinputlisting[style=FromFile,language=XML]{contacts.xml}
+
+First we will look at ElementTree's \li{iterparse()} method.
+\begin{lstlisting}
+import xml.etree.ElementTree as et
+
+x = et.iterparse('contacts.xml') # this is an iterator)
+for event, tag in x:
+    
+\end{lstlisting}
 
 
 
@@ -139,5 +170,3 @@ Let's look at a GET request.
 GET / HTTP/1.1
 Host: acme.byu.edu
 \end{lstlisting}
-
-\section*{Web Applications with WSGI}
