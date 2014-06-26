@@ -176,6 +176,48 @@ dtype: float64
 
 Multi-indexing is visually convenient, but not strictly necessary for most applications.
 The interested reader is invited to explore the documentation to learn more.
+
+\section*{Data I/O}
+Being able to import and export data is a fundamental skill in data science. Unfortunately, with the
+multitude of data formats and conventions out there, importing data can often be a tricky task. The pandas library
+seeks to reduce some of the difficulty by providing file readers for various types of formats, including
+csv, excel, hdf, sql, json, html, and pickle files, among others.
+
+Because comma separated values files are some of the most popular file formats for data, we will explore the
+\li{read_csv} function in more detail. To read other types of file formats, refer to the online pandas documentation.
+To read a csv data file into a \li{DataFrame}, simply call the \li{read_csv} function with the path to the csv file,
+along with the appropriate keyword arguments. Below we list some of the most important:
+\begin{itemize}
+\item \li{delimiter}:
+This argument specifies the character that separates data fields, often a comma or a whitespace character.
+
+\item \li{header}:
+The row number (starting at 0) in the csv file that contains the column names.
+
+\item \li{index_col}:
+If you want to use one of the columns in the csv file as the index for the \li{DataFrame},
+set this argument to the desired column number.
+
+\item \li{skiprows}:
+If an integer $n$, skip the first $n$ rows of the file, and then start reading in the data. If a list
+of integers, skip the specified rows.
+
+\item \li{names}:
+If the csv file does not contain the column names, or you wish to use other column names, specify them
+in a list assigned to this argument.
+
+\end{itemize}
+There are several other keyword arguments, but this should be enough to get you started.
+
+When you need to save your data, pandas allows you to write to several different file formats.
+A typical example is the \li{to_csv} function method attached to \li{Series} and \li{DataFrame} objects,
+which writes the data to a csv file.
+Keyword arguments allow you to specify the separator character, omit writing the columns names or index,
+and other options. The code below demonstrates its typical usage:
+\begin{lstlisting}
+>>> df.to_csv("my_df.csv")
+\end{lstlisting}
+
 \section*{Viewing and Accessing Data}
 
 Once we have our data ready to go in pandas, how can we interact with it?
@@ -680,49 +722,32 @@ Other functions, such as \li{sum()} and \li{mean()} treat NaN as zero by default
 When dealing with missing data, make sure you are aware of the behavior of the pandas
 functions you are using.
 
-\section*{Data I/O}
-
-Before we can use \li{pandas} for anything, we need to have some data, and when we're done using the data, we need to store it in a convenient place and format. In other words, we need to do data input/output, or I/O. The process of input is called \textit{reading}, and the process of output is called \textit{writing}. Reading usually takes data from another file, such as a CSV file, and turns it into a \li{python} data type. Writing then creates or updates another file with the most recent configuration of the data.\\
-\indent The \li{pandas} package supports reading many different file types, using functions such as \li{pd.read_csv(),pd.read_stata(), pd.read_excel()}, etc. The output is a DataFrame object, although there is an option, \li{squeeze}, to make the output a Series object. For instance, to read a \li{.csv} file, one could use the following code:
-\begin{lstlisting}
-pd.read_csv('FakeData.csv', index_col=0)
-\end{lstlisting}
-Here, the first argument gives the file name, and the second specifies that the first column be used to index the table. If the second argument is left off, python will generate its own index column. Here's the output:
-
-\begin{lstlisting}
-           date  time  room instructor
-Psych  20120101  1200    12    Carlson
-Math   20120102   100    14      Smith
-Bio    20120378   400    17   Hamilton
-
-[3 rows x 4 columns]
-\end{lstlisting}
-
-Compare this with the output we get without \li{pandas}
-\begin{lstlisting}
->>> print(open('C:\...\FakeData.csv').read())
-,date,time,room,instructor
-Psych,20120101,1200,12,Carlson
-Math,20120102,100,14,Smith
-Bio,20120378,400,17,Hamilton
-\end{lstlisting}
-
-Not nearly as structured or easy to interpret!
-
-Many real-world data sets contain imperfections that you will need to ``clean,'' and some of these issues will need to be cleared up at the time that the data is read in. For instance, while \li{pandas} has some ability to read in data sets with missing values, it will generally need your help (possibly in the form of the \li{error_bad_lines} option) to handle a line of data with extra values. Because there are so many possible problems with reading in real data, the reader is encouraged to look through the documentation when specific issues arise.\\
-\indent Writing tends to be much less messy since the data is already going to be in a format suitable for computations. The only details that typically come up are in specifying what formatting should be put on the output file. There are many options attached to the write commands, such as whether to include headers, and which options are specified depends on the future use that the data will have. Most of the time, a write command will just look like this:
-\begin{lstlisting}
-mydatatable.to_csv('FakeData1.csv')
-\end{lstlisting}
 
 \begin{problem}
-Download the dataset at \url{http://research.stlouisfed.org/fred2/series/ACILACB#}, which is some loan data put together by the St. Louis Fed. It will be an Excel file. Use the command \li{pd.read_excel} to read in the file. Notice that this command takes two arguments, the path to the file and the name of the sheet to be read. Look at the resulting DataFrame. It probably won't look very good due to the presence of extra information in the file. One easy way to fix this is just to open the Excel file, manually remove the extra material, and read the file again. Do this, and look at the results. The DataFrame should look much neater now. Use the \li{describe} command to get the mean of the data.\\
+Using the dataset contained in the file \li{crime_data.txt} and the techniques learned in this lab, 
+use pandas to complete the following.
+\begin{itemize}
+\item Load the data into a pandas \li{DataFrame}, using the column names in the file and the column titled
+``Year" as the index. Make sure to skip lines that don't contain data.
 
-Now, the data presented here is quarterly. Reduce the data by removing all except for the January data. Write this to a file, ``fradgraph2.xls,'' and turn the file in, along with the mean calculated, as above.
+\item Insert a new column into the data frame that contains the crime rate by year (the ratio of ``Total" column
+to the ``Population" column).
+
+\item Plot the crime rate as a function of the year.
+
+\item List the 5 years with the highest crime rate in descending order.
+
+\item Calculate the average number of total crimes as well as burglary crimes between 1960 and 2012.
+
+\item Find the years for which the total number of crimes was below average, but the number of burglaries
+was above average.
+
+\item Plot the number of murders as a function of the population.
+
+\item Select the Population, Violent, and Robbery columns for all years in the `80s, and save
+this smaller data frame to a csv file \li{crime_subset.txt}.
+\end{itemize}
 \end{problem}
-
-
-
 
 
 
