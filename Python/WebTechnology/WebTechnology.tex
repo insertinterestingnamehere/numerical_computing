@@ -18,13 +18,12 @@ What if we wanted to store more complex objects?
 The process of serialization seeks to address this situation.
 Serialization is the process of storing an object and its properties in a form that can be saved or transmitted and later reconstructed back into an identical copy of the original object.
 
-
 \subsection*{JSON}
 JSON, pronounced ``Jason'', stands for \emph{JavaScript Object Notation}.
 It is easy for both humans and machines to read and write the format.
 Despite its name, it is a completely language independent format.
-JSON is built on top of two types of datastructures: a collection of key/value pairs and an ordered list of values.
-These datastructures are more familiarly called dictionaries and lists in Python.
+JSON is built on top of two types of data structures: a collection of key/value pairs and an ordered list of values.
+These data structures are more familiarly called dictionaries and lists in Python.
 Python's standard library has a module that can read and write JSON.
 Most JSON libraries, though, have a fairly standard interface.
 If performance is critical, there are Python modules for JSON that are written in C such as ujson and simplejson.
@@ -70,12 +69,23 @@ A tag is a special command enclosed in angled brackets (<>) that describe someth
 For example, we can represent our car from above in the XML below.
 \begin{lstlisting}[language=XML]
 <car>
-	<make>Ford</make>
-	<model>Focus</model>
-	<year>2010</year>
-	<color model='rgb'>255,30,30</color>
+    <make>Ford</make>
+    <model>Focus</model>
+    <year>2010</year>
+    <color model='rgb'>255,30,30</color>
 </car>
 \end{lstlisting}
+There are two strategies for reading XML data.
+We can read the data as a tree or as a stream.
+Since XML is a hierarchical storage format, it is very easy to build a tree of the data.
+The advantage is random access to any part of the document at any time.
+However, all of the XML must be loaded into memory to build this tree.
+Large XML files will consume huge amounts of memory if read as a tree.
+
+To alleviate the burden of loading an entire XML document into memory all at once, we can read the file sequentially.
+When streaming the XML data, we are only reading a small chunk of the file at a time.
+There is no limit to size of XML document that we can process this way as memory usage will be constant.
+However, we sacrifice the random access that the tree gives us.
 
 \subsection*{DOM}
 The DOM (Document Object Model) API allows you to work with an XML document as a tree.
@@ -118,13 +128,61 @@ This will create the tag tree that DOM creates.
 We will demonstrate ElementTree using the following XML.
 \lstinputlisting[style=FromFile,language=XML]{contacts.xml}
 
-First we will look at ElementTree's \li{iterparse()} method.
+First, we will look at viewing an XML document as a tree similar to the DOM model described above.
 \begin{lstlisting}
 import xml.etree.ElementTree as et
 
-x = et.iterparse('contacts.xml') # this is an iterator)
-for event, tag in x:
+f = et.parse('contacts.xml')
+
+# manually traversing the tree
+# we iterate through the element directly
+# getchildren() is old and deprecated (not supported).
+root = f.getroot()
+children = list(root) # root has three children
+person0 = children[0]
+fields = list(person0) # the children elements of person0
+
+# we can search the entire tree for specific elements
+# searching for all tags equal to firstname
+for n in root.iter('firstname'):
+    print n.text
     
+# we can also filter with multiple tags 
+# notice we use a set lookup in the conditional inside the generator expression
+fields = {'firstname', 'lastname', 'phone'}
+fi = (x for x in root.iter() if x.tag in fields)
+for n in fi:
+    print n.text
+    
+# we can even modify the document tree inplace
+# let's remove Thor
+# refer to the documentation of ElementTree for adding elements
+for n in root.findall("person"):
+    if n.find("firstname").text == 'Thor':
+        root.remove(n)
+
+# verify that Thor is really gone
+for n in root.iter('firstname'):
+    print n.text
+\end{lstlisting}
+
+Next, we will look at ElementTree's \li{iterparse()} method.
+This method is very similar to the SAX method for parsing XML.
+There is one important difference.
+ElementTree will still build the document tree in the background as it is parsing.
+We can prevent this by clearing each element by calling its \li{clear()} method when are finished processing it.
+\begin{lstlisting}
+f = et.iterparse('contacts.xml') # this is an iterator
+for event, tag in f:
+    print "{}: {}".format(tag.tag, tag.text)
+    tag.clear()
+    
+# we can get both start and end events
+# however, start events are mostly useful for looking at attributes
+# or to trigger some other action on element starts.
+# The element is not guarenteed to be complete until the end event.
+for event, tag in et.iterparse('contacts.xml', events=('start', 'end')):
+    print "{} {}<{}>: {}".format(event, tag.tag, tag.attrib, tag.text)
 \end{lstlisting}
 
 
