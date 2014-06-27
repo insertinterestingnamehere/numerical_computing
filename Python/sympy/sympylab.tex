@@ -11,7 +11,7 @@ It is actually used for much of the symbolic computation in Sage.
 An example of what we mean by "symbolic computation" is the following:
 \begin{lstlisting}
 import sympy as sy
-x = sy.symbols(`x')
+x = sy.symbols('x')
 sy.expand((x+1)**10)
 \end{lstlisting}
 which will return the following:
@@ -20,7 +20,7 @@ x**10 + 10*x**9 + 45*x**8 + 120*x**7 + 210*x**6 + 252*x**5 + 210*x**4 + 120*x**3
 \end{lstlisting}
 When used properly, this package can simplify large amounts of algebra for you.
 This can be incredibly useful in a wide variety of situations.
-As you may have guessed, such packages generally have a wide variety of features. 
+As you may have guessed, such packages generally have a wide variety of features.
 If you want to know how to do something, consider checking the documentation  at the SymPy website (\url{http://sympy.org/en/index.html}).
 This lab should teach you to do some basic symbolic manipulations in SymPy, but keep in mind that this introduction is not comprehensive.
 
@@ -29,7 +29,7 @@ This lab should teach you to do some basic symbolic manipulations in SymPy, but 
 Sympy includes a simplified plotting wrapper around Matplotlib.
 A simple example is:
 \begin{lstlisting}
-x = sy.symbols(`x')
+x = sy.symbols('x')
 expr = sy.sin(x)*sy.exp(x)
 sy.plot(expr, (x, -3, 3))
 \end{lstlisting}
@@ -86,7 +86,7 @@ This function works by evaluating the Taylor Series for $6\arcsin\left(\frac{1}{
 We used a rather crude error estimate to ensure that we were close enough to break the loop.
 
 \begin{problem}
-Write a function which evaluates $e$ to the $n$th digit.
+Write a function \li{myexp} that takes an integer $n$ as a parameter and evaluates $e$ to the $n$th digit, using an approach similar to the code given above.
 Use the series 
 \begin{equation*}
 e=\sum_{n=0}^{\infty} \frac{1}{n!}
@@ -96,8 +96,8 @@ Use the same condition as above to determine when to break your while loop.
 
 \section*{Symbolic Manipulation}
 In SymPy, you need to declare symbolic objects before you use them.
-To define a symbol $x$, we write \li{x = sy.symbols(`x')}.
-This can also be used to define multiple variables at once, as in \li{x, y, z = sy.symbols(`x,y,z')}.
+To define a symbol $x$, we write \li{x = sy.symbols('x')}.
+This can also be used to define multiple variables at once, as in \li{x, y, z = sy.symbols('x,y,z')}.
 The string form of each variable on the right is used for showing expressions that involve the variable.
 You will need to be careful about capitalization and that last `s' in the name of the function.
 Calling \li{sy.Symbol()} will allow you to create a single symbolic variable, but \li{sy.symbol} is a submodule and cannot be called at all.
@@ -112,7 +112,7 @@ Say we need an explicit solution for a given variable.
 Since the expression is symmetrical, it doesn't really matter which one, but we can solve this in the following way:
 \begin{lstlisting}
 import sympy as sy
-w, x, y, z = sy.symbols(`w, x, y, z')
+w, x, y, z = sy.symbols('w, x, y, z')
 expr = w/(w-x) + x/(x-y) + y/(y-z) + z/(z-w)
 sy.solve(expr, w)
 \end{lstlisting}
@@ -129,6 +129,7 @@ If you need to declare equations, they can be declared using something like \li{
 
 \begin{problem}
 Use SymPy to solve the equation $y=e^x+x$ for $x$.
+The SymPy syntax for $e^x$ is simpy \li{sy.exp(x)}, provided that $x$ has been initialized as a symbol.
 The answer will be in terms of the Lambert W function, which is a special function available in most major symbolic math libraries.
 It is included in both SciPy and SymPy and is defined as the inverse of $y=x e^x$.
 \end{problem}
@@ -190,12 +191,12 @@ This property is called stability and will be discussed later in Volume 4.
 Here we will just walk you through the symbolic manipulations necessary to show that a scheme is stable.
 Consider the Crank-Nicolson finite difference scheme for the partial differential equation $u_t+a u_x=0$.
 \begin{equation*}
-\frac{v_{m}^{n+1}-v_{m}^{n}}{k}+a \frac{v_{m+1}^{n+1}-v_{m-1}^{n+1}+v_{m+1}^{n}-v_{m-1}^{n}}{4h}=0
+\frac{v_{m}^{n+1}-v_{m}^{n}}{k}+a\frac{v_{m+1}^{n+1}-v_{m-1}^{n+1}+v_{m+1}^{n}-v_{m-1}^{n}}{4h}=0
 \end{equation*}
 Due to an important result by Von Neumann, we know that this scheme will be stable if and only if when we make the following substitutions, the absolute value of the amplification factor $g$ is always less than or equal to 1.
 Prove that this scheme is stable in the following way:
 \begin{itemize}
-\item Substitute $g^a e^{i b \theta}$ for $v_a^b$.
+\item Substitute $g^b e^{i c \theta}$ for $v_c^b$.
 Note that when you have solved the expression for $g$, $g$ will be a function of $\theta$.
 You are free to assume that $\theta$, $h$, and $k$ are real.
 You can tell SymPy that these variables are real by including the argument \li{real=True} in the \li{symbols} function when you declare them.
@@ -219,7 +220,7 @@ For example, the following equation takes the 20'th partial derivative with resp
 \prod_{i=1}^{23} \left(x+i y\right)
 \end{equation*}
 \begin{lstlisting}
-x, y, i = sy.symbols(`x, y, i')
+x, y, i = sy.symbols('x, y, i')
 expr = sy.product((x+i*y), (i, 1, 23))
 expr = expr.expand()
 expr.diff(x, 20)
@@ -281,7 +282,7 @@ If for some reason you wanted to evaluate the expression to more digits of preci
 \begin{problem}
 Use SymPy to symbolically evaluate 
 \begin{equation*}
-\int_0^\infty \sin^2 \left(x\right) dx
+\int_0^\infty \sin\left(x^2\right) dx
 \end{equation*}
 In SymPy, positive infinity is represented by the object \li{sy.oo}
 \end{problem}
@@ -293,17 +294,17 @@ Use SymPy to numerically estimate $\frac{\partial}{\partial x}e^{\sin\left(\cos\
 You can also use SymPy to solve some sorts of basic ordinary differential equations.
 This will solve the equation $y_{xx}-2*y_x+y=\sin\left(x\right)$
 \begin{lstlisting}
-x = sy.symbols(`x')
-f = sy.Function(`f')
-eq = f(x).diff(x, 2) - 2*f(x).diff(x) + f(x) - sy.sin(x)
+x = sy.symbols('x')
+f = sy.Function('f')
+eq = sy.Eq(f(x).diff(x, 2) - 2*f(x).diff(x) + f(x), sy.sin(x))
 sy.dsolve(eq)
 \end{lstlisting}
 or, equivalently,
 \begin{lstlisting}
-x = sy.symbols(`x')
-f = sy.Function(`f')
-eq = f(x).diff(x, 2) - 2*f(x).diff(x) + f(x) - sy.sin(x)
-sy.dsolve(eq)
+x = sy.symbols('x')
+f = sy.Function('f')
+expr = f(x).diff(x, 2) - 2*f(x).diff(x) + f(x) - sy.sin(x)
+sy.dsolve(expr)
 \end{lstlisting}
 \begin{problem}
 Use SymPy to solve the following differential equation:
@@ -332,9 +333,9 @@ We can take an expression in $x$ and $y$ and make a corresponding python functio
 import sympy as sy
 from sympy.utilities.lambdify import lambdify
 import numpy as np
-x, y = sy.symbols(`x, y')
+x, y = sy.symbols('x, y')
 expr = sy.sin(x) * sy.exp(x) - sy.cosh(x)
-fc = lambdify([x, y], expr, `numpy')
+fc = lambdify([x, y], expr, 'numpy')
 \end{lstlisting}
 This interoperability allows us to move quickly between symbolic calculations in SymPy and faster numerical evaluation on arrays in NumPy.
 

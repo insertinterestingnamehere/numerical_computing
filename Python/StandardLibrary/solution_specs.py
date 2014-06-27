@@ -21,23 +21,6 @@ def problem_2(list1, list2):
 
 # Problem 3
 
-def timefunction(f, args=(), kwargs={}, rep_num=3, loop_num=100):
-    pfunc = lambda: f(*args, **kwargs)
-    # Arguments:
-    '''
-        f = function name
-        args = tuple of positional arguments
-        kwargs = dictionary of keyword arguments
-        rep_num = number of repeats
-        loop_num = number of loops
-    '''
-
-    # Time the callable function.
-    # Return the minimum runtime for one call of the function.
-    pass
-
-# Problem 4
-
 # Initialize deque D, with 10000 elements.
 # Initialize list L, with 10000 elements.
 
@@ -49,15 +32,15 @@ def rotate_list(L):
 # Print timing for deque object's rotate method.
 # Print timing for rotate_list.
 
-# Problem 5
+# Problem 4
 
-def problem_5(maxInt, n):
+def problem_4(maxInt, n):
 	# Make an n-length list with random integers from 0 to maxInt.
 	# Return a dictionary after counting the integer frequency in the list.
 	pass
 
 
-# Problem 6
+# Problem 5
 
 # Make a named tuple to define a tribute.
 
