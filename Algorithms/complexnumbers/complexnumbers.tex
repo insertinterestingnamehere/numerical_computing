@@ -3,6 +3,7 @@
 
 \objective{Learn to perform basic computation and visualization with complex numbers.}
 
+\begin{comment}
 \section*{Arithmetic with complex numbers}
 Computationally, complex numbers are really just a pair of floating point numbers.
 The first is understood to represent the real part of the complex number.
@@ -45,6 +46,7 @@ For example, if \li{A} is a complex number or complex array, its conjugate (or e
 \begin{lstlisting}
 A.conjugate()
 \end{lstlisting}
+\end{comment}
 
 \section*{Polar Representation of Complex Numbers}
 
@@ -67,45 +69,82 @@ In the complex plane we define $|z|$ as the modulus of $z$ and $arg(z)$ as the a
 To get the argument and the modulus for an array of complex numbers you can use the functions \li{np.angle} and \li{np.absolute} respectively.
 
 \section*{Visualization of Complex Functions}
-Functions that map the complex plane to itself cannot be vizualized the same ways we usually visualize functions that map $\mathbb{R}$ to itself.
+Functions that map the complex plane to itself cannot be visualized  the same ways we usually visualize functions that map $\mathbb{R}$ to itself.
 Since $\mathbb{C}$ is isomorphic to $\mathbb{R}^2$, visualizing a mapping from the complex numbers to themselves is the same as vizualizing a mapping from $\mathbb{R}^2 \to \mathbb{R}^2$.
-This gives a hint at how we can go about vizializing complex valued functions.
+This gives a hint at how we can go about visualizing complex valued functions.
 A complex valued plot can be thought of as two separate maps from $\mathbb{R}^2 \to \mathbb{R}$.
-Each of these maps can be vizualized using either a colorplot, or a 3D surface.
-Figure \ref{fig:poly_color_plot} shows color plots for the real and imaginary parts of $x^2 - 1$.
-Figure \ref{fig:poly_surface_plot} shows surface plots for the real and imaginary parts of the same polynomial.
+The $arg(z)$ maps the function to a color.  The $|z|$ maps the number to the hue. The picture is what the identity map maps to Figure \ref{fig:identity} 
 
 \begin{figure}
-\begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{poly_color_plot_real}
-\end{subfigure}
-\begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{poly_color_plot_imag}
-\end{subfigure}
-\caption{Color plots of the real and imaginary parts of $x^2 - 1$.}
-\label{fig:poly_color_plot}
+\includegraphics[width=\textwidth]{Identity.png}
+\caption{Color plot of the identity map.}
+\label{fig:identity}
 \end{figure}
 
+The colorize function below takes in an array of complex values and outputs the RBG colors for each point.
+
+The \li{plot_complex} function takes in a function $p$ and bounds and plots it using \li{imshow}.
+Figure \ref{fig:funcplot} shows colorplots for $x^2 - 1$ and $x^4-\frac{1}{x^4}$ made using this function.
+
+\begin{lstlisting}
+import numpy as np
+import matplotlib.pyplot as plt
+from colorsys import hls_to_rgb
+
+def colorize(z):
+    zy=np.flipud(z)
+    r = np.abs(zy)
+    arg = np.angle(zy)
+
+    h = (arg + np.pi)  / (2 * np.pi) + 0.5
+    l = 1.0 - 1.0/(1.0 + r**0.3)
+    s = 0.8
+
+    c = np.vectorize(hls_to_rgb) (h,l,s) # --> tuple
+    c = np.array(c)  # -->  array of (3,n,m) shape, but need (n,m,3)
+    c = c.swapaxes(0,2)
+    c = c.swapaxes(0,1)
+    return c
+
+def plot_complex(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401):
+    x = np.linspace(xbounds[0],xbounds[1], res)
+    y = np.linspace(ybounds[0],ybounds[1], res)
+    X,Y = np.meshgrid(x,y)
+    Z=p(X+Y*1j)
+    Zc=colorize(Z)
+    plt.imshow(Zc,extent=(xbounds[0],xbounds[1],ybounds[0],ybounds[1]))
+    plt.show()
+\end{lstlisting}
+
+
 \begin{figure}
 \begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{poly_surface_plot_real}
+\includegraphics[width=\textwidth]{function.png}
 \end{subfigure}
 \begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{poly_surface_plot_imag}
+\includegraphics[width=\textwidth]{function2.png}
 \end{subfigure}
-\caption{Surface plots of the real and imaginary parts of $x^2 - 1$.}
-\label{fig:poly_surface_plot}
+\caption{Colorplot of the  function $x^2 - 1$ and $x^4-\frac{1}{x^4}$.}
+\label{fig:funcplot}
+\end{figure}
+
+From these plots you can see the poles and zeros. The zeros are the black dots and the poles are the white dots on the plots. the order of the pole or zero can be read from the number of times the full set of colors show up around the pole or zero. As you can see from Figure \ref{fig:funcplot} $x^4-\frac{1}{x^4}$ has eight zeros of order one and a pole of order four. 
+For essential singularities the colors circle outward like in \ref{fig:e}, the plot of $e^\frac{1}{z}$.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{function1.png}
+\caption{Color plot of the $e^\frac{1}{z}$.}
+\label{fig:e}
 \end{figure}
 
 \begin{problem}
-Write three functions that graph the real part, the imaginary part, and both parts together of a given function.
-Have each of them accept a callable funciton \li{f} and tuples \li{xlims} and \li{ylims} containing maximum and minimum values for the $x$ and $y$ axes.
-Have the first function plot the real part of the complex valued function \li{f} on the region specified by \li{xlims} and \li{ylims} as surfaces in the 3D plane.
-Have the second function plot the imaginary part.
-Have the third function plot the real and imaginary part in on the same axis.
-
-Use the third function you just wrote to plot both the real and imaginary parts of the polynomial $x^4 + 1$ on the domain $\left[-1, 1\right] \times \left[-1, 1\right]$.
-Notice where the fourth roots of $-1$ lie on the plot, which roots you can obtain by calling \li{np.roots(np.poly1d([1,0,0,0,1]))}.
+Copy the \li{plot_complex} function from above. We will be using it a lot in this lab.
+\begin{itemize}
+\item Plot $e^z$ from $x \in [-8,8]$ and $y \in [-8,8]$, \item $z^2-2z^7+2z^6-4z^5+2z^4-2z^3-5z^2+4z-4$ from $x \in [-2.5,2.5]$ and $y \in [-2.5,2.5]$ 
+\item Plot $\frac{16z^4+32z^3+32z^2+16z+4}{16z^4-16z^3+5z^2}$ from $x \in [-1,1]$ and $y \in [-1,1]$,
+\item Plot $\sin{\frac{1}{z}}$ from $x \in [-.8,.8]$ and $y \in [-.8,.8]$,
+\end{itemize}
+Look at the plots. Write a function that prints out an estimate of the roots and/or poles and their order.
 \end{problem}
 
 \section*{Multi-Valued Functions}
@@ -119,46 +158,32 @@ We can do a similar thing in the Complex plane.
 Loosely speaking, such a restriction is called a branch.
 Computationally we restrict the output to a single portion of the actual possible values of the multifunction.
 We call inverse functions that have multiple values like this ``multi-valued functions" or ``multifuctions."
-We can still visualize the ``Riemann surfaces" of such multi-valued functions in the complex plane.
-Figure \ref{fig:sqrt_riemann_surface} shows the Riemann surfaces for $\sqrt{z}$ in the complex plane.
-Riemann surfaces are simple examples of manifolds.
+Numpy automatically restricts the output of multi-valued functions. So to get other cuts you have to modify the function to get the cut you want, like multiplying the output of the $\sqrt{x}$ by $-1$.
+Figure \ref{fig:sqrt} shows the two cuts surfaces for $\sqrt{z}$ in the complex plane.
 
 \begin{figure}
 \begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{sqrt_riemann_surface_1}
+\includegraphics[width=\textwidth]{possqrt.png}
 \end{subfigure}
 \begin{subfigure}{.49\textwidth}
-\includegraphics[width=\textwidth]{sqrt_riemann_surface_2}
+\includegraphics[width=\textwidth]{negsqrt.png}
 \end{subfigure}
-\caption{The real and imaginary parts of the function $\sqrt{z}$.}
-\label{fig:sqrt_riemann_surface}
+\caption{The positive and negative cut respectiviely of the function $\sqrt{z}$.}
+\label{fig:sqrt}
 \end{figure}
 
 These are some very basic examples.
-Riemann surfaces can be very complex.
 Another simple example is $\ln\left(z\right)$ which has a single value for the real part and infinitely many possible values for its imaginary part.
-The Riemann surface for the imaginary part of $\ln\left(z\right)$ is shown in Figure \ref{fig:log_riemann_surface}.
-Note that Figure \ref{fig:log_riemann_surface} is only a portion of the Riemann surface of the imaginary part of $\ln\left(z\right)$.
-The full surface is, in actuality, an infinite spiral that repeats every $2\pi$.
 This is because for any complex $z\neq 0$, we have $e^z=e^{z+2n\pi}$ where $n$ is any integer.
 
-\begin{figure}
-\includegraphics[width=\textwidth]{log_riemann_surface}
-\caption{Riemann surface plot of a portion of the imaginary part of $\ln\left(z\right)$}
-\label{fig:log_riemann_surface}
-\end{figure}
+\begin{problem}
+Plot three cuts of $\ln\left(z\right)$ and$\arctan{x}$ on $x \in [-2,2]$ and $y \in [-2,2]$
+\end{problem}
 
-Figure \ref{fig:arctan_riemann_surface} shows the real part of the riemann surface of $\arctan\left(z\right)$
-All three of the functions we have plotted can be made analytic at almost any point, except at their singularities, but that depends on how we cut the domain to give it a single value.
+All three of these functions can be made analytic at almost any point, except at their singularities, but that depends on how we cut the domain to give it a single value.
 When Integrating such functions, be careful about integrating across such cuts in the domain.
 
-\begin{figure}
-\includegraphics[width=\textwidth]{arctan_riemann_surface}
-\caption{Even the Riemann surface of $\arctan(z)$ becomes increasingly complex.
-This is a graph of a portion of the Riemann surface for the real part of $\arctan(z)$.}
-\label{fig:arctan_riemann_surface}
-\end{figure}
-
+\begin{comment}
 \begin{problem}
 Write two functions, both accepting accept a natural number $n$.
 Have one function plot the riemann surface for the real part $f(z)=\sqrt[n]{z}$ and the other plot the imaginary part.
@@ -170,6 +195,7 @@ Notice that here $f(z)$ has distinct values for $k = 0, 1, \dots, n-1$ a total o
 
 If you use just one surface to plot each branch you will get erroneous vertical lines from jump discontinuities. Split each branch into two surfaces to get rid of these lines. You can investigate where the discontinuities occur by first plotting it as just one surface. The discontinuities happen at the same place for all $n$;
 \end{problem}
+\end{comment}
 
 \section*{Contour Integrals in the Complex Plane}
 
