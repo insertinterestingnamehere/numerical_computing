@@ -1,9 +1,14 @@
 from __future__ import division
+import matplotlib
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+
+
 import numpy as np
 from solution import general_secondorder_ode_fd, poisson_square
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
+import matplotlib.colors as mcolors
 from scipy.sparse import spdiags
 from scipy.sparse.linalg import spsolve
 
@@ -176,11 +181,180 @@ def ExercisePoisson():
 	return 
 
 
+def plotRhos():
+	#definitions for atoms position and charges
+	#the angle the hydrogen atoms make
+	theta = 106.0/180.0*np.pi
+	#Length of the two branches
+	A = 1.0
+	# Hydrogen 1 (x0,y0,q)
+	# Hydrogen 2 
+	# Oxygen
+	water = ((-np.sin(theta/2)*A	, 0				, 1),
+		    ( np.sin(theta/2)*A	, 0				 	, 1),
+		    ( 0					, -np.cos(theta/2)*A,-2))
+
+	def rho1(x,y,atom):
+		return atom[2]*np.exp(-np.sqrt((x-atom[0])**2 + (y-atom[1])**2))
+
+	def rhoSum(x,y,atoms):
+		return np.sum([rho1(x,y,atom) for atom in atoms],axis=0)
+
+	#Generate a color dictionary for use with LinearSegmentedColormap
+	#that places red and blue at the min and max values of data
+	#and white when data is zero
+	def genDict(data):
+		zero = 1/(1 - np.max(data)/np.min(data))
+		cdict = {'red':   [(0.0,  1.0, 1.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  0.0, 0.0)],
+		     'green': [(0.0,  0.0, 0.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  0.0, 0.0)],
+		     'blue':  [(0.0,  0.0, 0.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  1.0, 1.0)]}
+		return cdict
+	m = 500
+	X = np.linspace(-5,5,m)
+	X,Y = np.meshgrid(X,X)
+	#Generate the grid of rho values
+	Rho = rhoSum(X,Y,water)
+	plt.imshow(Rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(Rho)))
+	plt.colorbar(label="Relative Charge Density")
+	plt.savefig("./waterRho.png")
+	plt.clf()
 
 
+	co2 = ((-1,0,-2),
+        (1,0,-2),
+        (0,0,4))
+	Rho = rhoSum(X,Y,co2)
+	plt.imshow(Rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(Rho)))
+	plt.colorbar(label="Relative Charge Density")
+	plt.savefig("./co2Rho.png")
+	plt.clf()
+	
+def plotVs():
+
+	#definitions for atoms position and charges
+	#the angle the hydrogen atoms make
+	theta = 106.0/180.0*np.pi
+	#Length of the two branches
+	A = 1.0
+	# Hydrogen 1 (x0,y0,q)
+	# Hydrogen 2 
+	# Oxygen
+	water = ((-np.sin(theta/2)*A,0,1),
+        (np.sin(theta/2)*A,0,1),
+        (0,-np.cos(theta/2)*A,-2))
+
+	def rho1(x,y,atom):
+		return atom[2]*np.exp(-np.sqrt((x-atom[0])**2 + (y-atom[1])**2))
+
+	def rhoSum(x,y,atoms):
+		return np.sum([rho1(x,y,atom) for atom in atoms],axis=0)
+	
+	
+	def poisson_square(a1,b1,c1,d1,n,bcs, source): 
+		#n = number of subintervals
+		# We discretize in the x dimension by a1 = x_0 < x_1< ... < x_n=b1, and 
+		# we discretize in the y dimension by c1 = y_0 < y_1< ... < y_n=d1. 
+		# This means that we have interior points {x_1, ..., x_{n-1}}\times {y_1, ..., y_{n-1}}
+		# or {x_1, ..., x_m}\times {y_1, ..., y_m} where m = n-1. 
+		# In Python, this is indexed as {x_0, ..., x_{m-1}}\times {y_0, ..., y_{m-1}}
+		# We will have m**2 pairs of interior points, and m**2 corresponding equations.
+		# We will organize these equations by their y coordinates: all equations centered 
+		# at (x_i, y_0) will be listed first, then (x_i, y_1), and so on till (x_i, y_{m-1})
+		delta_x, delta_y, h, m = (b1-a1)/n, (d1-c1)/n, (b1-a1)/n, n-1
+	
+		####    Here we construct the matrix A    ####
+		##############################     Slow            #################################
+		#     D, diags = np.ones((1,m**2)), np.array([-m,m])
+		#     data = np.concatenate((D, D),axis=0) 
+		#     A = h**(-2)*spdiags(data,diags,m**2,m**2).asformat('lil')
+		#     D = np.ones((1,m))
+		#     diags, data = np.array([0,-1,1]), np.concatenate((-4.*D,D,D),axis=0)
+		#     temp = h**(-2)*spdiags(data,diags,m,m).asformat('lil')
+		#     for i in xrange(m): A[i*m:(i+1)*m,i*m:(i+1)*m] = temp
+	
+		##############################     Much Faster      ################################
+		D1,D2,D3 = -4*np.ones((1,m**2)), np.ones((1,m**2)), np.ones((1,m**2)) 
+		Dm1, Dm2 = np.ones((1,m**2)), np.ones((1,m**2))
+		for j in range(0,D2.shape[1]):
+			if (j%m)==m-1: D2[0,j]=0
+			if (j%m)==0: D3[0,j]=0
+		diags = np.array([0,-1,1,-m,m])
+		data = np.concatenate((D1,D2,D3,Dm1,Dm2),axis=0) # This stacks up rows
+		A = 1./h**2.*spdiags(data, diags, m**2,m**2).asformat('csr') # This appears to work correctly
+	
+		####    Here we construct the vector b    ####
+		b, Array = np.zeros(m**2), np.linspace(0.,1.,m+2)[1:-1]
+		# In the next line, source represents the inhomogenous part of Poisson's equation
+		for j in xrange(m): b[j*m:(j+1)*m] = source(a1+(b1-a1)*Array, c1+(j+1)*h*np.ones(m) )
+	
+		# In the next four lines, bcs represents the Dirichlet conditions on the boundary
+	#     y = c1+h, d1-h
+		b[0:m] = b[0:m] - h**(-2.)*bcs(a1+(b1-a1)*Array,c1*np.ones(m))
+		b[(m-1)*m : m**2] = b[(m-1)*m : m**2] - h**(-2.)*bcs(a1+(b1-a1)*Array,d1*np.ones(m))
+	#     x = a1+h, b1-h
+		b[0::m] = b[0::m] - h**(-2.)*bcs(a1*np.ones(m),c1+(d1-c1)*Array) 
+		b[(m-1)::m] = b[(m-1)::m] - h**(-2.)*bcs(b1*np.ones(m),c1+(d1-c1)*Array)
+	
+		####    Here we solve the system A*soln = b    ####
+		soln = spsolve(A,b) # Using the conjugate gradient method: (soln, info) = cg(A,b)
+	
+		z = np.zeros((m+2,m+2) ) 
+		for j in xrange(m): z[1:-1,j+1] = soln[j*m:(j+1)*m]
+	
+		x, y = np.linspace(a1,b1,m+2), np.linspace(c1,d1,m+2)
+		z[:,0], z[:,m+1]  = bcs(x,c1*np.ones(len(x)) ), bcs(x,d1*np.ones(len(x)) )
+		z[0,:], z[m+1,:] = bcs(a1*np.ones(len(x)),y), bcs(b1*np.ones(len(x)),y)
+		return z
+
+	#Generate a color dictionary for use with LinearSegmentedColormap
+	#that places red and blue at the min and max values of data
+	#and white when data is zero
+	def genDict(data):
+		zero = 1/(1 - np.max(data)/np.min(data))
+		cdict = {'red':   [(0.0,  1.0, 1.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  0.0, 0.0)],
+		     'green': [(0.0,  0.0, 0.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  0.0, 0.0)],
+		     'blue':  [(0.0,  0.0, 0.0),
+		               (zero,  1.0, 1.0),
+		               (1.0,  1.0, 1.0)]}
+		return cdict
+
+	a1 = -5
+	b1 = 5
+	m = 500
+	X = np.linspace(a1,b1,m)
+	X,Y = np.meshgrid(X,X)
+	#poisson_square seems to mix up x and y
+	Rho = poisson_square(a1,b1,a1,b1,m,lambda x,y:0 , lambda x,y: -rhoSum(y,x,water))
+	cdict = genDict(Rho)
+
+	plt.imshow(Rho,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
+	plt.colorbar(label="Relative Voltage")
+	plt.savefig("./waterV.png")
+	plt.clf()
+
+	co2 = ((-1,0,-2),
+		    (1,0,-2),
+		    (0,0,4))
+	Rho = poisson_square(a1,b1,a1,b1,m,lambda x,y:0 , lambda x,y: -rhoSum(y,x,co2))
+	cdict = genDict(Rho)
+	plt.imshow(Rho,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
+	plt.colorbar(label="Relative Voltage")
+	plt.savefig("./co2V.png")
+	plt.clf()
 
 # example()
-Exercise1()
+#Exercise1()
 # ExercisePoisson()
-
+plotRhos()
+plotVs()
 
