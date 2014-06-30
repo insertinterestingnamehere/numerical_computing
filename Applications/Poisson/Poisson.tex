@@ -293,7 +293,7 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
  We will need to take many time steps, where many equations must be solved with the matrix $(I - \frac{\Delta t}{2}A)$. The function \texttt{factorized} from \texttt{scipy.sparse.linalg} computes the LU decomposition of the matrix. This decomposition reduces the time required for solving consecutive time steps. 
  \end{comment}
 \section{Poisson's Equation and Conservative Forces}
-Poisson's equation arises in many general contexts. In physics Poisson's equation can describe the vector potential field of a consersative force. A conservative force $\bold{F}(\bold{r})$ is a vector function that obeys three equivalent conditions
+In physics Poisson's equation is used to describe the scalar potential of a consersative force (we'll explain what each of these terms mean). A conservative force $\bold{F}(\bold{r})$ is a vector function that obeys three equivalent conditions
 \begin{enumerate}
 	\item The curl is identically zero
 			\[ \nabla \times \bold{F}(\bold{r}) = 0\]
@@ -303,11 +303,13 @@ Poisson's equation arises in many general contexts. In physics Poisson's equatio
 			\[ \oint \bold{F}(\bold{r}) \cdot d\bold{r} = 0 \]
 
 \end{enumerate}
-(Letters in bold are vector quantities)
+\textit{Note: Letters in bold are vector quantities}
 
+The scalar potential defined over the space is a measure of the potential energy a particle would have if placed at that point.
+It could be electric potential energy, gravitational potential energy, or anything else governed by a conservative force.
 
 Whenever we have a conservative force we can use a few identies from vector calculus to obtain Poisson's equation for it's scalar potential. 
-Consider for example the electrostatic force, the force that two electrical charges exert on each other. 
+Consider for example the electrostatic force, the force that two electric charges exert on each other. 
 It can be summarized in two of Maxwell's four equations.
 \[
 \nabla \times \bold{E} = -\frac{\delta \bold{B} } {\delta t} \qquad
@@ -322,19 +324,19 @@ If we insert this into the equation for the divergence of $E$ we find after the 
 \[
 \nabla \cdot ( - \nabla V) = - \Delta V = \frac {\rho}{\epsilon_0}
 \]
-With this we have Poisson's equation for electrostatics $V$. 
+With this we have Poisson's equation for electrostatics. 
 If there are no charges ( or that the divergence of $E$ is zero), then this reduces to Laplace's equation. 
-A similar analysis can be applied using Gauss's Law of Gravity (a reformulation of Newton's law of Gravity) for a description of the gravitational potential field in terms of mass density.
+A similar analysis can be applied using Gauss's law of gravity (a reformulation of Newton's law of gravity in terms of a divergence) for a description of the gravitational scalar potential in terms of mass density.
 
 Unfortunately, because in most physical systems charges are free to roam, this electric potential feeds back into the system and changes the charge distribution. 
-This means that in reality $V$ exists on both sides of the equation.
-In fact it is usually non linear. 
-However, in the following analysis, we'll assume that the charges are fixed in space.
-We'll also ignore all constants and units so that we are really dealing with the relative charge.
+This means that in reality $V$ is present on both sides of the equation.
+In fact it is usually non-linear. 
+However, in the following analysis, we'll assume that the charges are fixed in space, or "frozen in".
+We'll also ignore all constants (specifically $\epsilon_0$) and units so that we are really dealing with the relative charge.
 
-One simple application of the electric potential is to calculate basic properties of simple molecules, starting from a charge distibution and from that calculating the electrostatic potential field.
-We'll assume that the electrons produce a clouds of charge centered around the atoms, appoximated by  the Boltzmann Distribution $q e^(-r)$, where $q$ is the relative charge of the atom and $r$ is the distance from the atom. 
-To make this easier, we'll make a function (\li{rho1}) to calculate the $\rho$ value  at a certian point in space based the position of an atom and it's relative charge. 
+One simple application of the electric potential is to calculate basic properties of simple molecules, starting from a charge distibution and from that calculating the electric potential field.
+We'll assume that the electrons produce a clouds of charge centered around the atoms, appoximated by a Boltzmann Distribution $\rho = q e^(-r)$, where $q$ is the relative charge of the atom and $r$ is the distance from the atom. 
+To make this easier, we'll make a function (\li{rho1}) to calculate the $\rho$ value at a certain point in space based the position of an atom and it's relative charge. 
 We'll make another function (\li{rhoSum}) to give the total charge density at a point based on a list of atoms.
 
 \begin{lstlisting}
@@ -346,9 +348,9 @@ A = 1.0
 # Hydrogen 1 (x0,y0,q)
 # Hydrogen 2 
 # Oxygen
-water = ((-np.sin(theta/2)*A	, 0				, 1),
-        ( np.sin(theta/2)*A	, 0				 	, 1),
-        ( 0					, -np.cos(theta/2)*A,-2))
+water = ((-np.sin(theta/2)*A, 0					, 1),
+         ( np.sin(theta/2)*A, 0				 	, 1),
+         ( 0				, -np.cos(theta/2)*A,-2) )
 
 def rho1(x,y,atom):
     return atom[2]*np.exp(-np.sqrt((x-atom[0])**2 + (y-atom[1])**2))
@@ -361,15 +363,15 @@ def rhoSum(x,y,atoms):
 #and white when data is zero
 def genDict(data):
     zero = 1/(1 - np.max(data)/np.min(data))
-    cdict = {'red':   [(0.0,  1.0, 1.0),
-                   (zero,  1.0, 1.0),
-                   (1.0,  0.0, 0.0)],
-         'green': [(0.0,  0.0, 0.0),
-                   (zero,  1.0, 1.0),
-                   (1.0,  0.0, 0.0)],
-         'blue':  [(0.0,  0.0, 0.0),
-                   (zero,  1.0, 1.0),
-                   (1.0,  1.0, 1.0)]}
+    cdict = {'red':[(0.0,  1.0, 1.0),
+                   	(zero,  1.0, 1.0),
+                   	(1.0,  0.0, 0.0)],
+         'green':  [(0.0,  0.0, 0.0),
+                   	(zero,  1.0, 1.0),
+                   	(1.0,  0.0, 0.0)],
+         'blue':   [(0.0,  0.0, 0.0),
+                   	(zero,  1.0, 1.0),
+                   	(1.0,  1.0, 1.0)]}
     return cdict
 X = np.linspace(-5,5,100)
 X,Y = np.meshgrid(X,X)
@@ -379,7 +381,7 @@ plt.imshow(Rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(Rho)))
 plt.colorbar()
 plt.show()
 \end{lstlisting}
-The function \li{genDict} scales the color values to be white when the charge density is zero. This is mostly to help visualize where there are neutrally charged zones by forcing them to be white. You may find it useful to also apply it when you solve for the electric potential.
+The function \li{genDict} scales the color values to be white when the charge density is zero. This is mostly to help visualize where there are neutrally charged zones by forcing them to be white. You may find it useful to also apply it when you solve for the electric  potential.
 
 \begin{figure}[ht]
 \centering
@@ -388,9 +390,9 @@ The function \li{genDict} scales the color values to be white when the charge de
 \label{figure3}
 \end{figure}
 
-Using a function for $\rho$, we can solve Poisson's equation for the electric potential field.
+With a function for $\rho$, we can solve Poisson's equation for the electric potential field.
 \begin{problem}
-Solve for the electric potential V
+Solve for the electric potential $V$
 \[
 		\Delta V = -\rho(x,y) 
 \]
@@ -399,7 +401,7 @@ We can approximate this using $V=0$ at the boundry conditions on $[-5,5]\times [
 Solve and plot the electric potential of water, using it's definition above, and also for CO$_2$.
 CO$_2$ can be modeled as two atoms of relative charge $-1$ placed at $x=-1$ and $x=1$ and a third atom with relative charge $2$ at the origin. 
 
-If the molecules are moving slowly (ie when the temperature is low) electrostatic forces will dominate molecular interactions. 
+If the molecules are moving slowly (ie. when the temperature is low) electrostatic forces will dominate molecular interactions. 
 Molecules will want to align themselves in the lowest energy configuration, or the lowest electric potential. 
 Positive potentials will overlap themselves with negative potentials. 
 From the electric potential plots you obtain, how do you think the molecules will arrange themselves when the temperature is cold, when they form an ice?
