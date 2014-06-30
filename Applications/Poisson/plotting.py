@@ -1,6 +1,6 @@
 from __future__ import division
 import matplotlib
-matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+# matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 
 import numpy as np
@@ -14,13 +14,20 @@ from scipy.sparse.linalg import spsolve
 
 def example():
 	# First Code block in the lab manual
-	# from __future__ import division
-	# import numpy as np
+	import numpy as np
 	from scipy.sparse import spdiags
 	from scipy.sparse.linalg import spsolve
 	
-	def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
-		h = (b-a)/N 				# The length of each subinterval
+	def bvp(func, a, b, alpha, beta, N):
+		# Solving u'' = f(x), x in [a, b],
+		# u(a) = alpha, u(b) = beta
+		# N = number of subintervals
+		#
+		# We use the finite difference method to construct a system 
+		# of algebraic equations described by the matrix equation 
+		# AU = F
+		
+		h = (b-a)/N 	# The length of each subinterval
 		
 		# Initialize and define the vector F on the right
 		F = np.empty(N-1.)			
@@ -30,49 +37,34 @@ def example():
 			F[j] = func(a + (j+1)*h)
 			
 		# Here we define the arrays that will go on the diagonals of A
-		D0, D1 = -2.*np.ones((1,N-1)), np.ones((1,N-1))  
-		# Next we concatenate the arrays, and specify on which diagonals they will be placed
+		data = np.empty((3,N-1))
+		data[0,:] = -2.*np.ones((1,N-1)) # main diagonal
+		data[1,:], data[2,:] = np.ones((1,N-1)), np.ones((1,N-1))  # off-diagonals
+		# Next we specify on which diagonals they will be placed
 		diags = np.array([0,-1,1])
-		data = np.concatenate((D0,D1,D1),axis=0) 
+		
 		A=h**(-2.)*spdiags(data,diags,N-1,N-1).asformat('csr')
 		
 		# We create and return the numerical approximation
-		U = spsolve(A,F)
-		U = np.concatenate( ( np.array([alpha]), U, np.array([beta]) ) )
+		U = np.empty(N+1)
+		U[1:-1] = spsolve(A,F)
+		U[0], U[-1] = alpha, beta
 		return np.linspace(a,b,N+1), U
 	
 	x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
-	
-	
-	# Second code block in the lab manual
 	import matplotlib.pyplot as plt
-	a, b = 0., 1.
-	num_approx = 10 # Number of Approximations
-	N = np.array([5*2**j for j in range(num_approx)])
-	h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
-	
-	mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
-	for j in range(len(N)-1): 
-	    mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
-	    max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
-	plt.loglog(h,max_error,'.-r',label="$E(h)$")
-	plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
-	plt.xlabel("$h$")
-	plt.legend(loc='best')
-	plt.savefig('example_convergence.pdf')
+	plt.plot(x,y,'-k',linewidth=2.0)
 	plt.show()
-	print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
-	    np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
-	plt.clf()
 	return 
 
 
 def Exercise1():
-	def problem1(epsilon=.4,subintervals=20):
+	def problem1(epsilon, subintervals):
 	    X,Y = general_secondorder_ode_fd(func=lambda x:-1.,a1=lambda x:epsilon,
 	                                    a2=lambda x: -1.,a3=lambda x:0.,
 	                                    a=0.,b=1., alpha=1.,beta=3.,N=subintervals)
 	    return X,Y
+	
 	
 	def AnalyticSolution(x,alpha, beta,epsilon):
 	    out = alpha+x+(beta-alpha-1.)*(np.exp(x/epsilon) -1.)/(np.exp(1./epsilon) -1.)   
@@ -193,13 +185,13 @@ def plotRhos():
 	water = ((-np.sin(theta/2)*A	, 0				, 1),
 		    ( np.sin(theta/2)*A	, 0				 	, 1),
 		    ( 0					, -np.cos(theta/2)*A,-2))
-
+	
 	def rho1(x,y,atom):
 		return atom[2]*np.exp(-np.sqrt((x-atom[0])**2 + (y-atom[1])**2))
-
+	
 	def rhoSum(x,y,atoms):
 		return np.sum([rho1(x,y,atom) for atom in atoms],axis=0)
-
+	
 	#Generate a color dictionary for use with LinearSegmentedColormap
 	#that places red and blue at the min and max values of data
 	#and white when data is zero
@@ -215,6 +207,7 @@ def plotRhos():
 		               (zero,  1.0, 1.0),
 		               (1.0,  1.0, 1.0)]}
 		return cdict
+	
 	m = 500
 	X = np.linspace(-5,5,m)
 	X,Y = np.meshgrid(X,X)
@@ -224,8 +217,7 @@ def plotRhos():
 	plt.colorbar(label="Relative Charge Density")
 	plt.savefig("./waterRho.png")
 	plt.clf()
-
-
+	
 	co2 = ((-1,0,-2),
         (1,0,-2),
         (0,0,4))
@@ -234,9 +226,11 @@ def plotRhos():
 	plt.colorbar(label="Relative Charge Density")
 	plt.savefig("./co2Rho.png")
 	plt.clf()
-	
-def plotVs():
+	return 
 
+
+def plotVs():
+	
 	#definitions for atoms position and charges
 	#the angle the hydrogen atoms make
 	theta = 106.0/180.0*np.pi
@@ -248,10 +242,10 @@ def plotVs():
 	water = ((-np.sin(theta/2)*A,0,1),
         (np.sin(theta/2)*A,0,1),
         (0,-np.cos(theta/2)*A,-2))
-
+	
 	def rho1(x,y,atom):
 		return atom[2]*np.exp(-np.sqrt((x-atom[0])**2 + (y-atom[1])**2))
-
+	
 	def rhoSum(x,y,atoms):
 		return np.sum([rho1(x,y,atom) for atom in atoms],axis=0)
 	
@@ -267,7 +261,7 @@ def plotVs():
 		# We will organize these equations by their y coordinates: all equations centered 
 		# at (x_i, y_0) will be listed first, then (x_i, y_1), and so on till (x_i, y_{m-1})
 		delta_x, delta_y, h, m = (b1-a1)/n, (d1-c1)/n, (b1-a1)/n, n-1
-	
+		
 		####    Here we construct the matrix A    ####
 		##############################     Slow            #################################
 		#     D, diags = np.ones((1,m**2)), np.array([-m,m])
@@ -277,7 +271,7 @@ def plotVs():
 		#     diags, data = np.array([0,-1,1]), np.concatenate((-4.*D,D,D),axis=0)
 		#     temp = h**(-2)*spdiags(data,diags,m,m).asformat('lil')
 		#     for i in xrange(m): A[i*m:(i+1)*m,i*m:(i+1)*m] = temp
-	
+		
 		##############################     Much Faster      ################################
 		D1,D2,D3 = -4*np.ones((1,m**2)), np.ones((1,m**2)), np.ones((1,m**2)) 
 		Dm1, Dm2 = np.ones((1,m**2)), np.ones((1,m**2))
@@ -287,12 +281,12 @@ def plotVs():
 		diags = np.array([0,-1,1,-m,m])
 		data = np.concatenate((D1,D2,D3,Dm1,Dm2),axis=0) # This stacks up rows
 		A = 1./h**2.*spdiags(data, diags, m**2,m**2).asformat('csr') # This appears to work correctly
-	
+		
 		####    Here we construct the vector b    ####
 		b, Array = np.zeros(m**2), np.linspace(0.,1.,m+2)[1:-1]
 		# In the next line, source represents the inhomogenous part of Poisson's equation
 		for j in xrange(m): b[j*m:(j+1)*m] = source(a1+(b1-a1)*Array, c1+(j+1)*h*np.ones(m) )
-	
+		
 		# In the next four lines, bcs represents the Dirichlet conditions on the boundary
 	#     y = c1+h, d1-h
 		b[0:m] = b[0:m] - h**(-2.)*bcs(a1+(b1-a1)*Array,c1*np.ones(m))
@@ -300,18 +294,18 @@ def plotVs():
 	#     x = a1+h, b1-h
 		b[0::m] = b[0::m] - h**(-2.)*bcs(a1*np.ones(m),c1+(d1-c1)*Array) 
 		b[(m-1)::m] = b[(m-1)::m] - h**(-2.)*bcs(b1*np.ones(m),c1+(d1-c1)*Array)
-	
+		
 		####    Here we solve the system A*soln = b    ####
 		soln = spsolve(A,b) # Using the conjugate gradient method: (soln, info) = cg(A,b)
-	
+		
 		z = np.zeros((m+2,m+2) ) 
 		for j in xrange(m): z[1:-1,j+1] = soln[j*m:(j+1)*m]
-	
+		
 		x, y = np.linspace(a1,b1,m+2), np.linspace(c1,d1,m+2)
 		z[:,0], z[:,m+1]  = bcs(x,c1*np.ones(len(x)) ), bcs(x,d1*np.ones(len(x)) )
 		z[0,:], z[m+1,:] = bcs(a1*np.ones(len(x)),y), bcs(b1*np.ones(len(x)),y)
 		return z
-
+	
 	#Generate a color dictionary for use with LinearSegmentedColormap
 	#that places red and blue at the min and max values of data
 	#and white when data is zero
@@ -327,7 +321,7 @@ def plotVs():
 		               (zero,  1.0, 1.0),
 		               (1.0,  1.0, 1.0)]}
 		return cdict
-
+	
 	a1 = -5
 	b1 = 5
 	m = 500
@@ -336,12 +330,12 @@ def plotVs():
 	#poisson_square seems to mix up x and y
 	Rho = poisson_square(a1,b1,a1,b1,m,lambda x,y:0 , lambda x,y: -rhoSum(y,x,water))
 	cdict = genDict(Rho)
-
+	
 	plt.imshow(Rho,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
 	plt.colorbar(label="Relative Voltage")
 	plt.savefig("./waterV.png")
 	plt.clf()
-
+	
 	co2 = ((-1,0,-2),
 		    (1,0,-2),
 		    (0,0,4))
@@ -351,10 +345,13 @@ def plotVs():
 	plt.colorbar(label="Relative Voltage")
 	plt.savefig("./co2V.png")
 	plt.clf()
+	return 
+
+
 
 # example()
-#Exercise1()
+Exercise1()
 # ExercisePoisson()
-plotRhos()
-plotVs()
+# plotRhos()
+# plotVs()
 

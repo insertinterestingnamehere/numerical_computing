@@ -1,44 +1,46 @@
 \lab{Algorithms}{Poisson's equation}{Poisson's equation}
 \label{lab:finitedifference2}
 
- The basic idea behind finite difference methods is to replace a 
- differential operator, defined on some space of continuous functions, with a 
- difference operator defined on a finite vector space (i.e., a space of grid functions).
- 
- To do this, we replace derivative terms in the differential equation with 
- appropriate difference expressions. 
- 
- \begin{align*}
- 	u_{xx}(t,x) &\approx \frac{(u(t,x+h)- 2u(t,x) + u(t,x-h))}{h^2},\\
- 	u_x(t,x) & \approx \frac{u(t,x+h)-u(t,x-h)}{2h}.
- \end{align*}
-
-Recall that the heat equation is given by $u_t = \nu u_{xx} + f(x,t,u)$. Suppose that we want to describe the flow of heat throughout a region $\Omega$. If the temperature on the boundary of $\Omega$ is fixed at $g$, and the $\Omega$ has an initial heat profile of $f$, then the flow of heat can be described by the boundary value problem 
+ % The basic idea behind finite difference methods is to replace a 
+ % differential operator, defined on some space of continuous functions, with a 
+ % difference operator defined on a finite vector space (i.e., a space of grid functions).
+ % 
+ % To do this, we replace derivative terms in the differential equation with 
+ % appropriate difference expressions. 
+ % 
+ % \begin{align*}
+ % 	u_{xx}(t,x) &\approx \frac{(u(t,x+h)- 2u(t,x) + u(t,x-h))}{h^2},\\
+ % 	u_x(t,x) & \approx \frac{u(t,x+h)-u(t,x-h)}{2h}.
+ % \end{align*}
+% Recall that the heat equation is given by $u_t = u_{xx} + f(x,t,u)$. 
+Suppose that we want to describe the distribution of heat throughout a region $\Omega$. Let $g(x)$ represent the temperature on the boundary of $\Omega$ ($\partial \Omega$), and let $h(x)$ represent the initial heat distribution at time $t = 0$. If we let $f(x,t)$ represent any heat sources/sinks in $\Omega$, then the flow of heat can be described by the boundary value problem (BVP)
 \begin{align}
 	\begin{split}
-		& { } u_t = \nu \triangle u + f(x,t,u), \quad x \in \Omega, \quad t >0,\\
+		& { } u_t = \triangle u + f(x,t), \quad x \in \Omega, \quad t >0,\\
 		& { }u(x,t) = h(x), \quad x \in \partial \Omega, \\
 		& { }u(x,0) = g(x).
 	\end{split}
 \end{align}
-When the source term $f$ does not depend on time, there is often a steady-state heat profile $u_{\infty}$ that is achieved as $t \to \infty$. This steady state $u_{\infty}$ is a solution of the boundary value problem 
+When the source term $f$ does not depend on time, there is often a steady-state heat distribution $u_{\infty}$ that is approached as $t \to \infty$. This steady state $u_{\infty}$ is a solution of the BVP
 \begin{align}
 	\begin{split}
-		& { }  \triangle u + f(x)/\nu = 0, \quad x \in \Omega,\\
+		& { }  \triangle u + f(x) = 0, \quad x \in \Omega,\\
 		& { }u(x,t) = h(x), \quad x \in \partial \Omega.
 	\end{split}
 \end{align}
-The partial differential equation $\triangle u = -f$ is commonly known as Poisson's equation. This equation is satisfied by the steady-state solutions of certain evolutionary processes. Poisson's equation is often used in electrostatics, image processing, surface reconstruction, computational fluid dynamics, and other areas. 
+
+This last partial differential equation, $\triangle u = -f$, is called Poisson's equation. This equation is satisfied by the steady-state solutions of many other evolutionary processes. Poisson's equation is often used in electrostatics, image processing, surface reconstruction, computational fluid dynamics, and other areas. 
 
 \section{Poisson's equation in one dimension}
-Consider the boundary value problem defined by
+The 1D Poisson equation is given by 
 \begin{align}
 	\begin{split}
 u'' &= f(x), \quad a \leq x \leq b,\\
 	u(a) &= \alpha,\quad u(b) = \beta,
-	\end{split}
+	\end{split} \label{1d_poisson}
 \end{align}
-where $f$ is continuous. 
+where $f$ is continuous.  We will develop a finite difference method for solving this BVP. 
+
 The basic idea behind most numerical methods for differential equations is to 
 approximate the exact solution $u(x)$ at some finite collection of points in the 
 domain of the problem. Instead of analytically solving an infinite-dimensional
@@ -46,46 +48,52 @@ problem, we look for a simple finite collection of algebraic equations that appr
 
 Note that this equation can easily be solved by integrating twice 
 and using the boundary conditions to determine the constants of integration. 
-Solving this boundary
-value problem is equivalent to solving the equation $Du = f,$
-where $D\frac{d^2}{dx^2}$ is a differential operator defined on the infinite-dimensional space 
+Solving this \eqref{1d_poisson} is equivalent to solving the equation $\triangle u = f,$
+where $\triangle = \frac{d^2}{dx^2}$ is a differential operator defined on the infinite-dimensional space 
 of functions $u:[a,b] \to \mathbb{R}$ that are twice continuously differentiable and 
-satisfy the boundary conditions $u(a) = \alpha$, $u(b) = \beta$. The finite difference method in general attempts to replace infinite-dimensional differential operators with finite difference operators. For example, recalling that $\frac{d^2}{dx^2}u(x) = \frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right) + \mathcal{O}(h^2),$ we could  approximate $Du$ with the finite difference $\frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right).$
+satisfy the boundary conditions $u(a) = \alpha$, $u(b) = \beta$. The finite difference method replaces infinite-dimensional differential operators with finite-dimensional difference operators. 
 
-
-We consider an approximate solution $\{u_i\}_{i=0}^N$ on an evenly spaced grid $a = x_0, x_1, \ldots, x_N = b$ with $h = x_{i+1}-x_i$ for each $i.$
-We may discretize the boundary value problem as 
+We consider an approximate solution $\{U_i\}_{i=-1}^N$ on an evenly spaced grid of $N$ subintervals, $a = x_{-1}, x_0, \ldots, x_{N-1} = b$ with $h = x_{i+1}-x_i$ for each $i.$
+Recalling that $\frac{d^2}{dx^2}u(x) = \frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right) + \mathcal{O}(h^2),$ we define the finite difference operator $D$ by  $DU_i = \frac{1}{h^2}\left(U_{i-1} -2U_i + U_{i+1}\right).$
+We may discretize \eqref{1d_poisson} using the equations 
 \begin{align*}
-	\frac{1}{h^2} (u_{i+1}- 2u_i + u_{i-1})  &= f(x_i), \quad i = 1, \ldots, N-1,
+	\frac{1}{h^2} (U_{i+1}- 2U_i + U_{i-1})  &= f(x_i), \quad i = 0, \ldots, N-2,
 \end{align*}
-with the boundary conditions $u_0 = \alpha,$ $u_N = \beta.$ Note that this gives $N+1$ equations and $N+1$ unknowns. We can write this in matrix form as 
+along with boundary conditions $U_{-1} = \alpha,$ $U_{N-1} = \beta.$ This gives $N+1$ equations and $N+1$ unknowns, and can be written in matrix form as 
 \[
 \frac{1}{h^2} \begin{bmatrix}h^2 & 0 &0&\hdots &0 \\ 1 &-2 & 1 &\hdots &0\\ \vdots &  & \ddots & &\vdots \\
 0 & \hdots & 1 & -2 & 1 \\ 0 & \hdots & & 0 & h^2
-\end{bmatrix} \cdot \begin{bmatrix}y_0\\u_1\\ \vdots \\u_N\end{bmatrix} = \begin{bmatrix}f(x_0)\\f(x_1)\\ \vdots \\ f(x_N) \end{bmatrix}.
+\end{bmatrix} \cdot \begin{bmatrix}U_{-1}\\U_0\\ \vdots \\U_{N-2} \\U_{N-1}\end{bmatrix} = \begin{bmatrix}f(x_{-1})\\f(x_0)\\ \vdots \\ f(x_{N-2}) \\ f(x_{N-1}) \end{bmatrix}.
 \]
 We can further modify the system to obtain an $(N-1)\times (N-1)$ tridiagonal matrix on the left: 
 \[
 \frac{1}{h^2} \begin{bmatrix}-2 & 1 &0 & \hdots &0\\ 1 &-2 & 1 &\hdots &0\\ \vdots &  & \ddots & &\vdots \\ 0 & \hdots & 1 & -2 & 1 \\
 0 & \hdots & 0 & 1 & -2 
-\end{bmatrix} \cdot \begin{bmatrix}y_1\\y_2\\ \vdots \\y_{N-2}\\y_{N-1}\end{bmatrix} = \begin{bmatrix}f(x_1) -\alpha/h^2 \\f(x_2)\\ \vdots \\ f(x_{N-2})\\ f(x_{N-1})-\beta/h^2 \end{bmatrix}.
+\end{bmatrix} \cdot \begin{bmatrix}U_0\\U_1\\ \vdots \\U_{N-3}\\U_{N-2}\end{bmatrix} = \begin{bmatrix}f(x_0) -\alpha/h^2 \\f(x_1)\\ \vdots \\ f(x_{N-3})\\ f(x_{N-2})-\beta/h^2 \end{bmatrix}.
 \]
 
-The following code uses the finite difference method just described to solve the boundary value problem
+The following code uses this finite difference method to solve the BVP
 \begin{align*}
 u'' &= -3 \sin{x}, \quad 0 \leq x \leq 2,\\
 	u(0) &= -2,\quad u(2) = 1.
 \end{align*}
-Note the use of matrix functions from \li{scipy.sparse}. %Several variations of this matrix will be built throughout this lab. 
+
 
 \begin{lstlisting}
-from __future__ import division
 import numpy as np
 from scipy.sparse import spdiags
 from scipy.sparse.linalg import spsolve
 
-def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
-	h = (b-a)/N 				# The length of each subinterval
+def bvp(func, a, b, alpha, beta, N):
+	# Solving u'' = f(x), x in [a, b],
+	# u(a) = alpha, u(b) = beta
+	# N = number of subintervals
+	#
+	# We use the finite difference method to construct a system 
+	# of algebraic equations described by the matrix equation 
+	# AU = F
+	
+	h = (b-a)/N 	# The length of each subinterval
 	
 	# Initialize and define the vector F on the right
 	F = np.empty(N-1.)			
@@ -95,15 +103,18 @@ def bvp(func,a=0.,b=2.,alpha=-1.,beta=3.,N = 5):
 		F[j] = func(a + (j+1)*h)
 	
 	# Here we define the arrays that will go on the diagonals of A
-	D0, D1 = -2.*np.ones((1,N-1)), np.ones((1,N-1))  
-	# Next we concatenate the arrays, and specify on which diagonals they will be placed
+	data = np.empty((3,N-1))
+	data[0,:] = -2.*np.ones((1,N-1)) # main diagonal
+	data[1,:], data[2,:] = np.ones((1,N-1)), np.ones((1,N-1))  # off-diagonals
+	# Next we specify on which diagonals they will be placed
 	diags = np.array([0,-1,1])
-	data = np.concatenate((D0,D1,D1),axis=0) 
+	
 	A=h**(-2.)*spdiags(data,diags,N-1,N-1).asformat('csr')
 	
 	# We create and return the numerical approximation
-	U = spsolve(A,F)
-	U = np.concatenate( ( np.array([alpha]), U, np.array([beta]) ) )
+	U = np.empty(N+1)
+	U[1:-1] = spsolve(A,F)
+	U[0], U[-1] = alpha, beta
 	return np.linspace(a,b,N+1), U
 
 x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
@@ -140,25 +151,27 @@ x, y = bvp(lambda x:(-3.*np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
 %     np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
 % \end{lstlisting}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=12cm]{example_convergence.pdf}
-\caption{TODO}
-\label{figure1}
-\end{figure}
+% \begin{figure}[ht]
+% \centering
+% \includegraphics[width=12cm]{example_convergence.pdf}
+% \caption{TODO}
+% \label{figure1}
+% \end{figure}
 
 
 \begin{problem}
-Extend the given finite difference code to the case of a general second order linear boundary value problem with Dirichlet conditions:
+Extend the given finite difference code to the case of a general second order linear BVP with Dirichlet conditions:
 \begin{align*}
-	&{ } a_1(x)y'' +a_2(x)y'+ a_3(x) y = f(x), \quad x \in (0,1),\\
-	&{ } y(0) = \alpha, \quad y(1) = \beta.
+	&{ } a_1(x)y'' +a_2(x)y'+ a_3(x) y = f(x), \quad x \in (a,b),\\
+	&{ } y(a) = \alpha, \quad y(b) = \beta.
 \end{align*}
-Use your code to solve the singularly perturbed boundary value problem
-\begin{align*}
+Use your code to solve the singularly perturbed BVP
+\begin{align}
+	\begin{split}
 	&{ } \epsilon y''(x)-y'= f(x), \quad x \in (0,1), \\
 	&{ } y(0) = 1, \quad y(1) = 3,
-\end{align*}
+	\end{split} \label{fd:singular_perturbed_BVP}
+\end{align}
 with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of accuracy? 
 
 % If $\alpha = 1,$  $\beta = 3,$ and $f(x) = -1$, there is an exact solution: 
@@ -169,7 +182,7 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
 \begin{figure}[ht]
 \centering
 \includegraphics[width=12cm]{figure2.pdf}
-\caption{TODO}
+\caption{The solution to \eqref{fd:singular_perturbed_BVP}. The solution gets steeper near $x = 1$ as $\epsilon $ gets small. }
 \label{figure2}
 \end{figure}
 
@@ -177,22 +190,30 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
 
 \section{Poisson's equation in two dimensions}
 
- Consider Poisson's equation together with Dirichlet boundary conditions on a square domain:
+ Consider Poisson's equation together with Dirichlet boundary conditions on a rectangular  domain $R = [a,b] x [c,d]$:
  \begin{align*}
- 	u_{xx} + u_{yy} &= f,\quad x \text{ in } [0,1]\times[0,1] \subset \mathbb{R}^2,\\
- 	u &= g, \quad x \text{ on } \partial \left( [0,1]\times[0,1]\right).
+ 	u_{xx} + u_{yy} &= f,\quad x \text{ in } R \subset \mathbb{R}^2,\\
+ 	u &= g, \quad x \text{ on } \partial R.
  \end{align*}
- We will use the finite difference approximation
+Let $a = x_{-1}, x_0, \ldots, x_{N-1} = b$ be a partition of $[a,b]$, and let $c = y_{-1}, y_0, \ldots, y_{N-1} = d$ be a partition of $[c,d]$. Suppose that there are $N+1$ evenly spaced points, so that $N$ is the number of subintervals in each dimension, and $x_i, y_j$ are given by 
+\begin{align*}
+	x_i &= a + (i+1)\triangle x, \\
+	y_j &= c + (j+1)\triangle y,
+\end{align*}
+for $i,j = 0, \ldots, N-2$, where $\triangle x = x_i-x_{i-1}, \triangle y = y_i-y_{i-1}$. We look for an approximation $U_{i,\,j}$ on the grid $\{(x_i,u_j)\}_{i,j=-1}^{N-1}$.
+
+Recall that 
  \begin{align*}
- u_{xx}(x,y) + u_{yy}(x,y) &= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
+ \triangle u = u_{xx}(x,y) + u_{yy}(x,y) &= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
  & \qquad{}+ 
  \frac{u(x,y+h) - 2u(x,y)+ u(x,y-h)}{h^2} + \mathcal{O}(h^2).
  \end{align*}
- Define the difference operator $\nabla^2_h$ by 
- \[
- \nabla^2_h U_{ij} = \frac{1}{h^2}(U_{i-1,\,j} + U_{i+1,\,j} + U_{i,\,j-1} + U_{i,\,j+1}-4U_{i,\,j}).
- \]
- Then the set of equations  $\nabla^2_h U_{ij} = f_{ij}$, $i,j = 1,\ldots,m$ can be written in matrix form as
+ We replace $\triangle $ with the finite difference operator $\triangle_h$, defined by 
+ \begin{align*}
+ \triangle_h U_{ij} &= \frac{U_{i+1,\,j} - 2U_{i,\,j} + U_{i-1,\,j}}{h^2} + \frac{U_{i,\,j+1} - 2U_{i,\,j}+ U_{i,\,j-1}}{h^2},\\
+&= \frac{1}{h^2}(U_{i-1,\,j} + U_{i+1,\,j} + U_{i,\,j-1} + U_{i,\,j+1}-4U_{i,\,j}).
+ \end{align*}
+ Then the set of equations  $\triangle_h U_{ij} = f_{ij}$, $i,j = 0,\ldots,N-2$  $i,j = 1,\ldots,m$ can be written in matrix form as
  $$AU + q  = f$$
  Here $A$ is the block tridiagonal matrix 
  \[
@@ -200,7 +221,7 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
   &  &  & I & T
  \end{bmatrix}
  \]
- where $I$ is the $m\times m$ identity matrix, and $T$ is the tridiagonal matrix
+ where $I$ is the $N-1\times N-1$  $m\times m$ identity matrix, and $T$ is the tridiagonal matrix
  \[
   \begin{bmatrix}-4 & 1 & &  &\\ 1 &-4 & 1 & &\\  &\ddots  & \ddots & \ddots & \\  &  & 1 & -4 & 1 \\
   &  &  & 1 & -4
@@ -209,30 +230,48 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
 
  The vector $U$ is given by 
  \[
- U = \begin{bmatrix} U^1 \\ U^2 \\ \\ U^m \end{bmatrix} \text{ where } U^j = 
- \begin{bmatrix} U_{1,\,j} \\ U_{2,\,j} \\ \\ U_{m,\,j} \end{bmatrix} \text{ for each } j, 1\leq j \leq m.
+ U = \begin{bmatrix} U^0 \\ U^1 \\ \\ U^{N-2} \end{bmatrix} \text{ where } U^j = 
+ \begin{bmatrix} U_{0,\,j} \\ U_{1,\,j} \\ \\ U_{N-2,\,j} \end{bmatrix} \text{ for each } j, 0\leq j \leq N-2.
  \]
- So $U^j$ represents the $j$th row of interior points in our grid, where $y_j = jh.$
+
+ % \[
+ % U = \begin{bmatrix} U^1 \\ U^2 \\ \\ U^m \end{bmatrix} \text{ where } U^j = 
+ % \begin{bmatrix} U_{1,\,j} \\ U_{2,\,j} \\ \\ U_{m,\,j} \end{bmatrix} \text{ for each } j, 1\leq j \leq m.
+ % \]
+ % So $U^j$ represents the $j$th row of interior points in our grid, where $y_j = jh.$
  
  
- The vector $q$ is given by $u = [q^1 \ldots q^m]^T$, where 
+ The vector $q$ is given by $u = [q^0 \ldots q^{N-2}]^T$, %   $u = [q^1 \ldots q^m]^T$,
+ where 
  \[
  q^j = \frac{1}{h^2}
- \begin{bmatrix} g_{0,\,j} \\ 0 \\ \vdots \\0\\ g_{m+1,\,j} \end{bmatrix} , \,\,\, 2 \leq j \leq m-1,
+ \begin{bmatrix} g_{-1,\,j} \\ 0 \\ \vdots \\0\\ g_{N-1,\,j} \end{bmatrix} , \,\,\, 1 \leq j \leq N-3,
  \]
  and 
  \[
- q^1 = \frac{1}{h^2}\begin{bmatrix} g_{1,0} + g_{0,1} \\ g_{2,0} \\ \vdots \\ g_{m-1,0}\\ g_{m,0} + g_{m+1,1}\end{bmatrix}, \quad q^m = \frac{1}{h^2}\begin{bmatrix} g_{1,m+1} + g_{0,m}\\ g_{2,m+1} \\ \vdots \\ g_{m-1,m+1}\\ g_{m,m+1} + g_{m+1,m}\end{bmatrix}.
+ q^0 = \frac{1}{h^2}\begin{bmatrix} g_{0,-1} + g_{-1,0} \\ g_{1,-1} \\ \vdots \\ g_{N-3,-1}\\ g_{N-2,-1} + g_{N-1,0}\end{bmatrix}, \quad q^{N-2} = \frac{1}{h^2}\begin{bmatrix} g_{0,N-1} + g_{-1,N-2}\\ g_{1,N-1} \\ \vdots \\ g_{N-3,N-1}\\ g_{N-2,N-1} + g_{N-1,N-2}\end{bmatrix}.
  \]
 
-\begin{problem}
-	Find the solution $u$ of the 2D Laplace equation $\Delta u = 0$ on the unit 
-	square $[0,1]\times [0,1] \subset \mathbb{R}^2,$ subject to the (Dirichlet) condition that 
-	$u(x,y) = x^3$ on the boundary. 
-	 
-	 Graph your solution, and demonstrate convergence of the numerical approximation by 
-	 creating a log-log plotof the error $E(h).$
-\end{problem}
+
+ % The vector $q$ is given by $u = [q^0 \ldots q^{N-2}]^T$, %   $u = [q^1 \ldots q^m]^T$,
+ % where 
+ % \[
+ % q^j = \frac{1}{h^2}
+ % \begin{bmatrix} g_{0,\,j} \\ 0 \\ \vdots \\0\\ g_{m+1,\,j} \end{bmatrix} , \,\,\, 2 \leq j \leq m-1,
+ % \]
+ % and 
+ % \[
+ % q^1 = \frac{1}{h^2}\begin{bmatrix} g_{1,0} + g_{0,1} \\ g_{2,0} \\ \vdots \\ g_{m-1,0}\\ g_{m,0} + g_{m+1,1}\end{bmatrix}, \quad q^m = \frac{1}{h^2}\begin{bmatrix} g_{1,m+1} + g_{0,m}\\ g_{2,m+1} \\ \vdots \\ g_{m-1,m+1}\\ g_{m,m+1} + g_{m+1,m}\end{bmatrix}.
+ % \]
+
+% \begin{problem}
+% 	Find the solution $u$ of the 2D Laplace equation $\Delta u = 0$ on the unit 
+% 	square $[0,1]\times [0,1] \subset \mathbb{R}^2,$ subject to the (Dirichlet) condition that 
+% 	$u(x,y) = x^3$ on the boundary. 
+% 	 
+% 	 Graph your solution, and demonstrate convergence of the numerical approximation by 
+% 	 creating a log-log plotof the error $E(h).$
+% \end{problem}
 
 \begin{problem}
 	Find the solution $u$ of the 2D Poisson equation with the given Dirichlet boundary conditions:
@@ -248,24 +287,23 @@ with $\epsilon = 1/10$. How many subintervals are needed to obtain 4 digits of a
 	creating a log-log plot of the error $E(h).$
 \end{problem}
 
- The matrix $A$ is sparse, and so we can use several functions from the package \texttt{scipy.sparse.linalg}. In particular, we use the functions \texttt{spdiags} and \texttt{spsolve}.
- 
- 
- 
- 
- \begin{verbatim}
- D1,D2,D3 = -4*np.ones((1,m**2)), np.ones((1,m**2)), np.ones((1,m**2)) 
- Dm = np.ones((1,m**2))
- for j in range(0,D2.shape[1]):
-     if (j%m)==m-1:
-         D2[0,j]=0
-         if (j%m)==0:
-             D3[0,j]=a0
- diags = np.array([0,-1,1,-m,m])
- data = np.concatenate((D1,D2,D3,Dm,Dm),axis=0)
- 
- A = 1./h**2.*spdiags(data, diags, m**2,m**2).asformat('csr') 
- \end{verbatim}
+%  The matrix $A$ is sparse, and so we can use several functions from the package \texttt{scipy.sparse.linalg}. In particular, we use the functions \texttt{spdiags} and \texttt{spsolve}.
+%  
+%  
+%  
+%  
+%  \begin{verbatim}
+% D1,D2,D3 = -4*np.ones((1,m**2)), np.ones((1,m**2)), np.ones((1,m**2)) 
+% Dm1, Dm2 = np.ones((1,m**2)), np.ones((1,m**2))
+% for j in range(0,D2.shape[1]):
+% 	if (j%m)==m-1: 
+% 		D2[0,j]=0
+% 	if (j%m)==0: 
+% 		D3[0,j]=0
+% diags = np.array([0,-1,1,-m,m])
+% data = np.concatenate((D1,D2,D3,Dm1,Dm2),axis=0) # This stacks up rows
+% A = 1./h**2.*spdiags(data, diags, m**2,m**2).asformat('csr') # This ap
+%  \end{verbatim}
  
 \begin{comment}
  \subsection{2D Heat Equation}
