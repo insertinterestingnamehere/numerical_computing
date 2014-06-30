@@ -36,6 +36,7 @@ Each data structure has its own advantages and disadvantages; the structure we u
      (3) edge node []{}(4);
 \end{tikzpicture}
 \caption{Example Graph 1}
+\label{Adjacency}
 \end{figure}
 
 
@@ -44,10 +45,10 @@ An adjacency matrix is two dimensional matrix that is used to represent a graph.
 the nodes of the graph and allow each node to correspond to one column and one
 row of the matrix. Therefore, if we have $n$ nodes, we use an $n \times n$ matrix to
 represent the edges between the nodes. In an unweighted graph (a graph where all the edges have the same value), we indicate an
-edge using either a 0 or a 1.
-Consider the example graph in Figure 4.1. Because a bidirectional edge exists between A and D, for example, we put a 1 in the (3, 0) position and
-in the (0, 3) position. Since no edge exists between A and C, we put a 0 in
-the (2, 0) position and (0, 2) position. We can represent the adjacency matrix for this graph as follows:
+edge using either a $0$ or a $1$.
+Consider Example Graph 1 in Figure \ref{Adjacency}. Because a bidirectional edge exists between A and D, for example, we put a $1$ in the $(3, 0)$ position and
+in the $(0, 3)$ position. Since no edge exists between A and C, we put a $0$ in
+the $(2, 0)$ position and $(0, 2)$ position. We can represent the adjacency matrix for this graph as follows:
 
 \[
 \bordermatrix{\hspace{.4cm}&A&B&C&D&E\cr
@@ -61,7 +62,7 @@ Note that because this graph is undirected, its adjacency matrix is symmetric.
 \subsection*{Adjacency Lists}
 An adjacency list links each node of the graph to a list of its corresponding neighbors, the nodes to which it is connected by an edge.
 There are many ways to index the nodes so we can easily access their adjacent neighbors, but, in Python, one of the most straightforward ways is to use a simple dictionary.
-We could represent our example graph using the following code:
+We could represent Graph 1 using the following code:
 \begin{lstlisting}
 AList = {'A': ['B', 'D', 'E'], 'B': ['A', 'C'], 'C': ['B', 'D'], 'D': ['A', 'C'], 'E': ['A']}
 # To obtain a list of the nodes adjacent to A, simply access the
@@ -71,20 +72,12 @@ print Alist['A']
 ['B', 'D', 'E']
 \end{lstlisting}
 We can retrieve the neighbors of any node of the graph in constant time.
-This makes algorithms that operate locally on the graph very efficient.
+This makes algorithms that operate locally on the graph highly efficient.
 
 \section*{Searching Graphs}
 There are two common ways to search a graph, both of which present different advantages depending on the purpose of the search.
 One method is called a depth-first search (DFS).  It is designed to search the deepest levels of a graph first.
 The other method is called a breadth-first search (BFS).  A BFS searches a graph one level at a time until it finds a solution.
-\begin{comment}
-\begin{figure}[h]
-\centering
-\includegraphics[width=.5\textwidth]{graph.pdf}
-\caption{An example graph.}
-\label{fig:bfs_dfs_graph}
-\end{figure}
-\end{comment}
 
 \begin{figure}[h]
 \centering
@@ -106,10 +99,11 @@ The other method is called a breadth-first search (BFS).  A BFS searches a graph
 	(6) edge node[]{}(3)
 	     edge node[]{}(5);
 \end{tikzpicture}
-\caption{An example graph.}
+\caption{Example Graph 2}
+\label{bfs_dfs}
 \end{figure}
 
-Here, we will walk through two examples of a depth-first search.
+Using Graph 2 in Figure \ref{bfs_dfs}, we will walk through two examples of a depth-first search.
 In these examples, when a node has multiple branches originating from it,
 we will visit the latest (greater) letter in the alphabet first.
 The node at which the algorithm begins is called the ``root node''.
@@ -185,18 +179,45 @@ Which data structure constitutes this important difference? How is it used diffe
 \end{problem}
 
 \section*{Bidirectional Searching an Unweighted Graph}
-\begin{comment}
+
 \begin{figure}[h]
 \centering
-\includegraphics[width=.75\textwidth]{Bidirectional.pdf}
-\caption{Example Graph 3.}
-\label{fig:bidirectional_graph}
+\begin{tikzpicture}[
+  level distance=1.5 cm,
+  level 1/.style={sibling distance=5cm},
+  level 2/.style={sibling distance=2.5cm},
+  level 3/.style={sibling distance=1.25cm}, thick]
+
+  \node[circle,draw] {A}
+	child {node[circle,draw]{B}
+		child{node[circle,draw]{D}
+			child{node[circle,draw]{H}}
+			child{node[circle,draw]{I}}
+		}
+		child{node[circle,draw]{E}
+			child{node[circle,draw]{J}}
+			child{node[circle,draw]{K}}
+		}
+	}
+	child{node[circle,draw]{C}
+		child{node[circle,draw]{F}
+			child{node[circle,draw]{L}}
+			child{node[circle,draw]{M}}
+		}
+		child{node[circle,draw]{G}
+			child{node[circle,draw]{N}}
+			child{node[circle,draw]{O}}
+		}
+	};
+\end{tikzpicture}
+\caption{Example Graph 3}
+\label{Bidirectional}
 \end{figure}
-\end{comment}
+
 Let A be an unweighted graph. This means that none of the edges of A has any value, or ``weight'' attached to it. How can we find the shortest path between two nodes?
 One way would be to simply use a breadth-first search, stopping when we reach the
 target node. The downside to this approach is that the algorithm would visit (at least)
-every node on every level prior to the target node before it could end. Observe the example graph above.
+every node on every level prior to the target node before it could end. Observe Graph 3 in Figure \ref{Bidirectional} above.
 Let us use a simple BFS to search for O, starting with A as our root node.
 We begin by searching through all of the neighbors of A, all of the neighbors of B
 and C, and so on until we finally locate O. Using this method, we are forced to check
@@ -229,8 +250,8 @@ Similarly, the game ``the 6 Degrees of Kevin Bacon'' contends that every actor i
 is a prolific American actor whose film career spans over 30 years in a variety of genres. As such, he once reputably commented that he had either worked with everyone in
 Hollywood or someone who has worked with them. The goal of the game, then, is to find the lowest Bacon number for each actor, a process demonstrated as follows:
 \begin{enumerate}
-\item Kevin Bacon has a Bacon number of 0.
-\item Actors that have been in a movie with Kevin Bacon have a Bacon number of 1.
+\item Kevin Bacon has a Bacon number of $0$.
+\item Actors that have been in a movie with Kevin Bacon have a Bacon number of $1$.
 \item For all other actors $X$, if $n$ is the lowest Bacon number of any actor that $X$ has been in a film with, $X$ has a Bacon number of $n+1$.
 \end{enumerate}
 
@@ -241,7 +262,7 @@ Hollywood or someone who has worked with them. The goal of the game, then, is to
 
 We can define a graph in the same way: where each actor is a node and there is an edge between any two nodes if their actors were in a movie together. From this structure we can find
 the shortest path between any actor and Kevin Bacon by using any of the algorithms listed above. Of course, this game is not limited to Kevin Bacon; we could use any actor as our ``root actor.''
-In fact, ``the Six Degrees of Separation'' can be applied to many different fields. The most famous of its applications is known as the Erdos numbers: how far away is a person
+In fact, ``the Six Degrees of Separation'' can be applied to many different fields. Its most famous application is known as the Erdos numbers: how far away is a person
  from publishing a paper (rather than starring in a movie) with the prolific mathematician Paul Erdos?
 
 \section*{NetworkX}
