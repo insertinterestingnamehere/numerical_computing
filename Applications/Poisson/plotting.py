@@ -350,8 +350,8 @@ def plotVs():
 
 
 # example()
-Exercise1()
+# Exercise1()
 # ExercisePoisson()
 # plotRhos()
-# plotVs()
+plotVs()
 
