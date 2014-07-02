@@ -6,6 +6,9 @@ import matplotlib.widgets as wg
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from mayavi import mlab
+import solutions
+
+png_size = (1024, 768)
 
 def exp_plot():
     x = np.linspace(-2, 3, 501)
@@ -42,7 +45,7 @@ def sinxsiny():
     
     plt.clf()
     plt.pcolormesh(X, Y, C)
-    plt.savefig("sinxsiny.png")
+    plt.savefig("sinxsiny.png", size=png_size)
     
 def pcolor2():
     R = np.linspace(0, 2, 401)
@@ -53,7 +56,7 @@ def pcolor2():
     Y = np.absolute(f(X))
     plt.clf()
     plt.pcolormesh(R, I, Y)
-    plt.savefig('pcolor2.png')
+    plt.savefig('pcolor2.png', size=png_size)
 
 def three_d_plot():
     fig = plt.figure()
@@ -99,7 +102,8 @@ def plot3d():
     y = np.sin(pts) * (1 + np.cos(pts*6))
     z = np.sin(pts*6/11)
     mlab.plot3d(x, y, z)
-    mlab.savefig("plot3d.png", size=(1024, 768))
+    mlab.savefig("plot3d.png", size=png_size)
+    mlab.clf()
     
 def points3d():
     pts = np.linspace(0, 4 * np.pi, 30)
@@ -108,7 +112,27 @@ def points3d():
     z = np.cos(2 * pts)
     s = 2+np.sin(pts)
     mlab.points3d(x, y, z, s, colormap="cool", scale_factor=.15)
-    mlab.savefig("points3d.png", size=(1024,768))
+    mlab.savefig("points3d.png", size=png_size)
+    mlab.clf()
+    
+def GrandCanyon():
+    mlab.clf()
+    f = solutions.problem8()
+    mlab.savefig("GrandCanyon.png", size=png_size)
+    
+def fancymesh():
+    mlab.clf()
+    mlab.savefig('fancymesh.png', size=png_size, figure=mlab.test_fancy_mesh())
+    
+def prob3_solution():
+    f = solutions.problem3()
+    plt.savefig('soln3.pdf')
+    plt.clf()
+    
+def prob2_solution():
+    f = solutions.problem2()
+    plt.savefig('soln2.pdf')
+    plt.clf()
     
 if __name__ == "__main__":
     exp_plot()
@@ -118,3 +142,9 @@ if __name__ == "__main__":
     three_d_plot()
     sinxsiny()
     pcolor2()
+    plot3d()
+    points3d()
+    GrandCanyon()
+    fancymesh()
+    prob3_solution()
+    prob2_solution()
