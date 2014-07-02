@@ -15,6 +15,7 @@ def exp_plot():
     y = np.exp(x)
     plt.plot(x, y)
     plt.savefig("exp_plot.pdf")
+    plt.clf()
 
 def statemachine():
     x = np.linspace(1, 10, 10)
@@ -24,6 +25,7 @@ def statemachine():
     for n in y:
         plt.plot(x, n)
     plt.savefig("statemachine.pdf")
+    plt.clf()
 
 def subplots():
     x = np.linspace(-np.pi, np.pi, 400)
@@ -35,6 +37,7 @@ def subplots():
     plt.subplot(212)
     plt.plot(x, y2)
     plt.savefig("subplots.pdf")
+    plt.clf()
     
 def sinxsiny():
     n = 401 
@@ -43,9 +46,10 @@ def sinxsiny():
     X, Y = np.meshgrid(x, y) # returns a coordinate matrix given coordinate vectors. 
     C = np.sin(X) * np.sin(Y) 
     
-    plt.clf()
+    
     plt.pcolormesh(X, Y, C)
     plt.savefig("sinxsiny.png", size=png_size)
+    plt.clf()
     
 def pcolor2():
     R = np.linspace(0, 2, 401)
@@ -54,9 +58,9 @@ def pcolor2():
     X = R + complex(0,1)*I
     f = np.poly1d([1, 2, -1, 3])
     Y = np.absolute(f(X))
-    plt.clf()
     plt.pcolormesh(R, I, Y)
     plt.savefig('pcolor2.png', size=png_size)
+    plt.clf()
 
 def three_d_plot():
     fig = plt.figure()
@@ -67,6 +71,7 @@ def three_d_plot():
     Z = np.sin(X)*np.sin(Y)
     ax.plot_surface(X, Y, Z)
     plt.savefig("3dplot.pdf")
+    plt.clf()
 
 def interact():
 
@@ -116,13 +121,13 @@ def points3d():
     mlab.clf()
     
 def GrandCanyon():
-    mlab.clf()
     f = solutions.problem8()
     mlab.savefig("GrandCanyon.png", size=png_size)
+    mlab.clf()
     
 def fancymesh():
-    mlab.clf()
     mlab.savefig('fancymesh.png', size=png_size, figure=mlab.test_fancy_mesh())
+    mlab.clf()
     
 def prob3_solution():
     f = solutions.problem3()
@@ -144,7 +149,7 @@ if __name__ == "__main__":
     pcolor2()
     plot3d()
     points3d()
-    GrandCanyon()
     fancymesh()
+    GrandCanyon()
     prob3_solution()
     prob2_solution()
