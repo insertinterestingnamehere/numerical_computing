@@ -68,7 +68,7 @@ def math_animation(Data,time_steps,view,wait):
 			setp(lines[1], linewidth=2, color='r')
 		else:
 			lines[1].set_data(X, Array[-1,:])
-
+			
 		a+=1
 		
 		return lines
@@ -83,3 +83,7 @@ def math_animation(Data,time_steps,view,wait):
 	
 	plt.show()
 	return 
+
+
+
+
