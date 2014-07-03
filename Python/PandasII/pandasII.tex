@@ -1,24 +1,167 @@
 \lab{Python}{Intro to pandas II}{Intro to pandas II}
 
 In this lab, we explore in further detail two specific areas where pandas can be a very useful tool:
-analyzing sequential data, and working with large datasets that can't be stored entirely in memory. 
+analyzing sequential data, and working with large datasets that can't be stored entirely in memory.
 \section*{Time Series Analysis}
-A \emph{time series} is a particular type of data set that consists of a sequence of measurements or observations 
+A \emph{time series} is a particular type of data set that consists of a sequence of measurements or observations
 generated at successive points in time. Examples include the yearly average temperate of a city, or
-the price of a given stock measured daily. 
+the price of a given stock measured daily.
 \section*{Working With Large Datasets}
 In the real world, a data scientist is often confronted with large datasets that can't be held in memory all at once.
 There are various solutions to this problem; in this section, we will explore how pandas uses the HDF5 file format
-to allow us to work with datasets on disk. 
+to allow us to work with datasets on disk.
 
 HDF5, which stands for "Hierarchical Data Format", is a data storage system especially suited for large numerical datasets.
 Rich and efficient software libraries have been developed over the years to enable fast read and write operations,
 which make HDF5 a competitive option for working with large datasets in many applications. The Python library pytables
-is one such library, and the HDF5 capabilities in pandas are built directly on top of pytables. 
+is one such library, and the HDF5 capabilities in pandas are built directly on top of pytables.
 
 We have two primary learning goals: how to get our data into the proper HDF5 format, and how to intelligently work with
 the data once it's tidied up. Let's dive in.
 \subsection*{Writing HDF5 Data}
+The primary way we will interact with HDF5 data goes through the \li{HDFStore} object, which behaves somewhat like a dictionary.
+To begin, let's instantiate such an object, and write data to it. Make sure to execute the code snippets throughout to ensure that
+everything works as expected on your machine.
+\begin{lstlisting}
+>>> # we will create an HDFStore with the filename test_store.h5
+>>> my_store = pd.HDFStore('test_store.h5')
+>>> my_store
+<class 'pandas.io.pytables.HDFStore'>
+File path: test_store.h5
+Empty
+\end{lstlisting}
+The file \li{'test_store.h5'} has just been created in your working directory, although it contains nothing as yet.
+Write some pandas data to the store:
+\begin{lstlisting}
+>>> # instantiate data, write to store
+>>> ts = pd.Series(index=['A', 'B', 'C', 'D'], data = np.random.randn(4))
+>>> df = pd.DataFrame(index=range(6), columns=['a','b'], data=np.random.random((6,2)))
+>>> my_store['ts'] = ts
+>>> my_store['df'] = df
+>>> my_store
+<class 'pandas.io.pytables.HDFStore'>
+File path: test_store.h5
+/df            frame        (shape->[6,2])
+/ts            series       (shape->[4]) 
+\end{lstlisting}
+Note the dict-like syntax for writing data to the store. We now see that the store contains two objects, which
+can easily be retrieved in the following manner:
+\begin{lstlisting}
+>>> # retrieve the df from the store, check it is the same
+>>> store_df = my_store['df']
+>>> (df == store_df).all()
+a    True
+b    True
+dtype: bool
+\end{lstlisting}
+Removing an object that you have written to the store can be accomplished as follows (although note that removing the
+object doesn't necessarily free up space on the hard disk, so the file size may not decrease):
+\begin{lstlisting}
+>>> # let's remove the series ts
+>>> del my_store['ts'] # or my_store.remove('ts')
+>>> my_store
+<class 'pandas.io.pytables.HDFStore'>
+File path: test_store.h5
+/df            frame        (shape->[6,2])
+\end{lstlisting}
+
+The read and write operations that we have explored so far work just fine for small objects that can fit entirely in memory,
+but the story is different when it comes to writing large datasets to an HDF5 file. Suppose we have a CSV file containing the
+large dataset that we want to work with. One basic approach to storing this data in HDF5 format is to read and write it by 
+\emph{chunks}, that is, move the data into an HDF5 store a few lines at a time. This ensures that we never have to read too much
+of the data into memory at once. 
+
+The \li{read_csv} function in pandas allows for reading a file by chunks of rows. We simply need to specify the keyword argument
+\li{chunksize}, which gives the number of rows of the file to read in each time. Most other pandas data readers have a similar
+option for loading data by chunks.
+
+To iteratively write data to a single object in an HDF5 store, we must use the \li{append} method. This will store the data in a 
+particular format called a \emph{table}, an on-disk data structure geared toward efficient querying of the rows. There are a few
+parameters that we must tune in order to write the data successfully.
+\begin{itemize}
+\item \li{key}: This is the target object in the HDF5 store to which we want to write. 
+\item \li{value}: This is the actual chunk of data (such as a \li{DataFrame}) that we want to append to the store.
+\item \li{data_columns}: A list of the column names of the incoming data that should be indexed. You should include all 
+columns that you will use in subsequent queries of the data. For example, if my dataset has a column labeled `A', and I anticipate
+wanting to select all rows where the value in column `A' is greater than, say, 0, then it is imperative that \li{data_columns} includes
+`A'. Try to avoid including columns that aren't needed in the queries, as performance can decrease with a larger number of indexed
+columns. This argument only needs to be specified for the \emph{first} chunk to be written.
+\item \li{min_itemsize}: This is an int that specifies the maximum length of a string found in the dataset. If you are unsure of the 
+exact length of the longest string, try setting this to a high default value (say 100). If you attempt to write data containing 
+a string whose length exceeds \li{min_itemsize}, an error is raised. This argument is also only required for the first chunk.
+\end{itemize}
+In the code below, we create a CSV file containing toy data, then write it by chunks to our HDF5 store.
+\begin{lstlisting}
+>>> # first create the toy CSV file
+>>> n_rows = 10000
+>>> n_cols = 3
+>>> csv_path = 'toy_data.csv'
+>>> csv_file = open(csv_path, 'w')
+>>> csv_file.write("A B C\n")
+>>> for i in xrange(n_rows):
+>>>     for num in np.random.randn(3):
+>>>         csv_file.write(' ' + str(num))
+>>>     csv_file.write('\n')
+>>> csv_file.close()
+
+>>> # now iteratively write the data to the store
+>>> n_chunk = 1000
+>>> reader = pd.read_csv(csv_path, sep=' ', index_col=False, chunksize=n_chunk, skipinitialspace=True)
+>>> first = True # a flag for the very first chunk
+>>> data_cols=['B', 'C'] # queries involving cols B and C will be allowed
+>>> for chunk in reader:
+>>>     if first:
+>>>         my_store.append('toy_data', chunk, data_columns=data_cols)
+>>>         first = False
+>>>     else:
+>>>         my_store.append('toy_data', chunk)
+>>> my_store
+<class 'pandas.io.pytables.HDFStore'>
+File path: test_store.h5
+/df                  frame        (shape->[6,2])
+/toy_data            frame_table  (typ->appendable,nrows->10000,ncols->3,indexers->[index],dc->[B,C])
+\end{lstlisting}
+Now that the data is in the HDF5 store, we can index the table, which can speed up query operations.
+This is done as follows:
+\begin{lstlisting}
+>>> my_store.create_table_index('toy_data', optlevel=9, kind='full')
+\end{lstlisting}
+Obviously the toy data in this example is small enough to fit in memory, but it illustrates the basic approach
+of moving large datasets into an HDF5 store.
+
+\begin{problem}
+Write the data contained in the file \li{campaign.csv} to an HDF5 store using the chunking approach.
+We recommend setting the \li{chunksize} argument to 50,000. There will be just over 100 chunks for this
+chunk size, so you can track your progress by printing out a counter, if you wish. The whole writing
+process will likely take a few minutes.
+
+The file \li{campaign_format.txt} contains information about the dataset, including the column names and descriptions.
+Consult this file and note which, if any, columns contain date information. Use this information to appropriately
+set the \li{parse_dates} argument in the \li{read_csv} function. This argument should be a list of the column names
+that include date information. Note also that some of the columns contain strings, so remember the 
+\li{min_itemsize} argument. Finally, you will be analyzing this data in the remainder of the lab, so glance over 
+the problems below to determine which columns need to be indexed. 
+
+Once you have finished writing to the store, create a table index for the data, just as shown in the example above.
+\end{problem}
 
 \subsection*{Working With On-Disk Arrays}
+Now that we have the data in a HDF5 table, how do we work with it?
+\begin{problem}
+Calculate the total net contributions to each candidate, and plot the results in a bar graph.
+\end{problem}
 
+\begin{problem}
+Calculate the frequency of the 20 most common occupations of contributors in the dataset. 
+Also calculate the average positive contribution amount for each of these 20 occupations.
+Plot the results in two bar graphs.
+\end{problem}
+
+\begin{problem}
+Plot the running total of campaign contributions as a function of time
+for Mitt Romney, Barack Obama, and Newt Gingrich (all on the same graph). 
+\end{problem}
+
+\begin{problem}
+What percentage of contributors in California gave to Obama? To Romney?
+\end{problem}
