@@ -27,21 +27,21 @@ We will then let $c(x,y,t) = g(E(x,y,t))$ where $g$ is some function such that $
 The idea here is that $c$ will be small where $E$ is large, so there will be little diffusion near the boundaries of different portions of the image.
 
 One way to model the evolution of this system is to use a finite differencing scheme where, at each time step, we have an array of values at a 2D grid of points.
-Here we will let $v_{l,m}^n$ be our discretized approximation of the function $u$, $n$ be the index in time, $l$ be the index along the $x$-axis, and $m$ be the index along the $y$-axis.
+Here we will let $U_{l,m}^n$ be our discretized approximation of the function $u$, $n$ be the index in time, $l$ be the index along the $x$-axis, and $m$ be the index along the $y$-axis.
 
 We will implement this idea of limiting diffusion at edges in the following way:
 The following finite difference scheme is consistent with the Laplace Operator:
-\[\Delta u = u_{xx}+u_{yy} \approx \frac{v_{l-1,m}^n - 2 v_{l,m}^n + v_{l+1,m}^n}{(\Delta x)^2} + \frac{v_{l,m-1}-2 v_{l,m}^n + v_{l,m+1}^n}{(\Delta y)^2}\]
+\[\Delta u = u_{xx}+u_{yy} \approx \frac{U_{l-1,m}^n - 2 U_{l,m}^n + U_{l+1,m}^n}{(\Delta x)^2} + \frac{U_{l,m-1}-2 U_{l,m}^n + U_{l,m+1}^n}{(\Delta y)^2}\]
 Since we are working with images, we may say, without loss of generality, that the distance between pixels is always one, so $\Delta x = \Delta y = 1$. Rearranging the terms we have:
-\[\Delta u \approx (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})\]
+\[\Delta u \approx (U_{l-1,m}^n - U_{l,m}) + (U_{l+1,m}^n - U_{l,m}) + (U_{l,m-1} - U_{l,m}) + (U_{l,m+1} - U_{l,m})\]
 
 Again, since we are working with images and not some time based problem, we may say, without loss of generality, that $\Delta t = 1$, so we will have the following finite difference scheme:
-\[v_{l,m}^{n+1} = v_{l,m}^n + (v_{l-1,m}^n - v_{l,m}) + (v_{l+1,m}^n - v_{l,m}) + (v_{l,m-1} - v_{l,m}) + (v_{l,m+1} - v_{l,m})\]
+\[U_{l,m}^{n+1} = U_{l,m}^n + (U_{l-1,m}^n - U_{l,m}) + (U_{l+1,m}^n - U_{l,m}) + (U_{l,m-1} - U_{l,m}) + (U_{l,m+1} - U_{l,m})\]
 We will now limit the diffusion near the edges of objects by making the following modification:
 \begin{equation*}
 \begin{split}
-v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(|v_{l-1,m}^n - v_{l,m}|)(v_{l-1,m}^n - v_{l,m}) + g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) \\
- &+ g(|v_{l,m-1} - v_{l,m}|)(v_{l,m-1} - v_{l,m}) + g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
+U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(|U_{l-1,m}^n - U_{l,m}|)(U_{l-1,m}^n - U_{l,m}) + g(|U_{l+1,m}^n - U_{l,m}|)(U_{l+1,m}^n - U_{l,m}) \\
+ &+ g(|U_{l,m-1} - U_{l,m}|)(U_{l,m-1} - U_{l,m}) + g(|U_{l,m+1} - U_{l,m}|)(U_{l,m+1} - U_{l,m}))
 \end{split}
 \end{equation*}
 
@@ -76,15 +76,15 @@ Write a new version of the previous problem using the following boundary conditi
 For the top edge let 
 \begin{equation*}
 \begin{split}
-v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(|v_{l-1,m}^n - v_{l,m}|)(v_{l-1,m}^n - v_{l,m}) + g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) \\
- &+ g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
+U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(|U_{l-1,m}^n - U_{l,m}|)(U_{l-1,m}^n - U_{l,m}) + g(|U_{l+1,m}^n - U_{l,m}|)(U_{l+1,m}^n - U_{l,m}) \\
+ &+ g(|U_{l,m+1} - U_{l,m}|)(U_{l,m+1} - U_{l,m}))
 \end{split}
 \end{equation*}
 Do the other edges similarly.
 
 For the top left corner let
 \begin{equation*}
-v_{l,m}^{n+1} = v_{l,m}^n + \lambda (g(|v_{l+1,m}^n - v_{l,m}|)(v_{l+1,m}^n - v_{l,m}) + g(|v_{l,m+1} - v_{l,m}|)(v_{l,m+1} - v_{l,m}))
+U_{l,m}^{n+1} = U_{l,m}^n + \lambda (g(|U_{l+1,m}^n - U_{l,m}|)(U_{l+1,m}^n - U_{l,m}) + g(|U_{l,m+1} - U_{l,m}|)(U_{l,m+1} - U_{l,m}))
 \end{equation*}
 Do the other corners similarly.
 
@@ -130,12 +130,12 @@ Try running this scheme with $\lambda$ a little larger than $\frac{1}{4}$. What 
 Colored images can be processed in a similar manner.
 Instead of being represented as a two-dimensional array, colored images are represented as three dimensional arrays.
 The third dimension is used to store the intensities of each of the standard 3 colors.
-This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|v_{l+1,m}^n - v_{l,m}|)$ as before, we will now use something of the form $g(||v_{l+1,m}^n - v_{l,m}||)$, where $v_{l+1,m}^n$ and $v_{l,m}$ are vectors now instead of scalars.
+This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|U_{l+1,m}^n - U_{l,m}|)$ as before, we will now use something of the form $g(||U_{l+1,m}^n - U_{l,m}||)$, where $U_{l+1,m}^n$ and $U_{l,m}$ are vectors now instead of scalars.
 The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
 \begin{equation*}
 \begin{split}
-v_{l,m}^{n+1} =& v_{l,m}^n + \lambda (g(||v_{l-1,m}^n - v_{l,m}||)(v_{l-1,m}^n - v_{l,m}) + g(||v_{l+1,m}^n - v_{l,m}||)(v_{l+1,m}^n - v_{l,m}) \\
- &+ g(||v_{l,m-1} - v_{l,m}||)(v_{l,m-1} - v_{l,m}) + g(||v_{l,m+1} - v_{l,m}||)(v_{l,m+1} - v_{l,m}))
+U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(||U_{l-1,m}^n - U_{l,m}||)(U_{l-1,m}^n - U_{l,m}) + g(||U_{l+1,m}^n - U_{l,m}||)(U_{l+1,m}^n - U_{l,m}) \\
+ &+ g(||U_{l,m-1} - U_{l,m}||)(U_{l,m-1} - U_{l,m}) + g(||U_{l,m+1} - U_{l,m}||)(U_{l,m+1} - U_{l,m}))
 \end{split}
 \end{equation*}
 
