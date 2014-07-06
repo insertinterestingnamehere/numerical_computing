@@ -64,6 +64,137 @@ As it turns out, this particular scheme is the solution to a slightly different 
 For all of the examples here we have read in the image using the \li{scipy.misc.imread} function, and normalized it so that the colors are represented as floating point values between 0 and 1.
 An image can converted to black and white when it is read by including the argument \li{flatten=True}
 
+We can implement the above finite difference scheme using purely vector operations.
+First consider the case where the boundaries of the image are considered fixed.
+A simple idea would be to do the following
+\begin{lstlisting}
+import numpy as np
+from scipy.misc import imread, imsave
+from matplotlib import pyplot as plt
+from matplotlib import cm
+
+def anisdiff_bw_noBCs(U, N, lambda_, g):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array A of grayscale values for an image.
+    Perform N iterations, use the function g
+    to limit diffusion across boundaries in the image.
+    Operate on A inplace. """
+    for i in xrange(N):
+        U[1:-1,1:-1] += lambda_ * \
+                        (g(U[:-2,1:-1] - U[1:-1,1:-1]) *
+                          (U[:-2,1:-1] - U[1:-1,1:-1]) +
+                         g(U[2:,1:-1] - U[1:-1,1:-1]) *
+                          (U[2:,1:-1] - U[1:-1,1:-1]) +
+                         g(U[1:-1,:-2] - U[1:-1,1:-1]) *
+                          (U[1:-1,:-2] - U[1:-1,1:-1]) +
+                         g(U[1:-1,2:] - U[1:-1,1:-1]) *
+                          (U[1:-1,2:] - U[1:-1,1:-1]))
+\end{lstlisting}
+
+Unfortunately, with reasonably sized images, this is still slow.
+This happens for a variety of reasons.
+When evaluating such a large vector expression, many temporary arrays are allocated and deallocated at each time step.
+As you can also see, there are many repeated computations.
+We do not need to calculate the differences between each point and the one next to it twice as we are doing here.
+We could also take advantage of the fact that the difference between values at each point is usually (except at the boundaries) used twice, so we could precompute the differences in each direction and use them more intelligently.
+The last issue is that, in performing these operations the way we do, we are not iterating over memory efficiently.
+To compute the value of this expression, the computer must iterate many times over different blocks of memory.
+That slows things down.
+Though this code is moderately fast, it is an example where NumPy operations with slicing are not quite enough.
+A partial solution would be to implement the same algorithm without using expressions that allocate temporary arrays.
+The best way to do this is with inplace operations.
+That will ensure that our code is not being slowed down by the costs from allocating and deallocating temporary arrays.
+We can also work to eliminate all duplicate computations in our difference scheme.
+Doing so gives us the following implementation of the same algorithm.
+\begin{lstlisting}
+def anisdiff_bw_noBCs_fast2(A, N, lambda_, sigma):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array A of grayscale values for an image.
+    Perform N iterations, use the function g = e^{-x/sigma}
+    to limit diffusion across boundaries in the image.
+    Operate on A inplace. """
+    diff_base = np.empty(max(A[1:,1:-1].size, A[1:-1,1:].size))
+    vdifs = diff_base[:A[1:,1:-1].size].reshape(A[1:,1:-1].shape)
+    hdifs = diff_base[:A[1:-1,1:].size].reshape(A[1:-1,1:].shape)
+    #vdifs = np.empty_like(A[1:,1:-1])
+    vg = np.empty_like(vdifs)
+    #hdifs = np.empty_like(A[1:-1,1:])
+    hg = np.empty_like(hdifs)
+    differences = np.empty_like(A[1:-1,1:-1])
+    extra_temp = np.empty_like(hdifs[:,:-1])
+    c = -1. / sigma**2
+    for i in xrange(N):
+        if i%10 == 0:
+            print i
+        vdifs[:] = A[:-1,1:-1]
+        vdifs -= A[1:,1:-1]
+        vg[:] = vdifs
+        vg *= vg
+        vg *= c
+        np.exp(vg, out=vg)
+        differences[:] = vg[:-1]
+        differences *= vdifs[:-1]
+        vg[1:] *= vdifs[1:]
+        differences -= vg[1:]
+        hdifs[:] = A[1:-1,:-1]
+        hdifs -= A[1:-1,1:]
+        hg[:] = hdifs
+        hg *= hdifs
+        hg *= c
+        np.exp(hg, out=hg)
+        extra_temp[:] = hg[:,:-1]
+        extra_temp *= hdifs[:,:-1]
+        differences += extra_temp
+        hg[:,1:] *= hdifs[:,1:]
+        differences -= hg[:,1:]
+        differences *= lambda_
+        A[1:-1,1:-1] += differences
+\end{lstlisting}
+This is significantly faster, but much more messy.
+Unfortunately, there is still a significant speed loss from iterating over the arrays many more times than is actually necessary when performing computation.
+There is still a good way to address this problem.
+We can use the package numexpr to perform multiple computations on an array all at once.
+Numexpr is a package that can evaluate simple algebraic expressions involving arrays quickly by recognizing and computing common subexpressions and optimizing for fast chache management when accessing memory.
+You may recall that the primary function in the user interface of numexpr is the \li{evaluate} function.
+It evaluates an expression (in some cases, much faster than NumPy can) that has been expressed as a string containing the names of array objects that are in the current scope.
+Here is how this same algorithm can be written using numexpr.
+\begin{lstlisting}
+def anisdiff_bw_noBCs_numexpr(U, N, lambda_, sigma):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array A of grayscale values for an image.
+    Perform N iterations, use the function g = e^{-x/sigma}
+    to limit diffusion across boundaries in the image.
+    Operate on A inplace. A is expected to be an array
+    of 32 bit floating point numbers. """
+    sinv = np.float32(1. / sigma)
+    l32 = np.float32(lambda_)
+    Unew = U.copy()
+    North = U[:-1,1:-1]
+    South = U[1:,1:-1]
+    West = U[1:-1,:-1]
+    East = U[1:-1,1:]
+    Center = U[1:-1,1:-1]
+    newCenter = Unew[1:-1,1:-1]
+    temp = np.empty_like(U)
+    vtemp = temp[:-1,1:-1]
+    vtemp_upper = vtemp[:-1]
+    vtemp_lower = vtemp[1:]
+    htemp = temp[1:-1,:-1]
+    htemp_left = htemp[:,:-1]
+    htemp_right = htemp[:,1:]
+    for i in xrange(N):
+        ne.evaluate('l32 * exp(-(sinv * (South - North))**2)*(South - North)', out=vtemp)
+        ne.evaluate('newCenter - vtemp_upper', out=newCenter)
+        ne.evaluate('newCenter + vtemp_lower', out=newCenter)
+        ne.evaluate('l32 * exp(-(sinv * (East - West))**2)*(East - West)', out=htemp)
+        ne.evaluate('newCenter - htemp_left', out=newCenter)
+        ne.evaluate('newCenter + htemp_right', out=newCenter)
+        U[:] = Unew
+\end{lstlisting}
+This is both cleaner and faster than our previous solution.
+It allows us to perform whole groups of operations together without having to iterate through memory over and over again.
+It also optimizes for cache access so that memory bandwidth is best used.
+
 \begin{problem}
 Implement the above finite difference scheme for black and white images.
 Leave the boundaries constant this time and just iterate over the interior of the image.
