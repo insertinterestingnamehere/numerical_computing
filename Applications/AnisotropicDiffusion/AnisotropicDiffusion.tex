@@ -299,9 +299,22 @@ Do the other corners similarly.
 
 Essentially we are just using the terms of the difference scheme that are actually defined.
 
-This should be fairly similar to the fully vectorized versions of the problem with fixed boundaries.
-You will need to change the boundaries of the array slices in most cases.
-You will also have to separate the new version of $U$ into North, South, East, and West portions like we did with $U$ and then write to the correct portions of the arrays when you are computing.
+You can do this by modifying the the numexpr version already given so that it includes the boundary values in the image.
+The following modifications are necessary:
+\begin{itemize}
+
+\item Change the North, South, East, and West slices so that they include the boundaries.
+For example, the North variable should now include all but the last row of \li{U}.
+
+\item Define similar North, South, East and West slices for \li{Unew}.
+
+\item Remove the variables \li{newCenter}, \li{vtemp_upper}, \li{vtemp_lower}, \li{htemp_left}, and \li{htemp_right} since they will no longer be necessary.
+
+\item Rewrite the strings passed to the \li{evaluate} function inside the for loop to match the new slices.
+The operations in place on \li{new_center} should be replaced by the correct in place operations involving the North, South, East, and West slices of \li{Unew}.
+The \li{vtemp} related variables will be replaced with \li{vtemp} and the \li{htemp} related variables will be replaced with \li{htemp}.
+
+\end{itemize}
 
 In your function, use
 \[g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}\]
