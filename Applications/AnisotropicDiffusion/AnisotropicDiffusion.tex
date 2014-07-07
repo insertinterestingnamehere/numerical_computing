@@ -38,12 +38,12 @@ Since we are working with images, we may say, without loss of generality, that t
 Again, since we are working with images and not some time based problem, we may say, without loss of generality, that $\Delta t = 1$, so we will have the following finite difference scheme:
 \[U_{l,m}^{n+1} = U_{l,m}^n + (U_{l-1,m}^n - U_{l,m}^n) + (U_{l+1,m}^n - U_{l,m}^n) + (U_{l,m-1}^n - U_{l,m}^n) + (U_{l,m+1}^n - U_{l,m}^n)\]
 We will now limit the diffusion near the edges of objects by making the following modification:
-\begin{equation*}
-\begin{split}
-U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n - U_{l,m}^n) + g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
- &+ g(|U_{l,m-1}^n - U_{l,m}^n|)(U_{l,m-1}^n - U_{l,m}^n) + g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
-\end{split}
-\end{equation*}
+\begin{align*}
+U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n - U_{l,m}^n) \\
+			&+ g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
+			&+ g(|U_{l,m-1}^n - U_{l,m}^n|)(U_{l,m-1}^n - U_{l,m}^n) \\
+			&+ g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
+\end{align*}
 
 Where $\lambda \leq \frac{1}{4}$ for stability.
 
@@ -106,49 +106,86 @@ The best way to do this is with inplace operations.
 That will ensure that our code is not being slowed down by the costs from allocating and deallocating temporary arrays.
 We can also work to eliminate all duplicate computations in our difference scheme.
 Doing so gives us the following implementation of the same algorithm.
+Note! This is still neither the simplest way to do this, but these are the sorts of operations that a student will want to understand to be able to code this algorithm well.
 \begin{lstlisting}
-def anisdiff_bw_noBCs_fast2(A, N, lambda_, sigma):
+def anisdiff_bw_noBCs_fast(U, N, lambda_, sigma):
     """ Run the Anisotropic Diffusion differencing scheme
-    on the array A of grayscale values for an image.
-    Perform N iterations, use the function g = e^{-x/sigma}
+    on the array U of grayscale values for an image.
+    Perform N iterations, use the function g = e^{-x^2/sigma^2}
     to limit diffusion across boundaries in the image.
-    Operate on A inplace. """
-    diff_base = np.empty(max(A[1:,1:-1].size, A[1:-1,1:].size))
-    vdifs = diff_base[:A[1:,1:-1].size].reshape(A[1:,1:-1].shape)
-    hdifs = diff_base[:A[1:-1,1:].size].reshape(A[1:-1,1:].shape)
-    #vdifs = np.empty_like(A[1:,1:-1])
-    vg = np.empty_like(vdifs)
-    #hdifs = np.empty_like(A[1:-1,1:])
-    hg = np.empty_like(hdifs)
-    differences = np.empty_like(A[1:-1,1:-1])
-    extra_temp = np.empty_like(hdifs[:,:-1])
+    Operate on U inplace. """
+    # Make an array to store temporary values.
+    # Here we'll use reshaped versions of it in two different cases.
+    diff_base = np.empty(max(U[1:,1:-1].size, U[1:-1,1:].size))
+    # Make the two different reshaped versions we'll be using.
+    # One to hold the differences between pixels that are adjacent vertically.
+    # One to hold the differences between pixels that are adjacent horizontally.
+    vdifs = diff_base[:U[1:,1:-1].size].reshape(U[1:,1:-1].shape)
+    hdifs = diff_base[:U[1:-1,1:].size].reshape(U[1:-1,1:].shape)
+    # Do the same thing to get temporary arrays to store the values of g.
+    gvals = np.empty(max(vdifs.size, hdifs.size))
+    vg = gvals[:vdifs.size].reshape(vdifs.shape)
+    hg = gvals[:hdifs.size].reshape(hdifs.shape)
+    # Make another array to store what we are adding to each pixel.
+    # In this case, since the boundaries are fixed, we really only need to
+    # store the changes to the center.
+    differences = np.empty_like(U[1:-1,1:-1])
+    # Store this constant to do floating point multiplication across an array
+    # instead of floating point division.
     c = -1. / sigma**2
     for i in xrange(N):
-        if i%10 == 0:
-            print i
-        vdifs[:] = A[:-1,1:-1]
-        vdifs -= A[1:,1:-1]
+        # First do all the computations involving the virtical differences.
+        # Copy the values of the lower portion of A into vdifs.
+        vdifs[:] = U[:-1,1:-1]
+        # Compute the differences in place.
+        vdifs -= U[1:,1:-1]
+        # Copy the differences into vg.
         vg[:] = vdifs
+        # Square them in place.
         vg *= vg
+        # Multiply in place by -1. / sigma**2.
         vg *= c
+        # Take the exponential function in place.
         np.exp(vg, out=vg)
+        # Multiply by vdifs in place to get the portion
+        # that will be added or subtracted from each pixel.
+        vg *= vdifs
+        # Add the values in to the differences array.
+        # In this case, since the differences array is
+        # uninitialized, the first operation is just a copy.
+        # This accounts for the difference between each point
+        # and the one above it.
         differences[:] = vg[:-1]
-        differences *= vdifs[:-1]
-        vg[1:] *= vdifs[1:]
+        # This accounts for the difference between each point
+        # and the one below it.
         differences -= vg[1:]
-        hdifs[:] = A[1:-1,:-1]
-        hdifs -= A[1:-1,1:]
+        # Now do all the computations involving the horizontal differences.
+        # Copy the values of the left portion of A into hdifs.
+        hdifs[:] = U[1:-1,:-1]
+        # Compute the differences in place.
+        hdifs -= U[1:-1,1:]
+        # Copy the differences into hg.
         hg[:] = hdifs
+        # Square them in place.
         hg *= hdifs
+        # Multiply in place by -1. / sigma**2.
         hg *= c
+        # Take the exponential function in place.
         np.exp(hg, out=hg)
-        extra_temp[:] = hg[:,:-1]
-        extra_temp *= hdifs[:,:-1]
-        differences += extra_temp
-        hg[:,1:] *= hdifs[:,1:]
+        # Multiply by hdifs in place to get the portion
+        # that will be added or subtracted from each pixel.
+        hg *= hdifs
+        # Add the values in to the differences array.
+        # This accounts for the difference between each point
+        # and the one to its left.
+        differences += hg[:,:-1]
+        # This accounts for the difference between each point
+        # and the one to its right.
         differences -= hg[:,1:]
+        # Now multiply the sum of all the different terms by lambda_.
         differences *= lambda_
-        A[1:-1,1:-1] += differences
+        # Add the differences to A in place to update its values.
+        U[1:-1,1:-1] += differences
 \end{lstlisting}
 This is significantly faster, but much more messy.
 Unfortunately, there is still a significant speed loss from iterating over the arrays many more times than is actually necessary when performing computation.
@@ -159,22 +196,29 @@ You may recall that the primary function in the user interface of numexpr is the
 It evaluates an expression (in some cases, much faster than NumPy can) that has been expressed as a string containing the names of array objects that are in the current scope.
 Here is how this same algorithm can be written using numexpr.
 \begin{lstlisting}
+import numexpr as ne
 def anisdiff_bw_noBCs_numexpr(U, N, lambda_, sigma):
     """ Run the Anisotropic Diffusion differencing scheme
-    on the array A of grayscale values for an image.
+    on the array U of grayscale values for an image.
     Perform N iterations, use the function g = e^{-x/sigma}
     to limit diffusion across boundaries in the image.
-    Operate on A inplace. A is expected to be an array
+    Operate on U inplace. U is expected to be an array
     of 32 bit floating point numbers. """
+    # numexpr needs numpy float32 objects to use as a constants.
+    # Start by making them.
     sinv = np.float32(1. / sigma)
     l32 = np.float32(lambda_)
+    # Make a copy of U to use for updates.
     Unew = U.copy()
+    # Store the different slices we need to use.
     North = U[:-1,1:-1]
     South = U[1:,1:-1]
     West = U[1:-1,:-1]
     East = U[1:-1,1:]
     Center = U[1:-1,1:-1]
+    # Store the slice we need to use in Unew.
     newCenter = Unew[1:-1,1:-1]
+    # Make various temporary arrays.
     temp = np.empty_like(U)
     vtemp = temp[:-1,1:-1]
     vtemp_upper = vtemp[:-1]
@@ -183,12 +227,21 @@ def anisdiff_bw_noBCs_numexpr(U, N, lambda_, sigma):
     htemp_left = htemp[:,:-1]
     htemp_right = htemp[:,1:]
     for i in xrange(N):
+        # Use numexpr to compute the values to add or subtract from each pixel
+        # corresponding to the differences between pixels in the up-down direction.
         ne.evaluate('l32 * exp(-(sinv * (South - North))**2)*(South - North)', out=vtemp)
+        # Add these terms to the new array of values.
+        # Account for the difference between each pixel and the one above it.
         ne.evaluate('newCenter - vtemp_upper', out=newCenter)
+        # Account for the difference between each pixel and the one below it.
         ne.evaluate('newCenter + vtemp_lower', out=newCenter)
+        # Do the same computation for the right-left differences.
         ne.evaluate('l32 * exp(-(sinv * (East - West))**2)*(East - West)', out=htemp)
+        # Account for the difference between each pixel and the one to its left.
         ne.evaluate('newCenter - htemp_left', out=newCenter)
+        # Account for the difference between each pixel and the one to its right.
         ne.evaluate('newCenter + htemp_right', out=newCenter)
+        # Copy the values into the array U to update it.
         U[:] = Unew
 \end{lstlisting}
 This is both cleaner and faster than our previous solution.
@@ -210,18 +263,18 @@ One possible way to do these problems is to iterate over the array and operate i
 Implement an optimized version of anisotropic diffusion for black and white images using the following boundary conditions:
 
 For the top edge let 
-\begin{equation*}
-\begin{split}
-U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n - U_{l,m}^n) + g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
- &+ g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
-\end{split}
-\end{equation*}
+\begin{align*}
+U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n - U_{l,m}^n) \\
+					& + g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
+					& + g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
+\end{align*}
 Do the other edges similarly.
 
 For the top left corner let
-\begin{equation*}
-U_{l,m}^{n+1} = U_{l,m}^n + \lambda (g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) + g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
-\end{equation*}
+\begin{align*}
+U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
+					& + g(|U_{l,m+1}^n - U_{l,m}^n|)(U_{l,m+1}^n - U_{l,m}^n))
+\end{align*}
 Do the other corners similarly.
 
 Essentially we are just using the terms of the difference scheme that are actually defined.
@@ -287,12 +340,12 @@ Instead of being represented as a two-dimensional array, colored images are repr
 The third dimension is used to store the intensities of each of the standard 3 colors.
 This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|U_{l+1,m}^n - U_{l,m}^n|)$ as before, we will now use something of the form $g(||U_{l+1,m}^n - U_{l,m}^n||)$, where $U_{l+1,m}^n$ and $U_{l,m}^n$ are vectors now instead of scalars.
 The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
-\begin{equation*}
-\begin{split}
-U_{l,m}^{n+1} =& U_{l,m}^n + \lambda (g(||U_{l-1,m}^n - U_{l,m}^n||)(U_{l-1,m}^n - U_{l,m}^n) + g(||U_{l+1,m}^n - U_{l,m}^n||)(U_{l+1,m}^n - U_{l,m}^n) \\
- &+ g(||U_{l,m-1}^n - U_{l,m}^n||)(U_{l,m-1}^n - U_{l,m}^n) + g(||U_{l,m+1}^n - U_{l,m}^n||)(U_{l,m+1}^n - U_{l,m}^n))
-\end{split}
-\end{equation*}
+\begin{align*}
+U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(||U_{l-1,m}^n - U_{l,m}^n||)(U_{l-1,m}^n - U_{l,m}^n) \\
+					& + g(||U_{l+1,m}^n - U_{l,m}^n||)(U_{l+1,m}^n - U_{l,m}^n) \\
+					& + g(||U_{l,m-1}^n - U_{l,m}^n||)(U_{l,m-1}^n - U_{l,m}^n) \\
+					& + g(||U_{l,m+1}^n - U_{l,m}^n||)(U_{l,m+1}^n - U_{l,m}^n))
+\end{align*}
 
 When implementing this scheme for colored images, use the infinity norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
 
@@ -336,6 +389,7 @@ To demonstrate the action of such a filter, we make changes to random pixels in 
 Below, we include an example where we have added noise to the color version of that same picture, then used a minimum-biased filter to diminish the noise and the original filter to smooth what remains.
 
 \begin{problem}
+(optional)
 Implement the minimum-biased finite difference scheme described above. 
 \end{problem}
 
