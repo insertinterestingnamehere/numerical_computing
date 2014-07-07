@@ -195,15 +195,20 @@ This is both cleaner and faster than our previous solution.
 It allows us to perform whole groups of operations together without having to iterate through memory over and over again.
 It also optimizes for cache access so that memory bandwidth is best used.
 
+% Old problem that asked them to implement the problem without BC's.
+% Hopefully giving them the code for the case without BC's will make it easier for them.
+\begin{comment}
 \begin{problem}
 Implement the above finite difference scheme for black and white images.
 Leave the boundaries constant this time and just iterate over the interior of the image.
 You may use either of the two functions listed for $g$.
 One possible way to do these problems is to iterate over the array and operate in place.
 \end{problem}
+\end{comment}
 
 \begin{problem}
-Write a new version of the previous problem using the following boundary conditions:
+Implement an optimized version of anisotropic diffusion for black and white images using the following boundary conditions:
+
 For the top edge let 
 \begin{equation*}
 \begin{split}
@@ -221,12 +226,31 @@ Do the other corners similarly.
 
 Essentially we are just using the terms of the difference scheme that are actually defined.
 
-You can do this by iterating over the image the normal way.
-A possibly better solution would be to operate on slices of a new version and an old version of the image and then update the image itself after each iteration.
-You will want to exploit the fact that the slices will all be viewing the same data.
-If you use the second approach, it would be wise to pre allocate all the temporary arrays you need and to do all the slicing outside of your primary loop.
+This should be fairly similar to the fully vectorized versions of the problem with fixed boundaries.
+You will need to change the boundaries of the array slices in most cases.
+You will also have to separate the new version of $U$ into North, South, East, and West portions like we did with $U$ and then write to the correct portions of the arrays when you are computing.
 
-Try running this scheme with $\lambda$ a little larger than $\frac{1}{4}$. What do you observe?
+In your function, use
+\[g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}\]
+Here is a non-optimized function that performs the desired computations for a generic function $g$.
+Use it to write and test your optimized version.
+\begin{lstlisting}
+def anisdiff_bw_withBCs(U, N, lambda_, g):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array U of grayscale values for an image.
+    Perform N iterations, use the function g
+    to limit diffusion across boundaries in the image.
+    Operate on U inplace. """
+    difs = np.empty_like(U)
+    for i in xrange(N):
+        difs[:-1] = g(U[1:] - U[:-1]) * (U[1:] - U[:-1])
+        difs[-1] = 0
+        difs[1:] += g(U[:-1] - U[1:]) * (U[:-1] - U[1:])
+        difs[:,:-1] += g(U[:,1:] - U[:,:-1]) * (U[:,1:] - U[:,:-1])
+        difs[:,1:] += g(U[:,:-1] - U[:,1:]) * (U[:,:-1] - U[:,1:])
+        difs *= lambda_
+        U += difs
+\end{lstlisting}
 \end{problem}
 
 \newpage
