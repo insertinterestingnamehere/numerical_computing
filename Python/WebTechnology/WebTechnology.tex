@@ -62,6 +62,87 @@ To perform the inverse operation, we use \li{load} or \li{loads} for reading fro
 Many websites and web APIs make extensive use of JSON.
 Twitter, for example, return JSON messages for all queries.
 
+The built-in JSON encoder/decoder only has support for the basic Python data structures such as lists and dictionaries.
+Trying to serialize a set will result in an error
+\begin{lstlisting}
+>>> a = set('abcdefg')
+>>> json.dumps(a)
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+<ipython-input-4-373a2a7edfd2> in <module>()
+----> 1 json.dumps(a)
+
+/opt/anaconda/lib/python2.7/json/__init__.pyc in dumps(obj, skipkeys, ensure_ascii, check_circular, allow_nan, cls, indent, separators, encoding, default, sort_keys, **kw)
+    241         cls is None and indent is None and separators is None and
+    242         encoding == 'utf-8' and default is None and not sort_keys and not kw):
+--> 243         return _default_encoder.encode(obj)
+    244     if cls is None:
+    245         cls = JSONEncoder
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in encode(self, o)
+    205         # exceptions aren't as detailed.  The list call should be roughly
+    206         # equivalent to the PySequence_Fast that ''.join() would do.
+--> 207         chunks = self.iterencode(o, _one_shot=True)
+    208         if not isinstance(chunks, (list, tuple)):
+    209             chunks = list(chunks)
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in iterencode(self, o, _one_shot)
+    268                 self.key_separator, self.item_separator, self.sort_keys,
+    269                 self.skipkeys, _one_shot)
+--> 270         return _iterencode(o, 0)
+    271 
+    272 def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in default(self, o)
+    182 
+    183         """
+--> 184         raise TypeError(repr(o) + " is not JSON serializable")
+    185 
+    186     def encode(self, o):
+
+TypeError: set(['a', 'c', 'b', 'e', 'd', 'g', 'f']) is not JSON serializable
+\end{lstlisting}
+The serialization fails, because the JSON encoder doesn't know how it should represent the set as a string.
+We can extend the JSON encoder by subclassing it and adding support for sets.
+Since JSON has support for sequences and maps, one easy way would be to express the set as a map with one key that tells us the data structure type, and the other containing the data in a string.
+Now, we can encode our set.
+\begin{lstlisting}
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return {'dtype': 'set',
+                    'data': list(obj)}
+        return json.JSONEncoder.default(self, obj)
+        
+>>> s = json.dumps(a, cls=CustomEncoder)
+>>> s
+'{"dtype": "set", "data": ["a", "c", "b", "e", "d", "g", "f"]}'
+\end{lstlisting}
+However, we want a Python set back when we decode.
+JSON will happily return our dictionary, but the data will be in a list.
+How do we tell it to convert our list back into a set?
+The answer is to build a custom decoder.
+Notice that we don't need to subclass anything.
+\begin{lstlisting}
+accepted_dtypes = {'set': set}
+def custom_decoder(dct):
+    dt = accepted_dtypes.get(dct['dtype'], None)
+    if dt is not None and 'data' in dct:
+        return dt(dct['data'])
+    return dct
+
+>>> json.loads(s, object_hook=custom_decoder)
+{u'a', u'b', u'c', u'd', u'e', u'f', u'g'}
+\end{lstlisting}
+
+\begin{problem}
+Python has a module in the standard library that allows easy manipulation of times and dates.  The functionality is built around a datetime object
+
+However, datetime objects are not JSON serializable.
+Determine how best to serialize and deserialize a datetime object.
+The datetime object you serialize should be equal to the datetime object you get after deserializing.
+\end{problem}
+
 \subsection*{XML}
 XML is another data interchange format.  It is a markup language rather than a object notation language.
 To understand XML, we need to understand what tags are.
@@ -264,15 +345,23 @@ You client should accept a list of commands and performed the associated action.
 \begin{table}[H]
 \begin{tabular}{|l|l|}
 \hline
-Command & Action \\
+Command & Method & Action \\
 \hline
-/join & Join switch to another \\
-/nick & Change the user's nickname \\
-/quit & Quit the message board \\
-/pull & Check for new messages and display them to the user\\
-/push & Publish a new message on the message board \\
-/create & Create a new channel on the server \\
+/join & GET & Join switch to another \\
+/nick & & Change the user's nickname \\
+/quit & & Quit the message board \\
+/pull & GET & Check for new messages and display them to the user\\
+/push & POST & Publish a new message on the message board \\
+/create & POST & Create a new channel on the server \\
 \hline
 \end{tabular}
 \end{table}
+
+All requests to the server must be serialized JSON.
+
+\begin{description}
+\item[Push] Push a new message to the server.  
+\end{description}
+
+
 \end{problem}
