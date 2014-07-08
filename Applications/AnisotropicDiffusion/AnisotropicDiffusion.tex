@@ -226,7 +226,7 @@ def anisdiff_bw_noBCs_numexpr(U, N, lambda_, sigma):
     of 32 bit floating point numbers. """
     # numexpr needs numpy float32 objects to use as a constants.
     # Start by making them.
-    sinv = np.float32(1. / sigma)
+    sinv = np.float32(-1. / sigma**2)
     l32 = np.float32(lambda_)
     # Make a copy of U to use for updates.
     Unew = U.copy()
@@ -249,14 +249,14 @@ def anisdiff_bw_noBCs_numexpr(U, N, lambda_, sigma):
     for i in xrange(N):
         # Use numexpr to compute the values to add or subtract from each pixel
         # corresponding to the differences between pixels in the up-down direction.
-        ne.evaluate('l32 * exp(-(sinv * (South - North))**2)*(South - North)', out=vtemp)
+        ne.evaluate('l32 * exp(sinv * (South - North)**2) * (South - North)', out=vtemp)
         # Add these terms to the new array of values.
         # Account for the difference between each pixel and the one above it.
         ne.evaluate('newCenter - vtemp_upper', out=newCenter)
         # Account for the difference between each pixel and the one below it.
         ne.evaluate('newCenter + vtemp_lower', out=newCenter)
         # Do the same computation for the right-left differences.
-        ne.evaluate('l32 * exp(-(sinv * (East - West))**2)*(East - West)', out=htemp)
+        ne.evaluate('l32 * exp(sinv * (East - West)**2) * (East - West)', out=htemp)
         # Account for the difference between each pixel and the one to its left.
         ne.evaluate('newCenter - htemp_left', out=newCenter)
         # Account for the difference between each pixel and the one to its right.
@@ -318,6 +318,7 @@ The \li{vtemp} related variables will be replaced with \li{vtemp} and the \li{ht
 
 In your function, use
 \[g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}\]
+
 Here is a non-optimized function that performs the desired computations for a generic function $g$.
 Use it to write and test your optimized version.
 \begin{lstlisting}
