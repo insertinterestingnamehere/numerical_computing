@@ -116,7 +116,7 @@ For this method to be stable, we must have $\lambda \leq 1$.
 		u(x,0) &= \sin(2 \pi x),\\ 
 		u_t(x,0) &= 0.
 	\end{align*}
-	Numerically approximate the solution $u(x,t)$ at $t = .5$. Use $J=5$ subintervals in the $x$ dimension and $M=5$ subintervals in the $t$ dimension. %using $h = .2$, $k = .1$.
+	Numerically approximate the solution $u(x,t)$ at $t = .5$.  Use $J=5$ subintervals in the $x$ dimension and $M=5$ subintervals in the $t$ dimension. %using $h = .2$, $k = .1$.
 	 Compare your results with the analytic solution $u(x,t) = \sin{(2 \pi x)} \cos{(2 \pi t)}.$
 \end{problem}
 
@@ -130,16 +130,107 @@ For this method to be stable, we must have $\lambda \leq 1$.
 		u(x,0) &= .2e^{-m^2(x-1/2)^2}\\ 
 		u_t(x,0) &= -.4m^2(x-1/2)e^{-m^2(x-1/2)^2}.
 	\end{align*}
-	The solution of this problem is a Gaussian pulse, and travels to the right at a constant speed. This solution models, for example, a wave pulse in a stretched string. 
+	The solution of this problem is a Gaussian pulse, and travels to the right at a constant speed.  This solution models, for example, a wave pulse in a stretched string. 
 	
-	Numerically approximate the solution $u(x,t)$ at $t = 1$ (set $m=20$). Use 200 subintervals in space and 220 in time. Then use 200 subintervals in space and 180 in time. Note that the stability condition is not satisfied for the second mesh. 
+	Numerically approximate the solution $u(x,t)$ at $t = 1$ (set $m=20$).  Use 200 subintervals in space and 220 in time, and animate your results.  Then use 200 subintervals in space and 180 in time. Note that the stability condition is not satisfied for the second mesh. 
 	% Compare your results with the analytic solution $u(x,t) = \sin{(2 \pi x)} \cos{(2 \pi t)}.$
 \end{problem}
 
 
-% m, u_0 = 20, .2
-% def f(x):
-% 	return u_0*np.exp(-m**2.*(x-1./2.)**2.)
+\begin{problem}
+	Consider the initial boundary value problem 
+	\begin{align*}
+		u_{tt} &= u_{xx}, \\
+		u(0,t) &= u(1,t) = 0, \\
+		u(x,0) &= .2e^{-m^2(x-1/2)^2}\\ 
+		u_t(x,0) &= 0.
+	\end{align*}
+	% The solution of this problem is a Gaussian pulse, and travels to the right at a constant speed.  This solution models, for example, a wave pulse in a stretched string. 
+	
+	Numerically approximate the solution $u(x,t)$ at $t = 2$ (set $m=20$).  Use 200 subintervals in space and 440 in time, and animate your results.  
+\end{problem}
+
+
+\begin{problem}
+	Consider the initial boundary value problem 
+	\begin{align*}
+		u_{tt} &= u_{xx}, \\
+		u(0,t) &= u(1,t) = 0, \\
+		u(x,0) &= \begin{cases} 1/3 & \text{if } 5/11 < x < 6/11,\\
+		0 & \text{ otherwise}
+		\end{cases}\\ 
+		u_t(x,0) &= 0.
+	\end{align*}
+	% The solution of this problem is a Gaussian pulse, and travels to the right at a constant speed.  This solution models, for example, a wave pulse in a stretched string. 
+	
+	Numerically approximate the solution $u(x,t)$ at $t = 2$.  Use 200 subintervals in space and 440 in time, and animate your results.  Even though the method is second order and stable for this discretization, since the initial condition is discontinuous there are large dispersive errors.  The finite volume method can be used to smooth out the numerical solution. 
+\end{problem}
+
+
+
+
+\section{Traveling Wave Solutions of Burgers' Equation}
+Traveling wave solutions of a partial differential equation are solutions of the form $u(x,t) = u(x-st),$ where $s$ is the speed of the traveling wave. Thus a traveling wave solution is a solution that is a function of one variable, $\xi= x-st$. This frame of reference corresponds to an observer 
+moving along with the wave, so that the wave appears stationary as the observer studies it.
+
+We will consider traveling wave solutions of Burgers' equation. This equation is given by
+\[u_t + u u_x = \nu u_{xx},\]
+$u$ and $\nu$ represent the velocity and viscosity of the gas, respectively. This equation is a prototypical equation from gas dynamics. It models both the process of advection ($u u_x$), as well as diffusion due to the viscosity of the 
+gas ($\nu u_{xx}$).
+
+
+We seek a traveling wave solution with asymptotically constant boundary conditions; i.e. 
+\begin{eqnarray*}
+\lim_{x \to -\infty}u(x) &=& u_-,\\
+\lim_{x \to +\infty}u(x) &=& u_+
+\end{eqnarray*}
+both exist, and  $\lim_{x \to \pm \infty}u'(x) = 0$. We will suppose that $u_- > u_+.$
+
+A traveling wave solution $u(\xi)$ of Burgers' equation will satisfy the ordinary differential equation 
+\[ -s u' + u u' = \nu u''.\]
+
+Integrating both sides of this differential equation, and then taking the limit as $x \to +\infty$, we obtain
+\begin{eqnarray*}
+-s\int_{-\infty}^x u' + \int_{-\infty}^x \left(\frac{u^2}{2}\right)' &=& \nu \int_{-\infty}^x u'',\\	
+-s(u(x) - u_-) + \frac{u^2(x)}{2} - \frac{u_-^2}{2} &=& \nu (u'(x) - u'(-\infty)), \\
+-s(u_+ - u_-) + \frac{u_+^2}{2} - \frac{u_-^2}{2} &=& \nu (u'(+\infty) - u'(-\infty)), \\
+&=& 0.\\
+% s &=& \frac{u_- + u_+}{2}
+\end{eqnarray*}
+Thus given boundary conditions $u_-$ and $u_+$ at $\pm \infty,$ the speed of the traveling wave must be $s = \frac{u_- + u_+}{2}.$ If we continue by solving the first order equation 
+\[-\frac{u_- + u_+}{2}(u(x) - u_-) + \frac{u^2(x)}{2} - \frac{u_-^2}{2} = \nu u'(x),\]
+we obtain a one-parameter family of solutions \[u(\xi) = s - a \tanh \left(\frac{a\xi + \delta}{2\nu}\right),\]
+where $a = (u_- - u_+)/2$ and $\delta$ is an real number. We get a family of solutions because any translation of a traveling wave solution is also a solution. 
+
+We will discretize the pde 
+\[u_t -su_x + uu_x = u_{xx}\]
+using the approximations
+% \[u_t(x_j,t_{n+1/2}) \approx \frac{u_j^{n+1}-u_j^n}{\triangle t}, \]
+% 
+% \[u_x(x_j,t_{n+1/2}) \approx \theta \left( \frac{u_{j+1}^{n+1}-u_{j-1}^{n+1}}{2 \triangle x}\right) + (1 - \theta) \left( \frac{u_{j+1}^{n}-u_{j-1}^{n}}{2 \triangle x}\right) ,\]
+% 
+% \[u_{xx}(x_j,t_{n+1/2}) \approx \theta \left( \frac{u_{j+1}^{n+1}- u_{j}^{n+1}+u_{j-1}^{n+1}}{(\triangle x)^2}\right) + (1 - \theta) \left( \frac{u_{j+1}^{n}- u_{j}^{n}+u_{j}^{n+1}}{(\triangle x)^2}\right) ,\]
+
+\begin{eqnarray*}
+u_t(x_j,t_{n+1/2}) &\approx& \frac{u_j^{n+1}-u_j^n}{\triangle t}, \\
+u_x(x_j,t_{n+1/2}) &\approx& \theta \left( \frac{u_{j+1}^{n+1}-u_{j-1}^{n+1}}{2 \triangle x}\right) + (1 - \theta) \left( \frac{u_{j+1}^{n}-u_{j-1}^{n}}{2 \triangle x}\right) ,\\
+u_{xx}(x_j,t_{n+1/2}) &\approx& \theta \left( \frac{u_{j+1}^{n+1}- u_{j}^{n+1}+u_{j-1}^{n+1}}{(\triangle x)^2}\right) + (1 - \theta) \left( \frac{u_{j+1}^{n}- u_{j}^{n}+u_{j}^{n+1}}{(\triangle x)^2}\right) ,
+\end{eqnarray*}
+where $\theta \in [0,1]$ (we will let $\theta = 1/2$).
+
+Substituting these expressions into the pde we obtain the equation 
+\begin{eqnarray*}
+u_j^{n+1} + \frac{\theta \triangle t }{2 \triangle x}(u_j^{n+1}-s)(u_{j+1}^{n+1} - u_{j-1}^{n+1}) && \\
+- \frac{\theta \triangle t}{(\triangle x)^2}(u_{j+1}^{n+1} - 2u_j^{n+1}+ u_{j-1}^{n+1})&&\\
+ &=& \\
+&& u_j^n - \frac{(1-\theta)\triangle t}{2 \triangle x}(u_j^n-s) (u_{j+1}^n - u_{j-1}^n) \\
+&&+ \frac{(1-\theta) \triangle t}{(\triangle x)^2} (u_{j+1}^n -2u_j^n + u_{j-1}^n)
+\end{eqnarray*}
+
+
+
+
+
 
 
 
