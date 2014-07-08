@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 from datetime import datetime
 from dateutil import parser
+from uuid import uuid1
 
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -20,14 +21,24 @@ class Session(object):
         self.ip = ip
         self.port = port
         self.curr_channel = 1
-        self.nick = nick
+        self.nick = None
         
         self.base = "http://{}:{}".format(ip, port)
-        
         self.lasttime = datetime.now()
+        self.update_nick(nick)
+        
+    def update_nick(self, new_nick):
+        content = json.dumps({'old_nick': self.nick, 'new_nick': new_nick})
+        r = requests.post(self.base + "/changenick", data=content)
+        if r.ok:
+            self.nick = new_nick
+        else:
+            new_nick = uuid1().hex
+            print "Assigning random nick: ", new_nick
+            self.update_nick(new_nick)
     
     def pull(self):
-        content = json.dumps({'channel': self.curr_channel, 'timestamp': self.lasttime}, cls=DateEncoder)
+        content = json.dumps({'channel': self.curr_channel, 'timestamp': self.lasttime, 'nick': self.nick}, cls=DateEncoder)
         r = requests.get(self.base + "/message/pull", data=content)
         
         self.pretty_printer(x for x in json.loads(r.text, object_hook=dateobj))
@@ -63,7 +74,8 @@ def main_loop(ip, port, nick):
                 if command[0] == 'join':
                     session.curr_channel = command[1]
                 elif command[0] == 'nick':
-                    session.nick = command[1]
+                    session.update_nick(command[1])
+                    
                 
             print "You are {} listening on channel {}".format(session.nick, session.curr_channel)
             continue

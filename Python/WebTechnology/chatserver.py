@@ -24,6 +24,15 @@ def dateobj(dct):
 def index():
     return '''This is a simple messaging program'''
 
+@app.route('/changenick', methods=["POST"])
+def change_nick():
+    msg = json.loads(request.data)
+    try:
+        session.change_nick(msg['old_nick'], msg['new_nick'])
+        return Response(status=200)
+    except KeyError:
+        return Response(status=500)
+
 @app.route('/channels/<channel>')
 def view_channel(channel):
     if channel == '0':
@@ -65,14 +74,8 @@ def send_msg():
 @app.route('/message/pull')
 def get_msg():
     req = json.loads(request.data, object_hook=dateobj)
-    
-    msgs = []
-    for m in session.sessionlog:
-        
-        if req['timestamp'] >= m['timestamp']:
-            print m
-            msgs.append(m)
-    
+    print req
+    msgs = session.retrieve_new(req['nick'], req['channel'])    
     return json.dumps(msgs, cls=DateEncoder)
                 
             
