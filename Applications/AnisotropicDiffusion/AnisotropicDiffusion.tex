@@ -116,10 +116,13 @@ This happens for a variety of reasons.
 When evaluating such a large vector expression, many temporary arrays are allocated and deallocated at each time step.
 As you can also see, there are many repeated computations.
 We do not need to calculate the differences between each point and the one next to it twice as we are doing here.
-We could also take advantage of the fact that the difference between values at each point is usually (except at the boundaries) used twice, so we could precompute the differences in each direction and use them more intelligently.
+We could also take advantage of the fact that the difference between values at each point is usually (except at the boundaries) used twice in two different terms.
+Each difference between pixels is used in the computations involving both of those pixels, once to find the right value of $g$ and once when we multiply by the value of $g$.
+To optimize these operations we could precompute the differences in each direction and use them more intelligently.
 The last issue is that, in performing these operations the way we do, we are not iterating over memory efficiently.
-To compute the value of this expression, the computer must iterate many times over different blocks of memory.
-That slows things down.
+To compute the value of this expression, the computer also must iterate many times over different blocks of memory.
+That also slows things down.
+
 Though this code is moderately fast, it is an example where NumPy operations with slicing are not quite enough.
 A partial solution would be to implement the same algorithm without using expressions that allocate temporary arrays.
 The best way to do this is with inplace operations.
