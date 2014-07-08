@@ -282,6 +282,7 @@ One possible way to do these problems is to iterate over the array and operate i
 \end{comment}
 
 \begin{problem}
+\label{prob:anisdiff_bw}
 Implement an optimized version of anisotropic diffusion for black and white images using the following boundary conditions:
 
 For the top edge let 
@@ -322,7 +323,7 @@ In your function, use
 \[g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}\]
 
 Here is a non-optimized function that performs the desired computations for a generic function $g$.
-Use it to write and test your optimized version.
+Use it to test your optimized version.
 \begin{lstlisting}
 def anisdiff_bw_withBCs(U, N, lambda_, g):
     """ Run the Anisotropic Diffusion differencing scheme
@@ -354,18 +355,18 @@ def anisdiff_bw_withBCs(U, N, lambda_, g):
 \begin{minipage}[b]{0.45\linewidth}
 \centering
 \includegraphics[width=\textwidth]{baloon_resized_color_5.jpg}
-\caption*{after 5 iterations with $\sigma = .7$ and $\lambda = .2$}
+\caption*{5 iterations with $\sigma = .7$ and $\lambda = .2$}
 \end{minipage}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
 \includegraphics[width=\textwidth]{baloon_resized_color_20.jpg}
-\caption*{after 20 iterations}
+\caption*{20 iterations}
 \end{minipage}
 \hspace{0.5cm}
 \begin{minipage}[b]{0.45\linewidth}
 \centering
 \includegraphics[width=\textwidth]{baloon_resized_color_100.jpg}
-\caption*{after 100 iterations}
+\caption*{100 iterations}
 \end{minipage}
 \end{figure}
 \vfill
@@ -383,20 +384,154 @@ U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(||U_{l-1,m}^n - U_{l,m}^n||)(U_{l-1,m}^
 					& + g(||U_{l,m+1}^n - U_{l,m}^n||)(U_{l,m+1}^n - U_{l,m}^n))
 \end{align*}
 
-When implementing this scheme for colored images, use the infinity norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
+When implementing this scheme for colored images, use the $2$-norm on 3-space, i.e $||x||=max(x1,x2,x3)$ where $x1$, $x2$, and $x3$ are the different coordinates of $x$.
+
+As before, this difference scheme can be implemented with simple slicing operations in NumPy.
+Here is a version that solves the problem with fixed boundary conditions.
+\begin{lstlisting}
+def anisdiff_color_noBCs(U, N, lambda_, sigma):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array A of grayscale values for an image.
+    Perform N iterations, use the function g = e^{-x^2 / sigma^2}
+    to limit diffusion across boundaries in the image.
+    Operate on A inplace. """
+    for i in xrange(N):
+        U[1:-1,1:-1] += lambda_ * \
+                        (np.exp((-1. / sigma**2) *
+                          ((U[:-2,1:-1] - U[1:-1,1:-1])**2).sum(axis=2, keepdims=True)) *
+                          (U[:-2,1:-1] - U[1:-1,1:-1]) +
+                         np.exp((-1. / sigma**2) *
+                          ((U[2:,1:-1] - U[1:-1,1:-1])**2).sum(axis=2, keepdims=True)) *
+                          (U[2:,1:-1] - U[1:-1,1:-1]) +
+                         np.exp((-1. / sigma**2) *
+                          ((U[1:-1,:-2] - U[1:-1,1:-1])**2).sum(axis=2, keepdims=True)) *
+                          (U[1:-1,:-2] - U[1:-1,1:-1]) +
+                         np.exp((-1. / sigma**2) *
+                          ((U[1:-1,2:] - U[1:-1,1:-1])**2).sum(axis=2, keepdims=True)) *
+                          (U[1:-1,2:] - U[1:-1,1:-1]))
+\end{lstlisting}
+
+As before, we can get much better performance using numexpr.
+This time we must account for proper array broadcasting to be able to multiply each term by the corresponding values for $g$.
+Here is how this is done in the problem with fixed boundary conditions:
+\begin{lstlisting}
+import numexpr as ne
+def anisdiff_color_noBCs_numexpr(U, N, lambda_, sigma):
+    # numexpr needs numpy float32 objects to use as a constants.
+    # Start by making them.
+    sinv = np.float32(-1. / sigma**2)
+    l32 = np.float32(lambda_)
+    # Make a copy of U to use for updates.
+    Unew = U.copy()
+    # Store the different slices we need to use.
+    North = U[:-1,1:-1]
+    South = U[1:,1:-1]
+    West = U[1:-1,:-1]
+    East = U[1:-1,1:]
+    newCenter = Unew[1:-1,1:-1]
+    # Make various temporary arrays.
+    difs = np.empty_like(U)
+    vdifs = difs[:-1,1:-1]
+    vdifs_upper = vdifs[:-1]
+    vdifs_lower = vdifs[1:]
+    hdifs = difs[1:-1,:-1]
+    hdifs_left = hdifs[:,:-1]
+    hdifs_right = hdifs[:,1:]
+    # Make an array to store the sums of the squares
+    # that come when taking the norm.
+    # Make 3D views of the arrays for use in broadcasting later.
+    sums = np.empty(U.shape[:2], dtype=U.dtype)
+    vsum = sums[:-1,1:-1]
+    vsum3D = vsum[...,None]
+    hsum = sums[1:-1,:-1]
+    hsum3D = hsum[...,None]
+    for i in xrange(N):
+        # Use numexpr to compute the values to add or subtract from each pixel
+        # corresponding to the differences between pixels in the up-down direction.
+        # First compute the repeated values.
+        ne.evaluate('South - North', out=vdifs)
+        # Now compute the 2-norm squared along the last axis.
+        # Store the output in vsum.
+        ne.evaluate('sum(vdifs**2, axis=2)', out=vsum)
+        # Now finish computing this set of terms.
+        # Use the 3D view of vsum so the multiplication broadcasts
+        # along the third dimension of vdifs.
+        ne.evaluate('l32 * exp(sinv * vsum3D) * vdifs', out=vdifs)
+        # Add these terms to the new array of values.
+        # Account for the difference between each pixel and the one above it.
+        ne.evaluate('newCenter - vdifs_upper', out=newCenter)
+        # Account for the difference between each pixel and the one below it.
+        ne.evaluate('newCenter + vdifs_lower', out=newCenter)
+        # Do the same computation for the right-left differences.
+        # First compute the repeated values.
+        ne.evaluate('East - West', out=hdifs)
+        # Now compute the 2-norm squared along the last axis.
+        # Store the output in vsum.
+        ne.evaluate('sum(hdifs**2, axis=2)', out=hsum)
+        # Now finish computing this set of terms.
+        # Use the 3D view of hsum so the multiplication broadcasts
+        # along the third dimension of hdifs.
+        ne.evaluate('l32 * exp(sinv * hsum3D) * hdifs', out=hdifs)
+        # Account for the difference between each pixel and the one to its left.
+        ne.evaluate('newCenter - hdifs_left', out=newCenter)
+        # Account for the difference between each pixel and the one to its right.
+        ne.evaluate('newCenter + hdifs_right', out=newCenter)
+        # Copy the values into the array U to update it.
+        U[:] = Unew
+\end{lstlisting}
 
 \begin{problem}
 Make a new version of the code you wrote for the previous problem which processes a colored image.
-Measure the difference between using pixels using the infinity norm.
-Do not treat the colors of each pixel separately.
+Measure the difference between using pixels using the $2$-norm.
+Use the corresponding vector versions of the boundary conditions given in Problen \ref{prob:anisdiff_bw}.
+
+To do this, you must break up the computation of the different terms so that you can compute the norm along each triple of color values and then broadcast the g values along the last axis of the array of differences.
+This can be done by taking your code from the previous problem and doing the following:
+\begin{itemize}
+
+\item Outside the loop, define a temporary array to hold the squares of the norms of the color triples.
+This should be similar to the variable \li{sums} shown in the example with fixed boundary conditions.
+
+\item Using the array you have just allocated, make slices of it to hold the norms corresponding to the horizontal and vertical differences.
+This will be like \li{hsums} and \li{vsums} in the code above.
+
+\item Make 3D views of the arrays \li{hsums} and \li{vsums}.
+There are severaly ways to do this.
+One is shown in the example above using the \li{[...,None]} syntax.
+The \li{...} says that slices that follow apply to the last axes of the array and not the first ones.
+The \li{None} tels NumPy to create an array with an extra dimension of length 1 wherever the \li{None} appears.
+We do this so that we can broadcast along the third axis of $U$ to multiply each value of $g$ across its corresponding color triple.
+
+\item Split the computation of the different terms into three pieces (as shown in the example above).
+Be sure to use \li{vsums} and \li{hsums} as the output arrays for the sum command and \li{vsums3D} and \li{hsums3D} to multiply the rest of the different terms by $g$.
+
+\end{itemize}
+
+Here is a reference implementation that you can use to verify that your optimized version is correct.
+\begin{lstlisting}
+def anisdiff_color_withBCs(A, N, lambda_, sigma):
+    """ Run the Anisotropic Diffusion differencing scheme
+    on the array A of grayscale values for an image.
+    Perform N iterations, use the function g = e^{-x^2/sigma^2}
+    to limit diffusion across boundaries in the image.
+    Operate on A inplace. """
+    sinv = -1. / sigma**2
+    difs = np.empty_like(A)
+    for i in xrange(N):
+        difs[:-1] = np.exp(sinv * np.square(A[1:] - A[:-1]).sum(axis=2, keepdims=True)) * (A[1:] - A[:-1])
+        difs[-1] = 0
+        difs[1:] += np.exp(sinv * np.square(A[:-1] - A[1:]).sum(axis=2, keepdims=True)) * (A[:-1] - A[1:])
+        difs[:,:-1] += np.exp(sinv * np.square(A[:,1:] - A[:,:-1]).sum(axis=2, keepdims=True)) * (A[:,1:] - A[:,:-1])
+        difs[:,1:] += np.exp(sinv * np.square(A[:,:-1] - A[:,1:]).sum(axis=2, keepdims=True)) * (A[:,:-1] - A[:,1:])
+        difs *= lambda_
+        A += difs
+\end{lstlisting}
 \end{problem}
 
 This sort of anisotropic diffusion can be very effective, but, depending on the image, it may also smear out edges that do not have large differences between them.
-An example of this limitation can be seen in the following image.
-The following are the original image and the filtered images after 20, and 100 iterations.
-In this case we used $\sigma = .1$ and $\lambda = .2$
+An example of this limitation can be seen in Figure \ref{fig:anisdif_smearing}
 
-\begin{figure}[ht]
+\begin{figure}
 \begin{minipage}[b]{.45\linewidth}
 \centering
 \includegraphics[width=\textwidth]{baloons_resized_bw.jpg}
@@ -408,6 +543,8 @@ In this case we used $\sigma = .1$ and $\lambda = .2$
 \includegraphics[width=\textwidth]{baloons_resized_bw_50.jpg}
 \caption*{after 50 iterations}
 \end{minipage}
+\caption{Smearing of similar colors when using an anisotropic diffusion filter.}
+\label{fig:anisdif_smearing}
 \end{figure}
 
 As we can see, after 100 iterations, some of the boundaries between similar shades of grey have smeared unevenly. You may still have to look closely to see it.
