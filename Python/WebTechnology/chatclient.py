@@ -13,7 +13,10 @@ class DateEncoder(json.JSONEncoder):
 
 def dateobj(dct):
     if 'timestamp' in dct:
-        dct['timestamp'] = parser.parse(dct['timestamp'])
+        parts = dct['timestamp'].split(".")
+        tmp = datetime.strptime(parts[0], "%Y-%m-%dT%H:%M:%S")
+        tmp.replace(microsecond=int(parts[1]))
+        dct['timestamp'] = tmp
     return dct
 
 class Session(object):
@@ -73,7 +76,7 @@ def main_loop(ip, port, nick):
                 break
             if len(command) == 2 and all(command):
                 if command[0] == 'join':
-                    session.curr_channel = command[1]
+                    session.curr_channel = int(command[1])
                 elif command[0] == 'nick':
                     session.update_nick(command[1])
                     
