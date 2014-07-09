@@ -1,12 +1,12 @@
 import itertools
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 
 class Session(object):
     def __init__(self):
         self.channels = {}
         self.register_channel(0)
         self.sessionlog = []
-        self.users = {}
+        self.users = set()
         
     def register_channel(self, n, topic=None):
         #check if channel already exists
@@ -21,6 +21,10 @@ class Session(object):
     def log_message(self, message):
         if message['content'].strip():
             self.sessionlog.append(message)
+            self.sessionlog.sort(key=lambda x: x['timestamp'])
+            
+            #update user's timestamp
+            #self.users[message['nick']] = message['timestamp']
         self.__emergency_purge__()
         
     def retrieve_new(self, nick, channel=0):
@@ -46,6 +50,7 @@ class Session(object):
         t = self.users.get(nick, None)
         if t:
             i = binary_search(t)
+            print "Starting at {}: {}".format(i, self.sessionlog[i])
             mfilter = itertools.ifilter(filter_channel, 
                                         itertools.islice(self.sessionlog, i))
             return list(mfilter)
@@ -55,13 +60,8 @@ class Session(object):
         self.users[user] = timestamp
         
     def change_nick(self, old_nick, new_nick):
-        if new_nick not in self.users:
-            if old_nick is not None:
-                self.users[new_nick] = self.users.pop(old_nick)
-            else:
-                self.users[new_nick] = None
-        else:
-            raise KeyError
+        self.users.remove(old_nick)
+        self.users.add(new_nick)
         
     def __emergency_purge__(self):
         if len(self.sessionlog) > 10000000:

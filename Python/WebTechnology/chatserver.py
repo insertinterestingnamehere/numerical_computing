@@ -37,7 +37,7 @@ def change_nick():
 def view_channel(channel):
     if channel == '0':
         print "returning all"
-        return '<br>'.join('{}: {}'.format((x['nick'], x['content']) for x in session.sessionlog))
+        return '<br>'.join(str(x) for x in session.sessionlog)
     
     channels = set([0, int(channel)])
     return '<br>'.join('{}: {}'.format((x['nick'], x['content']) for x in session.sessionlog if x['channel'] in channels))
