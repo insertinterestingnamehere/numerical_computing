@@ -3,6 +3,7 @@ app = Flask(__name__)
 
 from chatsession import Session
 import json
+import sys
 
 from datetime import datetime
 from dateutil import parser
@@ -75,11 +76,12 @@ def send_msg():
 def get_msg():
     req = json.loads(request.data, object_hook=dateobj)
     print req
-    msgs = session.retrieve_new(req['nick'], req['channel'])    
+    msgs = session.retrieve_new(req['nick'], req['timestamp'], req['channel'])    
     return json.dumps(msgs, cls=DateEncoder)
                 
             
     
 
 if __name__ == "__main__":
-    app.run(threaded=True, debug=True)
+    host, port = sys.argv[1:3]
+    app.run(host=host, port=int(port), threaded=True, debug=True)
