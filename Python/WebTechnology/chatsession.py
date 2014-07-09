@@ -27,40 +27,39 @@ class Session(object):
             #self.users[message['nick']] = message['timestamp']
         self.__emergency_purge__()
         
-    def retrieve_new(self, nick, channel=0):
-        def binary_search(timestamp):
-            '''return index of first element that is >= timestamp'''
+    def retrieve_new(self, nick, timestamp, channel):
+        def binary_search(t):
+            '''return index of first element that is >= t'''
             
-            imin, imax = 0, len(self.sessionlog)
-            while imin <= imax:
+            imin, imax = 0, len(self.sessionlog) - 1
+            while imin < imax:
                 imid = (imax+imin)//2
-                elem = self.sessionlog[imid]['timestamp']
-                if elem < timestamp:
+                print imin, imid, imax
+                if self.sessionlog[imid]['timestamp'] < t:
                     imin = imid + 1
-                elif elem > timestamp:
+                else:
                     imax = imid
-            if imin == imax and self.sessionlog[imin]['timestamp'] == timestamp:
-                return imid
+            if imin == imax and self.sessionlog[imin]['timestamp'] == t:
+                return imin
             
         def filter_channel(message):
             if message['channel'] == channel:
                 return True
             return False
-            
-        t = self.users.get(nick, None)
-        if t:
-            i = binary_search(t)
-            print "Starting at {}: {}".format(i, self.sessionlog[i])
-            mfilter = itertools.ifilter(filter_channel, 
-                                        itertools.islice(self.sessionlog, i))
-            return list(mfilter)
-        return []
+        
+        i = binary_search(timestamp)
+        mfilter = itertools.ifilter(filter_channel, 
+                                    itertools.islice(self.sessionlog, i+1))
+        return list(mfilter)
     
     def update_user(self, user, timestamp):
         self.users[user] = timestamp
         
     def change_nick(self, old_nick, new_nick):
-        self.users.remove(old_nick)
+        if new_nick in self.users:
+            raise KeyError
+        if old_nick is not None:
+            self.users.remove(old_nick)
         self.users.add(new_nick)
         
     def __emergency_purge__(self):
