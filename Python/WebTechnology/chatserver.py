@@ -6,7 +6,6 @@ import json
 import sys
 
 from datetime import datetime
-from dateutil import parser
 
 session = Session()
 
@@ -18,7 +17,10 @@ class DateEncoder(json.JSONEncoder):
 
 def dateobj(dct):
     if 'timestamp' in dct:
-        dct['timestamp'] = parser.parse(dct['timestamp'])
+        parts = dct['timestamp'].split(".")
+        tmp = datetime.strptime(parts[0], "%Y-%m-%dT%H:%M:%S")
+        tmp.replace(microsecond=int(parts[1]))
+        dct['timestamp'] = tmp
     return dct
 
 @app.route('/')
