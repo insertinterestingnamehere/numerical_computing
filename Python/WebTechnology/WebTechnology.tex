@@ -321,8 +321,8 @@ In our example, we have a client that initiates a connection and sends a message
 The server sees an incoming message and then receives it.
 The message is sent in blocks, so we need to loop until we have received all of the blocks.
 As we receive each block, we send it right back to where it came from.
-The client receives this and prints it to the console.
-We use a similar methodology to for every transfer of data over TCP.
+The client receives these returned blocks and prints them to the console.
+We use a similar pattern to for every transfer of data over TCP.
 For a few connections, the amount of work the programmer has to do is not hard.
 However, imagine trying to request a complicated web page.
 We would have to manage possibly hundreds of connections.
@@ -370,7 +370,7 @@ print r.content
 
 \begin{problem}
 You are assigned to implement a message board client.
-Your solution must be able to connect to a server on with a given IP address and any specified port.  Do not hard code the values in your client.  You should prompt for them every time the script is run.
+Your solution must be able to connect to a server with a given IP address and any specified port.  Do not hard code the values in your client.  You should prompt for them every time the script is run.
 
 The first operation that your script will need to do is connect to the server and register the nickname that your user provides.
 Nicknames must be unique to a server, meaning no two users can have the same nickname.
@@ -379,14 +379,14 @@ The next task your solution should implement is an interface whereby a user can 
 
 Your solution should be able to accept special commands that start with a double forward slash (//).
 
-You client should accept a list of commands and performed the associated action.
+You client should accept a list of commands and perform the associated action.
 \begin{table}[H]
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|l|l|p{5cm}|}
 \hline
 Command & URL & Method & Action \\
 \hline
-//join & /message/push & GET & Join switch to another \\
-//nick & /changenick & & Change the user's nickname \\
+//join & & & Join another channel \\
+//nick & /changenick & POST & Change the user's nickname \\
 //quit & & & Quit the message board \\
 //pull & /message/pull & GET & Check for new messages and display them to the user\\
 //push & /message/push & POST & Publish a new message on the message board \\
@@ -398,24 +398,43 @@ All requests to the server must be serialized JSON.
 \begin{description}
 \item[//push] Push a new message to the server.
 Each message must have the fields: timestamp, content, channel, and nick.
-The timestamp is will be used to identify when the message was sent.
+The timestamp will be used to identify when the message was sent.
 The content field will contain the body of the message.
 Channel will be the channel to which the message is sent and the nick identifies who sent the message.
+Example:
+\begin{verbatim}
+{"content": "This is a test message.",
+ "timestamp": "2014-07-09T15:15:44.331126",
+ "channel": 1,
+ "nick": "john"}
+\end{verbatim}
 \item[//pull] Pull new messages from the server.
 Each request must have the fields: channel, timestamp, and nick.
-All messages after the timestamp will be retrieved.
-Channel tells the server which channel to fetch message from.
+All messages posted after the timestamp will be retrieved.
+Channel tells the server which channel to fetch messages from.
 Nick identifies the user that is requesting the messages.
+Example:
+\begin{verbatim}
+{"timestamp": "2014-07-09T15:19:41.671257",
+ "channel": 1,
+ "nick": "john"}
+\end{verbatim}
 \item[//join] Join a new channel.  Typically, a user is only a member of one channel.  Joining a new channel will change the channel they are currently listening to.  However, you may design your client such that a user can subscribe to multiple channels.
 Only the client keep tracks of which channels the user is listening to.
 \item[//nick] Change the nickname of the user.
 Message fields are: old\_nick, new\_nick.
 Server will return OK message if updating the new nickname was successful.
 Otherwise, the update will have failed, and nothing happened.
+Example:
+\begin{verbatim}
+{"old_nick": "john",
+ "new_nick": "jack"}
+\end{verbatim}
 \end{description}
 
 Note that the server requires a timestamp for many of its transactions.
 The server will expect timestamps in ISO format.  You will need to be able to send  timestamps serialized into the ISO format.  The server will return timestamps using ISO date formatting.  You might need to be able to convert these timestamps into datetime objects.
-
+Dates in this format are of the form of \texttt{YYYY-mm-ddTHH:MM:SS.us}.
+You can parse this into a datetime object using the \li{strptime()} method of the datetime class.  Note, \li{strptime()} does not natively accept microseconds, so you will have to process the string in parts.
 \label{prob:messageboard}
 \end{problem}
