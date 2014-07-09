@@ -41,7 +41,8 @@ class Session(object):
         content = json.dumps({'channel': self.curr_channel, 'timestamp': self.lasttime, 'nick': self.nick}, cls=DateEncoder)
         r = requests.get(self.base + "/message/pull", data=content)
         
-        self.pretty_printer(x for x in json.loads(r.text, object_hook=dateobj))
+        if r.ok:
+            self.pretty_printer(x for x in json.loads(r.text, object_hook=dateobj))
     
     def push(self, message):
         self.lasttime = datetime.now()
