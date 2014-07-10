@@ -54,8 +54,8 @@ def NonlinearGrid():
 
 
 def tridiagonal_approach():
-	epsilon, alpha, beta = .05, 1., 3.
-	N = 15 # subintervals or finite elements
+	epsilon, alpha, beta = .02, 1., 3.
+	N = 5 # subintervals or finite elements
 	x = np.linspace(0,1,N+1)**(1./8) # N+1 = number of grid points
 	h = np.diff(x) # h[i] = 
 	b, f = np.zeros(N+1), np.zeros(N+1)
