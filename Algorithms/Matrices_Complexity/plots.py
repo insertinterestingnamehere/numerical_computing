@@ -5,6 +5,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import sparse
 
+def solution1():
+    runtimes = [8.95, 36.7, 144, 557]
+    inputs = [1000, 2000, 4000, 8000]
+    plt.plot(inputs, runtimes, 'go')
+    plt.savefig('prob1.pdf')
+
 def spy_sparse():
     n = 10000
     B = np.random.rand(3, n)
@@ -28,4 +34,4 @@ def complexitycurves():
 if __name__ == "__main__":
     spy_sparse()
     complexitycurves()
-    
+    solution1()
