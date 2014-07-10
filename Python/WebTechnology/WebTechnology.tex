@@ -336,8 +336,14 @@ HTTP is an application layer networking protocol.
 This means it is a higher level protocol than TCP, taking care of many of the small details of TCP for us.
 It usually relies on the underlying TCP protocol to provide networking capabilities.
 There are several methods defined for HTTP, but the two most common are GET and POST.
-GET is designed to request information from a server.
-POST is designed to request that a server accept additional data.
+GET requests are typically used to request information from a server.
+POST requests are sent to the server with the intent of modifying the state of the server.  We can send additional information with both GET and POST requests.
+
+Every HTTP request consists of two parts: a header and a body.
+The headers contain important information about the request such as the type of request, encoding, among other things.  
+We can add custom headers to any request to provide additional information.
+The body of the request contains the requested data.
+The body of a request may or may not be empty.
 
 We can setup an HTTP connection in Python as demonstrated below.
 We will encourage you to use the Requests library instead of the modules in the standard library.
@@ -356,8 +362,11 @@ print data      # very long string
 \end{lstlisting}
 We start by creating a connection to specific host.
 Then we make a request.  In this case, we use GET request.
-The host we are connected to will respond and we retrieve the response.
-We check to 
+The host we are connected to will respond and we retrieve the response. 
+We will need to check the status of the response to know if our request was processed successfully.
+A status code of $200$ means that everything went alright.
+We can now attempt to read the data of the response.
+At the end we explicitly close the connection.
 
 This exchange is greatly simplified by the Requests library
 \begin{lstlisting}
@@ -366,6 +375,24 @@ r = requests.get("http://www.youtube.com")
 r.close()
 print r.headers
 print r.content
+\end{lstlisting}
+
+Now, lets demonstrate various things we can do with HTTP requests.
+We will use a web service called HTTPBin which is very helpful in developing applications that make HTTP requests.
+When making a GET request, we can send along a list of parameters.
+These parameters should be a Python dictionary.
+\begin{lstlisting}
+>>> data = {'key1': 0, 'key2': 1}
+>>> r = requests.get("http://httpbin.org/get", params=data)
+>>> print r.content
+\end{lstlisting}
+
+When we post to a server, we have the option of sending data.
+This data can be a file object, a dictionary or a string.
+To send our data via post, we first serialize it to JSON and then send the resulting string to the request.
+\begin{lstlisting}
+>>> p = requests.post("http://httpbin.org/post", data=json.dumps(data))
+>>> print p.content
 \end{lstlisting}
 
 \begin{problem}
