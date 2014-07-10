@@ -25,19 +25,19 @@ z = sy.Symbol('z')
 The Laurent series representation provides a simple way to classify singularities in the complex plane.
 Isolated singular points can be classified as removable singular points, poles, or essential singular points.
 These definitions will also be discussed in greater detail in the text.
-Here we will show one method for visualizing complex functions around singular points.
-In Lab \ref{Lab:complex_intro} we presented surface plots as a useful method for visualizing well-behaved functions in the complex plane.
-Here we will also show how to use surface and color plots to visualize complex functions near their poles.
+Here we will show another method for visualizing complex functions.
+In Lab \ref{Lab:complex_intro} we presented color plots as a useful method functions in the complex plane. 
+Here we will also show how to use surface plots to visualize the modulous of complex functions.
 
-To make a surface plot about a singularity, we must account for the fact that the function is not going to be defined at all of the points we use in our graph.
+Now you have to take care when a surface plot is about a singularity, we must account for the fact that the function is not going to be defined at all of the points we use in our graph.
 We will also have to limit the $z$ axis on the plot to avoid creating a plot that is dominated exclusively by the extremely large and extremely small values in of the function.
 Plotting libraries like Mayavi and Matplotlib do allow thresholding of 3D plots via the use of floating point values of \li{nan}, but doing this may result in graphs having jagged edges where they have been cut.
 We can avoid the jagged edges by artificially adding a small lip of constant values to the plot as well.
 This can be done with Matplotlib as follows:
 \begin{lstlisting}
 import numpy as np
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+from mayavi import mlab
+
 mn, mx = -1, 1
 res = 400
 # Set the threshold at which to cut the 'z' values
@@ -47,7 +47,7 @@ lip = .5
 x = np.linspace(mn, mx, res)
 X, Y = np.meshgrid(x, x, copy=False)
 Z = 1 / (X + 1.0j * Y)
-Z = Z.real
+Z = np.abs(Z)
 # Set the values between threshold and
 # threshold + lip to be equal to threshold.
 # This forms a somewhat more concrete
@@ -58,121 +58,49 @@ Z[(-threshold-lip<Z)&(Z<-threshold)] = -threshold
 # Set anything that is larger to np.nan so it doesn't get plotted.
 Z[np.absolute(Z) >= threshold + lip] = np.nan
 # Now actually plot the data.
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot_surface(X, Y, Z)
-plt.show()
+mlab.mesh(X, Y, Z, color=(1,0,0))
+mlab.show()
 \end{lstlisting}
 If you run this code, you may notice that this still leaves some very jagged edges around the singularity.
 We were able to avoid some of the problems caused by the singularity.
 Much more detailed code would be needed to obtain good surface plots around a singular point.
 
-Figures \ref{fig:inv_surfaces} %and \ref{fig:inv2_surfaces} show surface plots of some relatively well-behaved singular points.
+Figures \ref{fig:inv_surfaces} show surface plots of some relatively well-behaved singular points.
 
 \begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_real_surface.png}
+\begin{subfigure}{.5\textwidth}
+\includegraphics[width=\textwidth]{absinvz.png}
 \end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_imag_surface.png}
+\begin{subfigure}{.5\textwidth}
+\includegraphics[width=\textwidth]{absinvz2.png}
 \end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_abs_surface.png}
-\end{subfigure}
-\caption{Surface plots of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
+\caption{Surface plots of the absolute value of $\frac{1}{z}$ and $\frac{1}{z^2}$ about the origin.}
 \label{fig:inv_surfaces}
 \end{figure}
 
-\begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv2_real_surface.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv2_imag_surface.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv2_abs_surface.png}
-\end{subfigure}
-\caption{Surface plots of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
-\label{fig:inv2_surfaces}
-\end{figure}
+\begin{problem}
+Write a function that takes in a function, x and y bounds and a resolution and plots the modulus of the function as a 3d plot. Remember to take in account that it may be around a singularity.
+\end{problem} 
 
+\begin{comment}
 Color plots, when used in their default form suffer from similar limitations.
 On the other hand, we can do things like taking the absolute value, then scaling the values of a function logarithmically to mitigate some of the effect that the rapid growth of the plot values has on the colors in the plot.
 We can also allow the color map used by the plotting library to repeat itself as the values of the function get larger and larger.
 This can be done by taking the sine of the values.
 Combining these things together, we obtain expressions like $\sin\left(\log\left|\text{Re}\left(Z\right)\right|\right)$.
-Figures \ref{fig:inv_color}, \ref{fig:inv4_color}, \ref{fig:exp_inv_color}, and \ref{fig:exp_inv2_color} all show color plots that have been generated using this approach.
-This is one of a variety of ways to produce color plots that represent complex valued functions.
-
-\begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_real.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_imag.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv_abs.png}
-\end{subfigure}
-\caption{Color plot representations of the real part, imaginary part, and absolute value of $\frac{1}{z}$ about the origin.}
-\label{fig:inv_color}
-\end{figure}
-
-\begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv4_real.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv4_imag.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{inv4_abs.png}
-\end{subfigure}
-\caption{Color plot representations of the real part, imaginary part, and absolute value of $\frac{1}{z^4}$ about the origin.}
-\label{fig:inv4_color}
-\end{figure}
-
-\begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv_real.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv_imag.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv_abs.png}
-\end{subfigure}
-\caption{Color plot representations of the real part, imaginary part, and absolute value of $e^{\frac{1}{z}}$ about the origin.
-This is an essential singular point.}
-\label{fig:exp_inv_color}
-\end{figure}
-
-\begin{figure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv2_real.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv2_imag.png}
-\end{subfigure}
-\begin{subfigure}{.32\textwidth}
-\includegraphics[width=\textwidth]{exp_inv2_abs.png}
-\end{subfigure}
-\caption{Color plot representations of the real part, imaginary part, and absolute value of $e^{\frac{1}{z^2}}$ about the origin.
-This is an essential singular point.}
-\label{fig:exp_inv2_color}
-\end{figure}
 
 \begin{warn}
 When generating color plots like this, you will have to check for floating point values of \li{nan} and \li{inf}.
 One easy way to get rid of them is to set those values to zero.
 \end{warn}
 
+
 \begin{problem}
 Write a function that produces color plots of $\sin\left(\log\left|f\left(z\right)\right|\right)$ for a given function $f$.
 Have it accept bounds for the interval where you want the plot generated.
 Also have an argument that tells the function whether to use the real part, imaginary part, or the absolute value of the function.
 \end{problem}
+\end{comment}
 
 \section*{Residues}
 The number $a_{-1}$ in the Laurent expansion for a function $f$ at a point $z_0$ is called the Residue of $f$ at $z_0$.
@@ -249,6 +177,7 @@ This then implies that
 Evaluating the residues at $p_0$ and $p_1$ we have
 \[\int_{-\infty}^{\infty} f(z) dz = \frac{\pi}{\sqrt{2}}\]
 
+\begin{comment}
 If a function has a singularity on the real line, we can often still evaluate the value of $\int_{-\infty}^{\infty} f(z) dz$ using a similar argument as before, but we must now indent the path along the real axis around the singularity, then, as we take the limit as our outer contour moves out toward infinity, we can let the small contour around the singularity approach the singularity.
 An example of a contour like this is shown in Figure \ref{complexint:c2}.
 It is centered at the origin with $R=2$ on the outer circle and $R=\frac{1}{2}$ on the inner circle.
@@ -265,13 +194,15 @@ Consider a function $f$ with a pole of order $1$ at $z=x_0$ with a Laurent serie
 Let $C_r$ be the upper half of a circle $\abs{z-x_0}=r$ where $r<R$ oriented in the clockwise direction, then
 \[\lim_{r\to 0} \int_{C_r} f(z) dz = - B_0 \pi i\]
 \end{theorem}
-As a consequence of this, for a function $f$ on $\mathbb{C}$ with only zeros of at most order $1$ on $\mathbb{R}$, where $A$ is the sum of the residues of $f$ on the upper half plane and $B$ is the sum of the residues of $f$ on $\mathbb{R}$,
-\[\int_{-\infty}^{\infty} f(z) dz = \pi i (B+2A)\]
+As a consequence of this, 
+\end{comment}
+We will not consider functions that have a singularity on the real line. So for a function $f$ on $\mathbb{C}$ with only zeros of at most order $1$ on $\mathbb{R}$, where $A$ is the sum of the residues of $f$ on the upper half plane,
+\[\int_{-\infty}^{\infty} f(z) dz = 2\pi i A\]
 Whenever this integral exists.
 When we can say that the integral of $f$ over the upper half of a circle centered at $0$ goes to $0$ as the radius of the circle increases and we can also say that the Cauchy principal value of the integral of $f$ over $\mathbb{R}$ exists, this formula will give us a proper numerical value for the Cauchy principal value of the integral of $f$ over $\mathbb{R}$.
 
 \begin{problem}
-Write a function that computes the sum $\pi i \left(B + 2 A\right)$ (where $B$ and $A$ are as above) for a function $f$ of the form $\frac{p}{q}$ where $p$ and $q$ are polynomials.
+Write a function that computes the sum $2\pi i A$ (where $A$ is defined as above) for a function $f$ of the form $\frac{p}{q}$ where $p$ and $q$ are polynomials.
 \end{problem}
 
 Integration techniques using residues can also be extended to integration around branch points, some types of integrals involving sines and cosines, inverse Laplace transforms, and many other difficult integration problems.
@@ -282,6 +213,7 @@ An immediate consequence of that theorem is that, for a meromorphic function $f$
 \[\int_\gamma \frac{f'\left(z\right)}{f\left(z\right)} dz = 2 \pi i \left(a - b\right)\]
 where $a$ is the number of zeros on the interior of $\gamma$ (counting multiplicities) and $b$ is the number of poles of $f$ on the interior of $\gamma$ (also counting multiplicities).
 
-This formula gives one possible way to count the number of zeros of a polynomial on the interior of a given contour.
-Write a Python function that counts the number of zeros of a polynomial on the interior of the unit circle.
+This formula gives another possible way to count the number of zeros of a polynomial on the interior of a given contour along with looking at the color plots and manually count them as taught in the previous lab.
+
+Write a Python function that counts the number of zeros of a polynomial on the interior of the unit circle then plots the color plot of the function on the unit square.
 \end{problem}
