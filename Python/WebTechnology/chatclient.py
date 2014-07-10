@@ -15,7 +15,10 @@ def dateobj(dct):
     if 'timestamp' in dct:
         parts = dct['timestamp'].split(".")
         tmp = datetime.strptime(parts[0], "%Y-%m-%dT%H:%M:%S")
-        tmp.replace(microsecond=int(parts[1]))
+        try:
+            tmp.replace(microsecond=int(parts[1]))
+        except:
+            pass
         dct['timestamp'] = tmp
     return dct
 
@@ -35,17 +38,18 @@ class Session(object):
         r = requests.post(self.base + "/changenick", data=content)
         if r.ok:
             self.nick = new_nick
+            r.close()
         else:
             new_nick = uuid1().hex
             print "Assigning random nick: ", new_nick
             self.update_nick(new_nick)
     
     def pull(self):
-        content = json.dumps({'channel': self.curr_channel, 'timestamp': self.lasttime, 'nick': self.nick}, cls=DateEncoder)
-        r = requests.get(self.base + "/message/pull", data=content)
-        
+        content = {'channel': self.curr_channel, 'timestamp': self.lasttime.isoformat(), 'nick': self.nick}
+        r = requests.get(self.base + "/message/pull", params=content)
         if r.ok:
-            self.pretty_printer(x for x in json.loads(r.text, object_hook=dateobj))
+            self.pretty_printer(x for x in json.loads(r.content, object_hook=dateobj))
+        r.close()
     
     def push(self, message):
         self.lasttime = datetime.now()
@@ -55,6 +59,7 @@ class Session(object):
                 'nick': self.nick}
         
         r = requests.post(self.base + "/message/push", data=json.dumps(msg, cls=DateEncoder))
+        r.close()
         
     def pretty_printer(self, msglist):
         for m in msglist:
@@ -79,6 +84,9 @@ def main_loop(ip, port, nick):
                     session.curr_channel = int(command[1])
                 elif command[0] == 'nick':
                     session.update_nick(command[1])
+                elif command[0] == 'pull':
+                    session.pull()
+                    continue
                     
                 
             print "You are {} listening on channel {}".format(session.nick, session.curr_channel)

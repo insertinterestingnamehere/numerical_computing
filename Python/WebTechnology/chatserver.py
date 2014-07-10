@@ -9,6 +9,15 @@ from datetime import datetime
 
 session = Session()
 
+def decode_date(date):
+    parts = date.split(".")
+    tmp = datetime.strptime(parts[0], "%Y-%m-%dT%H:%M:%S")
+    try:
+        tmp.replace(microsecond=int(parts[1]))
+    except:
+        pass
+    return tmp
+
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime):
@@ -17,10 +26,7 @@ class DateEncoder(json.JSONEncoder):
 
 def dateobj(dct):
     if 'timestamp' in dct:
-        parts = dct['timestamp'].split(".")
-        tmp = datetime.strptime(parts[0], "%Y-%m-%dT%H:%M:%S")
-        tmp.replace(microsecond=int(parts[1]))
-        dct['timestamp'] = tmp
+        dct['timestamp'] = decode_date(dct['timestamp'])
     return dct
 
 @app.route('/')
@@ -57,7 +63,7 @@ def create_channel():
 @app.route('/channel')
 def get_channels():
     r = Response(status_code=200, status="OK")
-    r.text = json.dumps(session.channels)
+    r.content = json.dumps(session.channels)
     return r
 
 @app.route('/message/push', methods=["POST"])
@@ -76,9 +82,12 @@ def send_msg():
     
 @app.route('/message/pull')
 def get_msg():
-    req = json.loads(request.data, object_hook=dateobj)
-    print req
-    msgs = session.retrieve_new(req['nick'], req['timestamp'], req['channel'])    
+    a = request.args['timestamp']
+    b = request.args['nick']
+    c = request.args['channel']
+    print "Pull Request: {}\t{}\t{}".format(a, b, c)
+    msgs = session.retrieve_new(b, decode_date(a), int(c))
+    print "Retrieved Messages ",msgs
     return json.dumps(msgs, cls=DateEncoder)
                 
             
