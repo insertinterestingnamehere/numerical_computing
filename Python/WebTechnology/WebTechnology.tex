@@ -1,0 +1,469 @@
+\lab{Python}{Web Technologies}{Web Technologies}
+\objective{Learn about serialization and markup languages.
+You will also learn how to communicate using the HTTP protocol.}
+\label{lab:webtech}
+
+Since the dawn of computing, the ability to make computers talk to each other has captivated the minds of many.
+It wasn't until the 1960s that such capabilities were explored in depth.
+Today's world would not be possible if computers didn't have the capability to network.
+The ability to send and receive rich, meaningful data is the focus of our exercises in this lab.
+
+\section*{Serialization}
+How would you store a Python list or dictionary outside of the interpreter?
+Suppose we calculated some results and stored them in a list that we wanted to send to a friend or colleague?
+However we choose to store our list, we need to be able to load it back into the Python interpreter and use it as a list.
+What if we wanted to store more complex objects?
+The process of serialization seeks to address this situation.
+Serialization is the process of storing an object and its properties in a form that can be saved or transmitted and later reconstructed back into an identical copy of the original object.
+
+\subsection*{JSON}
+JSON, pronounced ``Jason'', stands for \emph{JavaScript Object Notation}.
+This serialization method stores information about the objects as a specially formatted string.
+It is easy for both humans and machines to read and write the format.
+When JSON is deserialized, the string is parsed and the objects are recreated.
+Despite its name, it is a completely language independent format.
+JSON is built on top of two types of data structures: a collection of key/value pairs and an ordered list of values.
+These data structures are more familiarly called dictionaries and lists in Python.
+Python's standard library has a module that can read and write JSON.
+Most JSON libraries, though, have a fairly standard interface.
+If performance is critical, there are Python modules for JSON that are written in C such as ujson and simplejson.
+
+Let's begin with an example.
+\begin{lstlisting}
+>>> import json
+>>> json.dumps(range(5))
+'[0, 1, 2, 3, 4]'
+>>> json.dumps({'a': 34, 'b': 483, 'c':"Hello JSON"})
+'{"a": 34, "c": "Hello JSON", "b": 483}'
+\end{lstlisting}
+As you can see, the JSON representation of a Python list and dictionary are very similar to their respective string representations.
+You can also see that each JSON message is enclosed in a pair of curly braces.
+We can even nest multiple messages.
+\begin{lstlisting}
+>>> a = """{"car": {
+    "make": "Ford",
+    "model": "Focus",
+    "year": 2010,
+    "color": [255, 30, 30]
+        }
+    }"""
+>>> t = json.loads(a)
+>>> print t 
+{u'car': {u'color': [255, 30, 30], u'make': u'Ford', u'model': u'Focus', u'year': 2010}}}
+>>> print t['car']['color']
+[255, 30, 30]
+\end{lstlisting}
+
+Most JSON libraries support the dump[s]/load[s] interface.
+To generate a JSON message, we use \li{dump} which will accept the Python object and generate the message and write it to a file.
+\li{dumps} does the same, but just returns the string rather than writing it to a file.
+To perform the inverse operation, we use \li{load} or \li{loads} for reading from a file or string respectively.
+
+Many websites and web APIs make extensive use of JSON.
+Twitter, for example, return JSON messages for all queries.
+
+The built-in JSON encoder/decoder only has support for the basic Python data structures such as lists and dictionaries.
+Trying to serialize a set will result in an error
+\begin{lstlisting}
+>>> a = set('abcdefg')
+>>> json.dumps(a)
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+<ipython-input-4-373a2a7edfd2> in <module>()
+----> 1 json.dumps(a)
+
+/opt/anaconda/lib/python2.7/json/__init__.pyc in dumps(obj, skipkeys, ensure_ascii, check_circular, allow_nan, cls, indent, separators, encoding, default, sort_keys, **kw)
+    241         cls is None and indent is None and separators is None and
+    242         encoding == 'utf-8' and default is None and not sort_keys and not kw):
+--> 243         return _default_encoder.encode(obj)
+    244     if cls is None:
+    245         cls = JSONEncoder
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in encode(self, o)
+    205         # exceptions aren't as detailed.  The list call should be roughly
+    206         # equivalent to the PySequence_Fast that ''.join() would do.
+--> 207         chunks = self.iterencode(o, _one_shot=True)
+    208         if not isinstance(chunks, (list, tuple)):
+    209             chunks = list(chunks)
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in iterencode(self, o, _one_shot)
+    268                 self.key_separator, self.item_separator, self.sort_keys,
+    269                 self.skipkeys, _one_shot)
+--> 270         return _iterencode(o, 0)
+    271 
+    272 def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
+
+/opt/anaconda/lib/python2.7/json/encoder.pyc in default(self, o)
+    182 
+    183         """
+--> 184         raise TypeError(repr(o) + " is not JSON serializable")
+    185 
+    186     def encode(self, o):
+
+TypeError: set(['a', 'c', 'b', 'e', 'd', 'g', 'f']) is not JSON serializable
+\end{lstlisting}
+The serialization fails, because the JSON encoder doesn't know how it should represent the set as a string.
+We can extend the JSON encoder by subclassing it and adding support for sets.
+Since JSON has support for sequences and maps, one easy way would be to express the set as a map with one key that tells us the data structure type, and the other containing the data in a string.
+Now, we can encode our set.
+\begin{lstlisting}
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return {'dtype': 'set',
+                    'data': list(obj)}
+        return json.JSONEncoder.default(self, obj)
+        
+>>> s = json.dumps(a, cls=CustomEncoder)
+>>> s
+'{"dtype": "set", "data": ["a", "c", "b", "e", "d", "g", "f"]}'
+\end{lstlisting}
+However, we want a Python set back when we decode.
+JSON will happily return our dictionary, but the data will be in a list.
+How do we tell it to convert our list back into a set?
+The answer is to build a custom decoder.
+Notice that we don't need to subclass anything.
+\begin{lstlisting}
+accepted_dtypes = {'set': set}
+def custom_decoder(dct):
+    dt = accepted_dtypes.get(dct['dtype'], None)
+    if dt is not None and 'data' in dct:
+        return dt(dct['data'])
+    return dct
+
+>>> json.loads(s, object_hook=custom_decoder)
+{u'a', u'b', u'c', u'd', u'e', u'f', u'g'}
+\end{lstlisting}
+
+\begin{problem}
+Python has a module in the standard library that allows easy manipulation of times and dates.  The functionality is built around a datetime object
+
+However, datetime objects are not JSON serializable.
+Determine how best to serialize and deserialize a datetime object.
+The datetime object you serialize should be equal to the datetime object you get after deserializing.
+
+Hint: You might want to read Problem \ref{prob:messageboard} before designing your solution to this problem.
+\label{prob:datetime_json}
+\end{problem}
+
+\subsection*{XML}
+XML is another data interchange format.  It is a markup language rather than a object notation language.
+To understand XML, we need to understand what tags are.
+A tag is a special command enclosed in angled brackets (<>) that describe something about the data it encloses.
+For example, we can represent our car from above in the XML below.
+\begin{lstlisting}[language=XML]
+<car>
+    <make>Ford</make>
+    <model>Focus</model>
+    <year>2010</year>
+    <color model='rgb'>255,30,30</color>
+</car>
+\end{lstlisting}
+There are two strategies for reading XML data.
+We can read the data as a tree or as a stream.
+Since XML is a hierarchical storage format, it is very easy to build a tree of the data.
+The advantage is random access to any part of the document at any time.
+However, all of the XML must be loaded into memory to build this tree.
+Large XML files will consume huge amounts of memory if read as a tree.
+
+To alleviate the burden of loading an entire XML document into memory all at once, we can read the file sequentially.
+When streaming the XML data, we are only reading a small chunk of the file at a time.
+There is no limit to size of XML document that we can process this way as memory usage will be constant.
+However, we sacrifice the random access that the tree gives us.
+
+\subsection*{DOM}
+The DOM (Document Object Model) API allows you to work with an XML document as a tree.
+Python's XML module includes two version of DOM: \li{xml.dom} and \li{xml.minidom}.
+MiniDOM is a minimal, more simple implementation of the DOM API.
+
+The motivation behind DOM is to represent an XML as a hierarchy of elements.
+This is accomplished by building a tree of the elements as the XML tags are read from the file.
+DOM is useful when we want random access to all of the XML document.
+This requires loading the entire file into memory.
+If you have a large XML file (a couple of megabytes)
+
+DOM reads an entire XML into memory and builds a tree with the tag hierarchies on every parse.
+For large XML files, this could lead to massive memory consumption.
+The DOM tree of the car above would have \li{<car>} at the root element.
+This root element would have four children, \li{<make>}, \li{<model>}, \li{<year>}, and \li{<color>}.
+We would traverse this DOM tree just like we would any other tree structure.
+DOM trees can be searched by tag as well.
+
+\subsection*{SAX}
+SAX, Simple API for XML, is essentially an XML state machine.
+This method of reading an XML file requires that you read the XML file as the parser would.
+It is a very fast, efficient way to read an XML file.
+The main advantage of this method for reading an XML file is memory conservation.
+A SAX parser reads XML sequentially instead of all at once.
+It doesn't need to load the entire file into memory.
+
+As the SAX parser iterates through the file, it emits events at either the start or the end of tags.
+You can provide functions to handle these events.
+
+
+\subsection*{ElementTree}
+ElementTree is Python's unification of DOM and SAX into a single, high-level API for parsing and creating XML.
+ElementTree provides a SAX-like interface for reading XML files via its \li{iterparse()} method.
+This will have all the benefits of reading XML via SAX.
+In addition to stream processing the XML, it will build the DOM tree as it iterates through each line of the XML input.
+ElementTree provides a DOM-like interface for reading XML files via its \li{parse()} method.
+This will create the tag tree that DOM creates.
+
+We will demonstrate ElementTree using the following XML.
+\lstinputlisting[style=FromFile,language=XML]{contacts.xml}
+
+First, we will look at viewing an XML document as a tree similar to the DOM model described above.
+\begin{lstlisting}
+import xml.etree.ElementTree as et
+
+f = et.parse('contacts.xml')
+
+# manually traversing the tree
+# we iterate through the element directly
+# getchildren() is old and deprecated (not supported).
+root = f.getroot()
+children = list(root) # root has three children
+person0 = children[0]
+fields = list(person0) # the children elements of person0
+
+# we can search the entire tree for specific elements
+# searching for all tags equal to firstname
+for n in root.iter('firstname'):
+    print n.text
+    
+# we can also filter with multiple tags 
+# notice we use a set lookup in the conditional inside the generator expression
+fields = {'firstname', 'lastname', 'phone'}
+fi = (x for x in root.iter() if x.tag in fields)
+for n in fi:
+    print n.text
+    
+# we can even modify the document tree inplace
+# let's remove Thor
+# refer to the documentation of ElementTree for adding elements
+for n in root.findall("person"):
+    if n.find("firstname").text == 'Thor':
+        root.remove(n)
+
+# verify that Thor is really gone
+for n in root.iter('firstname'):
+    print n.text
+\end{lstlisting}
+
+Next, we will look at ElementTree's \li{iterparse()} method.
+This method is very similar to the SAX method for parsing XML.
+There is one important difference.
+ElementTree will still build the document tree in the background as it is parsing.
+We can prevent this by clearing each element by calling its \li{clear()} method when are finished processing it.
+\begin{lstlisting}
+f = et.iterparse('contacts.xml') # this is an iterator
+for event, tag in f:
+    print "{}: {}".format(tag.tag, tag.text)
+    tag.clear()
+    
+# we can get both start and end events
+# however, start events are mostly useful for looking at attributes
+# or to trigger some other action on element starts.
+# The element is not guarenteed to be complete until the end event.
+for event, tag in et.iterparse('contacts.xml', events=('start', 'end')):
+    print "{} {}<{}>: {}".format(event, tag.tag, tag.attrib, tag.text)
+\end{lstlisting}
+
+
+\section*{TCP/IP}
+The most common protocol that computers today use to communicate is TCP, Transmission Control Protocol.
+It is used in everything from checking email, uploading files, and browsing web pages.
+Being one of the core protocols of the internet protocol suite, it is often referred to as TCP/IP.
+There are four layers to the TCP/IP protocol.
+\begin{enumerate}
+\item Network Interface: This is the level of networking hardware such as routers and switches.
+\item Internet: This level contains a group of protocols that handle routing and movement of data on a network.
+\item Transport: The critical protocols that define basic high level communication between two computers.
+The two most common protocols in this layer are TCP and UDP.  TCP is by far the most widely used due to its reliability.
+UDP, however, trades reliability for low latency.
+\item Application: Software that utilize the transport protocols to move information between computers.
+This layer includes protocols important for email, file transfers, and browsing the web.
+\end{enumerate}
+
+TCP/IP has its origins in the mid 1970s.
+The TCP protocol dictates how computers connect to each, exchange bits of information called packets, and then close the connection.
+TCP/IP is very reliable, ordered, and error-checked.
+
+Python has support for communicating via TCP in the standard library.
+A short demonstration will aide our discussion.
+\lstinputlisting[style=FromFile]{tcp_server.py}
+
+\lstinputlisting[style=FromFile]{tcp_client.py}
+
+We can start understanding the code above by seeing that a TCP connection is a link between two sockets.
+Those sockets can be on the same machine (as in the case above), or different machines.
+The machines are uniquely identified by an IP address.
+The IP address used in our example is a special IP address that always refers the local machine.
+Every computer has the ip
+
+
+Let's start with defining some of the basic terms.
+Every computer on a network has an IP address.
+You can think of it as a mailing address for the computer.
+We communicate with a port on the computer via sockets on both the server and the client.
+This is analogous to a mailbox on the computer.
+There are 65535 available ports or mailboxes.
+Of those 65535 ports, about 250 are commonly used.
+In our script above, we use port 33498 to communicate.
+Ports 0 to 1023 are special reserved ports.
+For example, most web traffic flows through port 80 or 443.
+Email servers often uses ports 25, 110, 143, or 465.
+As you can see in the example code above, we create a socket on the server that we bind to the IP address and a port number.
+This socket will listen on that port for bits of network communication called packets.
+
+On the client side, we create another socket that we bind to the same port.
+After the two sockets are defined, we can create a TCP connection.
+A TCP connection is a connection between two sockets.
+In our example, we have a client that initiates a connection and sends a message.
+The server sees an incoming message and then receives it.
+The message is sent in blocks, so we need to loop until we have received all of the blocks.
+As we receive each block, we send it right back to where it came from.
+The client receives these returned blocks and prints them to the console.
+We use a similar pattern to for every transfer of data over TCP.
+For a few connections, the amount of work the programmer has to do is not hard.
+However, imagine trying to request a complicated web page.
+We would have to manage possibly hundreds of connections.
+We would naturally want to use a higher level protocol that takes care of the smaller details for us.
+
+\section*{HTTP}
+HTTP stands for Hypertext Transfer Protocol.
+The protocol is centered around a request and response paradigm.
+A client makes a request to a server and the server replies with response.
+HTTP is an application layer networking protocol.
+This means it is a higher level protocol than TCP, taking care of many of the small details of TCP for us.
+It usually relies on the underlying TCP protocol to provide networking capabilities.
+There are several methods defined for HTTP, but the two most common are GET and POST.
+GET requests are typically used to request information from a server.
+POST requests are sent to the server with the intent of modifying the state of the server.  We can send additional information with both GET and POST requests.
+
+Every HTTP request consists of two parts: a header and a body.
+The headers contain important information about the request such as the type of request, encoding, among other things.  
+We can add custom headers to any request to provide additional information.
+The body of the request contains the requested data.
+The body of a request may or may not be empty.
+
+We can setup an HTTP connection in Python as demonstrated below.
+We will encourage you to use the Requests library instead of the modules in the standard library.
+However, the code below is illustrative of the steps in making an HTTP connection
+\begin{lstlisting}
+import httplib
+conn = httplib.HTTPConnection("www.youtube.com")
+conn.request("GET", "/")
+resp = conn.getresponse()
+if resp.status == 200:
+    headers = resp.getheaders()
+    data = resp.read()
+conn.close()
+print headers
+print data      # very long string
+\end{lstlisting}
+We start by creating a connection to specific host.
+Then we make a request.  In this case, we use GET request.
+The host we are connected to will respond and we retrieve the response. 
+We will need to check the status of the response to know if our request was processed successfully.
+A status code of $200$ means that everything went alright.
+We can now attempt to read the data of the response.
+At the end we explicitly close the connection.
+
+This exchange is greatly simplified by the Requests library
+\begin{lstlisting}
+import requests
+r = requests.get("http://www.youtube.com")
+r.close()
+print r.headers
+print r.content
+\end{lstlisting}
+
+Now, lets demonstrate various things we can do with HTTP requests.
+We will use a web service called HTTPBin which is very helpful in developing applications that make HTTP requests.
+When making a GET request, we can send along a list of parameters.
+These parameters should be a Python dictionary.
+\begin{lstlisting}
+>>> data = {'key1': 0, 'key2': 1}
+>>> r = requests.get("http://httpbin.org/get", params=data)
+>>> print r.content
+\end{lstlisting}
+
+When we post to a server, we have the option of sending data.
+This data can be a file object, a dictionary or a string.
+To send our data via post, we first serialize it to JSON and then send the resulting string to the request.
+\begin{lstlisting}
+>>> p = requests.post("http://httpbin.org/post", data=json.dumps(data))
+>>> print p.content
+\end{lstlisting}
+
+\begin{problem}
+You are assigned to implement a message board client.
+Your solution must be able to connect to a server with a given IP address and any specified port.  Do not hard code the values in your client.  You should prompt for them every time the script is run.
+
+The first operation that your script will need to do is connect to the server and register the nickname that your user provides.
+Nicknames must be unique to a server, meaning no two users can have the same nickname.
+
+The next task your solution should implement is an interface whereby a user can send and receive messages to and from the server.  You may design your own user interface.
+
+Your solution should be able to accept special commands that start with a double forward slash (//).
+
+You client should accept a list of commands and perform the associated action.
+\begin{table}[H]
+\begin{tabular}{|l|l|l|p{5cm}|}
+\hline
+Command & URL & Method & Action \\
+\hline
+//join & & & Join another channel \\
+//nick & /changenick & POST & Change the user's nickname \\
+//quit & & & Quit the message board \\
+//pull & /message/pull & GET & Check for new messages and display them to the user\\
+//push & /message/push & POST & Publish a new message on the message board \\
+\hline
+\end{tabular}
+\end{table}
+All requests to the server must be serialized JSON.
+
+\begin{description}
+\item[//push] Push a new message to the server.
+Each message must have the fields: timestamp, content, channel, and nick.
+The timestamp will be used to identify when the message was sent.
+The content field will contain the body of the message.
+Channel will be the channel to which the message is sent and the nick identifies who sent the message.
+Example:
+\begin{verbatim}
+{"content": "This is a test message.",
+ "timestamp": "2014-07-09T15:15:44.331126",
+ "channel": 1,
+ "nick": "john"}
+\end{verbatim}
+\item[//pull] Pull new messages from the server.
+Each request must have the fields: channel, timestamp, and nick.
+All messages posted after the timestamp will be retrieved.
+Channel tells the server which channel to fetch messages from.
+Nick identifies the user that is requesting the messages.
+Example:
+\begin{verbatim}
+{"timestamp": "2014-07-09T15:19:41.671257",
+ "channel": 1,
+ "nick": "john"}
+\end{verbatim}
+\item[//join] Join a new channel.  Typically, a user is only a member of one channel.  Joining a new channel will change the channel they are currently listening to.  However, you may design your client such that a user can subscribe to multiple channels.
+Only the client keep tracks of which channels the user is listening to.
+\item[//nick] Change the nickname of the user.
+Message fields are: old\_nick, new\_nick.
+Server will return OK message if updating the new nickname was successful.
+Otherwise, the update will have failed, and nothing happened.
+Example:
+\begin{verbatim}
+{"old_nick": "john",
+ "new_nick": "jack"}
+\end{verbatim}
+\end{description}
+
+Note that the server requires a timestamp for many of its transactions.
+The server will expect timestamps in ISO format.  You will need to be able to send  timestamps serialized into the ISO format.  The server will return timestamps using ISO date formatting.  You might need to be able to convert these timestamps into datetime objects.
+Dates in this format are of the form of \texttt{YYYY-mm-ddTHH:MM:SS.us}.
+You can parse this into a datetime object using the \li{strptime()} method of the datetime class.  Note, \li{strptime()} does not natively accept microseconds, so you will have to process the string in parts.
+\label{prob:messageboard}
+\end{problem}
