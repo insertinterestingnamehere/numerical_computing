@@ -85,10 +85,6 @@ class Node():
         self.value = None
 \end{lstlisting}
 
-Doubly-linked nodes have two references:
-one that points to the previous node and one that points to the next node in the list.
-This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.
-
 \begin{figure}[!h]
 \centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
@@ -128,8 +124,6 @@ class Node():
         self.value = None
 \end{lstlisting}
 
-A circularly linked list is a singly or doubly-linked list where the tail points to the head as its next node and the head points to the tail as its previous.
-
 \begin{figure}[!h]
 \centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
@@ -154,34 +148,52 @@ A circularly linked list is a singly or doubly-linked list where the tail points
   \path[black!20!blue]  
      (H) edge node {}(1);
 \end{tikzpicture}
-\caption{Circularly-linked List}
+\caption{Circularly, Singly-linked List}
 \label{Circularly-linked List}
 \end{figure}
+A circularly-linked list is a linked list where the last node (the \emph{tail}) points to the first node (the \emph{head}) as its next node. 
+In a circularly, doubly-linked list, the head also points to the tail as its previous node.
 
- We begin constructing our linked list class as follows:
+We begin constructing our linked list class with a reference to the head node:
 \begin{lstlisting}
 class LinkedList():
     def __init__(self):
         self.head = None
 \end{lstlisting}
 
-Unlike arrays, which have random access, a linked list has a reference to the head node, but can must walk through each node to find later ones in the list.
-This means that to insert or delete nodes in the middle of the list, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
-Thus, nodes can be inserted or removed from either end of a linked list in constant time, independent of the size of the list, but inserting and removing in the middle takes longer as the list grows. 
-
-Linked Lists may also have a tail reference that points to the last node of the list and a counter to keep track of the size of the list.
-Keeping a counter takes memory, but that way we don't need to recount the list every time we want to know the size.
-
-
-\subsection*{Inserting and Removing}
-
-To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we have either). In this method, we include a tail reference to avoid traversing the entire list each time we wish to insert at the end.
-
+Linked Lists may also have a reference to the tail node and a counter to keep track of the size of the list.
+Including a tail reference allows us to avoid traversing the entire list each time we wish to insert at the end. 
+Similarly, though keeping a counter takes memory, without it we would have to recount the list every time we wanted to know its size.
 \begin{lstlisting}
 class LinkedList():
     def __init__(self):
         self.head = None
         self.tail = None
+        self.counter = 0
+    def size(self):
+        return self.counter
+\end{lstlisting}
+
+\subsection*{Finding, Inserting and Removing}
+Unlike arrays, which have random access, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
+\begin{lstlisting}
+    def find(self, data):
+        tempnode = self.head
+        while tempnode != self.tail:
+            if tempnode.value == data:
+                return tempnode
+            else:
+                tempnode = tempnode.next
+        if self.tail.value == data:
+             return self.tail
+        else:
+            return False
+\end{lstlisting}
+In order to insert or delete nodes found in the middle of the list, then, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
+Thus, nodes can be inserted or removed from either end of a linked list in constant time, independent of the size of the list, but inserting in and removing from the middle takes longer as the size of the list grows. 
+To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we choose to have either). 
+
+\begin{lstlisting}
     def insert(self, data):
         # Initialize a temporary node to store the desired piece of data.
         tempnode = Node()
@@ -193,17 +205,23 @@ class LinkedList():
         else:
             self.tail.next = tempnode
         # Update the existing tail node.
-        self.tail = tempnode
+        self.tail = tempnode\
+        # Increase the size counter
+        self.counter += 1
 \end{lstlisting}
 
 Removing a node involves a few additional considerations. 
 To remove a node from the middle of the list, we need to update the reference in the node before. 
 Furthermore, if we are removing a node from a doubly-linked list, we need to update the reference in the node after. 
 If we have a size counter, we also need to decrease the size counter to compensate for the removal. 
-To remove the last node in the list, we also need to update the reference to the tail, and, if it is the only node in the list, we must set the reference to the head as \li{None}.
+To remove the last node in the list, we also need to update the reference to the tail, and, if it is the \emph{only} node in the list, we must set the reference to the head to \li{None}.
 
 \begin{problem}
-Implement a singly-linked list with methods for removing and finding nodes. Implement a method such that you can remove a node from anywhere in the list. The code below provided two additional methods to supplement your \li{LinkedList} class: one to clear the list and one to represent the list as a string.
+Implement a \li{remove(self, data)} method that will take a piece of data as its argument and remove its corresponding node form anywhere in the list. 
+Be sure to update your counter and references appropriately as you compensate for all possible situations (e.g. The data corresponds to none of the nodes in your linked list, your linked list consists of a single node, etc.)
+
+The code below provides two additional methods to supplement your \li{LinkedList} class: one to clear the list and one to represent the list as a string. 
+These functions may be useful for testing your removal method.
 \begin{lstlisting}
 def clear(self):
     self.head = None
@@ -217,7 +235,8 @@ def __repr__(self):
     return string
 \end{lstlisting}
 \label{prob:LinkedLists}
-\emph{Note}: Because Python is able to keep track of the variables we use, if there is no access to them, it will automatically delete them. In our \li{clear} method, this allows us to set the reference to the head to be \li{None}, allowing Python to clean up the leftover nodes (whereas in other language this might cause serious memory leaks).
+\emph{Note}: Because Python is able to keep track of the variables we use, it will automatically delete a variable if there is no access to it. 
+In our \li{clear} method, this property allows us to set the reference to the head to be \li{None} which, in turn, allows Python to clean up the leftover nodes (in other languages, this might cause serious memory leaks).
 
 \end{problem}
 
