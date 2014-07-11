@@ -409,12 +409,8 @@ $(-\pi,\pi)$. Title each of them accordingly. Title the entire figure
 
 \section*{mayavi}
 
-Matplotlib is the preferred library for 2D plotting. We will now
-consider Mayavi for 3D plotting. It is a general scientific data
-visualizer that seeks to provide interactive visualization of 3D data.
-It provides easy integration with Python scientific libraries and
-maintains a rich user interface that allows interaction with all data
-and objects.
+Matplotlib is designed primarily for 2D plotting. It is also capable of basic 3D plots. However, even though we can create 3D plots in matplotlib, it is better to create 3D plots using a library that is designed to do so. Mayavi is primarily designed for 3D plotting, so it will be our preferred library for this purpose. Mayavi also has the benefits of easy integration with Python scientific libraries and a user interface that allows interaction with all data and objects.
+ 
 
 We encourage you to visit the formal documentation at
 \url{docs.enthought.com/mayavi/mayavi/} for more information. 
@@ -424,20 +420,30 @@ Within mayavi, we will be using the \li{mlab} API which is imported like so:
 from mayavi import mlab
 \end{lstlisting}
 
-\li{mlab} has many plotting functions including
+\li{mlab} has many plotting functions, summarized in Table \ref{fig:fancymesh}.
 
-\begin{itemize}
-\item barchart
-\item contour3d
-\item flow
-\item imshow
-\item mesh
-\item molecule
-\item plot3d
-\item points3d
-\item quiver 3d
-\item surf
-\end{itemize}
+\begin{table}
+\begin{center}
+\begin{tabular}
+{|c|l|}
+\hline
+Function & Description \\
+\hline
+\li{barchart} & Produces 3D histogram-like plots\\
+\li{contour3d} & Plots level surfaces of functions of three variables\\
+\li{flow} & Creates a trajectory of particles following the flow of a vector field\\
+\li{imshow} & Use a colormap to view a 2D array as an image\\
+\li{mesh} & Plot a surface using \li{(x,y,z)} coordinates supplied as three 2D arrays\\
+\li{plot3d} & Draws lines between points\\
+\li{points3d} & Plots glyphs (like points) at the coordinates supplied\\
+\li{quiver3d} & Generate 3D vector fields\\
+\li{surf} & Plot a surface with a 2D array as elevation data\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Some plotting functions in \li{mlab}.} 
+\label{table:mlab_functions} 
+\end{table}
 
 All these functions can be ``tested" (which provides an example figure for the function) with the command
 \begin{lstlisting}
@@ -447,12 +453,13 @@ mlab.show()
 Note that pressing tab after typing \li{mlab.test_} will provide a 
 list of available commands, and that like matplotlib, we need to use the \li{show()} command to actually view our plot. 
 
-To test the fancy mesh, type the following command
+For example, to test the \li{fancy_mesh} function, type the following:
 \begin{lstlisting}
 mlab.test_fancy_mesh()
+mlab.show()
 \end{lstlisting}
 
-The result should resemble Figure \ref{fig:fancymesh}
+The result should resemble Figure \ref{fig:fancymesh}.
 
 \begin{figure} 
 \includegraphics[width=\textwidth]{fancymesh.png}
@@ -467,19 +474,21 @@ In this lab, we will focus our attention on introducing the \li{surf}, \li{mesh}
 
 \subsection*{3D Plotting} Similar to matplotlib, \li{mlab} takes a set
 of data points and plots it. Instead of passing just \li{x} and \li{y}
-coordinates like we did in matplotlib, we will also send \li{z}
+coordinates as we did in matplotlib, we also send \li{z}
 coordinates to produce a 3D plot. 
 
+\begin{comment}
 \subsection*{surf}
 The \li{surf} function is great for simple structures like orthogonal grids 
 because it will create efficient data structures. 
 It is common to use 2D arrays returned by \li{np.meshgrid}. 
 
 For more complex structures, the \li{mesh} function is more appropriate. 
+\end{comment}
 
 \subsection*{mesh}
 \li{mesh} plots a surface using grid-spaced data. 
-It expects three 2D numpy arrays (i.e., a grid of $(x,y,z)$ coordinates). As with pcolormesh in matplotlib, it is important that 
+It expects three 2D numpy arrays (i.e., a grid of \li{(x,y,z)} coordinates). As with pcolormesh in matplotlib, it is important that 
 all the given arrays have the same shape. 
 
 \subsection*{plot3d}
@@ -497,6 +506,7 @@ x = np.cos(pts) * (1 + np.cos(pts*6))
 y = np.sin(pts) * (1 + np.cos(pts*6))
 z = np.sin(pts*6/11)
 mlab.plot3d(x, y, z)
+mlab.show()
 \end{lstlisting}
 This will produce Figure \ref{fig:plot3d}
 \begin{figure} 
@@ -508,9 +518,9 @@ This will produce Figure \ref{fig:plot3d}
 
 \subsection*{points3d}
 \li{points3d} is similar to \li{plot3d}, except that it plots glyphs (the three-dimensional analogue of points) at the 
-positions of the supplied data, and does not connect them as \li{plot3d} does. It takes the same arguments, three 2D numpy arrays that form a grid of $(x,y,z)$ coordinates. This time we 
-will also use a keyword argument, \li{s}, which provides an associated scalar 
-value for each point given. This modifies the size and color of the glyphs. 
+positions of the supplied data, and does not connect them as \li{plot3d} does. It takes the same arguments, three 1D numpy arrays that form a line given by a list of \li{(x,y,z)} coordinates.
+For this example, we will also use a keyword argument, \li{s}, which provides an associated scalar 
+value for each point given. This modifies the size and color of the glyphs. We also use a scale factor to adjust the size of the points so that all of them are visible.
 
 The following illustrates a simple heart - given the right perspective. 
 \begin{lstlisting}
@@ -519,8 +529,8 @@ x = np.sin(2 * pts)
 y = np.cos(pts)
 z = np.cos(2 * pts)
 s = 2+np.sin(pts)
-mlab.points3d(x, y, z, s, colormap="cool", scale_factor=.15)
-mlab.savefig("testpoints3d.png", size=(1024,768))
+mlab.points3d(x, y, z, s, scale_factor=.15)
+mlab.show()
 \end{lstlisting}
 This will produce Figure \ref{fig:points3d}
 
@@ -587,7 +597,7 @@ do the following.
 \begin{itemize}
 \item Reshape the data to be 3601x3601.
 \item Cast the data type as \li{float32}. 
-\item Slice the data to take the first 1000 rows and columns 900-1900.
+\item Slice the data, taking the first 1000 rows and columns 900-1900.
 \item There is some missing data, so set the minimum of your data equal to the minimum of the the positive data points. 
 \item Preset the figure using the following commands: \li{mlab.figure(size=(400,320)}, \li{bgcolor = (.16, .28, .46))}
 \item Now plot with \li{mlab.surf}, using the colormap \li{gist_earth}, with a \li{warp_scale=.2}, \li{vmin=1200}, and \li{vmax=1610}.
