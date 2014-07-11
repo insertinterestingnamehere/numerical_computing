@@ -2,9 +2,9 @@
 \label{lab:Python_DataStructures}
 \objective{Empower students with basic knowledge of the fundamental, canonical data structures in order to understand performance and runtime characteristics.}
 
-Both storing and retrieving data take time. As the size of our data set grows, 
-so too does the time it takes to manipulate it -- be that growth logarithmic, 
-linear, exponential, or factorial. The overhead associated with working with large 
+Both storing and retrieving data take time. As the size of a data set grows, 
+the time it takes to manipulate the set also grows accordingly (be that growth logarithmic, 
+linear, exponential, or factorial). The overhead associated with working with large 
 data sets makes it crucial that we have a fundamental knowledge of the data 
 structures used to store them. As we understand the characteristics of such data 
 structures, we will be able to choose the data structure that will help us to most 
@@ -19,19 +19,19 @@ however, these primitive types can quickly become unwieldy for storing large
 amounts of information.
 Imagine having a different name for every piece of data you use!
 Luckily, we can create more natural ways to store data by using primitive data 
-types, along with arrays, as our building blocks. In Object Oriented Progamming, 
+types, along with arrays, as our building blocks. In object oriented progamming, 
 for example, we often use these ``building blocks'' to create the various classes
 we require.
 More complex data structures are called \emph{abstract data types}.
 Python possesses a couple of the more common abstract data types, including 
 dictionaries, sets, and lists.
-However, the performance of all of the abstract data types slows down as the 
+However, the performance of each abstract data types slows down as the 
 size of the data structure increases. 
 
 Most abstract data types use an object called a \emph{node} to store data.
 A node essentially acts as a box in which we store an arbitrary piece of data.
-Nodes can store absolutely anything, and what they contain will depend on the 
-data structure and what data is being stored.
+Nodes can store absolutely anything; what they contain both depends on the 
+data structure itself and data that is actually being stored.
 A good way to understand an abstract data structure is to think of it like the 
 postal delivery system. We start by inserting an item into the postal system.  
 (Because the data stored in a node is arbitrary, our item can be anything.)
@@ -47,22 +47,127 @@ Thus, nodes allow us to abstract the data structure from the kind of data we sto
 Nodes allow us to generalize the functionality of a data structure.
 
 \section*{Linked Lists}
-\emph{Linked lists} are one of the most common and basic data structures.
-A linked list is a list of nodes that are linked together.
-There are several ways we can link nodes together.
-The three most common types of linked lists are singly-linked, doubly-linked, and circularly-linked.
-Singly-linked nodes store only a single reference that points to the next node in the list.
+\emph{Linked lists} are one of the most fundamental of the basic data 
+structures. A linked list, in essence, is simply a list of nodes that
+are linked together. There are three common types of linked lists: 
+singly-linked, \ref{Singly-linked List}; doubly-linked, \ref{Doubly-linked List}; and circularly-linked, \ref{Circularly-linked List}.
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
+  thick,main node/.style={rectangle,draw}, minimum size=.5cm]
+\tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
+  \node[main node] (1) {B};
+  \node[main node] (2) [right of=1] {F};
+  \node[main node] (3) [right of=2] {G};
+  \node[main node] (4) [right of=3] {C};
+  \node[draw = none, black!20!blue, node distance=1.5cm] [above left of=1](H) {Head};
+  \node[rect node][right of=1, node distance = .36cm]{};
+  \node[rect node][right of=2, node distance = .36cm]{};
+  \node[rect node][right of=3, node distance = .36cm]{};
+  \node[rect node](5)[right of=4, node distance = .36cm]{};
+  \node[draw = none, node distance = 1.5cm] [right of=4]{};  % Centralize this particular figure  
+\foreach \s/\t  in {1/2, 2/3, 3/4}{
+	\path[draw](\s) edge[shorten <=.1cm](\t);}    
+
+  \draw[black!20!blue] (H) edge (1.north);  
+\end{tikzpicture}
+\caption{Singly-linked List}
+\label{Singly-linked List}
+\end{figure}
+
+A singly-linked node stores a piece of data (its value), and a single reference that points to the next node in the list. We implement a singly-linked node class as follows:
+
+\begin{lstlisting}
+class Node():
+    def __init__(self):
+        self.next = None
+        self.value = None
+\end{lstlisting}
+
 Doubly-linked nodes have two references:
 one that points to the previous node and one that points to the next node in the list.
 This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.
+
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
+  thick,main node/.style={rectangle,draw}, minimum size=.5cm]
+\tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.9cm}}
+  \node[main node] (1) {B};
+  \node[main node] (2) [right of=1] {F};
+  \node[main node] (3) [right of=2] {G};
+  \node[main node] (4) [right of=3] {C};
+  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};
+  \node[draw = none, black!20!blue, node distance = 1.5cm] [above left of=1] (H) {Head};
+  \node[rect node](1.5)[]{};
+  \node[rect node](2.5)[right of=1.5]{};
+  \node[rect node](3.5)[right of=2.5]{};
+  \node[rect node](4.5)[right of=3.5]{};
+
+\foreach \s/\t  in {1/2, 2/3, 2/1, 3/2, 3/4, 4/3}{
+	\path[draw](\s) edge[shorten <=.1cm, shorten >=.1cm](\t);}
+	
+    
+  \draw[black!20!blue] (H) edge (1.north);
+  \draw[black!20!blue] (T) edge (4.north);
+\end{tikzpicture}
+\caption{Doubly-linked List}
+\label{Doubly-linked List}
+\end{figure}
+
+Doubly-linked nodes have two references:
+one that points to the previous node and one that points to the next node in the list.
+This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction. We modify our node, then, to allow for a reference to the previous node.
+
+\begin{lstlisting}
+class Node():
+    def __init__(self):
+        self.next = None
+        self.previous = None
+        self.value = None
+\end{lstlisting}
+
 A circularly linked list is a singly or doubly-linked list where the tail points to the head as its next node and the head points to the tail as its previous.
 
-%TODO: pictures
+\begin{figure}[!h]
+\centering
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
+  thick,main node/.style={rectangle,draw}, minimum size=.5cm]
+\tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
+ 
+   \node[main node] (1) {B};
+  \node[main node] (2) [right of=1] {F};
+  \node[main node] (3) [right of=2] {G};
+  \node[main node] (4) [right of=3] {C};
+  \node[](H) [above of=1, node distance = 1.5cm, color = black!20!blue] {Head}; 
+  \node[rect node][right of=1, node distance = .36cm]{};
+  \node[rect node][right of=2, node distance = .36cm]{};
+  \node[rect node][right of=3, node distance = .36cm]{};
+  \node[rect node](5)[right of=4, node distance = .36cm]{};
 
-Unlike arrays, which have random access, a
-linked list has a reference to where the head is, but can only walk through each node to find later ones in the list.
+\foreach \s/\t  in {1/2, 2/3, 3/4}{
+	\path[draw](\s) edge[shorten <=.1cm](\t);}
+
+ \path[draw] (5.east) edge[out=60, in=30] node[right] {} (1.north);
+   
+  \path[black!20!blue]  
+     (H) edge node {}(1);
+\end{tikzpicture}
+\caption{Circularly-linked List}
+\label{Circularly-linked List}
+\end{figure}
+
+ We begin constructing our linked list class as follows:
+\begin{lstlisting}
+class LinkedList():
+    def __init__(self):
+        self.head = None
+\end{lstlisting}
+
+Unlike arrays, which have random access, a linked list has a reference to the head node, but can must walk through each node to find later ones in the list.
 This means that to insert or delete nodes in the middle of the list, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
-Thus nodes can be inserted or removed from either end of a linked list in constant time, independent of the size of the list, but inserting and removing in the middle takes longer as the list grows.
+Thus, nodes can be inserted or removed from either end of a linked list in constant time, independent of the size of the list, but inserting and removing in the middle takes longer as the list grows. 
 
 Linked Lists may also have a tail reference that points to the last node of the list and a counter to keep track of the size of the list.
 Keeping a counter takes memory, but that way we don't need to recount the list every time we want to know the size.
@@ -70,47 +175,51 @@ Keeping a counter takes memory, but that way we don't need to recount the list e
 
 \subsection*{Inserting and Removing}
 
-To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we have either).
+To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we have either). In this method, we include a tail reference to avoid traversing the entire list each time we wish to insert at the end.
 
-To remove a node, since it is in the middle of the list, we need to update the reference in the node before, the reference in the node after (if it is a doubly-linked list), and decrease the size counter (if we have one).
-If we are removing the last node in the list, we also need to update the reference to the tail, and if it is the only node in the list we need to set the reference to the head as \li{None}.
+\begin{lstlisting}
+class LinkedList():
+    def __init__(self):
+        self.head = None
+        self.tail = None
+    def insert(self, data):
+        # Initialize a temporary node to store the desired piece of data.
+        tempnode = Node()
+        tempnode.value = data
+        # If the linked list is empty, set the inserted piece of data as the 
+        # head node.
+        if self.head == None:
+            self.head = tempnode
+        else:
+            self.tail.next = tempnode
+        # Update the existing tail node.
+        self.tail = tempnode
+\end{lstlisting}
 
+Removing a node involves a few additional considerations. 
+To remove a node from the middle of the list, we need to update the reference in the node before. 
+Furthermore, if we are removing a node from a doubly-linked list, we need to update the reference in the node after. 
+If we have a size counter, we also need to decrease the size counter to compensate for the removal. 
+To remove the last node in the list, we also need to update the reference to the tail, and, if it is the only node in the list, we must set the reference to the head as \li{None}.
 
 \begin{problem}
-Implement a singly-linked list with methods for inserting, removing, and finding nodes. Insert nodes at the end of the list, but implement a method such that you can remove a node from anywhere in the list. The code below gives a structure for the class as well as methods for clearing the list and representing the list as a string.
+Implement a singly-linked list with methods for removing and finding nodes. Implement a method such that you can remove a node from anywhere in the list. The code below provided two additional methods to supplement your \li{LinkedList} class: one to clear the list and one to represent the list as a string.
 \begin{lstlisting}
-class Node():
-    def __init__(self):
-        self.right=None
-        self.value=None
-class Linkedlist():
-    def __init__(self):
-        self.head=None
-    def insert(self,data):
-        pass
-    def remove(self,data):
-        pass
-    def find(self,data):
-        pass
-    def clear(self):
-        self.head=None
-    def __repr__(self):
-        temp=self.head
-        string='['
-        while temp!=None:
-            string+=str(temp.val)+','
-            temp=temp.right
-        string+=']'
-        return string
+def clear(self):
+    self.head = None
+def __repr__(self):
+    temp = self.head
+    string = '['
+    while temp != None:
+        string += str(temp.value) + ','
+        temp = temp.right
+    string += ']'
+    return string
 \end{lstlisting}
 \label{prob:LinkedLists}
-\end{problem}
+\emph{Note}: Because Python is able to keep track of the variables we use, if there is no access to them, it will automatically delete them. In our \li{clear} method, this allows us to set the reference to the head to be \li{None}, allowing Python to clean up the leftover nodes (whereas in other language this might cause serious memory leaks).
 
-If you are familiar with other coding languages, you might be a bit worried about the \li{clear} method.
-You would think that setting the reference to the head to \li{None} would cause us to lose all access to all the nodes in the list without being able to delete them!
-In other languages, this would indeed cause serious memory leaks.
-However, Python is able to keep track of which variables are being used, and if there is no access to them, it automatically deletes them.
-This allows us to set the reference to the head to be None and let Python clean up the leftover nodes.
+\end{problem}
 
 \section*{Stacks, Queues, and Deques}
 \emph{Stacks}, \emph{queues} (pronounced `cue'), and \emph{deques} (pronounced `deck') can be thought of as types of linked lists where access is restricted. Rather than accessing data anywhere in the list, we only add and remove from certain sides.
