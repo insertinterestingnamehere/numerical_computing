@@ -2,6 +2,7 @@ from __future__ import division
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import legend
 from scipy.optimize import fsolve
 
 from solution import wave_1d, math_animation
@@ -155,16 +156,26 @@ def Burgers():
 		print j
 	
 	view = [-L,L,u_p-1,u_m+1]
-	# Data = wave_1d(f,g,L,N_x,T,N_t,view)
 	stride = 1
 	Data = x, U[::stride,:], wave
 	time_steps, wait = int(time_steps/stride), 30
 	
 	math_animation(Data,time_steps,view,wait)
+	
+	# plt.plot(x,wave,'-k',linewidth=2.,label=r'$\hat{u}$')
+	# plt.plot(x,wave+perturb,'-r',linewidth=2.,label=r'$v$')
+	# plt.axis([-20,20,0,6])
+	# # lg = legend.Legend()
+	# # lg.draw_frame(False)
+	# plt.legend(loc='best',fontsize=20)
+	# # plt.legend.draw_frame(False)
+	# plt.savefig('Perturbed Wave.pdf')
+	# plt.show()
+	
 	return
 
 
-Burgers()
+
 # To create the movie, run ffmpeg -r 12 -i burgers%03d.png -r 25 -qscale 1 movie_burgers.mpg
 # from the command line
 # ffmpeg -r 9 -i wave%03d.png -r 25 -qscale 1 out.mpg
@@ -173,4 +184,6 @@ Burgers()
 # example2()
 # example3()
 # example4()
-example5()
+# example5()
+
+Burgers()

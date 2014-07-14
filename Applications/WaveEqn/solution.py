@@ -3,10 +3,12 @@ import numpy as np
 from matplotlib import animation, rcParams
 from matplotlib import pyplot as plt
 from matplotlib.artist import setp
-plt.switch_backend('GTKagg')#('tkagg')
+plt.switch_backend('tkagg')
 rcParams['figure.figsize'] = 12, 8.5
 from matplotlib.pyplot import Line2D
-
+# plt.switch_backend('GTKagg')#('tkagg')
+# rcParams['figure.figsize'] = 12, 8.5
+# from matplotlib.pyplot import Line2D
 
 
 def wave_1d(f,g,L,N_x,T,N_t,view):

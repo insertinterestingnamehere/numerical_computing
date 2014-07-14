@@ -102,7 +102,7 @@ or if $f$ is not readily differentiable,
 U_{j}^{1}= U_{j}^{0} + g(x_j) \triangle t+ \frac{\lambda^2}{2} (f(x_{j+1}) -2 f(x_{j}) + f(x_{j-1})).
 % \end{align*}
 \]
-For this method to be stable, we must have $\lambda \leq 1$.
+This method is conditionally stable; the CFL condition is that $\lambda \leq 1$.
 
 
 
@@ -232,25 +232,50 @@ Usually at this point, the travelling wave must be numerically solved using the 
 \[u(x) = s - a \tanh \left(\frac{ax }{2\nu} + \delta\right),\]
 where $a = (u_- - u_+)/2$ and $\delta$ is fixed real number. We get a family of solutions because any translation of a travelling wave solution is also a travelling wave solution. 
 
-\subsection*{Numerically demonstrating stability of the travelling wave}
-We will discretize the PDE
+\subsection*{Stability of travelling waves}
+Suppose that an evolutionary PDE 
+\begin{align}
+u_t = G(u,u_x, u_{xx}, \ldots). \label{evol_pde_repeat}
+\end{align} 
+has a travelling wave solution $u(x,t) = \hat{u}(x-st)$.  An interesting question to consider is whether the mathematical solution, $\hat{u}$, has a physical analogue.  In other words, does the travelling wave show up in real life? This question is the start of the mathematical study of stability of travelling waves. 
+
+We begin by translating \eqref{evol_pde_repeat} into the moving frame $(x,t) \to (\bar{x},\bar{t}) = (x-st, t)$. In this frame the PDE becomes 
+\begin{align*}
+u_t - su_x = G(u,u_x, u_{xx}, \ldots). %\label{evol_pde_stationary}
+\end{align*}
+In these coordinates the travelling wave is stationary. Thus, the solution of 
+\begin{align*}
+\begin{split}
+u_t - su_x &= G(u,u_x, u_{xx}, \ldots), \\ %\label{evol_pde_stationary}
+u(x,t = 0) &= \hat{u}(x), 
+\end{split}
+\end{align*}
+is given by $u(x,t) = \hat{u}(x)$.  We say that the travelling wave $\hat{u}$ is asymptotically orbitally stable 
+if whenever $v(x)$ is a small perturbation of $\hat{u}(x)$, the general solution of 
+\begin{align*}
+\begin{split}
+u_t - su_x &= G(u,u_x, u_{xx}, \ldots), \\ %\label{evol_pde_stationary}
+u(x,t = 0) &= v(x), 
+\end{split}
+\end{align*}
+converges to some translation of $\hat{u}$ as $t \to \infty$.  Using this definition to prove stability of a travelling wave is a nontrivial task. 
+
+\subsection*{Visualizing stability of the travelling wave solution of Burgers}
+The travelling wave solution of Burgers equation is a stable wave. To view this numerically, we discretize the PDE
 \[u_t -su_x + uu_x = u_{xx}\]
 using the second order centered approximations
-
 % \begin{align*}
 % &{ } u_t(x_j,t_{n+1/2}) \approx \frac{u_j^{n+1}-u_j^n}{\triangle t}, \quad 
 % u_x(x_j,t_{n+1/2}) \approx \frac{1}{2} \left( \frac{u_{j+1}^{n+1}-u_{j-1}^{n+1}}{2 \triangle x} +  \frac{u_{j+1}^{n}-u_{j-1}^{n}}{2 \triangle x}\right) ,\\
 % &{ } u_{xx}(x_j,t_{n+1/2}) \approx \frac{1}{2} \left( \frac{u_{j+1}^{n+1}- u_{j}^{n+1}+u_{j-1}^{n+1}}{(\triangle x)^2} + \frac{u_{j+1}^{n}- u_{j}^{n}+u_{j}^{n+1}}{(\triangle x)^2}\right).
 % \end{align*}
-
-
 \begin{align*}
 &{ } D_t U_j^{n+1/2} = \frac{U_j^{n+1}-U_j^n}{\triangle t}, \quad 
 D_{xx}U_j^{n+1/2} = \frac{1}{2} \left( \frac{U_{j+1}^{n+1}-U_{j-1}^{n+1}}{2 \triangle x} +  \frac{U_{j+1}^{n}-U_{j-1}^{n}}{2 \triangle x}\right) ,\\
 &{ } D_{xx}U_j^{n+1/2} = \frac{1}{2} \left( \frac{U_{j+1}^{n+1}- U_{j}^{n+1}+U_{j-1}^{n+1}}{(\triangle x)^2} + \frac{U_{j+1}^{n}- U_{j}^{n}+U_{j-1}^{n}}{(\triangle x)^2}\right).
 \end{align*}
 
-Substituting these expressions into the PDE we obtain the second-order, implicit Crank-Nicolson method
+Substituting these expressions into the PDE we obtain a second-order, implicit Crank-Nicolson method
 % \begin{align*}
 % &{ }u_j^{n+1} + k_1 (u_j^{n+1}-s)(u_{j+1}^{n+1} - u_{j-1}^{n+1}) 
 % - k_2(u_{j+1}^{n+1} - 2u_j^{n+1}+ u_{j-1}^{n+1}) = \\
@@ -267,8 +292,18 @@ U_j^{n+1} - U_j^n &= K_1 \big[(s - U_j^{n+1})(U_{j+1}^{n+1} - U_{j-1}^{n+1})
 where $K_1 = \frac{ \triangle t }{4 \triangle x}$ and 
 $K_2 = \frac{ \triangle t}{2(\triangle x)^2}$.
 
-
-
+\begin{problem}
+	Numerically solve the initial value problem
+	\begin{align*}
+		&{ } u_t -su_x + uu_x = u_{xx}, \quad x \in (-\infty,\infty),\\
+		&{ } u(x,0) = v(x),
+	\end{align*}
+	for $t \in [0,1].$ Let the perturbation $v(x)$ be given by 
+	\[
+	v(x) = \hat{u}(x) + 3.5(\sin{(3x)} + 1)\frac{1}{\sqrt{2\pi}} \exp{(-x^2/2)}
+	.\]
+	Approximate the $x$ domain,$(-\infty, \infty)$, numerically by the finite interval $[-20,20]$, and fix $u(-20) = u_-$, $u(20) = u_+$. Let $u_- = 5$, $u_+ = 1$.  Animate your results.  You should see the solution converge to a translate of the travelling wave $\hat{u}$.
+\end{problem}
 
 
 
