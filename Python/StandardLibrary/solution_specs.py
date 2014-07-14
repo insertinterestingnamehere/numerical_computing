@@ -65,7 +65,7 @@ def rotate_list(L):
 
 # Problem 8
 def HungerSim(events, likelihoods, tributes):
-    # Parameters are
+    # Parameters are:
     #   events - list of events from Problem 1.
     #   likelihoods - the list of random numbers from Problem 5.
     #   tributes - the list of tributes from Problem 6.
