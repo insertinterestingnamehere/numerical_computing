@@ -11,7 +11,7 @@ def arr_mult(A,B):
             # Initialize an empty total.
             tot = 0
             # Multiply the elements of the row of A with 
-            # the column of B, then sum the products.
+            # the column of B and sum the products.
             for k in range(len(B)):
                 tot += A[i][k] * B[k][j]
             # Insert the value into the new row of the product. 
