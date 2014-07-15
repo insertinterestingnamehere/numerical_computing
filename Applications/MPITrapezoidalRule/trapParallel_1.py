@@ -64,4 +64,4 @@ else:
         COMM.Recv(communication_buffer, MPI.ANY_SOURCE)
         total += communication_buffer[0]
     
-    print "With {n} trapezoids, the estimate of the integral of x^2 from {a} to {b} is: \n\t{total}".format(**locals())
+    print "With {0} trapezoids, the estimate of the integral of x^2 from {1} to {2} is: \n\t{3}".format(n, a, b, total)
