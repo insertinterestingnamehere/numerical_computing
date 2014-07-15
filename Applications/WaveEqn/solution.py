@@ -1,10 +1,14 @@
 from __future__ import division
 import numpy as np
-from matplotlib import animation
+from matplotlib import animation, rcParams
 from matplotlib import pyplot as plt
 from matplotlib.artist import setp
 plt.switch_backend('tkagg')
-
+rcParams['figure.figsize'] = 12, 8.5
+from matplotlib.pyplot import Line2D
+# plt.switch_backend('GTKagg')#('tkagg')
+# rcParams['figure.figsize'] = 12, 8.5
+# from matplotlib.pyplot import Line2D
 
 
 def wave_1d(f,g,L,N_x,T,N_t,view):
@@ -42,27 +46,34 @@ def wave_1d(f,g,L,N_x,T,N_t,view):
 
 a = 0
 def math_animation(Data,time_steps,view,wait):
-	X,Array = Data
+	X,Array,Constant = Data
 	
 	fig = plt.figure()
 	ax = plt.axes(xlim=tuple(view[0:2]), ylim=tuple(view[2:]) )
-	line, = ax.plot([], [], lw=2)
-	
+	line, = ax.plot([], [], lw=2,c='k')
+	lines = [line]
+	lines.append(ax.plot([], [], lw=2,c='r')[0])
 	def initialize_background():
-		line.set_data([], [])
-		return line,
+		if Constant==None: 
+			lines[0].set_data([], [])
+		else: 
+			lines[0].set_data(X, Constant)
+			# line.set_data([], [])
+			# line += ax.plot(X, Constant, '-', c='k')
+			
+		return lines
 	
 	def animate_function(i):
 		global a
 		if a<time_steps:
-			line.set_data(X, Array[i,:])
-			setp(line, linewidth=2, color='r')
-			# line = Line2D(X, Array[:,i], color='red', linewidth=2)
+			lines[1].set_data(X, Array[i,:])
+			setp(lines[1], linewidth=2, color='r')
 		else:
-			line.set_data(X, Array[-1,:])
+			lines[1].set_data(X, Array[-1,:])
+			
 		a+=1
 		
-		return line
+		return lines
 	
 	
 	
@@ -74,3 +85,7 @@ def math_animation(Data,time_steps,view,wait):
 	
 	plt.show()
 	return 
+
+
+
+
