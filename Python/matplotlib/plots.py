@@ -47,7 +47,7 @@ def sinxsiny():
     C = np.sin(X) * np.sin(Y) 
     
     
-    plt.pcolormesh(X, Y, C)
+    plt.pcolormesh(X, Y, C, edgecolors='face', shading='flat')
     plt.savefig("sinxsiny.png", size=png_size)
     plt.clf()
     
@@ -58,7 +58,7 @@ def pcolor2():
     X = R + complex(0,1)*I
     f = np.poly1d([1, 2, -1, 3])
     Y = np.absolute(f(X))
-    plt.pcolormesh(R, I, Y)
+    plt.pcolormesh(R, I, Y, edgecolors='face', shading='flat')
     plt.savefig('pcolor2.png', size=png_size)
     plt.clf()
 
