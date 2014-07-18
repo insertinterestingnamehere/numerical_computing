@@ -105,8 +105,9 @@ Another way to derive the upwind method is to instead suppose that what we want 
 \[ \tilde{u}^n(x) = U_i^n \text{ for }x \in (x_{i-1/2},x_{i+1/2}). \]
 This leads to fluxes given by 
 \begin{align}
-F_{i-1/2}^n &= \frac{a}{\triangle t}\int_{t_n}^{t_{n+1}} \tilde{u}(x_{i-1/2}- a (t-t_n)),t)\, dt , \\
-&= \frac{a}{\triangle t}\int_{t_n}^{t_{n+1}} U_{i-1}^n\, dt ,\nonumber\\
+F_{i-1/2}^n &= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2},t)\, dt , \\
+&= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2}-at)\, dt  ,\\
+% &= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2},t)\, dt ,\\
 &= aU_{i-1}^n.\nonumber
 \end{align}
 
@@ -123,10 +124,10 @@ Another way to derive the upwind method is to instead suppose that what we want 
 \begin{gather*}
 \tilde{u}^n(x) = U^n_i \mbox{ for } x \in (x_{i-1/2},x_{i+1/2}).
 \end{gather*}
-This leads to fluxes given by
-\begin{gather}
-F_{i-1/2}^n = \frac{a}{\Delta t} \int_{t_n}^{t_{n+1}}\tilde{u}(x_{i-1/2}-a(t-t_n),t)dt = \frac{a}{\Delta t} \int_{t_n}^{t_{n+1}}U_i^n dt = aU_i^n.
-\end{gather}
+% This leads to fluxes given by
+% \begin{gather}
+% F_{i-1/2}^n = \frac{a}{\Delta t} \int_{t_n}^{t_{n+1}}\tilde{u}(x_{i-1/2}-a(t-t_n),t)dt = \frac{a}{\Delta t} \int_{t_n}^{t_{n+1}}U_i^n dt = aU_i^n.
+% \end{gather}
 In either case, we can see that using the flux differencing formula \eqref{eq:flux_form} that
 \begin{gather}
 U_i^{n+1} = U_i^n - \frac{a\Delta t}{\Delta x}\left(U_i^n-U_{i-1}^n\right)
@@ -139,20 +140,26 @@ The upwind method is formally only first order, and actually does relatively poo
 \begin{gather}
 \tilde{u}^n(x) = U_i^n + m_i^n(x-x_i) \mbox{ for } x \in (x_{i-1/2},x_{i+1/2})
 \end{gather}
-where the slope of this linear reconstruction $m_i^n$ is determined as a function of the neighboring cell averages at time $n$ and $U_i^n$ itself.  One of the most natural approaches is to just estimate the slope depending on the cell $i$ and a neighboring cell $i+1$ or $i-1$.  This leads to two popular methods, respectively the Lax-Wendroff method (which we consider explicitly here) and the Beam-Warming method (that really is the name I promise).  The Lax-Wendroff method has a slope chosen as
+where the slope of this linear reconstruction $m_i^n$ is determined as a function of the neighboring cell averages at time $n$ and $U_i^n$ itself. 
+Then the flux is given by  
+\begin{align}
+F_{i-1/2}^n %&= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2},t)\, dt , \\
+&= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2}-at)\, dt  ,\\
+% &= \frac{a}{\triangle t}\int_{0}^{t_{n+1}-t_n} \tilde{u}^n(x_{i-1/2},t)\, dt ,\\
+&= \frac{a}{\triangle t}\int_{0}^{\triangle t} U_{i-1}^n + m_i^n(x_{i-1/2} - at - x_i), \\
+&= a \left( U_{i-1}^n + \frac{m_{i-1}^n}{2} (\triangle x - a \triangle t)\right).
+\end{align}
+One of the most natural approaches is to just estimate the slope depending on the cell $i$ and a neighboring cell $i+1$ or $i-1$.  This leads to two popular methods, respectively the Lax-Wendroff method (which we consider explicitly here) and the Beam-Warming method (that really is the name I promise).  The Lax-Wendroff method has a slope chosen as
 \begin{gather}
-m_i^n = \frac{U^n_{i+1}-U_{i-1}^n}{\Delta x}.
+m_i^n = \frac{U^n_{i+1}-U_{i}^n}{\Delta x}.
 \end{gather}
-This leads to
-\begin{gather}
-U_i^{n+1} = U_i^n - \frac{\Delta t}{2\Delta x} a \left(U_{i+1}^n-U_{i-1}^n\right) + \frac{1}{2}\left(\frac{\Delta t}{\Delta x}\right)^2 a^2 \left(U_{i-1}^n - 2U_i^n+U_{i+1}^n\right)
-\end{gather}
+% This leads to
+% \begin{gather}
+% U_i^{n+1} = U_i^n - \frac{\Delta t}{2\Delta x} a \left(U_{i+1}^n-U_{i-1}^n\right) + \frac{1}{2}\left(\frac{\Delta t}{\Delta x}\right)^2 a^2 \left(U_{i-1}^n - 2U_i^n+U_{i+1}^n\right)
+% \end{gather}
 which it turns out is formally second-order accurate.  It turns out though that the errors for this method are dispersive, meaning that near very steep gradients, the method will generate very rapid oscillations (due to the third derivative of $u$ not being approximated accurately).  Another way to consider how these errors arise is to notice from Fig. \ref{finitevolume:LW_reconstruction} that if the piecewise linear reconstruction is advocated by some positive wind $a$ then there will be places where the discontinuous nature of the reconstruction will introduce spurious maxima or minima into the solution.  These become the spurious waves seen in simulations using the Lax-Wendroff method.
 
-A solution to this dilemma between balancing the diffusive and dispersive errors comes from constructing slopes $m_i^n$ that ensure no such non-monotonic transport takes place.  Several examples are given below, but the basic idea is to constrain the slope so that the reconstructed piecewise linear function $\tilde{u}^n(x)$ will not generate unphysical extremal values when it is advocated by some finite wind $a$.
-
-\begin{itemize}
-\item Minmod limiter
+A solution to this dilemma between balancing the diffusive and dispersive errors comes from constructing slopes $m_i^n$ that ensure no such non-monotonic transport takes place.  The basic idea is to constrain the slope so that the reconstructed piecewise linear function $\tilde{u}^n(x)$ will not generate unphysical extremal values when it is advocated by some finite wind $a$. The Minmod limiter chooses the slope as 
 \begin{gather}
 m_i^n = minmod\left(\frac{U_i^n-U_{i-1}^n}{\Delta x},\frac{U_{i+1}^n-U_{i^n}}{\Delta x}\right)
 \end{gather}
@@ -161,20 +168,31 @@ where
 minmod(a,b) = \left\{\begin{array}{ccc}a  \mbox{ if } |a| < |b|  \mbox{ and } ab>0\\
 b  \mbox{ if } |b|<|a|  \mbox{ and } ab>0\\ 0  \mbox{ if } ab < 0 .\end{array}\right.
 \end{gather}
-\item Superbee limiter
-\begin{gather}
-m_i^n = maxmod(m^{(1)}_i,m^{(2)}_i)
-\end{gather}
-where the maxmod function selects $m^{(k)}_i$ with the larger modulus, and
-\begin{gather}
-m^{(1)}_i = minmod \left(\frac{U_{i+1}^n-U_i^n}{\Delta x},2\frac{U_i^n-U_{i-1}^n}{\Delta x}\right)\\
-m^{(2)}_i = minmod \left( 2\frac{U_{i+1}^n-U_i^n}{\Delta x},\frac{U_i^n-U_{i-1}^n}{\Delta x}\right).
-\end{gather}
+
+% \begin{itemize}
+% \item Minmod limiter
+% \begin{gather}
+% m_i^n = minmod\left(\frac{U_i^n-U_{i-1}^n}{\Delta x},\frac{U_{i+1}^n-U_{i^n}}{\Delta x}\right)
+% \end{gather}
+% where
+% \begin{gather}
+% minmod(a,b) = \left\{\begin{array}{ccc}a  \mbox{ if } |a| < |b|  \mbox{ and } ab>0\\
+% b  \mbox{ if } |b|<|a|  \mbox{ and } ab>0\\ 0  \mbox{ if } ab < 0 .\end{array}\right.
+% \end{gather}
+% \item Superbee limiter
+% \begin{gather}
+% m_i^n = maxmod(m^{(1)}_i,m^{(2)}_i)
+% \end{gather}
+% where the maxmod function selects $m^{(k)}_i$ with the larger modulus, and
+% \begin{gather}
+% m^{(1)}_i = minmod \left(\frac{U_{i+1}^n-U_i^n}{\Delta x},2\frac{U_i^n-U_{i-1}^n}{\Delta x}\right)\\
+% m^{(2)}_i = minmod \left( 2\frac{U_{i+1}^n-U_i^n}{\Delta x},\frac{U_i^n-U_{i-1}^n}{\Delta x}\right).
+% \end{gather}
 % \item Monotonized central-difference limiter
 % \begin{gather}
 % m_i^n = minmod\left(\frac{U_{i+1}^n-U_{i-1}^n}{2\Delta x},2\frac{U_i^n-U_{i-1}^n}{\Delta x},2\frac{U_{i+1}^n-U_i^n}{\Delta x}\right)
 % \end{gather}
-\end{itemize}
+% \end{itemize}
 
 \begin{problem}
 Code up the Superbee and Minmod %MC
