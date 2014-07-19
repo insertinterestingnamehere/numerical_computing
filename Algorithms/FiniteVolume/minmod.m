@@ -46,7 +46,7 @@ for nn = 1:N
             .5*(nu^2)*(w(jj-1)-2*w(jj)+w(jj+1));
     end
     %periodic boundary conditions
-    u(J) = u(J) - (timeStep/xStep)*(f(J)-f(J-1));
+    u(J) = u(J) - a*(timeStep/xStep)*(f(J)-f(J-1));
     u(1) = u(J);
 end
 %analytic solution to advection problem
@@ -54,8 +54,11 @@ analytic = exp(-((x-.2-a*T).^2)/.005) + double(((x-a*T) > .5) & ((x-a*T) < .6));
 
 %plot and compare analytic & numeric solutions
 figure
+
 plot(x,u,'b.')
 hold on
 plot(x,analytic,'r')
 plot(x,v,'g*')
-plot(x,w,'k*')
+% plot(x,w,'k*')
+% analytic
+
