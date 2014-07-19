@@ -10,8 +10,9 @@ def example1():
 	t_final = 1.2
 	wind = 1.2 # Speed of advection or wind
 	
-	J = 600 # number of x subintervals
+	J = 100 # number of x subintervals
 	tsteps = int( J*1.5)
+	print "tsteps = ", tsteps
 	delta_x, delta_t = 1./(J), t_final/tsteps
 	message = ("CFL Stability Condition: Need wind*delta_t/delta_x = "
 				+	str(wind*delta_t/delta_x) +"<= 1.")
@@ -73,14 +74,22 @@ def example1():
 	dt = wind*t_final # distance traveled
 	forward = int((dt - np.floor(dt))*x_arr.shape[0])
 	
-	plt.plot(x_arr ,np.roll(u,forward),'-k',linewidth=2.,label='Analytic Solution')
-	plt.plot(x_arr , upwind[-1,:],'-r',linewidth=2.,label='Upwind Method')
-	plt.plot(x_arr , LaxWendroff[-1,:],'-g',linewidth=2.,label='Lax Wendroff Method')
-	plt.plot(x_arr , MinMod[-1,:],'-b',linewidth=2.,label='Min Mod Method')
-	plt.plot(x_arr , SuperBee[-1,:],'-c',linewidth=2.,label='SuperBee Method')
+	plt.plot(x_arr ,np.roll(u,forward),'-k',linewidth=2.,label='Analytic solution')
+	plt.plot(x_arr , upwind[-1,:],'-r',linewidth=2.,label='Upwind')
+	plt.plot(x_arr , LaxWendroff[-1,:],'-g',linewidth=2.,label='Lax Wendroff')
+	plt.plot(x_arr , MinMod[-1,:],'-b',linewidth=2.,label='Min mod')
+	# plt.plot(x_arr , SuperBee[-1,:],'-c',linewidth=2.,label='SuperBee Method')
 	
-	plt.legend(loc='best')
+	# plt.legend(loc='best')
+	leg = plt.legend(fancybox=True, loc='upper center')
+	# set the alpha value of the legend: it will be translucent
+	# leg.get_frame().set_alpha(0.5)
+	frame = leg.get_frame()
+	# frame.set_alpha(0.5)
+	# frame.set_linewidth(0)
+	frame.set_visible(False) 
 	# plt.axis([0, 1,-.1,1.1])
+	plt.savefig('FiniteVolume_Comparisons.pdf')
 	plt.show()
 	return 
 
