@@ -232,29 +232,34 @@ In our \li{clear} method, this property allows us to set the reference to the he
 \end{problem}
 
 \section*{Stacks, Queues, and Deques}
-\emph{Stacks}, \emph{queues} (pronounced `cue'), and \emph{deques} (pronounced `deck') can be thought of as types of linked lists where access is restricted.
-Rather than accessing data anywhere in the list, we only add and remove from certain sides.
-This means that rather than searching for a certain piece of data to remove we use them to keep track of the order the data was added in and simply ask for what is on the end.
+Stacks, queues (pronounced `cues'), and deques (pronounced `decks') can be thought of as types of linked lists where access is restricted.
+Rather than accessing data anywhere in the list, we only add and remove from certain sides, which means that these structures can operate in constant time at these designated sides.
+\begin{comment}
+Rather than searching for a certain piece of data to remove, in stacks, deques, and queues we keep track of the order the data was added in and simply ask for what is on the end.
+\end{comment}
 
-Stacks are built on the in `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
-You can imagine this as a pile of plates in the kitchen cupboard. Rarely, if ever, do you take the plate on the bottom of the pile.
-Instead you take the one on the top. Also, when putting plates in the cupboard, you put them on top of the pile.
+\begin{itemize}
+\item \emph{Stacks}: These are built on the in `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
+You can imagine this as a pile of plates in the kitchen cupboard.
+Rarely, if ever, do you take the plate on the bottom of the pile.
+Instead you take the one on the top.
+When putting plates in the cupboard, you similarly put them on the top of the pile.
 This means that the last plate put in will be the first one taken out.
 To implement this, we would only add and remove from the same side of a linked list.
 
-Queues use a `first in, first out' implementation, meaning that the first thing put in will be the first thing taken out.
+\item \emph{Queues}: Queues use a `first in, first out' implementation, meaning that the first thing put in will be the first thing taken out.
 This is similar to people waiting in line.
 The first person in line will be the first served and taken out of the line.
-This is implemented as a linked list where we add on the right and remove on the left.
-
-Deques are double ended queues, meaning that we can add and remove on either end.
+This is implemented as a linked list where we add on the right and remove from the left.
+\item \emph{Deques}: This structure is a double-ended queue; we can add and remove from either end of a deque.
 Really the only difference between this and a linked list is that we cannot add and remove from the middle.
-Python's \li{collections} module already contains a deque object, which is discussed in section
+Python's \li{collections} module already contains a deque object, which is discussed on page \pageref{deques} of our initial lab, \nameref{lab:Standard Library}.
+\end{itemize}
 
 \begin{problem}
 Implement a queue and a stack by having them inherit from your linked list class.
-Have the stack add and remove from the right.
-Have the queue add on the right and remove from the left.
+Have your stack add to and remove from the right.
+Have your queue add to the right and remove from the left.
 \label{prob:Stack}
 \end{problem}
 
@@ -262,8 +267,8 @@ Have the queue add on the right and remove from the left.
 
 \section*{Trees}
 \label{Binary Search Tree}
-Donald Knuth, the well known author of \emph{The Art of Computer Programming}, once said that ``Trees sprout up just about everywhere in computer science.''
-\emph{Trees} are similar to linked lists, but the nodes of a tree can reference with greater versatility (rather than simply referencing the \li{next} or \li{previous} node).
+Donald Knuth, author of \emph{The Art of Computer Programming}, once said that ``Trees sprout up just about everywhere in computer science.''
+\emph{Trees} are similar to linked lists, but the nodes of a tree can reference with greater versatility (rather than simply referencing the \li{next} and/or \li{previous} nodes).
 Like the head node of a linked list, a tree begins with an initial reference node, here called the \emph{root} node.
 Unlike linked lists, however, the nodes within a tree can point to multiple nodes (called \emph{child} nodes), depending on the way the tree is defined.
 We can create many different types of trees by the way we organize the nodes within them; one of the simplest of these types is called a \emph{binary search tree} (BST).
@@ -291,33 +296,12 @@ class BinTree(object):
         self.root = None
         self.size = 0
 \end{lstlisting}
-\begin{comment}
-BSTs are a recursive data structure because each of the left and right subtrees are themselves BSTs.
 
-Many of the algorithms for working with binary search trees are also recursive.
-A recursive function is a function that calls itself until it reaches a base case.
-In the search function below, the two base cases either establish that we have the correct node, or that we don't have a node at all.
-In both these cases, we simply return what we have.
-If neither base case applies, we search either the left or the right subtree depending on if the data we are looking for is greater or less than the data in the node we are looking at.
-While recursive functions are often useful and intuitive with trees, we don't have to use them if we don't want to.
-In fact, for large trees, a recursive algorithm will consume a lot of resources.
-
-\begin{lstlisting}
-def search(data, node):
-    if node is None or node.value == data:
-        return node
-    elif data < node.value:
-        search(data, node.left)
-    else:
-        search(data, node.right)
-\end{lstlisting}
-\end{comment}
 \subsection*{Inserting}
 Inserting a node into a binary search tree is a simple procedure.
 Our goal is to insert into a leaf node, so we recursively insert to the right if the element is greater than the current node or insert to the left if the element is less than the current node.
-Once we reach a node without a left or right subtree we add our new node as that subtree.
+Once we reach a node without a left or right subtree, we add our new node as its new child node.
 Thus, we always insert into leaf nodes; we never insert a non-leaf node into a BST.
-
 
 Let's demonstrate this process with an example.
 
@@ -350,7 +334,7 @@ Let's demonstrate this process with an example.
 \end{minipage}\hfill
 \begin{minipage}{0.6\textwidth}
     Now we add two children: $17$ and $476$.
-    Clearly, $17$ becomes the left child because $17 < 23$, and $476$ become the right child because $476 > 23$.
+    Clearly, $17$ becomes the left child because $17 < 23$, and $476$ becomes the right child because $476 > 23$.
 \end{minipage}
 
 \begin{minipage}{0.4\textwidth}
@@ -391,21 +375,20 @@ To supplement our \li{insert} method, we write a recursive function to call with
             # insertion and returns the data as a Node.
             if node == None:
                 return Node(item)
-            # Allows you to travel through the binary tree until
-            # you reach a leaf node.
+            # Allows you to recursively travel through the binary tree
+            # until you reach a leaf node.
             else:
                 if data < node.value:
                     node.left = _recur_insert(node.left, item)
                 elif data > node.value:
                     node.right = _recur_insert(node.right, item)
-                else:
-                    return node
             # After the base case, each of the previous calls to
             # the recursive function finish by returning the previous node.
             return node
 \end{lstlisting}
 We call this recursive function by setting it equal to the root node.
-The function will continually call itself until an empty node is found, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.) To finish our insertion method, we simply update our counter.
+The function will continually call itself until it finds an empty node, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
+Finally, we finish our insertion method by updating our counter.
 \begin{lstlisting}
         self.root = _recur_insert(self.root, data)
         self.size += 1
@@ -425,7 +408,7 @@ Removing nodes is only slightly more complicated.
 We have three cases to consider:
 \begin{enumerate}
 \item No children.
-This is the simplest case.
+This is the most straightforward case.
 If the node we want to delete has no children then we simply remove the node.
 \begin{center}
 \begin{minipage}{0.3\textwidth}
@@ -470,7 +453,7 @@ If the node we want to delete has no children then we simply remove the node.
 \item One child.
 In this case, we have to worry about children.
 If we were to just delete the node, we would lose the entire subtree.
-The solution, however, is simple enough: we promote the child to take the place of the node we are deleting.
+The solution, however, is simple enough: we promote the single child to take the place of the node we are deleting.
 \begin{center}
 \begin{minipage}{0.3\textwidth}
     \begin{tikzpicture}[
@@ -518,10 +501,10 @@ We can't simply promote a child node.
 Indeed, how would we decide which child to promote?
 Fortunately, we can reduce this case down to one of the previous two cases.
 Suppose we are removing node $23$, which has two children.
-We first locate either the smallest node of the right subtree or the greatest node of the left subtree.
-In this case, we identify node $28$ as the \emph{in order successor}: the smallest node of the right subtree.
+We first locate the \emph{in order successor}: either the smallest node of the right subtree or the greatest node of the left subtree.
+In this case, we identify node $28$ as the in order successor.
+Note that, because $28$ is the smallest node of the right subtree, it cannot have a child to it's left, which implies it either has one child to the right or no children at all.
 We swap the data of nodes $28$ and $23$ (so node $28$ now has the data that $23$ had and vice versa).
-Note that, because $28$ is the smallest node of the right subtree, cannot have a child to it's left, which implies it either has one child or no children.
 Thus, removing $23$ has been reduced to a simpler case.
 \begin{center}
 \begin{minipage}{0.3\textwidth}
@@ -571,17 +554,17 @@ Thus, removing $23$ has been reduced to a simpler case.
 
 \begin{problem}
 Give your binary tree class a method for removing nodes.
-Make sure  to account for all the cases given above.
+Make sure to account for each of the three cases presented above.
 \end{problem}
 
 \subsection*{Balanced Trees}
 Binary search trees often perform very well in searching for data.
 However, the order of insertion into a binary search tree largely determines how well the tree performs.
 Binary search trees work best when elements are added in a random order.
-This keeps the tree relatively full - each level has the maximum number of nodes -  rather than having some subtrees being much larger than others.
+This keeps the levels of the tree relatively complete, rather than imbalanced, with certain subtrees far larger than others. 
 If the elements are sorted before adding to a BST, the efficiency of a BST is completely mitigated.
-As in Figure \ref{Degenerate Tree} the below, the resulting degenerate tree is essentially a linked list.
-\begin{figure}[\h]
+As is evident in the example the below, the resulting degenerate tree is essentially a linked list.
+\begin{center}
 \begin{tikzpicture}[
   level distance=1 cm,
   level 1/.style={sibling distance=2cm},
@@ -606,18 +589,19 @@ As in Figure \ref{Degenerate Tree} the below, the resulting degenerate tree is e
 		}
 	};
 \end{tikzpicture}
-\caption{Example of a degenerate BST}
-\label{Degenerate Tree}
-\end{figure}
-
-
+\end{center}
+\begin{center}
+\begin{tikzpicture}
+  \node[below=1cm, align=flush center]{Example of a degenerate tree};
+\end{tikzpicture}
+\end{center}
 
 One method for solving these problems is to keep the tree balanced.
 On each insertion and removal, the tree is re-balanced to maintain optimal performance.
-AVL Trees (Adelson-Velskii and Landis' Trees) and Red-Black Trees are examples of balanced trees.
-Figure \ref{AVL tree} displays the elements from Figure \ref{Degenerate Tree} as a balanced AVL tree.
+AVL Trees (Adelson-Velskii and Landis' Trees) and red-black Trees are examples of balanced trees.
+ The figure below displays the elements from the example above as a balanced AVL tree.
 
-\begin{figure}[\h]
+\begin{center}
 \begin{tikzpicture}[
   level distance=1.5 cm,
   level 1/.style={sibling distance=3cm},
@@ -637,11 +621,15 @@ Figure \ref{AVL tree} displays the elements from Figure \ref{Degenerate Tree} as
 		}
 	};
 \end{tikzpicture}
-\caption{Example of a balanced AVL tree}
-\label{AVL tree}
-\end{figure}
-We will not discourse upon the specific algorithms for AVL balancing or Red-Black balancing here.
-However, a comparison between the two figures makes it clear that a balanced tree will lead to far more efficient searching than an unbalanced tree.
+\end{center}
+\begin{center}
+\begin{tikzpicture}
+  \node[below=1cm, align=flush center]{Example of a balanced AVL tree};
+\end{tikzpicture}
+\end{center}
+
+We will not discourse upon the specific algorithms for AVL balancing or red-black balancing here.
+However, a comparison between the two figures makes it clear that a balanced tree will enable far more efficient searching than an unbalanced tree.
 \section*{Heaps}
 
 A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always full.
