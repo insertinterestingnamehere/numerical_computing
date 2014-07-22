@@ -163,17 +163,18 @@ class LinkedList(object):
 
 \subsection*{Finding, Inserting and Removing}
 Unlike arrays, which have random access, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
+We add a find method to our \li{LinkedList} class:
 \begin{lstlisting}
-    def find(self, data):
-        tempnode = self.head
-        while tempnode != None:
-            if tempnode.value == data:
-                return tempnode
-            else:
-                tempnode = tempnode.next
-        # If tempnode == None, the method has traversed the list all the way to
-        # the tail without finding a node corresponding to the data.
-        return False
+def find(self, data):
+    tempnode = self.head
+    while tempnode is not None:
+         if tempnode.value == data:
+            return tempnode
+        else:
+            tempnode = tempnode.next
+    # If tempnode is None, the method has traversed the list all the way to
+    # the tail without finding a node corresponding to the data.
+    return False
 \end{lstlisting}
 
 In order to insert or delete nodes found in the middle of the list, then, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
@@ -184,20 +185,20 @@ Methods that operate in constant time are key to understanding the advantages in
 To insert into the end of a linked list, we need to make the old tail of the list reference the new node, increase the size counter, and update the reference to the tail of the list (if we choose to have such additional references).
 
 \begin{lstlisting}
-    def insert(self, data):
-        # Initialize a temporary node to store the desired piece of data.
-        tempnode = Node()
-        tempnode.value = data
-        # If the linked list is empty, set the inserted piece of data as the
-        # head node.
-        if self.head == None:
-            self.head = tempnode
-        else:
-            self.tail.next = tempnode
-        # Update the existing tail node.
-        self.tail = tempnode
-        # Increase the size counter
-        self.counter += 1
+def insert(self, data):
+    # Initialize a temporary node to store the desired piece of data.
+    tempnode = Node()
+    tempnode.value = data
+    # If the linked list is empty, set the inserted piece of data as the
+    # head node.
+    if self.head is None:
+        self.head = tempnode
+    else:
+        self.tail.next = tempnode
+    # Update the existing tail node.
+    self.tail = tempnode
+    # Increase the size counter
+    self.counter += 1
 \end{lstlisting}
 
 Removing a node involves a few additional considerations.
@@ -219,7 +220,7 @@ def clear(self):
 def __repr__(self):
     tempnode = self.head
     string = '['
-    while tempnode != None:
+    while tempnode is not None:
         string += str(tempnode.value) + ','
         tempnode = tempnode.right
     string += ']'
@@ -369,29 +370,29 @@ Therefore, many of the algorithms for working with binary search trees are also 
 A recursive function is a function that calls itself until it reaches a base case.
 To supplement our \li{insert} method, we write a recursive function to call within our insert function:
 \begin{lstlisting}
-    def insert(self, data):
-        def _recur_insert(node, item):
-            # This base case identifies the proper leaf node for
-            # insertion and returns the data as a Node.
-            if node == None:
-                return Node(item)
-            # Allows you to recursively travel through the binary tree
-            # until you reach a leaf node.
-            else:
-                if data < node.value:
-                    node.left = _recur_insert(node.left, item)
-                elif data > node.value:
-                    node.right = _recur_insert(node.right, item)
-            # After the base case, each of the previous calls to
-            # the recursive function finish by returning the previous node.
-            return node
+def insert(self, data):
+    def _recur_insert(node, item):
+        # This base case identifies the proper leaf node for
+        # insertion and returns the data as a Node.
+        if node is not None:
+            return Node(item)
+        # Allows you to recursively travel through the binary tree
+        # until you reach a leaf node.
+        else:
+            if data < node.value:
+                node.left = _recur_insert(node.left, item)
+            elif data > node.value:
+                node.right = _recur_insert(node.right, item)
+        # After the base case, each of the previous calls to
+        # the recursive function finish by returning the previous node.
+        return node
 \end{lstlisting}
 We call this recursive function by setting it equal to the root node.
 The function will continually call itself until it finds an empty node, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
 Finally, we finish our insertion method by updating our counter.
 \begin{lstlisting}
-        self.root = _recur_insert(self.root, data)
-        self.size += 1
+self.root = _recur_insert(self.root, data)
+self.size += 1
 \end{lstlisting}
 
 
@@ -633,11 +634,11 @@ However, a comparison between the two figures makes it clear that a balanced tre
 \section*{Heaps}
 
 A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always \emph{complete}.
-In a complete tree, every level of the tree, except possibly the last, is filled to its capacity. 
+In a complete tree, every level of the tree, except possibly the last, is filled to its capacity.
 Furthermore, each of the leaves on the last level of a complete tree must be oriented to the left.
 Heaps are always complete because of the way they are partially ordered: parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
 In a max heap, for example, each parent is greater than its children.
-However, the order of the children within each level doesn't matter, as long as each child is less than its parent node. 
+However, the order of the children within each level doesn't matter, as long as each child is less than its parent node.
 \begin{center}
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
@@ -666,8 +667,8 @@ However, the order of the children within each level doesn't matter, as long as 
   \node[draw=none, node distance = 4cm][below of=87]{Max Heap};
 \end{tikzpicture}
 \end{center}
-Note, as in the example above, that this ordering puts the maximum of the heap at the root of the tree. 
-Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time. 
+Note, as in the example above, that this ordering puts the maximum of the heap at the root of the tree.
+Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time.
 We are also commonly use heaps for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
 However, because heaps are only partially ordered, searching for nodes in heap other than the root is not as efficient as in a BST.
 
@@ -750,8 +751,8 @@ We continue this process until either the new node reaches a parent it is less t
 \begin{minipage}{.35\textwidth}
 In the example to the left, we add element $98$ to our Max heap.
 We begin by inserting $98$ as the next available leaf on the bottom level.
-Now we must compare it to its parent, $8$. 
-Because $98 > 8$, the two nodes switch locations on the heap. 
+Now we must compare it to its parent, $8$.
+Because $98 > 8$, the two nodes switch locations on the heap.
 This pattern continues with each successive parent-child comparison: $98 > 53$, and $98 > 87$.
 Finally, our inserted node, $98$, becomes the new root (and therefore the new maximum) of this heap.
 \end{minipage}
@@ -775,8 +776,8 @@ We begin defining our \li{HashTable} class, then, by allocating space within a o
 \begin{lstlisting}
 class HashTable(object):
     def __init__(self, hsize, hashfunc):
-        # List comprehension prelocates space for our hash table.
-        self.hashtable = [None for i in range(hsize)]
+        # Efficiently extends a list to the designated hash table size.
+        self.hashtable = [None]*hsize
         # Keeps track of the number of elements within the hash table.
         self.elsize = 0
         # Indicates the size of the hash table
@@ -795,7 +796,7 @@ A large number helps guarantee that the remainders will vary, and the prime rids
 
 \begin{lstlisting}
 def HashFunction(string, tablesize, prime=5417):
-    index = (len(string)*prime) % size
+    index = (len(string)*prime) % tablesize
     return index
 \end{lstlisting}
 Let's apply our example hash function to a table of size 4.
@@ -809,7 +810,7 @@ Then `cat' would be stored in spot $3$ and `lion' would be stored at index $0$.
     \node[block] (3) [right=0 cm of 2] {`cat'};
 \tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};} 
+    \node[block] [above=0cm of \s]{\s};}
 \end{tikzpicture}
 \end{center}
 \begin{problem}
@@ -893,14 +894,13 @@ Let's supplement our \li{HashTable} class with a \li{find} method.
 \begin{lstlisting}
     def find(self, data):
         index = self._hash(data, self.hsize)
-        if self.hashtable[index] == data:
-            return index
-        else:
-            while index + i % self.hsize =! index:
-                newindex = index + i % self.hsize
-                if self.hashtable[newindex] = data:
-                    return newindex
-            return false
+        for i in xrange(self.hsize):
+            newindex = index + i % self.hsize
+            # Prints the indices each step of the search.
+            print 'Searching ' + newindex
+            if self.hashtable[newindex] == data:
+                return True
+        return False
 \end{lstlisting}
 
 As we saw in problem \ref{prob:linear probing}, with linear probing, elements in the table will cluster together.
