@@ -558,10 +558,10 @@ Make sure to account for each of the three cases presented above.
 \end{problem}
 
 \subsection*{Balanced Trees}
-Binary search trees often perform very well in searching for data.
+Binary search trees often perform very well if our primary goal for our structure is efficient searching.
 However, the order of insertion into a binary search tree largely determines how well the tree performs.
 Binary search trees work best when elements are added in a random order.
-This keeps the levels of the tree relatively complete, rather than imbalanced, with certain subtrees far larger than others. 
+This keeps the levels of the tree relatively complete, rather than imbalanced, with certain subtrees far larger than others.
 If the elements are sorted before adding to a BST, the efficiency of a BST is completely mitigated.
 As is evident in the example the below, the resulting degenerate tree is essentially a linked list.
 \begin{center}
@@ -632,14 +632,12 @@ We will not discourse upon the specific algorithms for AVL balancing or red-blac
 However, a comparison between the two figures makes it clear that a balanced tree will enable far more efficient searching than an unbalanced tree.
 \section*{Heaps}
 
-A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always full.
-This means that parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
-However, because heaps are only partially ordered, searching for nodes in heap other than the root is not as efficient as in a BST.
-Heaps are commonly used for \emph{priority queues}, because the only element you need access to is the one with the greatest priority.
-Max and min heaps are also common and are used when you need to find the maximum or minimum in constant time.
-In a max heap, each parent is greater than its children.
-This puts the maximum at the root of the tree.
-
+A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always \emph{complete}.
+In a complete tree, every level of the tree, except possibly the last, is filled to its capacity. 
+Furthermore, each of the leaves on the last level of a complete tree must be oriented to the left.
+Heaps are always complete because of the way they are partially ordered: parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
+In a max heap, for example, each parent is greater than its children.
+However, the order of the children within each level doesn't matter, as long as each child is less than its parent node. 
 \begin{center}
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
@@ -668,39 +666,14 @@ This puts the maximum at the root of the tree.
   \node[draw=none, node distance = 4cm][below of=87]{Max Heap};
 \end{tikzpicture}
 \end{center}
+Note, as in the example above, that this ordering puts the maximum of the heap at the root of the tree. 
+Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time. 
+We are also commonly use heaps for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
+However, because heaps are only partially ordered, searching for nodes in heap other than the root is not as efficient as in a BST.
 
-\begin{center}
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](-1) {-1}
-	child {node[circle,draw]{0}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{16}}
-			child{node[circle,draw]{27}}
-		}
-		child{node[circle,draw]{7}
-			child{node[circle,draw]{53}}
-			child{node[circle,draw]{8}}
-		}
-	}
-	child{node[circle,draw]{4}
-		child{node[circle,draw]{9}
-			child{node[circle,draw]{87}}
-			child[fill=none] {edge from parent[draw=none]}
-		}
-		child{node[circle,draw]{5}}
-	};
-  \node[draw=none, node distance = 4cm][below of=-1]{Min Heap};	
-\end{tikzpicture}
-\end{center}
-
-To add into a heap, we put the node into an empty spot on the lowest level of the tree.
-Then we compare it to its parent and if it is greater than its parent, we switch the two nodes.
-We continue this until the new node reaches a parent that is greater than it or it becomes the new root.
+To add into a heap, we put the node into the farthest left available leaf on the lowest level of the tree.
+Then we compare it to its parent according to our chosen ordering: in the max heap below, if the node is greater than its parent, we switch the two nodes.
+We continue this process until either the new node reaches a parent it is less than or until it becomes the new root.
 
 \begin{minipage}{.65\textwidth}
 \begin{center}
@@ -729,13 +702,10 @@ We continue this until the new node reaches a parent that is greater than it or 
 		child{node[circle,draw]{-1}
         }
 	};
-\path[->, >=stealth, auto]
-	(98) edge[bend right, red] (8)
-	(8) edge[bend right, red] (53)
-	(53) edge[bend right, red] (87)
-	(8) edge[bend right] (98)
-	(53) edge[bend right] (8)
-	(87) edge[bend right] (53);
+\foreach \s/\t in {98/8, 8/53, 53/87}{
+    \path[->, >=stealth, auto]
+	    (\s) edge[bend right, red] (\t)
+        (\t) edge[bend right] (\s);}
 \node[draw=none, node distance = .5cm][above of=87]{};
 \end{tikzpicture}
 \end{center}
@@ -779,65 +749,78 @@ We continue this until the new node reaches a parent that is greater than it or 
 \end{minipage}
 \begin{minipage}{.35\textwidth}
 In the example to the left, we add element $98$ to our Max heap.
-We begin by inserting as the next available leaf on the bottom level.
-Now we must compare it to its parent, $8$. Because $98 > 8$, the two nodes switch locations on the heap. This pattern continues as with sucessive parent-child comparisons: $98 > 53$, and $98 > 87$.
-Finally, our inserted node, $98$ becomes the new root, and therefore the maximum, of this heap.
+We begin by inserting $98$ as the next available leaf on the bottom level.
+Now we must compare it to its parent, $8$. 
+Because $98 > 8$, the two nodes switch locations on the heap. 
+This pattern continues with each successive parent-child comparison: $98 > 53$, and $98 > 87$.
+Finally, our inserted node, $98$, becomes the new root (and therefore the new maximum) of this heap.
 \end{minipage}
 
-Since heaps are really only useful for keeping track of the maximum, removing the maximum is easy, but removing anything else is not.
-To remove the maximum (the root), we compare the root's children and promote the greatest to be the new root.
+Since heaps are really only useful for keeping track of the root, removing the maximum is easy, but removing any other node is not.
+To remove the maximum (the root), we simply compare the root's children and promote the greatest to be the new root.
 
 \section*{Hash Tables}
 A \emph{hash table} is a very simple data structure that trades space for speed.
-Most of the operations of a hash table execute in constant time, independent of the size of the data structure.
-As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries.
+The key advantage of a hash table is that very speed; most of the operations of a hash table execute in constant time, independent of the size of the data structure.
+Unlike previous data structures we have studied, however, we do not construct a hash table by defining a node class.
+In essence, actually, a hash table is an array where each piece of data is associated with it's index as a key.
+As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries (each piece of data is the value, and each is associated with it's index, the key).
 
-In essence, a hash table is an array, but rather than walking through to look for our a piece of data, we have a \emph{hash function} that takes our data as an input and then outputs a positive integer used to index the array.
+One of the key components of a hash table is a \emph{hash function}.
+The hash function takes our data as an input and then outputs a positive integer used to index the array.
 Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
 Thus, the heart of a hash table is a good hash function.
 
+We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (a Python list) and both taking the size of the array and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
-    def __init__(self, size, hashfunc):
-        self.hashtable = [None for i in range(size)]
-        self.size=size
-        self.len = 0
+    def __init__(self, hsize, hashfunc):
+        # List comprehension prelocates space for our hash table.
+        self.hashtable = [None for i in range(hsize)]
+        # Keeps track of the number of elements within the hash table.
+        self.elsize = 0
+        # Indicates the size of the hash table
+        self.hsize = hsize
+        # Indicates the hash function
         self._hash = hashfunc
 \end{lstlisting}
 
 What makes a good hash function?
 Hash functions need to distribute items evenly throughout the hash table.
-Since we usually mod by the table size at the end, we need to make sure the remainders mod $n$ are evenly distributed.
-For example, if our hash function is the length of a string mod $n$, once the table gets large very few strings will be hashed to the end of the table.
-We can fix this by multiplying by a large prime number.
-A large number helps guarantee that the remainders will vary, and prime rids us of the chance that we are multiplying by a multiple of the table size (which would send us to 0 every time).
+Since we usually mod by the table size at the end (to keep the index within the array size), we need to make sure the remainders mod $n$ are evenly distributed.
+Consider a simple example where we use a hash table to store strings. Our hash function will index a string by the string's length mod the size of the table.
+As the size of such a hash table grows, however, fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
+Therefore, before we mod the string length by the table size, we multiply by a large prime number.
+A large number helps guarantee that the remainders will vary, and the prime rids us of that chance that we are multiplying by a multiple of the table size (which would send us to $0$ every time).
 
-Let's walk through a simple example where we use a hash table to store strings.
-Our hash function will index a string by the string's length. We multiply the string length by a large prime (with a default of $5417$) and mod it by the the size of the table.
 \begin{lstlisting}
-    def HashFunction(string, tablesize, prime=5417):
-        index = (len(string)*prime) % size
-        return index
+def HashFunction(string, tablesize, prime=5417):
+    index = (len(string)*prime) % size
+    return index
 \end{lstlisting}
-Thus, if our table has size $4$, `cat' would be stored in spot $3$.
-Similarly, `lion' would be sent to index $0$.
+Let's apply our example hash function to a table of size 4.
+Then `cat' would be stored in spot $3$ and `lion' would be stored at index $0$.
 \begin{center}
 \begin{tikzpicture}[thick]
 \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=0 cm of 0] {};
-   \node[block] (2) [right=0 cm of 1] {};
-   \node[block] (3) [right=0 cm of 2] {`cat'};
-  \tikzstyle{block} = [draw=none]
-   \node[block] [above=0cm of 0]{0};
-   \node[block] [above=0cm of 1]{1};
-   \node[block] [above=0cm of 2]{2};
-   \node[block] [above=0cm of 3]{3};
+    \node[block] (0) [] {`lion'};
+    \node[block] (1) [right=0 cm of 0] {};
+    \node[block] (2) [right=0 cm of 1] {};
+    \node[block] (3) [right=0 cm of 2] {`cat'};
+\tikzstyle{block} = [draw=none]
+\foreach \s in {0, 1, 2, 3}{
+    \node[block] [above=0cm of \s]{\s};} 
 \end{tikzpicture}
 \end{center}
+\begin{problem}
+Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
 
-However, this example hash function is far from perfect.
-If we try to store `leopard', our hash function sends it to 3.
+Initialize a hash table of size 11 using the example \li{HashFunction()} from above. Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'. Print your hash table. What happens when you add `clouded leopard'? What happens when you add `jaguar'?
+\label{prob:hash insert}
+\end{problem}
+
+As we saw in problem \ref{prob:hash insert}, our example hash function is still far from perfect.
+In our example hash table, if we try to store the string `leopard', our hash function sends it to 3.
 But `cat' is already stored in spot 3!
 This is called a \emph{hash collision}.
 So how can we deal with collisions?
@@ -848,11 +831,9 @@ So how can we deal with collisions?
    \node[block] (1) [right=0 cm of 0] {};
    \node[block] (2) [right=0 cm of 1] {};
    \node[block] (3) [right=0 cm of 2] {`cat'};
- \tikzstyle{block} = [draw=none]
-   \node[block] [above=0cm of 0]{0};
-   \node[block] [above=0cm of 1]{1};
-   \node[block] [above=0cm of 2]{2};
-   \node[block] [above=0cm of 3]{3};
+\tikzstyle{block} = [draw=none]
+\foreach \s in {0, 1, 2, 3}{
+    \node[block] [above=0cm of \s]{\s};}
    \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
    \path[red]
    (leopard.west) edge[bend left] (3.south);
@@ -860,31 +841,29 @@ So how can we deal with collisions?
 \end{tikzpicture}
 \end{center}
 
-An ideal hash function will map unique inputs to unique outputs that are uniformly distributed over the hash space.
-However, it is very difficult to create an ideal hash function.
-Most hash functions will experience hash collisions.
+The ideal hash function maps unique inputs to unique outputs that are uniformly distributed over the hash space.
+However, it is extremely difficult to create an ideal hash function; most hash functions will experience hash collisions.
 Fortunately, there are ways to handle hash collisions.
-The two methods that we will discuss are open addressing and chaining.
+The two methods that we will discuss are called open addressing and chaining.
 
 \subsection*{Open Addressing}
 The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of some data.
-One popular form of open addressing is \emph{probing}.
-We will discuss linear probing and quadratic probing.
+\emph{Probing} is one of the more popular forms of open addressing; in this section we will discuss both linear and quadratic probing.
 
 In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
-We can do this by sequentially visiting each location and when we find an empty one, storing our data in that location.
+We can do this by sequentially visiting each location and, when we find an empty one, storing our data in that location.
 The following is an example of a linear probing hash function where $n$ is the size of the hash table, $h(x)$ is the hash function, and $i$ is a constant:
 \begin{equation*}
 h(x, i) = h(x) + i \pmod{n}
 \end{equation*}
 We start with $i = 0$, and if the spot is full, we iterate over $i$ until we find an empty spot.
-However, when we want to retrieve that information we will be directed to the wrong location when we use our hash function.
-We then have to begin iterating through the table to look for our data.
+However, when we want to find $x$, if we simply use our hash function $h(x)$ we will be directed to the incorrect index.
+We then have to begin iterating through the table to search for our data.
 
 If we go back to our earlier example, we can store `leopard' in our hash table using linear probing.
 Our hash function sends us to spot 3, but it is already filled, so we start stepping through the table.
-Since 3 is at the end of the table, we go to the beginning, spot 0 is already filled, so we go to spot 1.
-Spot 1 is empty, so we store `leopard' in spot 1.
+Since 3 is at the end of the table, we go to the beginning (namely $4 \% 4$) and, because spot 0 is already filled, we proceed to index 1.
+Spot 1 is empty, so we store `leopard' there.
 \begin{center}
   \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
@@ -892,11 +871,9 @@ Spot 1 is empty, so we store `leopard' in spot 1.
    \node[block] (1) [right=0 cm of 0] {`leopard'};
    \node[block] (2) [right=0 cm of 1] {};
    \node[block] (3) [right=0 cm of 2] {`cat'};
- \tikzstyle{block} = [draw=none]
-  \node[block] [above=0cm of 0]{0};
-   \node[block] [above=0cm of 1]{1};
-   \node[block] [above=0cm of 2]{2};
-   \node[block] [above=0cm of 3]{3};
+\tikzstyle{block} = [draw=none]
+\foreach \s in {0, 1, 2, 3}{
+    \node[block] [above=0cm of \s]{\s};}
    \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
    \path[red]
    (leopard.west) edge[bend left] (3.south)
@@ -904,12 +881,30 @@ Spot 1 is empty, so we store `leopard' in spot 1.
    (0.south) edge[bend right, out=-20, shorten <=.2cm] (1.south);
   \end{tikzpicture}
 \end{center}
-Now we want to find `leopard'.
-Our hash function sends us to 3, and we find `cat', so we start stepping through the table.
-Eventually we find `leopard' in spot 1.
+\begin{problem}
+Expand your \li{insert} method from problem \ref{prob:hash insert} to enable linear probing. Add `clouded leopard' and `jaguar'. Which index does your new insert method send `clouded leopard' to? What about `jaguar'?
+\label{prob:linear probing}
+\end{problem}
 
-With linear probing, elements in the table will cluster together.
-Also, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we resort to a linear search.
+When we use linear probing to insert a piece of data, how can we later find it?
+If we simply use our hash function, we will be directed to the incorrect index.
+We then have to begin iterating through the table to search for our data.
+Let's supplement our \li{HashTable} class with a \li{find} method.
+\begin{lstlisting}
+    def find(self, data):
+        index = self._hash(data, self.hsize)
+        if self.hashtable[index] == data:
+            return index
+        else:
+            while index + i % self.hsize =! index:
+                newindex = index + i % self.hsize
+                if self.hashtable[newindex] = data:
+                    return newindex
+            return false
+\end{lstlisting}
+
+As we saw in problem \ref{prob:linear probing}, with linear probing, elements in the table will cluster together.
+Also, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
 Quadratic probing seeks to mitigate the issues of linear probing by spreading out hash collisions more evenly.
 A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
 \begin{equation*}
@@ -928,16 +923,13 @@ Thus we add `leopard' to the list in spot 3 that already contains `cat'.
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=0 cm of 0] {};
-   \node[block] (2) [right=0 cm of 1] {};
-   \node[block] (3) [right=0 cm of 2] {`cat'};
-   \node[block, node distance = 1.5cm](leopard)[below of=3]{`leopard'};
- \tikzstyle{block} = [draw=none]
-   \node[block] [above=0cm of 0]{0};
-   \node[block] [above=0cm of 1]{1};
-   \node[block] [above=0cm of 2]{2};
-   \node[block] [above=0cm of 3]{3};
+    \node[block] (0) [] {`lion'};
+    \node[block] (1) [right=0 cm of 0] {};
+    \node[block] (2) [right=0 cm of 1] {};
+    \node[block] (3) [right=0 cm of 2] {`cat'};
+    \node[block, node distance = 1.5cm](leopard)[below of=3]{`leopard'};
+\foreach \s in {0, 1, 2, 3}{
+    \node[block] [above=0cm of \s]{\s};}
    \draw[->] (3) -- (leopard);
 \end{tikzpicture}
 \end{center}
@@ -963,23 +955,12 @@ Now that we have no hash collisions there are no lists to iterate through and ou
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {};
-   \node[block] (1) [right=0 cm of 0] {};
-   \node[block] (2) [right=0 cm of 1] {};
-   \node[block] (3) [right=0 cm of 2] {};
-   \node[block] (4) [right=0 cm of 3] {`cat'};
-   \node[block] (5) [right=0 cm of 4] {`lion'};
-   \node[block] (6) [right=0 cm of 5] {};
-   \node[block] (7) [right=0 cm of 6] {`leopard'};
- \tikzstyle{block} = [draw=none]
-  \node[block] [above=0cm of 0]{0};
-  \node[block] [above=0cm of 1]{1};
-  \node[block] [above=0cm of 2]{2};
-  \node[block] [above=0cm of 3]{3};
-  \node[block] [above=0cm of 4]{4};
-  \node[block] [above=0cm of 5]{5};
-  \node[block] [above=0cm of 6]{6};
-  \node[block] [above=0cm of 7]{7};
+    \node[block] (0) [] {};
+\foreach \s/\t/\u in {1/0/ , 2/1/ , 3/2/ , 4/3/`cat', 5/4/`lion', 6/5/ , 7/6/`leopard'}{
+    \node[block] (\s) [right=0 cm of \t] {\u};}
+\tikzstyle{block} = [draw=none]
+\foreach \s in {0, 1, 2, 3, 4, 5, 6, 7}{
+    \node[block] [above=0cm of \s]{\s};}
 \end{tikzpicture}
 \end{center}
 
@@ -988,7 +969,6 @@ Create methods for your hash table to resize.
 When the load factor exceeds $.75$, resize the hash table so that the load factor will be below $.33$.
 \label{prob:Hash3}
 \end{problem}
-%TODO: pictures of insert and removing from a max heap
 \begin{comment}
 \section*{Sparse Matrices}
 Matrices are powerful tools, but they can take a lot of space in memory.
