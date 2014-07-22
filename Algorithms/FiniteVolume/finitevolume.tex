@@ -22,7 +22,7 @@ $\frac{d}{dt}\int_a^b u(x,t) dx$ may be thought of as the time evolution of the 
 \frac{d}{dt}\int_a^b u(x,t) dx = f(u(a))-f(u(b)).
 \end{align*}
 This fact is an important idea utilized by finite volume methods, which generally consider the evolution of $u$ not at a given point, but instead in volume-averaged regions.
-For example, let $\{x_i\}{i = }^J$ be a grid of equally spaced points with spacing $\Delta x$, and let $C_i$ be the $i$-th `volume' (subinterval) defined by $(x_{i-1/2},x_{i+1/2})$.
+For example, let $\{x_i\}$ be a grid of equally spaced points with spacing $\Delta x$, and let $C_i$ be the $i$-th `volume' (subinterval) defined by $(x_{i-1/2},x_{i+1/2})$.
 We are interested in the evolution of the volume average of $u$ over this interval,
 \begin{align*}
 U_i^n  = \frac{1}{\Delta x}\int_{C_i} u(x,t^n)dx,
@@ -51,7 +51,8 @@ Then
 \end{align*}
 
 Thus, by integrating \eqref{eqn:1D_semi_continuous} in time, we may approximate the evolution of the cell (`volume') averages with the method
-\begin{align}\label{eqn:flux_form}
+\begin{align}
+\label{eqn:flux_form}
 U_i^{n+1} = U_i^n - \frac{\Delta t}{\Delta x} \left(F^n_{i+1/2}-F^n_{i-1/2}\right).
 \end{align}
 where $U_i^n = \frac{1}{\triangle x} \int_{C_i} u(x,t^n) \, dt$.
@@ -78,7 +79,7 @@ and describes the motion of a concentration of some constituent $u$ by a constan
 %(a slight generalization of this would be to consider $a=a(x)$, but the general concepts are exactly the same as those viewed here, just a more local consideration is necessary).
 In higher dimensions this is an important problem in many fields, for example the transport of chemicals in the atmosphere and oceans, proper mixing of various properties in metallurgy, and the passing of information along a network.
 
-Note that whenever $u(x,t)$ is a solution of the advection equation, then $u(x-at,t)$ is also a solution.
+Note that whenever $u(x,t)$ is a solution of the advection equation, then $u(x-at,t_0)$ (for any fixed $t_0$) is also a solution.
 Thus, if $u(x,0) = u_0(x)$ then the solution for all time can be represented by $u(x,t) = u_0(x-at)$.
 This is an important property of \eqref{eqn:fv_advection}, and gives a new meaning to the term advection: this equation merely takes the initial conditions and passively transports them with velocity $a$.
 
@@ -145,57 +146,61 @@ Since $x_N = x_0$, it is sufficient to track $x_0, \ldots , x_{N-1}$.
 
 \begin{lstlisting}
 import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
+from math import floor
 
-# (x, t) in [0, 1] x [0, t_final]
-t_final = 1.2
-# Speed of advection or wind, wind = a in the text.
-wind = 1.2
+def upwind(u0, a, xmin, xmax, t_final, nt):
+    """ Solve the advection equation with periodic
+    boundary conditions on the interval [xmin, xmax]
+    using the upwind finite volume scheme.
+    Use u0 as the initial conditions.
+    a is the constant from the PDE.
+    Use the size of u0 as the number of nodes in
+    the spatial dimension.
+    Let nt be the number of spaces in the time dimension
+    (this is the same as the number of steps if you do
+    not include the initial state).
+    Plot and show the computed solution along
+    with the exact solution. """
+    dt = float(t_final) / nt
+    # Since we are doing periodic boundary conditions,
+    # we need to divide by u0.size instead of (u0.size - 1).
+    dx = float(xmax - xmin) / u0.size
+    lambda_ = a * dt / dx
+    u = u0.copy()
+    for j in xrange(nt):
+        # The Upwind method. The np.roll function helps us 
+        # account for the periodic boundary conditions.
+        u -= lambda_ * (u - np.roll(u, 1))
+    # Get the x values for the plots.
+    x = np.linspace(xmin, xmax, u0.size+1)[:-1]
+    # Plot the computed solution.
+    plt.plot(x, u, label='Upwind Method')
+    # Find the exact solution and plot it.
+    distance = a * t_final
+    roll = int((distance - floor(distance)) * u0.size)
+    plt.plot(x, np.roll(u0, roll), label='Exact solution')
+    # Show the plot with the legend.
+    plt.legend(loc='best')
+    plt.show()
 
-# Number of x subintervals.
-N = 30
-tsteps = int( N * 1.5)
-delta_x, delta_t = 1. / (N), t_final / tsteps
+# Define the initial conditions.
+# Leave off the last point since we're using periodic
+# boundary conditions.
+nx = 30
+nt = nx * 3 // 2
+x = np.linspace(0., 1., nx+1)[:-1]
+u0 = np.exp(-(x - .3)**2 / .005)
+arr = (.6 < x)  &  (x < .7 )
+u0[arr] += 1.
 
-# Checks that the CFL condition for stability has been satisfied.
-message = ("CFL Stability Condition: Need wind*delta_t/delta_x = "
-            + str(wind * delta_t / delta_x) +"<= 1.")
-# The assert statement is used to quickly raise an error if a
-# condition is not met. Here we use it to verify the CFL condition.
-assert (wind * delta_t / delta_x) <= 1., message
-
-# The grid of points, 0 = x_0 < x_1 , ... < x_{N-1}
-x_arr = np.linspace(0., 1., N+1)[:-1]
-
-# Define the initial conditions
-u, arr = np.exp(-(x_arr - .3)**2 / .005), np.where((.6 < x_arr)  &  (x_arr < .7 ))
-u[arr] += 1.
-
-upwind = np.empty((tsteps+1, N))
-upwind[0,:] = u
-for j in xrange(tsteps):
-    # The Upwind method. Notice how the np.roll function helps us 
-    # deal with the periodic boundary conditions.
-    upwind[j+1,:] = (upwind[j,:] -
-        wind * delta_t / delta_x * (upwind[j,:] - np.roll(upwind[j,:], 1)))
-
-# Compare analytic and numerical solutions.
-# Distance traveled by the signal/initial conditions.
-dt = wind * t_final
-forward = int((dt - np.floor(dt)) * x_arr.shape[0])
-
-plt.plot(x_arr, np.roll(u, forward), '-k', linewidth=2., label='Analytic Solution')
-plt.plot(x_arr, upwind[-1,:], '-r', linewidth=2., label='Upwind Method')
-
-plt.legend(loc='best')
-plt.show()
+# Run the simulation.
+upwind(u0, 1.2, 0, 1, 1.2, nt)
 \end{lstlisting}
 
-\begin{problem}
-Run the previous code block, for $N = 30, 60, 120, $ and $240$.
-Notice the diffusion that occurs in the numerical solution; the signal loses its `strength'.
-It also has difficulty with the discontinuous portion of the signal.
-\end{problem}
+Try running the previous code block with \li{nx} set to $30$, $60$, $120$, and $240$.
+You will notice that the numerical solution diffuses with time.
+It diffuses especially fast at the points of discontinuity.
 
 \begin{comment}
 Another way to derive the upwind method is to instead suppose that what we want to do is reconstruct $u(x)$ at each time step $n$ inside each cell $(x_{i-1/2},x_{i+1/2})$ from the mean values in that cell and its surrounding neighbors.
@@ -233,6 +238,7 @@ F_{i-1/2}^n
 &= \frac{a}{\triangle t}\int_{0}^{\triangle t} U_{i-1}^n + m_i^n(x_{i-1/2} - at - x_i), \\
 &= a \left( U_{i-1}^n + \frac{m_{i-1}^n}{2} (\triangle x - a \triangle t)\right).
 \end{split}
+\label{eqn:finite_volume_improved_flux}
 \end{align}
 One of the most natural approaches is to just estimate the slope depending on the cell $i$ and a neighboring cell $i+1$ or $i-1$.
 This leads to two popular methods, the Lax-Wendroff method and the Beam-Warming method (that really is the name).
@@ -253,7 +259,7 @@ A solution to this dilemma between balancing the diffusive and dispersive errors
 The basic idea is to constrain the slope so that the reconstructed piecewise linear function $\tilde{u}^n(x)$ will not generate unphysical extremal values when it is advocated by some finite wind $a$.
 The Minmod limiter chooses the slope as 
 \begin{gather}
-m_i^n = minmod\left(\frac{U_i^n-U_{i-1}^n}{\Delta x},\frac{U_{i+1}^n-U_{i^n}}{\Delta x}\right)
+m_i^n = minmod\left(\frac{U_i^n-U_{i-1}^n}{\Delta x},\frac{U_{i+1}^n-U_{i}^n}{\Delta x}\right)
 \end{gather}
 where
 \begin{gather}
@@ -298,6 +304,8 @@ Compare it to the upwind method for $N = 30, 60, 120$, and 240.
 You should be able to tell that the Lax Wendroff method approximates the smooth portion of the signal much better, as it does not struggle with diffusion.
 Unfortunately, it has some difficulty with the discontinuous portion, where unphysical oscillations are seen.
 Recall that we saw something similar in the waves lab when there were discontinuous initial conditions.
+
+Hint: Use equations \ref{eqn:finite_volume_improved_flux} and \ref{eqn:flux_form}.
 \end{problem}
 
 \begin{problem}
