@@ -110,7 +110,7 @@ class Node():
   \node[main node] (3) [right of=2] {G};
   \node[main node] (4) [right of=3] {C};
   \node[](H) [above left of=1, node distance = 1.5cm, color = black!20!blue] {Head};
-  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};  
+  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};
   \node[rect node][right of=1, node distance = .36cm]{};
   \node[rect node][right of=2, node distance = .36cm]{};
   \node[rect node][right of=3, node distance = .36cm]{};
@@ -212,18 +212,14 @@ def __repr__(self):
     string += ']'
     return string
 \end{lstlisting}
-\label{prob:LinkedLists}
 \emph{Note}: Because Python is able to keep track of the variables we use, it will automatically delete a variable if there is no access to it.
 In our \li{clear} method, this property allows us to set the reference to the head to be \li{None} which, in turn, allows Python to clean up the leftover nodes (in other languages, this might cause serious memory leaks).
-
+\label{prob:LinkedList}
 \end{problem}
 
 \section*{Stacks, Queues, and Deques}
 Stacks, queues (pronounced `cues'), and deques (pronounced `decks') can be thought of as types of linked lists where access is restricted.
 Rather than accessing data anywhere in the list, we only add and remove from certain sides, which means that these structures can operate in constant time at these designated sides.
-\begin{comment}
-Rather than searching for a certain piece of data to remove, in stacks, deques, and queues we keep track of the order the data was added in and simply ask for what is on the end.
-\end{comment}
 
 \begin{itemize}
 \item \emph{Stacks}: These are built on the in `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
@@ -247,7 +243,7 @@ Python's \li{collections} module already contains a deque object, which is discu
 Implement a queue and a stack by having them inherit from your linked list class.
 Have your stack add to and remove from the right.
 Have your queue add to the right and remove from the left.
-\label{prob:Stack}
+\label{prob:Stack and queue}
 \end{problem}
 
 
@@ -383,12 +379,12 @@ self.size += 1
 
 
 \subsection*{Finding}
-Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them. 
-In fact, for large trees, a recursive algorithm will consume a lot of resources. 
+Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them.
+In fact, for large trees, a recursive algorithm will consume a lot of resources.
 When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is, indeed, to be found within the tree.
 
 \begin{problem}
-Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node. 
+Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node.
 If no such node exists, return \li{False}.
 \label{Finding Nodes}
 \end{problem}
@@ -545,6 +541,7 @@ Thus, removing $23$ has been reduced to a simpler case.
 \begin{problem}
 Give your binary tree class a method for removing nodes.
 Make sure to account for each of the three cases presented above.
+\label{prob:Binary Removal}
 \end{problem}
 \subsection*{Balanced Trees}
 Binary search trees often perform very well if our primary goal for our structure is efficient searching.
@@ -650,7 +647,7 @@ However, the order of the children within each level doesn't matter, as long as 
 	};
 \end{tikzpicture}
 \end{centering}
-\caption{Example Max Heap}
+\caption{Example of a max heap}
 \label{fig:Max Heap}
 \end{figure}
 Note, as in figure \ref{fig:Max Heap}, that this ordering puts the maximum of the heap at the root of the tree.
@@ -793,10 +790,11 @@ Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
 \begin{problem}
 Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
 
-Initialize a hash table of size 11 using the example \li{HashFunction()} from above. 
-Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'. 
-Print your hash table. What happens when you insert `clouded leopard'? 
+Initialize a hash table of size 11 using the example \li{HashFunction()} from above.
+Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'.
+Print your hash table. What happens when you insert `clouded leopard'?
 What happens when you insert `jaguar'?
+\label{Prob:Basic hash insert}
 \end{problem}
 
 As we saw in the previous problem, our example hash function is still far from perfect.
@@ -860,12 +858,12 @@ Spot 1 is empty, so we store `leopard' there.
   \end{tikzpicture}
 \end{center}
 \begin{problem}
-Expand the \li{insert} method of your \li{HashTable} class to enable linear probing. 
-If the hash table is full, do not allow your method to insert the new data piece.
-Add `clouded leopard' and `jaguar'. 
-Which index does your new insert method send `clouded leopard' to? 
+Expand the \li{insert} method of your \li{HashTable} class to enable linear probing.
+(Do not allow your method to insert, however, if the hash table is full)
+Add `clouded leopard' and `jaguar'.
+Which index does your new insert method send `clouded leopard' to?
 What about `jaguar'?
-\label{prob:linear probing}
+\label{prob:Linear probing insert}
 \end{problem}
 
 When we use linear probing to insert a piece of data, how can we later find it?
@@ -873,18 +871,20 @@ If we simply use our hash function, we will be directed to the incorrect index.
 We then have to begin iterating through the table to search for our data.
 Let's supplement our \li{HashTable} class with a \li{find} method.
 \begin{lstlisting}
-    def find(self, data):
-        index = self._hash(data, self.hsize)
-        for i in xrange(self.hsize):
-            newindex = index + i % self.hsize
-            # Prints the indices each step of the search.
-            print 'Searching ' + newindex
-            if self.hashtable[newindex] == data:
-                return True
-        return False
+def find(self, data):
+    index = self._hash(data, self.hsize)
+    # Steps through the table until it reaches either the data or 
+    # the initial index.
+    for i in xrange(self.hsize):
+        newindex = (index + i) % self.hsize
+        # Optional step: prints the indices each step of the search.
+        print 'Searching ' + str(newindex)
+        if self.hashtable[newindex] == data:
+            return True
+    return False
 \end{lstlisting}
 
-As we saw in problem \ref{prob:linear probing}, with linear probing, elements in the table will cluster together.
+As we saw in problem \ref{prob:Linear probing insert}, with linear probing, elements in the table will cluster together.
 Also, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
 Quadratic probing seeks to mitigate the issues of linear probing by spreading out hash collisions more evenly.
 A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
@@ -917,6 +917,7 @@ Thus we add `leopard' to the list in spot 3 that already contains `cat'.
 
 \begin{problem}
 Improve your hash table from Problem \ref{prob:Hash1} to deal with hash collisions via chaining.
+\label{prob:Chaining insert}
 \end{problem}
 
 \subsection*{Hash Table Details}
@@ -956,7 +957,7 @@ Now that we have no hash collisions there are no lists to iterate through and ou
 \begin{problem}
 Create methods for your hash table to resize.
 When the load factor exceeds $.75$, resize the hash table so that the load factor will be below $.33$.
-\label{prob:Hash3}
+\label{prob:Hash resizing}
 \end{problem}
 \begin{comment}
 \section*{Sparse Matrices}
