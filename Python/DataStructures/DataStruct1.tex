@@ -8,7 +8,6 @@ The overhead associated with working with large data sets makes it crucial that 
 As we understand the characteristics of such data structures, we will be able to choose the data structure that will help us most efficiently access the data that we need.
 
 \section*{Abstract Data Types}
-
 The fundamental way to store data is via \emph{primitive data types}.
 We are actually already quite familiar with these data types: booleans, strings, floats, and integers.
 Most information that we care to store is in one of these forms; however, these primitive types can quickly become unwieldy for storing large amounts of information.
@@ -36,8 +35,8 @@ Nodes allow us to generalize the functionality of a data structure.
 A linked list, in essence, is simply a list of nodes that are linked together.
 There are three common types of linked lists: singly-linked, doubly-linked, and circularly-linked.
 
-
-\begin{center}
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,thick,main node/.style={rectangle,draw}, minimum size=.5cm]
 \tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
   \node[main node] (1) {B};
@@ -45,21 +44,15 @@ There are three common types of linked lists: singly-linked, doubly-linked, and 
   \node[main node] (3) [right of=2] {G};
   \node[main node] (4) [right of=3] {C};
   \node[draw = none, black!20!blue, node distance=1.5cm] [above left of=1](H) {Head};
-  \node[rect node][right of=1, node distance = .36cm]{};
-  \node[rect node][right of=2, node distance = .36cm]{};
-  \node[rect node][right of=3, node distance = .36cm]{};
-  \node[rect node](5)[right of=4, node distance = .36cm]{};
-  \node[draw = none, node distance = 1.5cm] [right of=4]{};  % Centralize this particular figure
+\foreach \r in {1, 2, 3, 4}{
+  \node[rect node][right of=\r, node distance = .36cm]{};}
+\node[draw = none, node distance = 1.5cm] [right of=4]{};  % Centralize this particular figure
 \foreach \s/\t  in {1/2, 2/3, 3/4}{
 	\path[draw](\s) edge[shorten <=.1cm](\t);}
   \draw[black!20!blue] (H) edge (1.north);
 \end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-  \node[below=1cm, align=flush center]{Singly-linked List};
-\end{tikzpicture}
-\end{center}
+\caption{Singly-linked List}
+\end{figure}
 
 A singly-linked node stores a piece of data (its value), and a single reference that points to the next node in the list.
 We implement a singly-linked node class as follows:
@@ -71,7 +64,8 @@ class Node():
         self.value = None
 \end{lstlisting}
 
-\begin{center}
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm, thick,main node/.style={rectangle,draw}, minimum size=.5cm]
 \tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.9cm}}
   \node[main node] (1) {B};
@@ -90,12 +84,8 @@ class Node():
   \draw[black!20!blue] (H) edge (1.north);
   \draw[black!20!blue] (T) edge (4.north);
 \end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-  \node[below=1cm, align=flush center]{Doubly-linked List};
-\end{tikzpicture}
-\end{center}
+\caption{Doubly-linked List}
+\end{figure}
 
 
 Doubly-linked nodes have two references: one that points to the previous node and one that points to the next node in the list.
@@ -110,34 +100,30 @@ class Node():
         self.value = None
 \end{lstlisting}
 
-\begin{center}
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
   thick,main node/.style={rectangle,draw}, minimum size=.5cm]
 \tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
-
-   \node[main node] (1) {B};
+  \node[main node] (1) {B};
   \node[main node] (2) [right of=1] {F};
   \node[main node] (3) [right of=2] {G};
   \node[main node] (4) [right of=3] {C};
-  \node[](H) [above of=1, node distance = 1.5cm, color = black!20!blue] {Head};
+  \node[](H) [above left of=1, node distance = 1.5cm, color = black!20!blue] {Head};
+  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};  
   \node[rect node][right of=1, node distance = .36cm]{};
   \node[rect node][right of=2, node distance = .36cm]{};
   \node[rect node][right of=3, node distance = .36cm]{};
   \node[rect node](5)[right of=4, node distance = .36cm]{};
-  \node[draw = none, black!20!blue, node distance = 1.5cm] [above of=4] (T) {Tail};
 \foreach \s/\t  in {1/2, 2/3, 3/4}{
 	\path[draw](\s) edge[shorten <=.1cm](\t);}
 \path[] (5.east) edge[out=-70, in=-40] node[right] {} (1.south);
 \path[black!20!blue]
-    (H) edge (1)
-    (T) edge (4);
+    (H) edge (1.north)
+    (T) edge (4.north);
 \end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-  \node[below=1cm, align=flush center]{Circularly-linked List};
-\end{tikzpicture}
-\end{center}
+\caption{Circularly-linked List}
+\end{figure}
 A circularly-linked list is a special type of linked list (be it singly-linked or doubly-linked) where the last node (the \emph{tail}) of the list points to the first node (the \emph{head}) of the list as its next node.
 In a circularly, doubly-linked list, the head also points to the tail as its previous node.
 
@@ -397,10 +383,13 @@ self.size += 1
 
 
 \subsection*{Finding}
-Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them. In fact, for large trees, a recursive algorithm will consume a lot of resources. When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is, indeed, to be found within the tree.
+Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them. 
+In fact, for large trees, a recursive algorithm will consume a lot of resources. 
+When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is, indeed, to be found within the tree.
 
 \begin{problem}
-Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node. If no such node exists, return \li{False}.
+Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node. 
+If no such node exists, return \li{False}.
 \label{Finding Nodes}
 \end{problem}
 
@@ -557,19 +546,19 @@ Thus, removing $23$ has been reduced to a simpler case.
 Give your binary tree class a method for removing nodes.
 Make sure to account for each of the three cases presented above.
 \end{problem}
-
 \subsection*{Balanced Trees}
 Binary search trees often perform very well if our primary goal for our structure is efficient searching.
 However, the order of insertion into a binary search tree largely determines how well the tree performs.
 Binary search trees work best when elements are added in a random order.
 This keeps the levels of the tree relatively complete, rather than imbalanced, with certain subtrees far larger than others.
 If the elements are sorted before adding to a BST, the efficiency of a BST is completely mitigated.
-As is evident in the example the below, the resulting degenerate tree is essentially a linked list.
-\begin{center}
+As is evident in figure \ref{fig:Degenerate Tree}, the resulting degenerate tree is essentially a linked list.
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[
-  level distance=1 cm,
-  level 1/.style={sibling distance=2cm},
-  level 2/.style={sibling distance=2cm},
+  level distance=.5 cm, % level and sibling distance edited to allow for the tree to fit on the page, and to better resemble a linked list
+  level 1/.style={sibling distance=2.5cm},
+  level 2/.style={sibling distance=2.5cm},
  thick, minimum size = .9cm]
     \node[circle,draw] {6}
 	child[fill=none] {edge from parent[draw=none]}	
@@ -590,19 +579,16 @@ As is evident in the example the below, the resulting degenerate tree is essenti
 		}
 	};
 \end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-  \node[below=1cm, align=flush center]{Example of a degenerate tree};
-\end{tikzpicture}
-\end{center}
+\caption{Example of a degenerate tree}
+\label{fig:Degenerate Tree}
+\end{figure}
 
 One method for solving these problems is to keep the tree balanced.
 On each insertion and removal, the tree is re-balanced to maintain optimal performance.
 AVL Trees (Adelson-Velskii and Landis' Trees) and red-black Trees are examples of balanced trees.
- The figure below displays the elements from the example above as a balanced AVL tree.
-
-\begin{center}
+Figure \ref{fig:AVL btree} displays the elements from figure \ref{fig:Degenerate Tree} as an AVL-balanced tree.
+\begin{figure}[h]
+\centering
 \begin{tikzpicture}[
   level distance=1.5 cm,
   level 1/.style={sibling distance=3cm},
@@ -622,24 +608,22 @@ AVL Trees (Adelson-Velskii and Landis' Trees) and red-black Trees are examples o
 		}
 	};
 \end{tikzpicture}
-\end{center}
-\begin{center}
-\begin{tikzpicture}
-  \node[below=1cm, align=flush center]{Example of a balanced AVL tree};
-\end{tikzpicture}
-\end{center}
+\caption{Example of an AVL-balanced tree}
+\label{fig:AVL btree}
+\end{figure}
 
 We will not discourse upon the specific algorithms for AVL balancing or red-black balancing here.
 However, a comparison between the two figures makes it clear that a balanced tree will enable far more efficient searching than an unbalanced tree.
-\section*{Heaps}
 
+\section*{Heaps}
 A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always \emph{complete}.
 In a complete tree, every level of the tree, except possibly the last, is filled to its capacity.
 Furthermore, each of the leaves on the last level of a complete tree must be oriented to the left.
 Heaps are always complete because of the way they are partially ordered: parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
 In a max heap, for example, each parent is greater than its children.
 However, the order of the children within each level doesn't matter, as long as each child is less than its parent node.
-\begin{center}
+\begin{figure}[h]
+\begin{centering}
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
   level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
@@ -664,20 +648,22 @@ However, the order of the children within each level doesn't matter, as long as 
 		}
 		child{node[circle,draw]{-1}}
 	};
-  \node[draw=none, node distance = 4cm][below of=87]{Max Heap};
 \end{tikzpicture}
-\end{center}
-Note, as in the example above, that this ordering puts the maximum of the heap at the root of the tree.
+\end{centering}
+\caption{Example Max Heap}
+\label{fig:Max Heap}
+\end{figure}
+Note, as in figure \ref{fig:Max Heap}, that this ordering puts the maximum of the heap at the root of the tree.
 Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time.
 We are also commonly use heaps for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
 However, because heaps are only partially ordered, searching for nodes in heap other than the root is not as efficient as in a BST.
 
 To add into a heap, we put the node into the farthest left available leaf on the lowest level of the tree.
 Then we compare it to its parent according to our chosen ordering: in the max heap below, if the node is greater than its parent, we switch the two nodes.
-We continue this process until either the new node reaches a parent it is less than or until it becomes the new root.
+We continue this process until either the new node reaches a greater parent or until it becomes the new root.
 
 \begin{minipage}{.65\textwidth}
-\begin{center}
+
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
   level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
@@ -709,23 +695,13 @@ We continue this process until either the new node reaches a parent it is less t
         (\t) edge[bend right] (\s);}
 \node[draw=none, node distance = .5cm][above of=87]{};
 \end{tikzpicture}
-\end{center}
-
-\begin{center}
-\begin{tikzpicture}[]
-    \draw[->, double, double equal sign distance, -implies, thick]
-        (0,.5) -- (0,-.5);
-\end{tikzpicture}
-\end{center}
-
-\begin{center}
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
   level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
   level 2/.style={sibling distance=2cm},
   level 3/.style={sibling distance=1cm},
   minimum size = .75cm, thick]
-  \node[circle,draw](87) {98}
+  \node[circle,draw](98){98}
 	child {node[circle,draw]{27}
 		child{node[circle,draw]{10}
 			child{node[circle,draw]{7}}
@@ -744,11 +720,12 @@ We continue this process until either the new node reaches a parent it is less t
 		child{node[circle,draw]{-1}
         }
 	};
-\node[draw=none, node distance = 3.5cm][below of=87]{};
+\node[draw=none, node distance = 3.5cm][below of=98]{};
+\draw[->, double, double equal sign distance, -implies, thick, shorten >=.2cm, shorten <=.2cm]
+        (0,1.5) -- (0,.5);
 \end{tikzpicture}
-\end{center}
 \end{minipage}
-\begin{minipage}{.35\textwidth}
+\begin{minipage}{.3\textwidth}
 In the example to the left, we add element $98$ to our Max heap.
 We begin by inserting $98$ as the next available leaf on the bottom level.
 Now we must compare it to its parent, $8$.
@@ -762,17 +739,17 @@ To remove the maximum (the root), we simply compare the root's children and prom
 
 \section*{Hash Tables}
 A \emph{hash table} is a very simple data structure that trades space for speed.
-The key advantage of a hash table is that very speed; most of the operations of a hash table execute in constant time, independent of the size of the data structure.
+The key advantage of a hash table is this speed; most of the operations of a hash table execute in constant time, independent of the size of the data structure.
 Unlike previous data structures we have studied, however, we do not construct a hash table by defining a node class.
-In essence, actually, a hash table is an array where each piece of data is associated with it's index as a key.
-As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries (each piece of data is the value, and each is associated with it's index, the key).
+In essence, a hash table is actually an array where each piece of data is associated with its index as a key.
+As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries.
 
 One of the key components of a hash table is a \emph{hash function}.
-The hash function takes our data as an input and then outputs a positive integer used to index the array.
+A hash function takes our data as an input and then outputs a positive integer used to index the array.
 Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
 Thus, the heart of a hash table is a good hash function.
 
-We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (a Python list) and both taking the size of the array and the hash function as arguments.
+We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (a Python list) and by taking both the array size and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
     def __init__(self, hsize, hashfunc):
@@ -788,19 +765,19 @@ class HashTable(object):
 
 What makes a good hash function?
 Hash functions need to distribute items evenly throughout the hash table.
-Since we usually mod by the table size at the end (to keep the index within the array size), we need to make sure the remainders mod $n$ are evenly distributed.
-Consider a simple example where we use a hash table to store strings. Our hash function will index a string by the string's length mod the size of the table.
-As the size of such a hash table grows, however, fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
+Since we usually mod by the table size at the end (to keep the index within proper range), we need to make sure the remainders mod $n$ are evenly distributed.
+Consider a simple example where we use a hash table to store strings.
+Our hash function will index a string by the string's length mod the size of the table.
+As the size of such a hash table grows, however,  fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
 Therefore, before we mod the string length by the table size, we multiply by a large prime number.
-A large number helps guarantee that the remainders will vary, and the prime rids us of that chance that we are multiplying by a multiple of the table size (which would send us to $0$ every time).
-
+A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
 \begin{lstlisting}
 def HashFunction(string, tablesize, prime=5417):
     index = (len(string)*prime) % tablesize
     return index
 \end{lstlisting}
 Let's apply our example hash function to a table of size 4.
-Then `cat' would be stored in spot $3$ and `lion' would be stored at index $0$.
+Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
 \begin{center}
 \begin{tikzpicture}[thick]
 \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
@@ -816,11 +793,13 @@ Then `cat' would be stored in spot $3$ and `lion' would be stored at index $0$.
 \begin{problem}
 Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
 
-Initialize a hash table of size 11 using the example \li{HashFunction()} from above. Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'. Print your hash table. What happens when you add `clouded leopard'? What happens when you add `jaguar'?
-\label{prob:hash insert}
+Initialize a hash table of size 11 using the example \li{HashFunction()} from above. 
+Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'. 
+Print your hash table. What happens when you insert `clouded leopard'? 
+What happens when you insert `jaguar'?
 \end{problem}
 
-As we saw in problem \ref{prob:hash insert}, our example hash function is still far from perfect.
+As we saw in the previous problem, our example hash function is still far from perfect.
 In our example hash table, if we try to store the string `leopard', our hash function sends it to 3.
 But `cat' is already stored in spot 3!
 This is called a \emph{hash collision}.
@@ -848,7 +827,7 @@ Fortunately, there are ways to handle hash collisions.
 The two methods that we will discuss are called open addressing and chaining.
 
 \subsection*{Open Addressing}
-The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of some data.
+The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of the piece of data.
 \emph{Probing} is one of the more popular forms of open addressing; in this section we will discuss both linear and quadratic probing.
 
 In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
@@ -857,10 +836,8 @@ The following is an example of a linear probing hash function where $n$ is the s
 \begin{equation*}
 h(x, i) = h(x) + i \pmod{n}
 \end{equation*}
-We start with $i = 0$, and if the spot is full, we iterate over $i$ until we find an empty spot.
-However, when we want to find $x$, if we simply use our hash function $h(x)$ we will be directed to the incorrect index.
-We then have to begin iterating through the table to search for our data.
 
+We start with $i = 0$, and if the spot is full, we iterate over $i$ until we find an empty spot.
 If we go back to our earlier example, we can store `leopard' in our hash table using linear probing.
 Our hash function sends us to spot 3, but it is already filled, so we start stepping through the table.
 Since 3 is at the end of the table, we go to the beginning (namely $4 \% 4$) and, because spot 0 is already filled, we proceed to index 1.
@@ -883,7 +860,11 @@ Spot 1 is empty, so we store `leopard' there.
   \end{tikzpicture}
 \end{center}
 \begin{problem}
-Expand your \li{insert} method from problem \ref{prob:hash insert} to enable linear probing. Add `clouded leopard' and `jaguar'. Which index does your new insert method send `clouded leopard' to? What about `jaguar'?
+Expand the \li{insert} method of your \li{HashTable} class to enable linear probing. 
+If the hash table is full, do not allow your method to insert the new data piece.
+Add `clouded leopard' and `jaguar'. 
+Which index does your new insert method send `clouded leopard' to? 
+What about `jaguar'?
 \label{prob:linear probing}
 \end{problem}
 
@@ -940,9 +921,17 @@ Improve your hash table from Problem \ref{prob:Hash1} to deal with hash collisio
 
 \subsection*{Hash Table Details}
 As a hash table fills up, its performance degrades.
-This is because more hash collisions occur, causing us to use linear probing or chaining and we end up searching through lists more often.
-To combat this, a \emph{load factor} is often tracked.
+This is because more hash collisions occur, forcing us to use either linear probing or chaining to resolve them.
+As a result, we have to search through lists or iterate through the table more often.
+To combat this, we often track a \emph{load factor} for the hash table.
 This load factor reveals how `saturated' the table is by calculating the ratio of the number of elements in the hash table to the size of the hash table.
+We can easily add a load factor to our \li{HashTable} class:
+\begin{lstlisting}
+def load(self):
+    self.load = float(self.elsize)/self.hsize
+    return self.load
+\end{lstlisting}
+
 When the load factor exceeds a certain threshold, we must allocate more space for the table.
 However, since the hash function was dependant on the size of the table, we need to re-hash everything already in the table.
 This can sometimes be a very expensive operation.
