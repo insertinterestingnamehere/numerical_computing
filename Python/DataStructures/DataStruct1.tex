@@ -259,14 +259,14 @@ Like the head node of a linked list, a tree begins with an initial reference nod
 Unlike linked lists, however, the nodes within a tree can point to multiple nodes (called \emph{child} nodes), depending on the way the tree is defined.
 We can create many different types of trees by the way we organize the nodes within them; one of the simplest of these types is called a \emph{binary search tree} (BST).
 
-A binary tree is a tree that has maximum of two children per node, has an ordered structure, and has no duplicate elements.
+A binary tree is a tree that has a maximum of two children per node, an ordered structure, and no duplicate elements.
 Trees are commonly ordered such that the left half of the tree contains elements less than the root, and the right half contains elements greater than the root.
 This type of organization substantially cuts down search time, making trees an excellent data structure to use when our primary goal is efficient searching.
 By simply knowing that our target element is less or greater than the root, we can immediately eliminate half of our binary tree from the search.
 Because the process of locating a node is so quick, the processes of inserting and removing nodes are similarly efficient.
 
 We begin building a BST by defining our node class. A node in a binary search tree holds a piece of data as well as references to its left and right children (which can, in turn, be subtrees of this \emph{parent} node).
-We call a node without any such children a \emph{leaf} node.
+We call a node without any children a \emph{leaf} node.
 
 \begin{lstlisting}
 class Node(object):
@@ -359,7 +359,7 @@ def insert(self, data):
     def _recur_insert(node, item):
         # This base case identifies the proper leaf node for
         # insertion and returns the data as a Node.
-        if node is not None:
+        if node is None:
             return Node(item)
         # Allows you to recursively travel through the binary tree
         # until you reach a leaf node.
@@ -371,15 +371,13 @@ def insert(self, data):
         # After the base case, each of the previous calls to
         # the recursive function finish by returning the previous node.
         return node
+    self.root = _recur_insert(self.root, data)
+    self.size += 1
 \end{lstlisting}
 We call this recursive function by setting it equal to the root node.
-The function will continually call itself until it finds an empty node, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
+The function will continually call itself until it finds an empty node, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. 
+(It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
 Finally, we finish our insertion method by updating our counter.
-\begin{lstlisting}
-self.root = _recur_insert(self.root, data)
-self.size += 1
-\end{lstlisting}
-
 
 \subsection*{Finding}
 Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them.
@@ -544,14 +542,17 @@ Thus, removing $23$ has been reduced to a simpler case.
 \begin{problem}
 Give your binary tree class a method for removing nodes.
 Make sure to account for each of the three cases presented above.
+
+\emph{Helpful Hint}: It may be a good idea to write a recursive function to call within your remove method. 
 \label{prob:Binary Removal}
 \end{problem}
+
 \subsection*{Balanced Trees}
-Binary search trees often perform very well if our primary goal for our structure is efficient searching.
+Binary search trees often perform very well if the primary goal for our structure is efficient searching.
 However, the order of insertion into a binary search tree largely determines how well the tree performs.
 Binary search trees work best when elements are added in a random order.
-This keeps the levels of the tree relatively complete, rather than imbalanced, with certain subtrees far larger than others.
-If the elements are sorted before adding to a BST, the efficiency of a BST is completely mitigated.
+This keeps the levels of the tree relatively complete, rather than imbalanced where certain subtrees are far larger than others.
+If the elements are sorted before they are added to a BST, the efficiency of using a binary search tree is completely mitigated.
 As is evident in figure \ref{fig:Degenerate Tree}, the resulting degenerate tree is essentially a linked list.
 \begin{figure}[h]
 \centering
@@ -585,7 +586,7 @@ As is evident in figure \ref{fig:Degenerate Tree}, the resulting degenerate tree
 
 One method for solving these problems is to keep the tree balanced.
 On each insertion and removal, the tree is re-balanced to maintain optimal performance.
-AVL Trees (Adelson-Velskii and Landis' Trees) and red-black Trees are examples of balanced trees.
+AVL trees (Adelson-Velskii and Landis' Trees) and red-black trees are examples of balanced trees.
 Figure \ref{fig:AVL btree} displays the elements from figure \ref{fig:Degenerate Tree} as an AVL-balanced tree.
 \begin{figure}[h]
 \centering
@@ -656,7 +657,7 @@ However, the order of the children within each level doesn't matter, as long as 
 Note, as in figure \ref{fig:Max Heap}, that this ordering puts the maximum of the heap at the root of the tree.
 Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time.
 We are also commonly use heaps for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
-However, because heaps are only partially ordered, searching for nodes in heap other than the root is not as efficient as in a BST.
+However, because heaps are only partially ordered, searching for nodes in heap, other than the root, is not as efficient a procedure as in a BST.
 
 To add into a heap, we put the node into the farthest left available leaf on the lowest level of the tree.
 Then we compare it to its parent according to our chosen ordering: in the max heap below, if the node is greater than its parent, we switch the two nodes.
@@ -693,7 +694,7 @@ We continue this process until either the new node reaches a greater parent or u
     \path[->, >=stealth, auto]
 	    (\s) edge[bend right, red] (\t)
         (\t) edge[bend right] (\s);}
-\node[draw=none, node distance = .5cm][above of=87]{};
+\node[draw=none, node distance = .25cm][above of=87]{};
 \end{tikzpicture}
 \begin{tikzpicture}[
   level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
@@ -720,7 +721,7 @@ We continue this process until either the new node reaches a greater parent or u
 		child{node[circle,draw]{-1}
         }
 	};
-\node[draw=none, node distance = 3.5cm][below of=98]{};
+\node[draw=none, node distance = 3.25cm][below of=98]{};
 \draw[->, double, double equal sign distance, -implies, thick, shorten >=.2cm, shorten <=.2cm]
         (0,1.5) -- (0,.5);
 \end{tikzpicture}
@@ -773,7 +774,7 @@ Therefore, before we mod the string length by the table size, we multiply by a l
 A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
 \begin{lstlisting}
 def HashFunction(string, tablesize, prime=5417):
-    index = (len(string) * prime)  %  tablesize
+    index = (len(string) * prime)  %  Tablesize
     return index
 \end{lstlisting}
 Let's apply our example hash function to a table of size 4.
@@ -782,9 +783,9 @@ Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
 \begin{tikzpicture}[thick]
 \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
     \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=0 cm of 0] {};
-    \node[block] (2) [right=0 cm of 1] {};
-    \node[block] (3) [right=0 cm of 2] {`cat'};
+    \node[block] (1) [right=-.03 cm of 0] {}; % The -.03 ensures that our table lines intersect, rather than combine to create thicker lines.
+    \node[block] (2) [right=-.03 cm of 1] {};
+    \node[block] (3) [right=-.03 cm of 2] {`cat'};
 \tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3}{
     \node[block] [above=0cm of \s]{\s};}
@@ -809,9 +810,9 @@ So how can we deal with collisions?
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto,thick]
 \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
    \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=0 cm of 0] {};
-   \node[block] (2) [right=0 cm of 1] {};
-   \node[block] (3) [right=0 cm of 2] {`cat'};
+   \node[block] (1) [right=-.03 cm of 0] {};
+   \node[block] (2) [right=-.03 cm of 1] {};
+   \node[block] (3) [right=-.03 cm of 2] {`cat'};
 \tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3}{
     \node[block] [above=0cm of \s]{\s};}
@@ -847,9 +848,9 @@ Spot 1 is empty, so we store `leopard' there.
   \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
    \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=0 cm of 0] {`leopard'};
-   \node[block] (2) [right=0 cm of 1] {};
-   \node[block] (3) [right=0 cm of 2] {`cat'};
+   \node[block] (1) [right=-.03 cm of 0] {`leopard'};
+   \node[block] (2) [right=-.03 cm of 1] {};
+   \node[block] (3) [right=-.03 cm of 2] {`cat'};
 \tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3}{
     \node[block] [above=0cm of \s]{\s};}
@@ -862,8 +863,8 @@ Spot 1 is empty, so we store `leopard' there.
 \end{center}
 \begin{problem}
 Expand the \li{insert} method of your \li{HashTable} class to enable linear probing.
-(Do not allow your method to insert, however, if the hash table is full)
-Add `clouded leopard' and `jaguar'.
+Do not allow your method to insert, however, if the hash table is full.
+From your previous hash table, again add `clouded leopard' and `jaguar'.
 Which index does your new insert method send `clouded leopard' to?
 What about `jaguar'?
 \label{prob:Linear probing insert}
@@ -890,7 +891,7 @@ def find(self, data):
 Though linear probing is certainly a valid method to resolve hash collisions, it has its own set of drawbacks.
 For example, a linear probe tends to cause elements in the table to cluster together.
 Furthermore, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
-Quadratic probing seeks to mitigate the issues of linear probing by spreading out hash collisions more evenly.
+Quadratic probing seeks to mitigate the issues associated with linear probing by spreading out hash collisions more evenly.
 A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
 \begin{equation*}
 h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}
@@ -908,10 +909,11 @@ Thus we add `leopard' to the list in spot 3 that already contains `cat'.
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
     \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=0 cm of 0] {};
-    \node[block] (2) [right=0 cm of 1] {};
-    \node[block] (3) [right=0 cm of 2] {`cat'};
+    \node[block] (1) [right=-.03 cm of 0] {};
+    \node[block] (2) [right=-.03 cm of 1] {};
+    \node[block] (3) [right=-.03 cm of 2] {`cat'};
     \node[block, node distance = 1.5cm](leopard)[below of=3]{`leopard'};
+\tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3}{
     \node[block] [above=0cm of \s]{\s};}
    \draw[->] (3) -- (leopard);
@@ -921,7 +923,7 @@ Thus we add `leopard' to the list in spot 3 that already contains `cat'.
 \begin{problem}
 Improve your \li{insert} method to deal with hash collisions via chaining, rather than probing. 
 Note that, with this method, you need not return an error if the hash table is already full (the new insertion will simply be appended to the proper index's list).
-Recreate and print your feline hash table(including your 'jaguar' and 'clouded leopard') using this new method of insertion. 
+Recreate and print your feline hash table(including 'jaguar' and 'clouded leopard') using this new method of insertion. 
 \label{prob:Chaining insert}
 \end{problem}
 
@@ -963,7 +965,7 @@ Now that we have no hash collisions, there are no lists to iterate through and o
  \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
     \node[block] (0) [] {};
 \foreach \s/\t/\u in {1/0/ , 2/1/ , 3/2/ , 4/3/`cat', 5/4/`lion', 6/5/ , 7/6/`leopard'}{
-    \node[block] (\s) [right=0 cm of \t] {\u};}
+    \node[block] (\s) [right=-.03 of \t] {\u};}
 \tikzstyle{block} = [draw=none]
 \foreach \s in {0, 1, 2, 3, 4, 5, 6, 7}{
     \node[block] [above=0cm of \s]{\s};}
@@ -976,7 +978,7 @@ Implement this method such that, if the load factor exceeds $.75$, it will resiz
 Don't forget to rehash the elements already within the table.
 Call this resize method at the end of your insertion method, so that the function never inserts into a saturated table.
 
-Insert 'siberian tiger' and 'bengal tiger' into your feline hash table. What is its new size? 
+Now, insert `siberian tiger' and `bengal tiger' into your feline hash table. What is its new size? 
 \label{prob:Hash resizing}
 \end{problem}
 \begin{comment}
