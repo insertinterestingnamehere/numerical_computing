@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/byuimpact/numerical_computing.png?branch=develop
+   :target: https://travis-ci.org/byuimpact/numerical_computing
+
 This project contains the labs for BYU's Applied and Computational Mathematics program.
 The labs go in tandem with the four textbooks that are currently being written and will
 start rolling out in 2015.
