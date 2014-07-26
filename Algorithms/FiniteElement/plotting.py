@@ -3,90 +3,79 @@ from __future__ import division
 import numpy as np
 from numpy import array as arr
 from scipy.interpolate import interp1d
-# from scipy.sparse.linalg import spsolve
-# from scipy.sparse import spdiags, coo_matrix
 import matplotlib.pyplot as plt
 from matplotlib.axis import Axis
 
-from solution import ode_fe
+from solution import ode_fe, ODESolverSpectral
 from tridiag import tridiag
-
-def Example3(N,epsilon):
-	x, y = ode_fe(func=lambda x:-1./epsilon,c=-1./epsilon,x=np.linspace(0,1,N))
-	plt.plot(x,y,'-ro')
-	plt.axis([0.,1.1,.8,3.2])
-	plt.show()
-	return x, y
-
-
-def NonlinearGrid():
-	epsilon = .01
-	N=1000
-	X = np.linspace(0,1,N)
-	x1, y1 = ode_fe(func=lambda x:-1./epsilon,c=-1./epsilon,x=X)
-	x2, y2 = ode_fe(func=lambda x:-1./epsilon,c=-1./epsilon,x=X**(1./14.))
-	alpha, beta = 1.,3.
-	# Analytic solution
-	def asol(x,epsilon):
-		A = []
-		for item in x:
-			A.append(alpha+item + (beta-alpha-1.)*(np.exp(item/epsilon) -1.)/(np.exp(1./epsilon) -1.)   )
-		return x, np.array(A)
-	
-	
-	
-	Z =asol(np.linspace(0,1,500),epsilon)
-	
-	plt.plot(x1,y1,'-bo')
-	plt.plot(Z[0],Z[1],'-k',mfc="None")
-	plt.plot(x2,y2,'-ro')
-	plt.axis([0.,1.1,.8,3.2])
-	plt.show()
-	plt.clf()
-	
-	X = np.linspace(0,1,500)
-	plt.plot(X,abs(Z[1]-interp1d(x2,y2)(X)),'-r')
-	plt.plot( X,abs( Z[1]-interp1d(x1,y1)(X) ), '-b' )
-	
-	print "Max Error = ", np.max(np.abs(Z[1]-interp1d(x2,y2)(X) ))
-	plt.show()
-	return 
 
 
 def tridiagonal_approach():
-	epsilon, alpha, beta = .02, 1., 3.
-	N = 5 # subintervals or finite elements
-	x = np.linspace(0,1,N+1)**(1./8) # N+1 = number of grid points
-	h = np.diff(x) # h[i] = 
-	b, f = np.zeros(N+1), np.zeros(N+1)
-	a, c= np.zeros(N), np.zeros(N)
-	b[0], b[N] = 1., 1.
-	f[0], f[N] = alpha, beta
-	for i in range(0,N-1):
-		b[i+1] = -epsilon*(1./h[i] + 1./h[i+1])# a(\phi_i, \phi_i) 
-		f[i+1] = -.5*(h[i] + h[i+1])
-		a[i] = epsilon/h[i] + .5
-		c[i+1] = epsilon/h[i+1] - .5
+	epsilon, alpha, beta = .02, 2., 4.
+	# N = number of subintervals or finite elements
+	
+	def AnalyticSolution(x,alpha, beta,epsilon):
+	    out = alpha+x+(beta-alpha-1.)*(np.exp(x/epsilon) -1.)/(np.exp(1./epsilon) -1.)   
+	    return out
+	
+	def matrix_diagonals(N):
+		x = np.linspace(0,1,N+1)**(1.) # N+1 = number of grid points
+		h = np.diff(x)
+		b, f = np.zeros(N+1), np.zeros(N+1)
+		a, c= np.zeros(N), np.zeros(N)
+		b[0], b[N] = 1., 1.
+		f[0], f[N] = alpha, beta
+		# for i in range(0,N-1):
+		# 	b[i+1] = -epsilon*(1./h[i] + 1./h[i+1])# a(\phi_i, \phi_i) 
+		# 	f[i+1] = -.5*(h[i] + h[i+1])
+		# 	a[i] = epsilon/h[i] + .5
+		# 	c[i+1] = epsilon/h[i+1] - .5
+			
+			
+		# i = 0 to N-2
+		b[1:N] = -epsilon*(1./h[0:N-1] + 1./h[1:N])
+		f[1:N] = -.5*(h[0:N-1] + h[1:N])
+		c[1:N] = epsilon/h[1:N] - .5
+		a[0:N-1] = epsilon/h[0:N-1] + .5
+			
+			
+		return a, b, c, f, x
+	
+	
+	
 		
 	# print "a = \n", a
 	# print "b = \n", b
 	# print "c = \n", c
 	# print "f = \n", f
 	# print "x = \n", x
-	numerical_soln = tridiag(a,b,c,f)
+	
+	n = [2**i for i in range(4,22)]
+	
+	max_error_fe = [10]*(len(n))
+	h = [1./num for num in n]
+	for j in range(len(n)): 
+		a, b, c, f, x = matrix_diagonals(n[j])
+		numerical_soln = tridiag(a,b,c,f)
+		analytic_soln = AnalyticSolution(x,alpha, beta,epsilon)
+		max_error_fe[j] = np.max(np.abs(numerical_soln - analytic_soln))
+	
+	print "max_error = ", max_error_fe
 	
 	
-	def AnalyticSolution(x,alpha, beta,epsilon):
-	    out = alpha+x+(beta-alpha-1.)*(np.exp(x/epsilon) -1.)/(np.exp(1./epsilon) -1.)   
-	    return out
-	
-	analytic_soln = AnalyticSolution(x,alpha, beta,epsilon)
-	print "Error = ", np.max(np.abs(numerical_soln- analytic_soln))
-	plt.plot(x,numerical_soln,'-r',lw=2.)
-	plt.plot(x,analytic_soln,'-*k',lw=2.)
+	plt.loglog(n,max_error_fe,'-k',linewidth=2.)
 	plt.show()
 	
-	
+	N = 500
+	a, b, c, f, x = matrix_diagonals(N)
+	numerical_soln = tridiag(a,b,c,f)
+	epsilon = .02
+	analytic_soln = AnalyticSolution(x,alpha, beta,epsilon)
+	print "Error = ", np.max(np.abs(numerical_soln- analytic_soln))
+	# plt.plot(x,numerical_soln,'-*r',lw=2.)
+	plt.plot(x,analytic_soln,'-k',lw=2.)
+	plt.savefig("FEM_singular_solution.pdf")
+	plt.show()
 	return 
 
 
@@ -161,8 +150,7 @@ def one_basis_function_plot():
 
 
 
-# Example3(N=100,epsilon=.01)
-# NonlinearGrid()
+
 # basis_functions_plot()
 # one_basis_function_plot()
 tridiagonal_approach()
