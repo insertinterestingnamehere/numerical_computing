@@ -73,22 +73,47 @@ def contour_2():
     plt.axes()
     plt.plot(cx, cy)
     plt.savefig("contour2.pdf")
+def colorize(z):
+    zy=np.flipud(z)
+    r = np.abs(zy)
+    arg = np.angle(zy) 
+
+    h = (arg + np.pi)  / (2 * np.pi) + 0.5
+    l = 1.0 - 1.0/(1.0 + r**0.3)
+    s = 0.8
+
+    c = np.vectorize(hls_to_rgb) (h,l,s) # --> tuple
+    c = np.array(c) 
+    c = c.swapaxes(0,2) 
+    c = c.swapaxes(0,1) 
+    return c
+
+def plot_complex(p, xbounds=(-1, 1), ybounds=(-1, 1), res=401,name="False"):
+    x = np.linspace(xbounds[0],xbounds[1], res)
+    y = np.linspace(ybounds[0],ybounds[1], res)
+    X,Y = np.meshgrid(x,y)
+    Z=p(X+Y*1j)
+    #Z[np.isnan(Z)]=np.infty
+    Zc=colorize(Z)
+    plt.imshow(Zc,extent=(xbounds[0],xbounds[1],ybounds[0],ybounds[1]))
+    if name != "False":
+        plt.savefig(name)
+    plt.show()
 
 if __name__ == '__main__':
     # Surface plots of singularities.
     f = lambda z: 1 / z
-    singular_surface_plot(f, 'inv_real_surface.png', kind='real')
-    singular_surface_plot(f, 'inv_imag_surface.png', kind='imag')
     singular_surface_plot(f, 'inv_abs_surface.png', kind='abs')
+    plot_complex(f,name='invz')
     f = lambda z: 1 / z**2
-    singular_surface_plot(f, 'inv2_real_surface.png', kind='real')
-    singular_surface_plot(f, 'inv2_imag_surface.png', kind='imag')
     singular_surface_plot(f, 'inv2_abs_surface.png', kind='abs')
+    plot_complex(f,name='invz2')
     # Show a matplotlib windows so mayavi can close properly.
     #plt.plot([0, 1])
     #plt.show()
     
     # Color plots of singularities
+    '''
     f = lambda z: 1 / z
     singular_color_plot(f, 'inv_real.png', kind='real')
     singular_color_plot(f, 'inv_imag.png', kind='imag')
@@ -107,3 +132,4 @@ if __name__ == '__main__':
     singular_color_plot(f, 'exp_inv2_abs.png', kind='abs')
     contour_1()
     contour_2()
+    '''
