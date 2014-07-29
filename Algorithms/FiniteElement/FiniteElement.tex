@@ -61,8 +61,10 @@ Rather than trying to solve \eqref{eqn:FEM_eqn1}, we instead consider the proble
 	a(y,w) &= l(w), \quad \forall \, w \in V_0,
 	\label{eqn:FEM_integral_form}
 \end{align}
-where $V$ is some appropriate vector space that contains our solution $y$, and $V_0 = \{w \in V|w(0) = w(1) = 0\}$.
-This equation is called the weak formulation of \eqref{FEM:eqn1}.
+where $V$ is some appropriate vector space that is expected to allow us to approximat the solution $y$, and $V_0 = \{w \in V|w(0) = w(1) = 0\}$.
+(For example, we could consider the space of functions that are piecewise linear with vertices at a fixed set of points.
+This example is discussed further below.)
+This equation is called the weak formulation of \eqref{eqn:FEM_eqn1}.
 
 Let $\mathrm{P}_n$ be some partition of $[0,1]$, $0 = x_0 < x_1< \ldots < x_{n} = 1$, and let $V_n$ be the finite-dimensional vector space of continuous functions $v$ on $[0,1]$ where $v$ is linear on each subinterval $[{x_j,x_{j+1}}]$.
 These subintervals are the finite elements for which this method is named.
@@ -145,6 +147,8 @@ l(\phi_j) &= -(1/2)(h_j + h_{j+1}).
 \end{align*}
 \eqref{eqn:FEM_linear_system} may now be solved using any standard linear solver.
 
+In this case, in order to handle the large number of elements required for Problem \ref{prob:FEM_accuracy_comparison}, you will want to use the tridiagonal algorithm provided in several of the earlier labs (for example Lab \ref{lab:finitedifference1}), or the banded matrix solver included in \li{scipy.linalg}.
+
 \begin{problem}
 Use the finite element method to solve
 \begin{align}
@@ -153,7 +157,8 @@ Use the finite element method to solve
 	&{ }y(0) = \alpha, \quad y(1) = \beta,
 	\end{split} \label{eqn:FEM_exercise}
 \end{align}
-where $\alpha = 2, \beta = 4$, and $\epsilon = 0.02$.  Use $N = 100$ finite elements ($101$ grid points).
+where $\alpha = 2, \beta = 4$, and $\epsilon = 0.02$.
+Use $N = 100$ finite elements ($101$ grid points).
 Compare your solution with the analytic solution
 \[y(x) = \alpha + x + (\beta - \alpha - 1 ) \frac{e^{x/\epsilon} -1}{e^{1/\epsilon} -1}.\]
 
@@ -184,6 +189,7 @@ What is the difference in accuracy?
 % \end{figure}
 
 \begin{problem}
+\label{prob:FEM_accuracy_comparison}
 Higher order methods promise faster convergence, but typically require more work to code.
 So why do we use them when a low order method will converge just as well, albeit with more grid points?
 The answer concerns the round off error associated with floating point arithmetic.
