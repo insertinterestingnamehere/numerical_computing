@@ -5,6 +5,7 @@ matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 import matplotlib.pyplot as plt
 from scipy.spatial import KDTree
 import timeit
+from sklearn import neighbors
 
 #soultion to problem 1
 def nearestNNaive(points,x):
