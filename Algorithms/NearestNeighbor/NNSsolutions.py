@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import KDTree
 import timeit
 
-#sultion to problem 1
+#soultion to problem 1
 def nearestNNaive(points,x):
     l= len(points)
     r= sum((x-points[0])**2)

@@ -37,18 +37,59 @@ This requires sorting at each level so the complexity is $O(n log^2(n))$, but we
 Included is a function that takes in a set of data and builds k-d tree.
 The leaf nodes' children are  python's ``None" object.
 
-TODO: revise algorithm description
-
 The search of the tree is done recursively.
-We will call the node that we are on the parent node.
-We first see if the distance between the parent node at the less is current best.
-If so, we update it.
-We then compare the values in the i-th dimension of the point and the parent.
-If it is point's value is less than the parent we recursively go down the left child, greater, the right child.
+Our search function will accept a parent node on which to search, a search point to which we want to find the nearest neighbor, the current best point, the current best distance, and a dimension $i$.
+The search function should return the best point and best distance currently held in the algorithm.
+We start the algorithm on the root node of the tree using it's point and distance to the search point as the best point and best distance, and start with $0$ as the first dimension.
+
+
+For each recursive step, we first check if the euclidean distance between the parent node's point to the search point is less than the current best.
+If so, we update it the best distance and best point to match the parent node.
+
+
+We then compare the values in the $i$-th dimension of the search point and the parent's point.
+If the search point's value is less than that of the parent node's point we recursively call the search function again on the left child of the parent node on the dimension $i+1$, flipping the dimension to $0$ if necessary, and set best point and best distance to it's output.
 Then we have to check if the hypersphere around the point with radius being the current best distance crosses the dividing hyperplane created by the parent.
-If the point's value is less than the parent, we do this by checking to see if the value in the i-th dimension plus the current best distance is greater than the parent's value in the i-th dimension.
-If the point's value is greater than the parent, we do this by checking to see if the value n the i-th dimension minus the current best distance is less than the parent's value in the i-th dimension.
-If this be the case, we recursively go down the other child as well.
+In code we accomplish this by adding the best distance to the point's value in the $i$-th dimension.
+If this sum is greater than the parent's point value in the i-th dimension, we then search additionally the right child of the parent (using the dimension $i+1$) and update the best point and best distance to the output.
+
+
+If the point's value was less than the parent's in th i-th dimension, we apply the last two steps mirrored to the right and left children.
+We first search the right child with the $i+1$-th dimension and set the best point and best distance to the output.
+We then check if the search point's value in the $i$-th dimension minus the best distance is less than the parent node's value in the $i$-th dimension. 
+If it is, we will also search the left child one the $i+1$-th dimension and set the best point and best distance to the output.
+
+Below the algorithm summarized in pseudo code 
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{KDSearch}{search\_point,parent\_node,b\_point,b\_distance,i}
+    \If { Distance(search\_point,parent\_node.point) $<$ b\_distance }
+        \State b\_point = parent\_node.point
+        \State b\_distance = Distance from search\_point to parent\_node.point
+    \EndIf
+
+    \If{search\_point[i] $<$ parent\_node.point[i]}
+        \State b\_point, b\_distance =
+            \State KDSearch(search\_point,parent\_node.left\_child,b\_point,b\_distance,i+1)
+        \If { search\_point[i] + b\_distance $geq$ parent\_node.point} 
+            \State b\_point, b\_distance = 
+                \State KDSearch(search\_point,parent\_node.right\_child,b\_point,b\_distance,i+1)
+        \EndIf
+    \Else
+        \State b\_point, b\_distance = 
+            \State KDSearch(search\_point,parent\_node.right\_child,b\_point,b\_distance,i+1)
+        \If {search\_point[i] + b\_distance $leq$ parent\_node.point} 
+            \State b\_point, b\_distance = 
+                \State KDSearch(search\_point,parent\_node.left\_child,b\_point,b\_distance,i+1)
+        \EndIf
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\caption{Nearest Neighbor}
+\label{alg:nearestneighbor}
+\end{algorithm}
+
 
 \begin{problem}
 Write a function that solves the nearest neighbor search problem by searching through a k-d tree.
