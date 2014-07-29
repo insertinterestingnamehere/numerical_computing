@@ -68,8 +68,10 @@ def poisson_square(a1,b1,c1,d1,n,bcs, source):
 	D1,D2,D3 = -4*np.ones((1,m**2)), np.ones((1,m**2)), np.ones((1,m**2)) 
 	Dm1, Dm2 = np.ones((1,m**2)), np.ones((1,m**2))
 	for j in range(0,D2.shape[1]):
-		if (j%m)==m-1: D2[0,j]=0
-		if (j%m)==0: D3[0,j]=0
+		if (j%m)==m-1: 
+			D2[0,j]=0
+		if (j%m)==0: 
+			D3[0,j]=0
 	diags = np.array([0,-1,1,-m,m])
 	data = np.concatenate((D1,D2,D3,Dm1,Dm2),axis=0) # This stacks up rows
 	A = 1./h**2.*spdiags(data, diags, m**2,m**2).asformat('csr') # This appears to work correctly
