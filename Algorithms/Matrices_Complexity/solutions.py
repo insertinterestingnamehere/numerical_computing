@@ -1,9 +1,8 @@
 import numpy as np
-import scipy as sp
 from matplotlib import pyplot as plt
-from scipy import linalg as la
+from scipy import linalg
 from scipy import sparse
-from scipy.sparse import linalg as sparla
+from scipy.sparse import linalg as sl
 
 
 def Problem1():
@@ -32,14 +31,19 @@ def Problem4(n, sparse=False):
     b = np.random.rand(n,1)
     if sparse:
         A = Problem3(n)
-        return sparla.spsolve(A,b)
+        return sl.spsolve(A,b)
     else:
         A = Problem2(n)
-        return la.solve(A,b)
+        return linalg.solve(A,b)
 
 def Problem5(n):
     A = Problem3(n)
-    eig = sparla.eigs(A.asfptype(), k=1, which="SM")[0].min()
+    eig = sl.eigs(A.asfptype(), k=1, which="SM")[0].min()
     return eig*(n**2)
     
-    
+#Problem 6
+A = np.random.rand(500,500)
+b = np.random.rand(500)
+%timeit A.dot(b)
+B = sparse.csc_matrix(A)
+%timeit B.dot(b)

@@ -32,7 +32,7 @@ def initGames(outFile):
     
     #read the events
     with open('events.txt', 'r') as f:
-        events = [L.strip() for L in f]
+        events = [L for L in f]
         
     survivors = makepairs(males, females)
     simulateGames(survivors, events, outFile)

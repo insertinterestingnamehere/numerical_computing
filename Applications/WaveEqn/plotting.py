@@ -36,7 +36,7 @@ def example2():
 		return u_0*np.exp(-m**2.*(x-1./2.)**2.)
 	
 	def g(x):
-		return m**2.*2.*(x-1./2.)*f(x)
+		return -m**2.*2.*(x-1./2.)*f(x)
 	
 	view = [0-.1,L+.1,-.5,.5]
 	Data = wave_1d(f,g,L,N_x,T,N_t,view)
@@ -181,7 +181,7 @@ def Burgers():
 # ffmpeg -r 9 -i wave%03d.png -r 25 -qscale 1 out.mpg
 # ffmpeg -r 17 -i wave%03d.png -r 25 -qscale 1 out5.mpg
 # example1()
-# example2()
+example2()
 # example3()
 # example4()
 # example5()
