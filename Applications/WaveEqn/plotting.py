@@ -1,6 +1,10 @@
 from __future__ import division
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import legend
+from scipy.optimize import fsolve
+
 from solution import wave_1d, math_animation
 
 
@@ -32,7 +36,7 @@ def example2():
 		return u_0*np.exp(-m**2.*(x-1./2.)**2.)
 	
 	def g(x):
-		return m**2.*2.*(x-1./2.)*f(x)
+		return -m**2.*2.*(x-1./2.)*f(x)
 	
 	view = [0-.1,L+.1,-.5,.5]
 	Data = wave_1d(f,g,L,N_x,T,N_t,view)
@@ -86,7 +90,6 @@ def example4():
 	return
 
 
-
 def example5():
 	L,     T  =  1., 2
 	N_x, N_t  =  200, 440
@@ -106,11 +109,81 @@ def example5():
 	return 
 
 
+def Burgers():
+	
+	def bump(x): 
+		sigma, mu = 1., 0.
+		gaussian = (1./(sigma*np.sqrt(2*np.pi) ) )*np.exp((-1./2.)*((x-mu)/sigma)**2.)
+		return gaussian*(3.5*np.sin(3*x)+ 3.5)
+	
+	def pde_matrix_func(Y2,Y1):
+		out = np.zeros(len(Y1))
+		
+		c1 = (theta*delta_t)/(2.*delta_x)
+		c2 = (theta*delta_t)/(delta_x**2.)
+		c3 = ((1.-theta)*delta_t)/(2.*delta_x)
+		c4 = ((1.-theta)*delta_t)/(delta_x**2.)
+		
+		out[1:-1] = ( Y2[1:-1] + c1*(Y2[1:-1] - s)*(Y2[2:] - Y2[:-2]) -
+						c2*(Y2[2:] - 2.*Y2[1:-1] + Y2[:-2])- 
+						Y1[1:-1] + c3*(Y1[1:-1] - s)*(Y1[2:] - Y1[:-2]) -
+						c4*(Y1[2:] - 2.*Y1[1:-1] + Y1[:-2])       
+					)
+		
+		
+		out[0] = Y2[0]-Y1[0]		
+		out[-1] = Y2[-1]-Y1[-1]	
+		# for j in range(len(Y1)-1,len(Y1)): 	out[j] = Y2[j]-Y1[j]	
+		return out
+	
+	
+	L, T = 20., 1.
+	u_m,u_p = 5.,1.
+	s, a = (u_m + u_p)/2., (u_m - u_p)/2.
+	
+	n, time_steps = 150, 350
+	delta_x, delta_t = 2.*L/n, T/(n)
+	x = np.linspace(-L,L,n)
+	wave, perturb = s - a*np.tanh((a/2.)*x), bump(x)
+	theta = 1/2.
+	
+	U = np.zeros( (time_steps, n) )
+	U[0,:] = wave+perturb
+	U[0,0], U[0,-1] = u_m, u_p
+	
+	for j in xrange(1, time_steps):
+		U[j,:] = fsolve(lambda X,Y= U[j-1,:]: pde_matrix_func(X,Y), U[j-1,:] )
+		print j
+	
+	view = [-L,L,u_p-1,u_m+1]
+	stride = 1
+	Data = x, U[::stride,:], wave
+	time_steps, wait = int(time_steps/stride), 30
+	
+	math_animation(Data,time_steps,view,wait)
+	
+	# plt.plot(x,wave,'-k',linewidth=2.,label=r'$\hat{u}$')
+	# plt.plot(x,wave+perturb,'-r',linewidth=2.,label=r'$v$')
+	# plt.axis([-20,20,0,6])
+	# # lg = legend.Legend()
+	# # lg.draw_frame(False)
+	# plt.legend(loc='best',fontsize=20)
+	# # plt.legend.draw_frame(False)
+	# plt.savefig('Perturbed Wave.pdf')
+	# plt.show()
+	
+	return
 
+
+
+# To create the movie, run ffmpeg -r 12 -i burgers%03d.png -r 25 -qscale 1 movie_burgers.mpg
+# from the command line
 # ffmpeg -r 9 -i wave%03d.png -r 25 -qscale 1 out.mpg
 # ffmpeg -r 17 -i wave%03d.png -r 25 -qscale 1 out5.mpg
 # example1()
-# example2()
+example2()
 # example3()
-example4()
+# example4()
 # example5()
+
+Burgers()

@@ -15,7 +15,6 @@ There are many initial value problems (IVPs) where it is impossible to find a cl
 For other IVPs there is a closed form expression for the solution, but it may be difficult to interpret. 
 In either case, we can usually make good use of various methods of numerical approximation to study the solution. (It is still important to know mathematically that a solution exists, even when we cannot find an explicit solution!)
 
-
 Consider the initial value problem 
 \begin{align*}
 y'(x) &= \sin y(x), \\
@@ -72,14 +71,12 @@ Euler's method is an explicit method. The backwards Euler method is an implicit 
 \label{ivp:euler}
 \end{figure}
 
-
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{Fig3.pdf}
 \caption{The solution of $y' -y= -2x+4,$ $ y(0) = 0$, is $y(x) = -2+2x + 2e^x.$ This is a loglog plot of the relative error in numerically approximating $y(2)$, using stepsizes $h = 0.2,$ $0.1,$ $0.05,$ $0.025,$ and $0.0125$. The plot shows first, second, and fourth order convergence for the Euler method, Midpoint method, and the RK4 method, respectively.}
 \label{ivp:relative_error}
 \end{figure}
-
 
 \begin{problem} The solution of the IVP
 \begin{align*}
@@ -90,46 +87,39 @@ is given by $y(x) = 4-2x -4e^{-x}$.
 Use Euler's method to numerically approximate the solution with step sizes $h = 0.4, 0.2$, and $0.1.$ Plot your results.
 \end{problem}
 
-
 So how do we come up with numerical methods with higher order accuracy? Using Taylor's theorem (as we did for Euler's method) to create higher-order one-step methods would lead to numerically approximating derivatives of $f(t,y)$ - not necessarily desirable. 
 
-Let us look for a second order method of the form 
-\begin{enumerate}
-\item $y_0 = y(a),$
-\item $y_{i+1} = y_i + a f(x_i+b, y_i+c).$
-\end{enumerate}
+Let us look for a second order method of the form
 
+$y_{i+1} = y_i + a f(x_i+b, y_i+c).$
 
 By expanding $a f(x+b, y+c)$ with Taylor's theorem and matching constants in the equation
 \begin{align*}
-f(x,y) + \frac{h}{2}f'(x,y) &= f(x,y) + \frac{h}{2}\frac{\partial f}{\partial x}(x,y) +  + \frac{h}{2}\frac{\partial f}{\partial y}(x,y) \cdot f(x,y),
+f(x,y) + \frac{h}{2}f'(x,y) &= f(x,y) + \frac{h}{2}\frac{\partial f}{\partial x}(x,y) + \frac{h}{2}\frac{\partial f}{\partial y}(x,y) \cdot f(x,y),
 \end{align*}
-we find that $a = 1, b = h/2,$ and $c = h/2$. This method is called the Midpoint method. IVP solvers with this general form are called \textit{Runge-Kutta methods}. Another second order Runge-Kutta method is the modified Euler method: 
+we find that $a = h, b = h/2,$ and $c = h/2$. This method is called the Midpoint method. IVP solvers with this general form are called \textit{Runge-Kutta methods}. Another second order Runge-Kutta method is the modified Euler method: 
 
-\begin{enumerate}
-\item $y_0 = y(a)$,
-\item $y_{i+1} = y_i + \frac{h}{2}[ f(x_i, y_i) + f(x_{i+1}, y_i+ hf(x_i, y_i))]$ for $i = 0,1,\hdots, n-1.$
-\end{enumerate}
-
+$y_{i+1} = y_i + \frac{h}{2}[ f(x_i, y_i) + f(x_{i+1}, y_i+ hf(x_i, y_i))]$
 
 There are many Runge-Kutta methods with varying orders of accuracy. In practice, the methods of order four, such as the following, are most commonly used: 
 \begin{enumerate}
-\item $y_0 = y(a)$, 
-\item $K_1 = hf(x_i,y_i),$
-\item $K_2 = hf(x_i + \frac{h}{2}, y_i + \frac{1}{2} K_1),$
-\item $K_3 = hf(x_i + \frac{h}{2} , y_i + \frac{1}{2} K_2),$
-\item $K_4 = hf(x_{i+1} , y_i +  K_3),$
-\item $y_{i+1} = y_i + \frac{1}{6}(K_1 + 2K_2 + 2K_3 + K_4)$ for $i = 0,1,\hdots,n-1.$
+\item Apply initial conditions.
+\item $K_1 = f(x_i,y_i),$
+\item $K_2 = f(x_i + \frac{h}{2}, y_i + \frac{h}{2} K_1),$
+\item $K_3 = f(x_i + \frac{h}{2} , y_i + \frac{h}{2} K_2),$
+\item $K_4 = f(x_{i+1} , y_i + h K_3),$
+\item $y_{i+1} = y_i + \frac{h}{6}(K_1 + 2K_2 + 2K_3 + K_4)$
 \end{enumerate}
 
-
+\begin{comment}
 \begin{problem}
 Suppose a differential equation is given by
 \[ y' = f(t).\]
-Which quadrature formulas correspond to Euler's method, backward Euler's method, modified Euler's method, the Midpoint method, and the fourth order Runge-Kutta method (RK4)? 
+If we were to solve this by just integrating, which integration approximation method would correspond to Euler's method, backward Euler's method, modified Euler's method, the Midpoint method, and the fourth order Runge-Kutta method (RK4)? 
 \end{problem}
+\end{comment}
 
-
+Notice that these methods are doing a type of quadrature where we are sampling the function at different points and then performing computation using the samples and some inherent weights.
 
 \begin{problem} Consider the IVP given by 
 \begin{align*}
@@ -145,7 +135,6 @@ Use Euler's method, the Midpoint method, and RK4 to approximate the value of the
 % with initial conditions $y(0) = 0, 2, 4, 6, $ and $8$. Use RK4 to compute the solutions. 
 % \end{problem}
 
-\pagebreak
 \section{Harmonic Oscillators and Resonance} Harmonic oscillators show up often in classical mechanics. 
 A few examples include the pendulum (with small 
  displacement), spring-mass systems, and the flow of electric current through various types of circuits. 
@@ -167,16 +156,15 @@ This force pushes $y$ back towards its equilibrium.
 Hooke's law says that this holds true for a 
 spring-mass system if the displacement $y$ is small.
 
-Often there is an additional damping force $F_d$, often due to some type of friction. This force is usually proportional to the $y'$, is always in the opposite direction of $y'$, and represents energy leaving the system. 
+Often there is an additional damping force $F_d$, often due to some type of friction. This force is usually proportional to the $y'$, is always in the opposite direction of $y'$ (the \emph{velocity}. You can think of it as drag), and represents energy leaving the system. 
 Thus we have $F_d = -\gamma y', $ where $ \gamma \geq 0$ is constant. 
-We may also need to consider an additional external force $f(t)$ that is interacting with our spring-mass system.
+We may also need to consider an additional external force $f(t)$, or a driving force, that is interacting with our spring-mass system.
 
 By using Newton's law we obtain
 \begin{align*}
 ma &= F = F_r + F_d + f(t),\\
 my'' &= -ky -\gamma y' + f(t).
 \end{align*}
-
 
 \section*{Simple harmonic oscillators}
 A simple harmonic oscillator is a harmonic oscillator that is not damped ($\gamma =0$), and is free ($f(t) \equiv 0$) rather than forced ($f(t) \not = 0$). A simple harmonic oscillator can described by the IVP
@@ -191,13 +179,13 @@ The solution of this IVP is $y = c_1\cos (\omega_0 t) + c_2 \sin (\omega_0 t)$ w
 To solve this IVP using the fourth order Runge Kutta method (RK4), we need to write this system in the form 
 \[z'(t) = f(t,z(t)) \]
 We can do this by letting $z_1 = y, z_2 = y'$. Then we have \[     z'= 
- \left[\begin{array}{c}z_1 \\z_2\end{array}\right]'  =  \left[\begin{array}{c}z_2 \\\frac{k}{m}z_1\end{array}\right]= f(z).\]
+ \left[\begin{array}{c}z_1 \\z_2\end{array}\right]'  =  \left[\begin{array}{c}z_2 \\\frac{-k}{m}z_1\end{array}\right]= f(z).\]
 
 
 \begin{problem} Use the RK4 method to solve for the simple harmonic oscillator 
 described by 
 \begin{align*}
-my'' + ky &= 0,\,\, 0 \leq x \leq 20, \\
+my'' + ky &= 0,\,\, 0 \leq t \leq 20, \\
 y(0) &= 2, \\
 y'(0) &= -1,
 \end{align*} 
@@ -224,8 +212,6 @@ y(t) &= e^{-\gamma t/2m} \left[c_1\cos(\mu t) + c_2 \sin (\mu t)\right],\\
 where $R$ and $\delta$ are fixed, and $\mu = \sqrt{4km-\gamma^2}/2m.$ This system does oscillate.
 \end{enumerate}
 
-
-
 \begin{problem}
 Use RK4 method to solve for the damped free harmonic oscillator 
 \begin{align*}
@@ -235,10 +221,6 @@ y'(0) &= -1.
 \end{align*} 
 For $\gamma = 1/2,$ and $\gamma = 1$, simultaneously plot the solutions $y(t)$ and find $y(20)$ accurate to four significant digits. (Check that the relative error is less than $5 \cdot 10^{-5}$.)  How many subintervals do you need?
 \end{problem}
-
-
-
-
 
 \section*{Forced harmonic oscillators without damping}
 Let's look at the systems described by the differential equation
@@ -251,13 +233,11 @@ If $\omega_0 = \omega$, then the general solution is
 \[y(t) = c_1 \cos (\omega_0 t) + c_2\sin (\omega_0 t) + \frac{F_0}{2m\omega_0} t \sin (\omega_0 t).\]
 This last solution contains a term that grows arbitrarily large as $t \to \infty$. 
 If we included damping then the solution would be bounded, but will still be large for small $\gamma$ and $\omega$ close to $\omega_0$. 
-Let us consider physical spring-mass system. 
+Consider a physical spring-mass system. 
 Equation \ref{Forced_harm_osc} holds only for small oscillations (this is where Hooke's law is applicable). 
 For larger oscillations, this equation will not hold. 
 However, the fact that the equation predicts large oscillations suggests the spring-mass system could fall apart as a result of the external force. Mechanical resonance has 
 been known to cause failure of bridges, buildings, and airplanes.
-
-
 
 \begin{problem}
 Use the RK4 method to solve for the undamped forced harmonic oscillator
@@ -273,5 +253,4 @@ For the following values of $\gamma$ and $\omega,$ plot the solution $y(t)$ and 
 	&= (0.0, 1.0).
 \end{align*}
 \end{problem}
-
 
