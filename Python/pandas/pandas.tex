@@ -1,4 +1,6 @@
 \lab{Python}{Intro to pandas I}{Intro to pandas I}
+\objective{Become acquainted with the data structures and tools that pandas offers for data analysis.}
+\label{lab:pandas1}
 
 In volumes 1 and 2, we solved data problems primarily using NumPy and SciPy.
 While extremely flexible and useful tools, these libraries lack some of the high-level 
@@ -28,13 +30,13 @@ is as follows:
 >>> import pandas as pd
 >>> s = pd.Series(data, index=index)
 \end{lstlisting}
-We needn't explicitly define the index. The default index is simply \li{np.arange(len(data))}.
+We don't need to explicitly define the index. The default index is simply \li{np.arange(len(data))}.
 
 For example, we can create a Series containing the integers from 9 down to 0:
 \begin{lstlisting}
 >>> s1 = pd.Series(range(9, -1, -1))
 >>> s1.values    #the data
-array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0], dtype=int64)
+array([9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
 >>> s1.index     #the labels
 Int64Index([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype='int64')
 >>> s1           #left column is index, right column is data
@@ -53,6 +55,7 @@ dtype: int64
 
 Here is an example where we create customized labels:
 \begin{lstlisting}
+>>> import numpy as np
 >>> data = np.random.randn(3)
 >>> index = ['first', 'second', 'third']
 >>> s2 = pd.Series(data, index=index)
@@ -78,9 +81,9 @@ We can create a \li{Series} having constant values in the following manner:
 dtype: int64
 \end{lstlisting}
 
-It is also possible to use a Python dict when creating a \li{Series}:
+It is also possible to use a Python dictionary when creating a \li{Series}:
 \begin{lstlisting}
->>> d = {'e1':93, 'e2':95, 'e3':87, 'e4':82, 'e5':94}
+>>> d = {'e1': 93, 'e2': 95, 'e3': 87, 'e4': 82, 'e5': 94}
 >>> s4 = pd.Series(d)
 >>> s4
 e1    93
@@ -90,7 +93,7 @@ e4    82
 e5    94
 dtype: int64
 \end{lstlisting}
-Note that we didn't need to specify the index: the keys of the dict are used as the index for the \li{Series}.
+Note that we didn't need to specify the index; the keys of the dictionary are used as the index for the \li{Series}.
 There are many more ways to create Series objects.
 For a more complete discussion of how to create Series objects, see the online documentation.
 
@@ -100,7 +103,7 @@ Create the following pandas \li{Series}.
 \begin{itemize}
 \item Constant array with value -3, length 5. Labels should be the first five positive even integers.
 
-\item Data is given by the dict \li{\{'Bill':31, 'Sarah':28, 'Jane':34, 'Joe':26\}}.
+\item Data is given by the dictionary \li{\{'Bill': 31, 'Sarah': 28, 'Jane': 34, 'Joe': 26\}}.
 \end{itemize}
 \end{problem}
 
@@ -111,11 +114,11 @@ index, and the column labels are collectively called the columns. An individual 
 \li{DataFrame} object is a \li{Series}.
 
 There are many ways to initialize a \li{DataFrame}. In the following, we build a \li{DataFrame} out of a
-dict of \li{Series}.
+dictionary of \li{Series}.
 \begin{lstlisting}
 >>> x = pd.Series(np.random.randn(4), ['a', 'b', 'c', 'd'])
 >>> y = pd.Series(np.random.randn(5), ['a', 'b', 'd', 'e', 'f'])
->>> d = {1:x, 2:y}
+>>> d = {1: x, 2: y}
 >>> df1 = pd.DataFrame(d)
 >>> df1
 	        1	        2
@@ -127,7 +130,7 @@ e	      NaN	 0.789419
 f	      NaN	-0.859482
 \end{lstlisting}
 Note that the index of this \li{DataFrame} is the union of the index of \li{Series} \li{x} and that of \li{Series} \li{y}.
-The columns are given by the keys of the dict \li{d}. Since \li{x} doesn't have a label \li{e}, the
+The columns are given by the keys of the dictionary \li{d}. Since \li{x} doesn't have a label \li{e}, the
 value in row \li{e}, column \li{1} is \li{NaN}. This same reasoning explains the other missing values as well.
 Note that if we take the first column of the \li{DataFrame} and drop the missing values, we recover the \li{Series} \li{x}:
 \begin{lstlisting}
@@ -147,8 +150,8 @@ We will discuss this in more detail later on.
 
 We can also initialize a \li{DataFrame} using a NumPy array, creating custom row and column labels:
 \begin{lstlisting}
->>> data = np.random.random((3,4))
->>> pd.DataFrame(data, index=['A','B','C'], columns=range(1,5))
+>>> data = np.random.random((3, 4))
+>>> pd.DataFrame(data, index=['A', 'B', 'C'], columns=range(1, 5))
 
             1	        2	        3	        4
 A	 0.065646	 0.968593	 0.593394	 0.750110
@@ -159,12 +162,12 @@ C	 0.288801	 0.956662	 0.817915	 0.951016
 As with Series, if we don't specify the index or columns, the default is \li{range(n)}, where \li{n}
 is either the number of rows or columns.
 
-It is also possible to create multi-indexed arrays, for example
+It is also possible to create multi-indexed arrays, for example:
 \begin{lstlisting}
->>> grade=['eighth','ninth','tenth']
->>> subject=['math','science','english']
->>> myindex = pd.MultiIndex.from_product([grade,subject], names=['grade','subject'])
->>> myseries = pd.Series(np.random.randn(9),index=myindex)
+>>> grade=['eighth', 'ninth', 'tenth']
+>>> subject=['math', 'science', 'english']
+>>> myindex = pd.MultiIndex.from_product([grade, subject], names=['grade', 'subject'])
+>>> myseries = pd.Series(np.random.randn(9), index=myindex)
 >>> myseries
 grade   subject
 eighth  math       1.706644
@@ -186,21 +189,21 @@ The interested reader is invited to explore the documentation to learn more.
 Being able to import and export data is a fundamental skill in data science. Unfortunately, with the
 multitude of data formats and conventions out there, importing data can often be a tricky task. The pandas library
 seeks to reduce some of the difficulty by providing file readers for various types of formats, including
-csv, excel, hdf, sql, json, html, and pickle files, among others.
+CSV, Excel, HDF5, SQL, JSON, HTML, or pickle files.
 
-Because comma separated values files are some of the most popular file formats for data, we will explore the
+Because CSV files are one of the most popular file formats for exchanging data, we will explore the
 \li{read_csv} function in more detail. To learn to read other types of file formats, see the online pandas documentation.
-To read a csv data file into a \li{DataFrame}, call the \li{read_csv} function with the path to the csv file,
+To read a CSV data file into a \li{DataFrame}, call the \li{read_csv} function with the path to the CSV file,
 along with the appropriate keyword arguments. Below we list some of the most important keyword arguments:
 \begin{itemize}
 \item \li{delimiter}:
 This argument specifies the character that separates data fields, often a comma or a whitespace character.
 
 \item \li{header}:
-The row number (starting at 0) in the csv file that contains the column names.
+The row number (starting at 0) in the CSV file that contains the column names.
 
 \item \li{index_col}:
-If you want to use one of the columns in the csv file as the index for the \li{DataFrame},
+If you want to use one of the columns in the CSV file as the index for the \li{DataFrame},
 set this argument to the desired column number.
 
 \item \li{skiprows}:
@@ -208,7 +211,7 @@ If an integer $n$, skip the first $n$ rows of the file, and then start reading i
 of integers, skip the specified rows.
 
 \item \li{names}:
-If the csv file does not contain the column names, or you wish to use other column names, specify them
+If the CSV file does not contain the column names, or you wish to use other column names, specify them
 in a list assigned to this argument.
 
 \end{itemize}
@@ -216,7 +219,7 @@ There are several other keyword arguments, but this should be enough to get you 
 
 When you need to save your data, pandas allows you to write to several different file formats.
 A typical example is the \li{to_csv} function method attached to \li{Series} and \li{DataFrame} objects,
-which writes the data to a csv file.
+which writes the data to a CSV file.
 Keyword arguments allow you to specify the separator character, omit writing the columns names or index,
 and other options. The code below demonstrates its typical usage:
 \begin{lstlisting}
@@ -244,7 +247,7 @@ Notice that both the data and the index are sliced in this manner.
 
 Likewise, we can slice the rows of a \li{DataFrame} much as with a two-dimensional NumPy array:
 \begin{lstlisting}
->>> df = pd.DataFrame(np.random.randn(4,2), index=['a','b', 'c', 'd'], columns = ['I', 'II'])
+>>> df = pd.DataFrame(np.random.randn(4, 2), index=['a', 'b', 'c', 'd'], columns = ['I', 'II'])
 >>> df[:2]
 
           I        II
@@ -257,6 +260,9 @@ b  0.402484 -0.955039
 More generally, we can select subsets of the data using the \li{.iloc} and \li{.loc} methods.
 The \li{.loc} method selects rows and columns based on their labels, while the \li{.iloc} method
 selects them based on their integer position.
+It is interesting to know that accessing Series and DataFrames using these indexing operations is more efficient than using bracket indexing.
+Since Series and DataFrames can be accessed by a numerical index or by label, the bracket indexing has to check many cases before it can determine how to slice the data structure.
+By using \li{loc}/\li{iloc} explicitly, you bypass all of the extra checks.
 \begin{lstlisting}
 >>> # select rows a and c, column II
 >>> df.loc[['a','c'], 'II']
@@ -309,12 +315,12 @@ stochastic process used to model a non-deterministic path through some space. It
 many fields and can be used to explain things like the motion of a molecule as it travels through a liquid to modeling or the fluctuations
 of stock prices. Here we will simulate a one-dimensional symmetric random walk on the integers, which can be
 described as follows.
-\begin{itemize}
-  \item[Step 1] Start at 0.
-  \item[Step 2] Flip a fair coin.
-  \item[Step 3] If heads, move one unit to the right. Otherwise, move one unit to the left.
-  \item[Step 4] Go to Step 2.
-\end{itemize}
+\begin{enumerate}
+  \item Start at 0.
+  \item Flip a fair coin.
+  \item If heads, move one unit to the right. Otherwise, move one unit to the left.
+  \item Go to Step 2.
+\end{enumerate}
 How can we simulate this random walk efficiently? Note that the walk is really characterized by the outcomes
 of the coin flip. If we represent heads by the number $1$ and tails by $-1$, then our position at a given moment
 is just the cumulative sum of all previous outcomes. Below, we simulate a sequence of coin flips, build the
@@ -327,7 +333,7 @@ resulting random walk, and plot the outcome.
 >>> s = pd.Series(s)
 >>> s = s.cumsum()  # random walk
 >>> s.plot()
->>> plt.ylim([-50,50])
+>>> plt.ylim([-50, 50])
 >>> plt.show()
 \end{lstlisting}
 
@@ -343,7 +349,7 @@ The random walk is shown in Figure \ref{fig:PandasRandomWalk}.
 \begin{problem}
 Create five random walks of length 100, and plot them together.
 
-Next, create a ``biased" random walk by changing the coin flip probability of heads from 0.5 to 0.51.
+Next, create a ``biased'' random walk by changing the coin flip probability of head from 0.5 to 0.51.
 Plot this biased walk with lengths 100, 10000, and then 100000. Notice the definite trend that emerges.
 Your results should be comparable to those in Figure \ref{pandas:biasedRandomWalk}.
 \end{problem}
@@ -360,8 +366,8 @@ Using \li{DataFrames}, one can also plot one column against another.
 \begin{lstlisting}
 >>> xvals = pd.Series(np.sqrt(np.arange(1000)))
 >>> yvals = pd.Series(np.random.randn(1000).cumsum())
->>> df = pd.DataFrame({'xvals':xvals,'yvals':yvals})
->>> df.plot(x='xvals',y='yvals') # specify x and y values
+>>> df = pd.DataFrame({'xvals': xvals, 'yvals': yvals})
+>>> df.plot(x='xvals', y='yvals') # specify x and y values
 >>> plt.show()
 \end{lstlisting}
 
@@ -381,7 +387,7 @@ a histogram for each column in a \li{DataFrame}, with the result shown in Figure
 \begin{lstlisting}
 >>> col1 = pd.Series(np.random.randn(1000))         #normal distribution
 >>> col2 = pd.Series(np.random.gamma(5, size=1000)) #gamma distribution
->>> df = pd.DataFrame({'normal':col1, 'gamma':col2})
+>>> df = pd.DataFrame({'normal': col1, 'gamma': col2})
 >>> df.hist()
 >>> plt.plot()
 \end{lstlisting}
@@ -413,9 +419,9 @@ For the following examples, we will use this data:
 >>> mathID = [0, 1, 5, 6, 3]
 >>> mathGd = [4.0, 3.0, 3.5, 3.0, 4.0]
 >>> major = ['y', 'n', 'y', 'n', 'n']
->>> studentInfo = pd.DataFrame({'ID':ID,'Name':name, 'Sex':sex, 'Age':age, 'Class':rank})
->>> otherInfo = pd.DataFrame({'ID':ID, 'GPA':GPA, 'Financial_Aid':aid})
->>> mathInfo = pd.DataFrame({'ID':mathID, 'Grade':mathGd, 'Math_Major':major})
+>>> studentInfo = pd.DataFrame({'ID': ID, 'Name': name, 'Sex': sex, 'Age': age, 'Class': rank})
+>>> otherInfo = pd.DataFrame({'ID': ID, 'GPA': GPA, 'Financial_Aid': aid})
+>>> mathInfo = pd.DataFrame({'ID': mathID, 'Grade': mathGd, 'Math_Major': major})
 \end{lstlisting}
 
 Before querying our data, it is important to know some of its basic properties, such as
@@ -423,7 +429,7 @@ number of columns, number of rows, and the datatypes of the columns. This can be
 by simply calling the \li{info} method on the desired \li{DataFrame}:
 \begin{lstlisting}
 >>> mathInfo.info()
-
+<class 'pandas.core.frame.DataFrame'>
 Int64Index: 5 entries, 0 to 4
 Data columns (total 3 columns):
 Grade         5 non-null float64
@@ -609,7 +615,7 @@ missing value \li{NaN} is given for labels that are not shared by both inputs.
 It may also be useful to transpose \li{DataFrames}, re-order the columns or rows, or sort according to a 
 given column. Here we demonstrate these capabilities:
 \begin{lstlisting}
->>> df = pd.DataFrame(np.random.randn(4,2), index=['a','b', 'c', 'd'], columns = ['I', 'II'])
+>>> df = pd.DataFrame(np.random.randn(4,2), index=['a', 'b', 'c', 'd'], columns=['I', 'II'])
 >>> df
           I        II
 a -0.154878 -1.097156
@@ -627,7 +633,7 @@ II -1.097156  0.585780 -0.493048  0.999194
 [2 rows x 4 columns]
 
 >>> # switch order of columns, keep only rows 'a' and 'c'
->>> df.reindex(index=['a','c'], columns=['II','I'])
+>>> df.reindex(index=['a', 'c'], columns=['II', 'I'])
          II         I
 a -1.097156 -0.154878
 c -0.493048  0.433197
@@ -691,7 +697,7 @@ The following example illustrates this concept:
 \begin{lstlisting}
 >>> x = pd.Series(np.arange(5))
 >>> y = pd.Series(np.random.randn(5))
->>> x[3] = NaN
+>>> x.iloc[3] = np.nan
 >>> x + y
 0    0.731521
 1    0.623651
@@ -732,10 +738,10 @@ Using the dataset contained in the file \li{crime_data.txt} and the techniques l
 use pandas to complete the following.
 \begin{itemize}
 \item Load the data into a pandas \li{DataFrame}, using the column names in the file and the column titled
-``Year" as the index. Make sure to skip lines that don't contain data.
+``Year'' as the index. Make sure to skip lines that don't contain data.
 
-\item Insert a new column into the data frame that contains the crime rate by year (the ratio of ``Total" column
-to the ``Population" column).
+\item Insert a new column into the data frame that contains the crime rate by year (the ratio of ``Total'' column
+to the ``Population'' column).
 
 \item Plot the crime rate as a function of the year.
 
@@ -748,7 +754,7 @@ was above average.
 
 \item Plot the number of murders as a function of the population.
 
-\item Select the Population, Violent, and Robbery columns for all years in the `80s, and save
-this smaller data frame to a csv file \li{crime_subset.txt}.
+\item Select the Population, Violent, and Robbery columns for all years in the 1980s, and save
+this smaller data frame to a CSV file \li{crime_subset.txt}.
 \end{itemize}
 \end{problem}
