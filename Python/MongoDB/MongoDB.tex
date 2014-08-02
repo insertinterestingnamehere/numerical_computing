@@ -70,12 +70,69 @@ Documents in MongoDB are represented as JSON-like objects.
 MongoDB databases don't adhere to a set schema.
 Each document can have its own fields.
 \begin{lstlisting}
+col.insert({'name': 'Jack', 'age': 23})
 col.insert({'name': 'Jack', 'age': 22, 'student': True, 'classes': ['Math', 'Geography', 'English']})
-col.insert({'name': 'Jill', 'age': 24, 'student': False})
+x = col.insert({'name': 'Jill', 'age': 24, 'student': False})
 \end{lstlisting}
-Unfortunately, MongoDB doesn't tell us if the data was successfully written
+We can check to see if the insert was successful by calling \li{x.is_valid(x)}.
+
+Now we can update documents in a collection using the update.
+Note that a simple update acts like a replace.
+\begin{lstlisting}
+col.update({'name': 'Jack'
+\end{lstlisting}
+
 
 
 \section*{Querying for Documents}
 MongoDB uses a \emph{query by example} paradigm for querying.
 This means, when you query, you provide an example that the database uses to match with other documents.
+\begin{lstlisting}
+# Querying methods return a Cursor object which iterates through result set
+r = col.find({'name': 'Jack'})
+\end{lstlisting}
+This query will return all documents in the collection that have the value `Jack' in the `name' field.
+
+
+\subsection*{Query Operators}
+There are several special operators that we can use to define conditions in a query.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Operator & Description \\
+\hline
+\$lt, \$gt & $<$, $>$ \\
+\$lte & $\leq$, $\geq$ \\
+\$in, \$nin & Match any value in, not in an array, respectively \\
+\hline
+\$or & Logical OR \\
+\$and & Logical AND \\
+\$not & Logical negation \\
+\$nor & Logical NOR (condition fails for all clauses) \\
+\hline
+\$exists & Match documents with specific field \\
+\$type & Match documents with values of a specific type \\
+\hline
+\$all & Match arrays that contain all queried elements \\
+\end{tabular}
+\caption{MongoDB query operators}
+\label{table:queryoperators}
+\end{table}
+These query operators are used as keys and the queries are values.
+\begin{lstlisting}
+f = list(col.find({'age': {'$lt': 24}, 'classes': {'$in': ['Art', 'English']}}))
+\end{lstlisting}
+
+Understand that MongoDB is not a relational database, therefore there is no concept of a join.
+This also means that we cannot define database relationships between documents.
+We can associate two documents by including a field that contains the unique ObjectID of the other document.
+When we request one document, we see it has an ObjectID, and then we run a second query to get the other document.
+Any ``relational'' things must be handled by the developer.
+This means that a document needs to contain all the information needed to find or retrieve it again.
+
+
+
+\begin{problem}
+
+\end{problem}
+
