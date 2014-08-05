@@ -1,113 +1,66 @@
 import matplotlib
-matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+#matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 from matplotlib import pyplot as plt
-import solution
-import scipy as sp
 import numpy as np
 import pywt
+import scipy.misc
 
-# Generate the sine curve
-def sineCurve():
-    pts = sp.linspace(0,2*sp.pi,256)
-    plt.plot(pts,sp.sin(pts))
-    plt.savefig('sinecurve.pdf')
-    plt.clf()
-    
-# Generate the discretized sine curve
-def discSineCurve():
-    frame_4 = solution.getFrame(2)
-    plt.plot(sp.linspace(0,2*sp.pi,len(frame_4)),frame_4,drawstyle='steps')
-    plt.savefig('discreteSineCurve.pdf')
-    plt.clf()
+lena = scipy.misc.lena()
 
-# Generate the detail for the sine curve
-def sineCurveDetail():    
-    detail = solution.getDetail(2)
-    detail[-1] = detail[-2]
-    b = []
-    for i in detail:
-        b.extend([i,-i])
-    plt.plot(sp.linspace(0,2*sp.pi,len(b)),b,drawstyle='steps')
-    plt.savefig('sineCurveDetail.pdf')
+def dwt2():
+    lw = pywt.wavedec2(lena, 'db4', level=1)
+    plt.subplot(221)
+    plt.imshow(lw[0], cmap=plt.cm.Greys_r)
+    plt.axis('off')
+    plt.subplot(222)
+    plt.imshow(np.abs(lw[1][0]), cmap=plt.cm.Greys_r, interpolation='none') 
+    plt.axis('off')
+    plt.subplot(223)
+    plt.imshow(np.abs(lw[1][1]), cmap=plt.cm.Greys_r, interpolation='none')
+    plt.axis('off')
+    plt.subplot(224)
+    plt.imshow(np.abs(lw[1][2]), cmap=plt.cm.Greys_r, interpolation='none')
+    plt.axis('off')
+    plt.savefig('dwt2.pdf')
     plt.clf()
+#dwt2()
 
-# Generate the Mexican Hat Wavelet image
-def mexicanHat():
-    def mex(sigma,t):
-        return (2.0/sp.sqrt(3*sigma*sp.sqrt(sp.pi)))*(1-(1.0*t**2/sigma**2))*sp.exp(-t**2*1.0/(2*sigma**2))
-    x = sp.linspace(-10,10,500)
-    plt.plot(x,mex(2,x))
-    plt.savefig('mexicanHat.pdf')
+def hardThresh(coeffs, tau):
+    for i in xrange(1,len(coeffs)):
+        for c in coeffs[i]:
+            c[:] = pywt.thresholding.hard(c, tau)
+    return coeffs
+    
+def softThresh(coeffs, tau):
+    for i in xrange(1,len(coeffs)):
+        for c in coeffs[i]:
+            c[:] = pywt.thresholding.soft(c, tau)
+    return coeffs
+
+def denoise():
+    wave = 'db4'
+    sig = 20
+    tau1 = 3*sig
+    tau2 = 3*sig/2
+    noisyLena = lena + np.random.normal(scale = sig, size=lena.shape)
+    lw = pywt.wavedec2(noisyLena, wave, level=4)
+    lwt1 = hardThresh(lw, tau1)
+    lwt2 = softThresh(lw, tau2)
+    rlena1 = pywt.waverec2(lwt1, wave)
+    rlena2 = pywt.waverec2(lwt2, wave)
+    plt.subplot(131)
+    plt.imshow(noisyLena, cmap=plt.cm.Greys_r)
+    plt.axis('off')
+    
+    plt.subplot(132)
+    plt.imshow(rlena1, cmap=plt.cm.Greys_r)
+    plt.axis('off')
+    
+    plt.subplot(133)
+    plt.imshow(rlena2, cmap=plt.cm.Greys_r)
+    plt.axis('off')
+    
+    plt.savefig('denoise.pdf')
     plt.clf()
-
-def dwt1D():
-    '''
-    Create a plot of the discrete wavelet transform of a one-dimensional signal.
-    '''
-    db3 = pywt.Wavelet('db3')
-    dom = np.linspace(1,6,2048)
-    noisysin = (5-6*np.exp(-dom))*np.sin(np.exp(-dom+5)) + np.random.normal(scale=.2,size=2048)
-    coeffs = pywt.wavedec(noisysin, db3, level=4)
-    
-    ax = plt.subplot(611)
-    ax.plot(dom, noisysin)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('f', rotation='horizontal')
-    
-    ax = plt.subplot(612)
-    ax.plot(np.linspace(1,6,len(coeffs[0])), coeffs[0])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('a4', rotation='horizontal')
-    
-    ax = plt.subplot(613)
-    ax.plot(np.linspace(1,6,len(coeffs[1])), coeffs[1])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('d4', rotation='horizontal')
-    
-    ax = plt.subplot(614)
-    ax.plot(np.linspace(1,6,len(coeffs[2])), coeffs[2])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('d3', rotation='horizontal')
-    
-    ax = plt.subplot(615)
-    ax.plot(np.linspace(1,6,len(coeffs[3])), coeffs[3])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('d2', rotation='horizontal')
-    
-    ax = plt.subplot(616)
-    ax.plot(np.linspace(1,6,len(coeffs[4])), coeffs[4])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_ylabel('d1', rotation='horizontal')
-    plt.savefig('dwt1D.pdf')
-    plt.clf()
-#dwt1D()
-
-def dwt2D():
-    '''
-    Create a plot of a 2D discrete wavelet transform of the Lena image.
-    '''
-    l = sp.misc.lena()
-    coeffs = pywt.wavedec2(l, pywt.Wavelet('haar'), level=2)
-    m = l.max()
-    D = np.hstack((coeffs[0]*m/coeffs[0].max(), coeffs[1][0]*m/coeffs[1][0].max()))
-    D = np.vstack((D, np.hstack((coeffs[1][1]*m/coeffs[1][1].max(), coeffs[1][2]*m/coeffs[1][2].max()))))
-    ax = plt.subplot(111)
-    ax.imshow(np.abs(D), cmap = plt.cm.Greys_r, interpolation='nearest')
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.savefig('dwt2D.pdf')
-    plt.clf()
-dwt2D()
-
-#sineCurve()
-#discSineCurve()
-#sineCurveDetail()
-#mexicanHat()   
-    
+denoise()
