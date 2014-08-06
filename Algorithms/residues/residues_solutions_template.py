@@ -2,22 +2,8 @@ import numpy as np
 from sympy import mpmath as mp
 from matplotlib import pyplot as plt
 
-def singplot(f, mn=-.5, mx=.5, res=401, kind='real'):
-    """ Plots a function around a singular point.
-    'f' is assumed to be a callable function that can be used on an
-    array of complex numbers. 'mn' and 'mx' are the maximum and minimum
-    values for both the real and imaginary part of the window to be used
-    for plotting. 'res' is the resolution to use along each axis.
-    'kind' is a keyworkd argument that can take values of 'real', 'imag',
-    or 'abs'. It tells the function to plot the real part, imaginary part,
-    or the modulus of the complex function 'f' on the given domain.
-    In order to scale the colors properly for plotting, first find the
-    values you are to plot (the real part, imaginary part, or modulus),
-    then take the sine of the natural logarithm of the absolute value of it.
-    This will scale it so that your plot will be able to cover a larger
-    range of values. Using the sine function will also make it so that
-    the colormap used will be able to cycle through its values repeatedly
-    in order to represent the increasingly large values of the 'f'. """
+def singular_surface_plot(f, mn=-1., mx=1., res=500, threshold=2., lip=.1):
+    """ Plots the absolute value of a function as a surface plot """
     pass
 
 def partial_fractions(p, q):

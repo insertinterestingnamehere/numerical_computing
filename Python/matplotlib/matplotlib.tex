@@ -1,6 +1,5 @@
 \lab{Applications}{Plotting With Matplotlib and Mayavi}{Plotting}
-\objective{Introduce some of the basic plotting functions available in
-Matplotlib and Mayavi}
+\objective{Introduce some of the basic plotting functions available in Matplotlib and Mayavi}
 \label{lab:Matplotlib_and_Mayavi}
 
 \section*{matplotlib}
@@ -25,14 +24,14 @@ To get started, import pyplot from matplotlib.
 from matplotlib import pyplot as plt
 \end{lstlisting}
 
-To plot and show our function we typically use something like:
+To plot and show our function we typically use something like the following.
 \begin{lstlisting} 
+# Definition of x and y coordinates (typically numpy arrays or lists).
 plt.plot(x,y) 
 plt.show() 
 \end{lstlisting}
 
-The user provides the x and y coordinates of these points. It is important that the 
-coordinates provided are the same dimension for \li{plot} to work. 
+Note that x and y must be the same length for \li{plot} to work. 
 
 We can generate a basic plot of $e^x$ using the following lines of code:
 \begin{lstlisting}
@@ -42,7 +41,7 @@ plt.plot(x, y)
 plt.show() 
 \end{lstlisting}
 
-Notice that \li{linspace} is extremely useful in plotting since it produces evenly spaced values between a given interval. The default number of these evenly spaced values is 50, but was adjusted in the previous code to be 501. It returns these values in an \li{ndarray}. 
+Note that \li{linspace} is useful for plotting since it returns evenly spaced values over a given interval. The default number of these evenly spaced values is 50, but for this example has been 501. The values are returned in an \li{ndarray}. 
 
 This should display a plot similar to the one shown in Figure
 \ref{fig:exp_plot}.
@@ -53,10 +52,11 @@ This should display a plot similar to the one shown in Figure
 \label{fig:exp_plot} 
 \end{figure}
 
+
 \subsection*{Multiple Plots}
 We can use the state based interface to display multiple plots at once. 
 The following code will plot lines with random values at integers from 1 to 10. 
-Note that \li{random.rand} creates an array of the given shape and propagates it with random samples from a uniform distribution over [0,1). Obviously, the given dimensions should be positive and if no argument is given, a single float is returned. 
+Note that \li{random.rand} creates an array of a specified shape and fills it with random samples from a uniform distribution over [0,1). The given dimensions of the array should be positive, and if no argument is given, a single float is returned. 
 
 \begin{lstlisting}
 x = np.linspace(1, 10, 10) 
@@ -64,6 +64,7 @@ y = np.random.rand(10, 10) # Produces random values in a 10x10 size array.
 plt.plot(x, y[0], x, y[1], x, y[2], x, y[3], x, y[4], x, y[5], x, y[6], x, y[7], x, y[8], x, y[9])
 plt.show() 
 \end{lstlisting}
+
 
 We just used the plot function to plot several different lines at once. Alternatively, we can plot each \li{(x, y[i])} pair separately and overlay the plots to produce the same result. 
 \begin{lstlisting}
@@ -99,9 +100,9 @@ in Figure \ref{fig:statemachine}.
 \end{figure}
 
 Note that a suitable domain and range for your plot is automatically chosen 
-unless specified otherwise. 
+unless you specify otherwise. 
 
-\begin{problem} Plot the function $\sin(x)$ from $0$ to $2\pi$ with a red dashed line. Then plot the function $\cos(x)$ on the same domain with a blue dotted line using a single call to the plot function. More information on how to do this can be found in Appendix \ref{mpltables}. 
+\begin{problem} Plot the function $\sin(x)$ from $0$ to $2\pi$ with a red dashed line. Then plot the function $\cos(x)$ on the same domain with a blue dotted line. Use a single call to the \li{plot()} function. Information on how to do this can be found in Appendix \ref{mpltables}. 
 \end{problem}
 
 
@@ -176,6 +177,7 @@ the plotting environment. A few examples are shown in Table
 
 	\end{comment}
 	
+
 \begin{problem} 
 Plot the curve $1/(x-1)$ from $-2$ to $6$ with a 
 magenta dashed line. Force the plot to only show $y$ values that are between $-6$ and $6$. Make your line width 5. Once again, more information on how to do this can be found in Appendix \ref{mpltables}. 
@@ -190,14 +192,17 @@ Your plot should look like the figure below.
 \end{problem}
 
 \begin{problem} Plot the curve $\sin(x)\frac{1}{x+1}$ from $0$ to $10$.
+
 Use blue shading under the curve when it is positive and red when it is
 negative (Hint: you may want to use the \li{fill_between} command).
 Make the line dotted. Label the x-axis ``x-axis'', the y-axis ``y-axis'',
 and the plot ``My Plot''. Enable the gridlines.
 
-Also include a scatter plot of half of the value of the function at each
-of it's maxima and minima in the range. Have it display the points as
-blue triangles. Make sure the x limits of the plot are still 0 and 10.
+
+Also use the \li{scatter} command to include a scatter plot of half of the value of the function at each
+of it's maxima and minima in the range. Display the points as
+upward-pointing triangles. Make sure the x limits of the plot are still 0 and 10.
+Hint: Since you are working with arrays of discrete values, you will want to find the index values where your $x$ and $y$ values are closest to the actual maxima and minima. How would you manually find maxima and minima of a function? Why would you use that approach? How could you do something similar with your $x$ and $y$ arrays?
 
 Your plot should look like the figure below.
 
@@ -208,9 +213,9 @@ Your plot should look like the figure below.
 \end{problem}
 
 \subsection*{pcolormesh}
-Pcolormesh is a function in pyplot which produces a pseudocolor plot of a 2D array. 
+Pcolormesh is a function in pyplot which produces a pseudocolor plot of a 2D array. Think of it as a 3D plot that assigns color rather than height to the result $C$ of a function in $x$ and $y$. Since our domain is now two-dimensional, instead of one-dimensional as before, we use Numpy's \li{meshgrid} function. The \li{meshgrid} function takes two one-dimensional arrays that represent our input values for $x$ and $y$ respectively, and returns a grid of $(x, y)$ coordinates. $X$ represents the $x$-coordinates of this grid and $Y$ represents the $y$-coordinates. We then evaluate our function at these points and return the result in a two-dimensional array $C$, which the pcolormesh function uses to assign colors to the points in our $xy$ domain.
 
-The following is an example of using the pcolormesh function to represent 
+We now use the pcolormesh function to represent 
 the surface $z=\sin(x)\sin(y)$:
 \begin{lstlisting}
 n = 401 
@@ -223,12 +228,12 @@ plt.show()
 \end{lstlisting}
 This plot is shown in Figure \ref{fig:pcmexample}
 \begin{figure} 
-\includegraphics[width=\textwidth]{pcolor.png}
+\includegraphics[width=\textwidth]{sinxsiny.png}
 \caption{Color plot of $\sin\left(x\right)\times\sin\left(y\right)$.}
 \label{fig:pcmexample} 
 \end{figure}
 
-\begin{problem} Use plt.pcolormesh to plot the absolute value of the function $x^3 +2x^2 -x +3$ on the complex plane with 0 $\leq$ \li{x} $\leq$ 2 and 0 $\leq$ \li{y} $\leq$ 2. 
+\begin{problem} Use plt.pcolormesh to plot the absolute value of the function $x^3 +2x^2 -x +3$ on the complex plane with 0 $\leq$ \li{x} $\leq$ 2 and 0 $\leq$ \li{y} $\leq$ 2. Hint: First get your domain arrays, then convert to a single array of complex variables to evaluate the function.
 
 Your plot should look like the figure below.
 
@@ -296,22 +301,21 @@ and set the default value to zero. \end{problem}
 
 \section*{subplots}
 
-We can plot multiple images at the same time using the \li{plt.subplot} command. 
-It takes 3 arguments: the number of rows, the numer of columns, and the plot number. 
-The plot number starts at 1 and increments first across the rows. 
-For each subplot, preface the code needed with
+We can plot multiple images in the same figure using the \li{plt.subplot} command. 
+It takes three arguments: the total number of rows for the figure, the total number of columns for the figure, and the index of the current subplot. 
+This index starts at 1 and increments across rows first. 
+Preface the code for each subplot with the following command:
 \begin{lstlisting}
 plt.subplot(nrows, ncols, plot_number)
 \end{lstlisting}
-However, if all the arguments are each less than 10, the commas can be 
+If all the argument values are less than 10, commas and spaces can be 
 omitted. 
 \begin{lstlisting}
 plt.subplot(nrowsncolsplot_number)
-\end{lstlisting}
-Note that with each subplot, only the plot number changes. 
+\end{lstlisting} 
 
-The following example showcases plots of $sin x$ and $cos x$ on two 
-different axes within the same plot.
+The following example shows plots of $sin x$ and $cos x$ on two 
+different axes within the same figure.
 
 Figure \ref{fig:subplots} is the output from the following code:
 \begin{lstlisting}
@@ -404,91 +408,125 @@ $(-\pi,\pi)$. Title each of them accordingly. Title the entire figure
     \end{comment}
 
 \section*{mayavi}
-Matplotlib is the preferred library for 2D plotting. We will now
-consider Mayavi for 3D plotting. It is a general scientific data
-visualizer that seeks to provide interactive visualization of 3D data.
-It provides easy integration with Python scientific libraries and
-maintains a rich user interface that allows interaction with all data
-and objects.
+
+Matplotlib is designed primarily for 2D plotting. It is also capable of basic 3D plots. However, even though we can create 3D plots in matplotlib, it is better to create 3D plots using a library that is designed to do so. Mayavi is primarily designed for 3D plotting, so it will be our preferred library for this purpose. Mayavi also has the benefits of easy integration with Python scientific libraries and a user interface that allows interaction with all data and objects.
+ 
 
 We encourage you to visit the formal documentation at
 \url{docs.enthought.com/mayavi/mayavi/} for more information. 
 
-In mayavi we will be using the \li{mlab} API which is imported like so
+Within mayavi, we will be using the \li{mlab} API which is imported like so:
 \begin{lstlisting}
 from mayavi import mlab
 \end{lstlisting}
 
-\li{mlab} has many plotting functions including
-\begin{itemize}
-\item barchart
-\item contour3d
-\item flow
-\item imshow
-\item mesh
-\item molecule
-\item plot3d
-\item points3d
-\item quiver 3d
-\item surf
-\end{itemize}
+\li{mlab} has many plotting functions, summarized in Table \ref{fig:fancymesh}.
 
-All these can be "tested" by typing the command
+\begin{table}
+\begin{center}
+\begin{tabular}
+{|c|l|}
+\hline
+Function & Description \\
+\hline
+\li{barchart} & Produces 3D histogram-like plots\\
+\li{contour3d} & Plots level surfaces of functions of three variables\\
+\li{flow} & Creates a trajectory of particles following the flow of a vector field\\
+\li{imshow} & Use a colormap to view a 2D array as an image\\
+\li{mesh} & Plot a surface using \li{(x,y,z)} coordinates supplied as three 2D arrays\\
+\li{plot3d} & Draws lines between points\\
+\li{points3d} & Plots glyphs (like points) at the coordinates supplied\\
+\li{quiver3d} & Generate 3D vector fields\\
+\li{surf} & Plot a surface with a 2D array as elevation data\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Some plotting functions in \li{mlab}.} 
+\label{table:mlab_functions} 
+\end{table}
+
+All these functions can be ``tested" (which provides an example figure for the function) with the command
 \begin{lstlisting}
 mlab.test_<plotting function>()
+mlab.show()
 \end{lstlisting}
 Note that pressing tab after typing \li{mlab.test_} will provide a 
-list of available commands. 
+list of available commands, and that like matplotlib, we need to use the \li{show()} command to actually view our plot. 
 
-To test the fancy mesh, type the following command
+For example, to test the \li{fancy_mesh} function, type the following:
 \begin{lstlisting}
 mlab.test_fancy_mesh()
+mlab.show()
 \end{lstlisting}
 
-The result should resemble Figure \ref{fig:fancymesh}
+\begin{comment}
+The result should resemble Figure \ref{fig:fancymesh}.
 
 \begin{figure} 
 \includegraphics[width=\textwidth]{fancymesh.png}
 \caption{An example of the fancy mesh plotting function} 
 \label{fig:fancymesh}
 \end{figure}
+\end{comment}
 
-
-We will focus our attention on introducing the \li{surf}, \li{mesh}, 
+In this lab, we will focus our attention on introducing the \li{surf}, \li{mesh}, 
 \li{plot3d}, and \li{points3d} functions. 
 
 
-\subsection*{3D Plotting} Similar to matplotlib, \li{mlab} takes a set
-of data points and plots it. Instead of passing just \li{x} and \li{y}
-coordinates like we did in matplotlib, we will also send \li{z}
+Like matplotlib, \li{mlab} takes a set
+of data points and plots it. However, instead of passing just \li{x} and \li{y}
+coordinates as we did in matplotlib, we also send \li{z}
 coordinates to produce a 3D plot. 
 
+\begin{comment}
 \subsection*{surf}
 The \li{surf} function is great for simple structures like orthogonal grids 
 because it will create efficient data structures. 
 It is common to use 2D arrays returned by \li{np.meshgrid}. 
 
 For more complex structures, the \li{mesh} function is more appropriate. 
+\end{comment}
 
 \subsection*{mesh}
 \li{mesh} plots a surface using grid-spaced data. 
-It expects three 2D numpy arrays. As with matplotlib, it is important that 
-all three arrays to be the same shape. 
+It expects three 2D numpy arrays (i.e., a grid of \li{(x,y,z)} coordinates). As with pcolormesh in matplotlib, it is important that 
+all the given arrays have the same shape. 
+The following illustrates a hyperbolic paraboloid, using the colormap \li{RdYlGn}.
+\begin{lstlisting}
+import numpy as np
+from mayavi import mlab
+
+x = np.linspace(-4,4,300)
+y = np.linspace(-4,4,300)
+X, Y = np.meshgrid(x,y)
+
+Z = X**2/4-Y**2/4
+
+mlab.mesh(X, Y, Z, colormap='RdYlGn')
+mlab.show()
+\end{lstlisting}
+
+This will produce Figure \ref{fig:mesh_example}
+\begin{figure}
+\includegraphics[width=\textwidth]{mesh_example.png}
+\caption{A hyperbolic paraboloid}
+\label{fig:mesh_example}
+\end{figure}
 
 \subsection*{plot3d}
-\li{plot3d} is used to draw lines between points. It expects three numpy 
+\li{plot3d} is used to draw lines between points. It expects three one-dimensional numpy 
 arrays to provide the position of the line. 
+
 
 The following illustrates a simple floral design.
 \begin{lstlisting}
-from mayavi import mlab
-
 num = np.pi/1000
 pts = np.arange(0, 2*np.pi + num, num)
 x = np.cos(pts) * (1 + np.cos(pts*6))
 y = np.sin(pts) * (1 + np.cos(pts*6))
 z = np.sin(pts*6/11)
 mlab.plot3d(x, y, z)
+mlab.show()
 \end{lstlisting}
 This will produce Figure \ref{fig:plot3d}
 \begin{figure} 
@@ -499,10 +537,10 @@ This will produce Figure \ref{fig:plot3d}
 
 
 \subsection*{points3d}
-\li{points3d} is very similar to \li{plot3d} except it plots glyphs at the 
-position of the supplied data. It takes the same arguments. This time we 
-will use a keyword argument, \li{s}, which provides an associated scalar 
-value for each point given. It modifies the size and color of the points. 
+\li{points3d} is similar to \li{plot3d}, except that it plots glyphs (the three-dimensional analogue of points) at the 
+positions of the supplied data, and does not connect them as \li{plot3d} does. It takes the same arguments, three 1D numpy arrays that form a line given by a list of \li{(x,y,z)} coordinates.
+For this example, we will also use a keyword argument, \li{s}, which provides an associated scalar 
+value for each point given. This modifies the size and color of the glyphs. We also use a scale factor to adjust the size of the points so that all of them are visible.
 
 The following illustrates a simple heart - given the right perspective. 
 \begin{lstlisting}
@@ -511,8 +549,8 @@ x = np.sin(2 * pts)
 y = np.cos(pts)
 z = np.cos(2 * pts)
 s = 2+np.sin(pts)
-mlab.points3d(x, y, z, s, colormap="cool", scale_factor=.15)
-mlab.savefig("testpoints3d.png", size=(1024,768))
+mlab.points3d(x, y, z, s, scale_factor=.15)
+mlab.show()
 \end{lstlisting}
 This will produce Figure \ref{fig:points3d}
 
@@ -529,8 +567,8 @@ floating points ranging from 0 to 1.
 For example, (1.0, 1.0, 1.0) is white. 
 
 If, however, you would prefer to vary the colors across your visualization, 
-using a colormap is suggested. Table \ref{table:colormaps} provides 
-all possible colormaps. 
+we recommend using a colormap. Table \ref{table:colormaps} provides 
+a list of possible colormaps. 
 
 \begin{table} 
 \begin{center}
@@ -568,26 +606,26 @@ all possible colormaps.
 
 
 \subsection*{Useful Features} 
-One of the most useful features in \li{mayavi} is the record feature. 
-In the pipeline view (far left corner) there is a round, red button. 
+One useful feature in \li{mayavi} is the record feature. This can be found by clicking the pipeline view in the top left corner of a plotting window. In the pipeline view there is a round, red button. 
 Clicking it opens a recorder that keeps track of all the changes made 
-interactively to the visualization. It also generates valid lines of Python code. 
+interactively to the visualization, using valid lines of Python code. 
 
 \begin{problem} 
 Provided Grand Canyon topological radar data from NASA, 
 do the following.
 
 \begin{itemize}
-\item resize the data to be 3601x3601
-\item Cast the type of be \li{float32}. 
-\item Resize the data to take the first 1000 rows and columns 900-1900.
-\item There is some missing data so set the minimum of your data equal to the minimum of the the positive data points. 
-\item Do the following to preset the figure. mlab.figure(size=(400,320), bgcolor = (.16, .28, .46))
-\item Now plot using mlab.surf using the colormap gist earth with a warp scale of .2, vmin of 1200, and a vmax of 1610.
-\item Take a smaller view of the canyon. mlab.view(-5.9, 83, 570, [5.3, 20, 238])
+\item Reshape the data to be 3601x3601.
+\item Cast the data type as \li{float32}. 
+\item Slice the data, taking the first 1000 rows and columns 900-1900.
+\item There is some missing data, so set the minimum of your data equal to the minimum of the the positive data points. 
+\item Preset the figure using the following commands: \li{mlab.figure(size=(400,320)}, \li{bgcolor = (.16, .28, .46))}
+\item Now plot with \li{mlab.surf}, using the colormap \li{gist_earth}, with a \li{warp_scale=.2}, \li{vmin=1200}, and \li{vmax=1610}.
+\item Take a smaller view of the canyon using \li{mlab.view(-5.9, 83, 570, [5.3, 20, 238])}.
 \end{itemize}
 
-This should result in Figure \ref{fig:GrandCanyon}
+This should produce Figure \ref{fig:GrandCanyon}
+
 \end{problem}
 
 \begin{figure} 
