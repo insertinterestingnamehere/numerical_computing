@@ -1,2 +1,6 @@
-from os.path import isfile as i
-assert i('Vol1.pdf') and i('Vol2.pdf') and i('Vol3.pdf') and i('Vol4.pdf')
+from os.path import isfile
+
+assert isfile('Vol1.pdf')
+assert isfile('Vol2.pdf')
+assert isfile('Vol3.pdf')
+assert isfile('Vol4.pdf')
