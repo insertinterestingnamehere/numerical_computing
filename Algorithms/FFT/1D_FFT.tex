@@ -18,23 +18,31 @@ Play the audio clip \texttt{pulseramp.wav}. You will hear a series of pulses, or
 
 In python we can read in a \texttt{.wav} by importing wavfile from scipy.io and using wavfile.read() as follows
 \begin{lstlisting}
+import numpy as np
 from scipy.io import wavfile
+from matplotlib import pyplot as plt 
+
 rate, mywave = wavfile.read('pulseramp.wav')
 \end{lstlisting}
-Here \texttt{data} is the signal and \texttt{rate} is the sampling rate of the audio measured in Hz.  We can check the sampling rate and the size of the signal:
-\begin{lstlisting}
-rate
-Out[2]: 44100
+Here \texttt{mywave} is the signal and \texttt{rate} is the sampling rate of the audio measured in Hz. 
+%  We can check the sampling rate and the size of the signal:
+% \begin{lstlisting}
+% rate
+% Out[2]: 44100
+% 
+% mywave.shape
+% Out[3]: (300000,)
+% \end{lstlisting}
+We find that \texttt{mywave} is a vector of length $300000$. It has only one column because this is a mono (single-channel) \texttt{.wav} file. 
+If we had used a stereo \texttt{.wav} file, then mywave would have been a matrix with two columns, one for the left channel and one for the right.
 
-mywave.shape
-Out[3]: (300000,)
-\end{lstlisting}
-We find that \texttt{mywave} is a vector of length $300000$. It has only one column because this is a mono (single-channel) \texttt{.wav} file. If we had used a stereo \texttt{.wav} file, then mywave would have been a matrix with two columns, one for the left channel and one for the right.
-
-The entries of \texttt{mywave} are integers between $-32767$ and $+32767$ which represent the relative air pressure at a particular instant, sampled at regular intervals (these bounds are the range of 16-bit integers).   In our case, the \texttt{.wav} file is sampled at 44.1KHz (the standard sample-rate for high-quality audio), so there are 44100 samples per second. $+32767$ represents the maximum possible increase in air pressure which the speaker can produce (at its current volume level), while $-32767$ represents the maximum possible decrease in air pressure. In the case of our particular \texttt{.wav} file, you can check that most of the entries of \texttt{mywave} are $0$, indicating neutral pressure. Only occasionally you will find an entry which is $+32767$, which is where a pulse occurs.
+The entries of \texttt{mywave} are integers between $-32767$ and $+32767$ which represent the relative air pressure at a particular instant, sampled at regular intervals (these bounds are the range of 16-bit integers).   
+In our case, the \texttt{.wav} file is sampled at 44.1KHz (the standard sample-rate for high-quality audio), so there are 44100 samples per second. 
+$+32767$ represents the maximum possible increase in air pressure which the speaker can produce (at its current volume level), while $-32767$ represents the maximum possible decrease in air pressure. 
+In the case of our particular \texttt{.wav} file, you can check that most of the entries of \texttt{mywave} are $0$, indicating neutral pressure. 
+Only occasionally you will find an entry which is $+32767$, which is where a pulse occurs.
 We can see this most easily if we plot the waveform of our sound (see Figure \ref{pulseramp}):
 \begin{lstlisting}
-from matplotlib import pyplot as plt
 plt.plot(mywave)
 plt.show()
 \end{lstlisting}
@@ -45,14 +53,15 @@ We should keep in mind that the deviations in air pressure that we hear as sound
 
 \section*{Using the Fourier Transform to Investigate the Spectrum of a Signal}
 
-In many ways the most basic kind of sound is one whose waveform is a sinusoid (i.e., a scaled, shifted version of the sine function). The tone of a sinusoid is, to the ear, more mellow than any other sound of the same pitch. We have seen that, mathematically, sinusoids are important, because Fourier series provide a way of expressing any periodic, piecewise continuous function as a sum of sine and cosine waves of various frequencies and amplitudes, or, more conveniently, using complex exponential functions.
+In many ways the most basic kind of sound is one whose waveform is a sinusoid (that is, a scaled, shifted version of the sine function). 
+To the ear, the tone of a sinusoid is more mellow than any other sound of the same pitch. 
+Mathematically sinusoids are important because Fourier series provide a way of expressing any periodic, piecewise continuous function as a sum of sine and cosine waves of various frequencies and amplitudes, or, more conveniently, using complex exponential functions.
 
-Here's one way of producing a a 1760Hz sine wave (which in musical terms is A6, the A between two and three octaves above middle C):
-
+Here's one way of producing a 1760Hz sine wave (which in musical terms is A6, the A between two and three octaves above middle C):
+% import scipy as sp
+% from scipy.io import wavfile
+% 
 \begin{lstlisting}
-import scipy as sp
-from scipy.io import wavfile
-
 samplerate=44100 # 44100 samples per second
 freq=1760 # We're going to produce a 1760 Hz sine wave ...
 length=2 # ... which will last for 2 seconds.
@@ -69,7 +78,10 @@ Produce a 60Hz sine wave 1 second in length. Then plot the signal. Play the soun
 \end{problem}
 
 
-For a discrete signal, we are given finitely many data points (assumed to be evenly spaced on the $x$-axis); we can think of such a signal as a function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$, where $N$ is the number of data points. For convenience, we will often extend $f$ to be a periodic function with period $N$, defined on all integers, by defining $f(a+bN)=f(a)$ for all integers $a$ and $b$. How might we find something analagous to a Fourier series for such a function? Well, it turns out that the functions, $e^{\frac{2\pi ikx}N}$, which are periodic with period $N$, form an orthonormal set with respect to the inner product
+For a discrete signal, we are given a finite number of evenly spaced data points along the $x$-axis; we can think of such a signal as a function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$, where $N$ is the number of data points. 
+For convenience, we will often extend $f$ to be a periodic function with period $N$, defined on all integers, by requiring $f(a+bN)=f(a)$ for all integers $a$ and $b$. 
+How might we find something analagous to a Fourier series for such a function? 
+Well, it turns out that the functions, $e^{\frac{2\pi ikx}N}$, which are periodic with period $N$, form an orthonormal set with respect to the inner product
 $$\langle f,g\rangle = \frac1N\sum_{k=0}^{N-1}\overline{f(k)}g(k)$$
 In particular, these functions are linearly independent and hence form a basis for the $N$-dimensional (complex) vector space of complex-valued functions with domain $\{0,\dots,N-1\}$. The vector of coordinates of a function $f$ with respect to this basis constitutes what is called the \emph{Discrete Fourier Transform} (or \emph{DFT}) of the function $f$. In other words, any function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$ may be expressed
 $$f(x)=\sum_{k=0}^{N-1}c_ke^{\frac{2\pi ikx}N}$$
@@ -97,7 +109,10 @@ There is a library written in $C$ for computing the FFT called FFTW (Fastest Fou
 
 \begin{figure}[ht]\caption{DFT of a sine wave}\label{sinespec}\centering\includegraphics[width=\textwidth]{sinespec}\end{figure}
 
-Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  If you read \texttt{tada.wav} into python you will find it has two columns.  That is because it is a stereo recording meaning the two columns correspond to two audio signals (left and right).  When using pyFFTW, by default it will take the Fourier Transform along the last axis.  Because of this we will set axis=0. 
+Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  
+If you read \texttt{tada.wav} into python you will find it has two columns.  
+That is because it is a stereo recording meaning the two columns correspond to two audio signals (left and right).  
+pyFFTW by default takes the Fourier Transform along the last axis.  We override this by setting axis=0. 
 
 Now we plot the DFT of \texttt{tada.wav} (see Figure \ref{tadaspec}):
 \begin{lstlisting}

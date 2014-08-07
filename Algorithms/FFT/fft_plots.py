@@ -2,20 +2,21 @@
 #This file generates the plots for the 1d fft algorithms
 # lab
 import matplotlib
-matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+# matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 import matplotlib.pyplot as plt
 import scipy as sp
 from scipy.io import wavfile
 from scipy import fft
-import anfft
+# import anfft
 
 #plots pulseramp waev
 def plot_pulse_ramp():
     plt.close('all')
     rate, mywave = wavfile.read('pulseramp.wav')
     plt.plot(mywave)
-    plt.savefig('pulseramp.pdf')
+    plt.show()
+    # plt.savefig('pulseramp.pdf')
     
 #plots spectrum of sine wave
 def plot_sine_spec():
@@ -87,3 +88,4 @@ def plot_down_saw_spec_correct():
     plt.plot(f[0:f.shape[0]/2])
     plt.savefig('sawdownspec.pdf')
     
+plot_pulse_ramp()
