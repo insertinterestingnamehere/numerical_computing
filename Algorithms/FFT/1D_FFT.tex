@@ -24,7 +24,7 @@ from matplotlib import pyplot as plt
 
 rate, mywave = wavfile.read('pulseramp.wav')
 \end{lstlisting}
-Here \texttt{mywave} is the signal and \texttt{rate} is the sampling rate of the audio measured in Hz. 
+Here \texttt{mywave} is the signal and \texttt{rate} is the sampling rate of the audio measured in Hz (samples per second). 
 %  We can check the sampling rate and the size of the signal:
 % \begin{lstlisting}
 % rate
@@ -48,7 +48,8 @@ plt.show()
 \end{lstlisting}
 \begin{figure}[ht]\caption{A sequence of pulses of increasing frequency}\label{pulseramp}\centering\includegraphics[width=\textwidth]{pulseramp}\end{figure}
 
-We should keep in mind that the deviations in air pressure that we hear as sound are extremely small relative to atmospheric pressure. For instance, in normal conversation, the deviation in air pressure reaching your ears might be around $.01$ pascals, about one ten-millionth of atmospheric pressure.
+We should keep in mind that the deviations in air pressure that we hear as sound are extremely small relative to atmospheric pressure. 
+In normal conversation the deviation in air pressure reaching your ears might be around $.01$ pascals, about one ten-millionth of atmospheric pressure.
 
 
 \section*{Using the Fourier Transform to Investigate the Spectrum of a Signal}
@@ -82,25 +83,36 @@ For a discrete signal, we are given a finite number of evenly spaced data points
 For convenience, we will often extend $f$ to be a periodic function with period $N$, defined on all integers, by requiring $f(a+bN)=f(a)$ for all integers $a$ and $b$. 
 How might we find something analagous to a Fourier series for such a function? 
 Well, it turns out that the functions, $e^{\frac{2\pi ikx}N}$, which are periodic with period $N$, form an orthonormal set with respect to the inner product
-$$\langle f,g\rangle = \frac1N\sum_{k=0}^{N-1}\overline{f(k)}g(k)$$
-In particular, these functions are linearly independent and hence form a basis for the $N$-dimensional (complex) vector space of complex-valued functions with domain $\{0,\dots,N-1\}$. The vector of coordinates of a function $f$ with respect to this basis constitutes what is called the \emph{Discrete Fourier Transform} (or \emph{DFT}) of the function $f$. In other words, any function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$ may be expressed
-$$f(x)=\sum_{k=0}^{N-1}c_ke^{\frac{2\pi ikx}N}$$
-and we call the vector of coefficients $(c_0,c_1,\dots,c_{N-1})$ the DFT of $f$. Explicitly, these coefficients may be computed by taking the inner product of each basis function with $f$:
-$$c_k=\langle e^{\frac{2\pi ikx}N}, f(x)\rangle=\frac1N\sum_{x=0}^{N-1}e^{\frac{-2\pi ikx}N}f(x)$$
+\[
+\langle f,g\rangle = \frac1N\sum_{k=0}^{N-1}\overline{f(k)}g(k).
+\]
+In particular, these functions are linearly independent and hence form a basis for the $N$-dimensional (complex) vector space of complex-valued functions with domain $\{0,\dots,N-1\}$. The vector of coordinates of a function $f$ with respect to this basis constitutes what is called the \emph{Discrete Fourier Transform} (or \emph{DFT}) of the function $f$. In other words, any function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$ may be written in the form
+\[
+f(x)=\sum_{k=0}^{N-1}c_ke^{\frac{2\pi ikx}N}.
+\]
+The vector of coefficients $(c_0,c_1,\dots,c_{N-1})$ is called the DFT of $f$. These coefficients may be computed by taking the inner product of each basis function with $f$:
+\begin{align}
+	c_k=\langle e^{\frac{2\pi ikx}N}, f(x)\rangle=\frac1N\sum_{x=0}^{N-1}e^{\frac{-2\pi ikx}N}f(x) . \label{transform_coefficients}
+\end{align}
 
-In scipy, there is a module \texttt{scipy.fft} that contains functions for computing the DFT of a signal. (\texttt{fft} stands for Fast Fourier Transform.) For example, if we create a sine wave signal \texttt{sig} as above and then type,
+Scipy contains a module called \texttt{fft} which can compute the DFT of a signal. %(\texttt{fft} stands for Fast Fourier Transform.) 
+For example, take the sine wave signal \texttt{sig} created above and run
 \begin{lstlisting}
-fsig = sp.fft(sig)
+from scipy import fft
+
+fsig = fft(sig)
 \end{lstlisting}
-then \texttt{fsig} is an array of complex numbers representing the DFT of this signal. We will plot the absolute values of the entries of \texttt{fsig} (see Figure \ref{sinespec}).
+Here \texttt{fsig} is an array of complex numbers representing the DFT of this signal. We plot the absolute values of the entries of \texttt{fsig} in Figure \ref{sinespec}.
 
-Notice that there are two spikes, one on the left and one on the right. Why are there two spikes when there is only one tone? The answer is that for a real-valued signal, the right half of the DFT is always a mirror-image duplicate of the left half -- or, more precisely, each entry in the right half of the DFT is the complex conjugate of the corresponding entry in the left half. Thus the right half of the DFT gives us no new information, and we may as well ignore it.
-
-In saying that the right half of the DFT is a complex-conjugate mirror-image of the left half, to be perfectly correct we actually need to ignore the very first entry of the DFT.
+Notice that there are two spikes, one on the left and one on the right. Why are there two spikes when there is only one tone? The answer is that for a real-valued signal, the right half of the DFT is always a mirror-image duplicate of the left half -- or, more precisely, each entry in the right half of the DFT is the complex conjugate of the corresponding entry in the left half. Thus the right half of the DFT gives us no new information. (To be completely accurate in describing this mirror-image symmetry, we must ignore the very first entry of the DFT.)
+% 
+% In saying that the right half of the DFT is a complex-conjugate mirror-image of the left half, to be perfectly correct we actually need to ignore the very first entry of the DFT.
 
 
 \begin{problem}
-Implement a function to compute the DFT of a vector using the naive algorithm, directly from the definition of the DFT. Test it on several random vectors and make sure the results match those of scipy's \texttt{fft}.  Note that the scaling scipy uses does not divide by $N$, so you will need to account for that in comparing your results.
+Implement a function to compute the DFT of a vector by using \eqref{transform_coefficients}. % the definition of the DFT. 
+Test it on several random vectors and make sure the results match those of scipy's \texttt{fft}.  
+Note that the scaling scipy uses does not divide by $N$, so you will need to account for that in comparing your results.
 \end{problem}
 
 The naive way of computing the DFT has $O(N^2)$ runtime.  There is a very important algorithm (and many variations of it) called the Fast Fourier Transform (FFT) which computes the DFT in $O(N \log N)$ runtime.  Essentially the FFT algorithm accomplishes this speedup by breaking the recursively breaking up the original array into smaller pieces, finding the Fourier Transform of those smaller pieces, and carefully recombining to get the Fourier Transform of the original array.  While scipy uses the FFT algorithm, it's implementation at the time of this writing is somewhat slow.
@@ -115,15 +127,15 @@ That is because it is a stereo recording meaning the two columns correspond to t
 pyFFTW by default takes the Fourier Transform along the last axis.  We override this by setting axis=0. 
 
 Now we plot the DFT of \texttt{tada.wav} (see Figure \ref{tadaspec}):
+% import scipy as sp
+% from scipy.io import wavfile
 \begin{lstlisting}
-import scipy as sp
-from scipy.io import wavfile
 from pyfftw.interfaces import scipy_fftpack as fftw
 rate, sig = wavfile.read('tada.wav')
-sig = sp.float32(sig)
+sig = np.float32(sig)
 fsig = fftw.fft(sig,axis=0)
 plt.figure()
-plt.plot(sp.absolute(fsig))
+plt.plot(np.absolute(fsig))
 plt.show()
 \end{lstlisting}
 
@@ -131,7 +143,7 @@ plt.show()
 \begin{figure}[ht]\caption{Absolute value of the DFT of \texttt{Tada.wav}}\label{tadaspec}\centering\includegraphics[width=\textwidth]{tadaspec}\end{figure}
 Again, the right half of the plot is a mirror-image duplicate of the left half. We might as well exclude it by only plotting the left half. The absolute value of the left half of  the DFT is called the \emph{spectrum} of the signal (see Figure \ref{tadaspec2}):
 \begin{lstlisting}
-f = sp.absolute(fsig)
+f = np.absolute(fsig)
 plt.plot(f[0:f.shape[0]/2,:])
 plt.show()
 \end{lstlisting}
