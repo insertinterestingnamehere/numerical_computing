@@ -86,13 +86,13 @@ Well, it turns out that the functions, $e^{\frac{2\pi ikx}N}$, which are periodi
 \[
 \langle f,g\rangle = \frac1N\sum_{k=0}^{N-1}\overline{f(k)}g(k).
 \]
-In particular, these functions are linearly independent and hence form a basis for the $N$-dimensional (complex) vector space of complex-valued functions with domain $\{0,\dots,N-1\}$. The vector of coordinates of a function $f$ with respect to this basis constitutes what is called the \emph{Discrete Fourier Transform} (or \emph{DFT}) of the function $f$. In other words, any function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$ may be written in the form
+In particular, these functions are linearly independent and hence form a basis for the $N$-dimensional (complex) vector space of complex-valued functions with domain $\{0,\dots,N-1\}$. The vector of coordinates of a function $f$ with respect to this basis constitutes what is called the \emph{discrete Fourier transform} (or \emph{DFT}) of the function $f$. In other words, any function $f$ whose domain consists of the integers $\{0,1,\dots,N-1\}$ may be written in the form
 \[
 f(x)=\sum_{k=0}^{N-1}c_ke^{\frac{2\pi ikx}N}.
 \]
 The vector of coefficients $(c_0,c_1,\dots,c_{N-1})$ is called the DFT of $f$. These coefficients may be computed by taking the inner product of each basis function with $f$:
 \begin{align}
-	c_k=\langle e^{\frac{2\pi ikx}N}, f(x)\rangle=\frac1N\sum_{x=0}^{N-1}e^{\frac{-2\pi ikx}N}f(x) . \label{transform_coefficients}
+	c_k=\langle e^{\frac{2\pi ikx}N}, f(x)\rangle=\frac1N\sum_{k=0}^{N-1}e^{\frac{-2\pi ikx}N}f(x) . \label{transform_coefficients}
 \end{align}
 
 Scipy contains a module called \texttt{fft} which can compute the DFT of a signal. %(\texttt{fft} stands for Fast Fourier Transform.) 
@@ -115,15 +115,21 @@ Test it on several random vectors and make sure the results match those of scipy
 Note that the scaling scipy uses does not divide by $N$, so you will need to account for that in comparing your results.
 \end{problem}
 
-The naive way of computing the DFT has $O(N^2)$ runtime.  There is a very important algorithm (and many variations of it) called the Fast Fourier Transform (FFT) which computes the DFT in $O(N \log N)$ runtime.  Essentially the FFT algorithm accomplishes this speedup by breaking the recursively breaking up the original array into smaller pieces, finding the Fourier Transform of those smaller pieces, and carefully recombining to get the Fourier Transform of the original array.  While scipy uses the FFT algorithm, it's implementation at the time of this writing is somewhat slow.
+The naive way of computing the DFT has $O(N^2)$ runtime.   
+There is a very important algorithm which computes the DFT with a $O(N \log N)$ runtime, called the \emph{fast Fourier transform}. 
+The fast Fourier transform (FFT) accomplishes this speedup by breaking the recursively breaking up the original array into smaller pieces, finding the Fourier transform of those smaller pieces, and carefully recombining to get the Fourier transform of the original array.  
+While scipy uses the FFT algorithm, its implementation at the time of this writing is somewhat slow.
 
-There is a library written in $C$ for computing the FFT called FFTW (Fastest Fourier Transform in the West) that is substantially quicker.  There is a python package available for download called ``pyfftw'' that wraps fftw in python. The pyfftw package has an interface called scipy\_fftpack that acts exactly like scipy's fft but uses the FFTW. It is important to note that it is only faster than scipy's version on larger arrays. You can also set the number of threads. The default is 1. The author got a significant speed up by setting the threads=8 .
+There is a $C$ library that computes the FFT called FFTW (Fastest Fourier Transform in the West).  
+A python package called ``pyFFTW'' wraps FFTW and is available for download. 
+pyFFTW  has an interface to FFTW called scipy\_fftpack that acts exactly like scipy's fft, and is substantially faster than scipy's implementation when processing larger arrays. 
+It is possible to set the number of threads. The default is 1; the author got a significant speed up by setting the threads=8 .
 
 \begin{figure}[ht]\caption{DFT of a sine wave}\label{sinespec}\centering\includegraphics[width=\textwidth]{sinespec}\end{figure}
 
 Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  
 If you read \texttt{tada.wav} into python you will find it has two columns.  
-That is because it is a stereo recording meaning the two columns correspond to two audio signals (left and right).  
+That is because it is a stereo recording; the two columns correspond to two audio signals (left and right).  
 pyFFTW by default takes the Fourier Transform along the last axis.  We override this by setting axis=0. 
 
 Now we plot the DFT of \texttt{tada.wav} (see Figure \ref{tadaspec}):
@@ -148,7 +154,7 @@ plt.plot(f[0:f.shape[0]/2,:])
 plt.show()
 \end{lstlisting}
 \begin{figure}[ht]\caption{Spectrum of \texttt{Tada.wav} (Absolute value of left half of DFT)}\label{tadaspec2}\centering\includegraphics[width=\textwidth]{tadaspec2}\end{figure}
-Notice that the number of spikes in the plot is much greater than the number of musical notes in the sound. This is because when a one note is played on a musical instrument, more than one frequency is produced: the lowest frequency is called the \emph{fundamental}; the others, which usually occur as integer multiples of the fundamental frequency, are called \emph{overtones}. In instruments with a mellow tone (such as a flute or vibraphone) the overtones are relatively soft, while in instruments with a brighter tone (such as a trumpet) the overtones are quite prominent. In the DFT of \texttt{Tada.wav}, you will notice spikes at about 2030, 4060, 6090, 8120, 10160, 12190, 14220, 16250, 18280, and 20320 units. These are approximately integer multiples of 2030 and represent overtones of a single musical note whose fundamental frequency is about 2030 units.
+Notice that the number of spikes in the plot is much greater than the number of musical notes in the sound: whenever a note is played on a musical instrument, more than one frequency is produced. The lowest frequency is called the \emph{fundamental}, and the others, which usually occur as integer multiples of the fundamental frequency, are called \emph{overtones}. In instruments with a mellow tone (such as a flute or vibraphone) the overtones are relatively soft, while in instruments with a brighter tone (such as a trumpet) the overtones are quite prominent. In the DFT of \texttt{Tada.wav}, you will notice spikes at about 2030, 4060, 6090, 8120, 10160, 12190, 14220, 16250, 18280, and 20320 units. These are approximately integer multiples of 2030 and represent overtones of a single musical note whose fundamental frequency is about 2030 units.
 
 Now what are these units and how can we express them in Hz? Well, a frequency of 2030 units in the DFT means that the tone undergoes 2030 cycles through the extent of the entire recording. We use check the shape of \texttt{sig} to find the total number of samples in the recording:
 \begin{verbatim}
