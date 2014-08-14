@@ -4,7 +4,7 @@
 \def\v{{\bf v}}
 
 \lab{Algorithms}{Fast Fourier Transform}{Fast Fourier Transform}
-\objective{This lesson explores the fourier transform applied to audio signals.}
+\objective{This lesson explores the Fourier transform applied to audio signals.}
 
 \section*{Audio Signals}
 
@@ -112,7 +112,7 @@ Notice that there are two spikes, one on the left and one on the right. Why are 
 \begin{problem}
 Implement a function to compute the DFT of a vector by using \eqref{transform_coefficients}. % the definition of the DFT. 
 Test it on several random vectors and make sure the results match those of scipy's \texttt{fft}.  
-Note that the scaling scipy uses does not divide by $N$, so you will need to account for that in comparing your results.
+Note that the scaling scipy uses does not divide by $N$, so be sure to account for that in comparing your results.
 \end{problem}
 
 The naive way of computing the DFT has $O(N^2)$ runtime.   
@@ -130,9 +130,9 @@ It is possible to set the number of threads. The default is 1; the author got a 
 Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.  
 If you read \texttt{tada.wav} into python you will find it has two columns.  
 That is because it is a stereo recording; the two columns correspond to two audio signals (left and right).  
-pyFFTW by default takes the Fourier Transform along the last axis.  We override this by setting axis=0. 
+pyFFTW by default takes the Fourier transform along the last axis.  We override this by setting axis=0. 
 
-Now we plot the DFT of \texttt{tada.wav} (see Figure \ref{tadaspec}):
+The following code computes the discrete Fourier transform of \texttt{tada.wav} and graphs its absolute values (see Figure \ref{tadaspec}).
 % import scipy as sp
 % from scipy.io import wavfile
 \begin{lstlisting}
@@ -156,14 +156,18 @@ plt.show()
 \begin{figure}[ht]\caption{Spectrum of \texttt{Tada.wav} (Absolute value of left half of DFT)}\label{tadaspec2}\centering\includegraphics[width=\textwidth]{tadaspec2}\end{figure}
 Notice that the number of spikes in the plot is much greater than the number of musical notes in the sound: whenever a note is played on a musical instrument, more than one frequency is produced. The lowest frequency is called the \emph{fundamental}, and the others, which usually occur as integer multiples of the fundamental frequency, are called \emph{overtones}. In instruments with a mellow tone (such as a flute or vibraphone) the overtones are relatively soft, while in instruments with a brighter tone (such as a trumpet) the overtones are quite prominent. In the DFT of \texttt{Tada.wav}, you will notice spikes at about 2030, 4060, 6090, 8120, 10160, 12190, 14220, 16250, 18280, and 20320 units. These are approximately integer multiples of 2030 and represent overtones of a single musical note whose fundamental frequency is about 2030 units.
 
-Now what are these units and how can we express them in Hz? Well, a frequency of 2030 units in the DFT means that the tone undergoes 2030 cycles through the extent of the entire recording. We use check the shape of \texttt{sig} to find the total number of samples in the recording:
-\begin{verbatim}
-sig.shape
-Out[27]: (42752, 2)
-\end{verbatim}
-So the entire recording is 42752 samples long (in each channel -- this is a stereo recording.) The sample rate is 22050 samples per second. (You could find this out, for instance, by right clicking on the \texttt{.wav}, selecting \emph{Properties} and looking under the \emph{Summary} tab).  Thus, 2030 cycles through the entire recording is equivalent to
+So what are these units and how can we express them in Hz? 
+A frequency of 2030 units in the DFT means that the tone undergoes 2030 cycles through the extent of the entire recording. 
+% We use check the shape of \texttt{sig} to find the total number of samples in the recording:
+% \begin{verbatim}
+% sig.shape
+% Out[27]: (42752, 2)
+% \end{verbatim}
+% So the entire recording is 42752 samples long (in each channel -- this is a stereo recording.) 
+Since \texttt{sig.shape}$\, = (42752, 2)$, we see that the entire recording is 42752 samples long in 2 channels (this is a stereo recording).
+The sample rate is 22050 samples per second. (You could find this out, for instance, by right clicking on the \texttt{.wav}, selecting \emph{Properties} and looking under the \emph{Summary} tab).  Thus, 2030 cycles through the entire recording is equivalent to
 $$\frac{2030\text{ cycles}}{42752\text{ samples}} \times \frac{22050\text{ samples}}{\text{sec}} \approx 1047 \text{ Hz}.$$
-So this tone is at 1047 Hz, which in musical terms is a (concert) C6, the C two octaves above middle C. There are also other, lower musical notes in the recording which each have their own sequence of overtones.
+This tone is at 1047 Hz, which in musical terms is a (concert) C6, the C two octaves above middle C. There are also other, lower musical notes in the recording which each have their own sequence of overtones.
 
 \begin{problem}
 Listen to \texttt{pianoclip.wav}. Identify the audible frequency of greatest amplitude (Ignore the 0 frequency as explained in the following paragraph.).  What musical note does the fundamental frequency correspond to? (For this, you may wish to use the table on http://en.wikipedia.org/wiki/Piano\_key\_frequencies)
