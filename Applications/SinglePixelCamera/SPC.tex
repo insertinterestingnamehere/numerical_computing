@@ -8,20 +8,20 @@ When you look at a picture on a computer screen it is divided into areas called 
 
 A single pixel camera treats the whole image as one pixel and thus only stores one RGB value that is the average color value of the whole image.  
 
-\section*{2d images}
+\section*{2D Images}
 In this lab we are going to represent the world as tesselated image. A tesselated image is a tiling with geometric shapes. 
 
-In this lab we assume that $\s{S}$ has a given tesselation $\s{T} = \{F_i\}$, where $F_i$ represents a particular face of our tesselation. Without loss of generality, we will assume that each $F_i$ is a triangle. We will represent the vertices of $F_i$ by $F^j_i$, where $F^j_i$ will be a column vector of length two representing the coordinates of $F_i$.
+In this lab we assume that $\mathcal{S}$ has a given tesselation $\mathcal{T} = \{F_i\}$, where $F_i$ represents a particular face of our tesselation. Without loss of generality, we will assume that each $F_i$ is a triangle. We will represent the vertices of $F_i$ by $F^j_i$, where $F^j_i$ will be a column vector of length two representing the coordinates of $F_i$.
 
 Recall from mutivarible calculus that the area of a triangle is half the magnitude of the cross product. For $F_i$ this is given by
-\begin*{align}
+\begin{align}
 v_1 &= F_i^1 - F_i^0 \\
 v_2 &= F_i^2 - F_i^0 \\
 A_i &= \frac{1}{2}\big|v_1[0] v_2[1] - v_1[1] v_2[0]\big|
-\end*{align}
+\end{align}
 
 
-We represent our signal, in this case our RBG color values, as a vector $s$, where the length of $s$ is the number of faces of our tesselation $\s{T}$. We assume, naturally, that the value of our signal  on the face $F_i$ is exactly the value $s[i]$. We can then, using the areas previously calculated, express the single-pixel measurement of the signal ot the camera as an inner product:
+We represent our signal, in this case our RBG color values, as a vector $s$, where the length of $s$ is the number of faces of our tesselation $\mathcal{T}$. We assume, naturally, that the value of our signal  on the face $F_i$ is exactly the value $s[i]$. We can then, using the areas previously calculated, express the single-pixel measurement of the signal ot the camera as an inner product:
 \begin{equation}
 A \cdot s = b
 \end{equation}
@@ -33,13 +33,13 @@ In addition we assume that the total area of the image is equal to the sum of ou
 Then $\hat{b}$ will be the RGB values of the singe pixel.
 
 \begin{problem}
-Write a function that takes in $S$, a 3-d array of the vertices of 2d tesselation faces, and $s$ , the RBG values of the each tesselation. Output the RGB value given by the single pixel camera. Below is code to visualize the tesselation and \hat{b}. 
+Write a function that takes in $S$, a 3-d array of the vertices of 2d tesselation faces, and $s$ , the RBG values of the each tesselation. Output the RGB value given by the single pixel camera. Below is code to visualize the tesselation and $\hat{b}$.  Included is test data. Your output for the test data should be...
 \end{problem}
 
 \begin{lstlisting}
 import matplotlib.pyplot as plt
 from matplotlib.collections import PolyCollection
-# This fucntion plots tesselation, S, with the colors s 
+# This function plots a 2D tesselation, S, with the colors s 
 def visualize2d(S,s):
     fig, ax = plt.subplots()
     coll = PolyCollection(S, facecolors=s)
@@ -69,7 +69,7 @@ Write a function that changes spherical coordinates to rectagular.
 
 We then utilize the projective transform to calculate how the camera ``sees'' the faces of the surface. This is a well-known technique, so we will simply state the appropriate equations:
 
-\begin*{align}
+\begin{align}
 t &= \text{acos}(\frac{-c_2}{\|c\|}) \\
 w^* &= \begin{bmatrix}
 	\frac{c_1}{\|c\|} \\
@@ -87,12 +87,12 @@ P &= \begin{bmatrix}
 R^T & -R^T c \\
 0 & 1
 \end{bmatrix}
-\end*{align}
+\end{align}
 
 We can then use the matrix $P$ to transform any point $x$ in homogenous world, in this case homogenous coordinates are created by simply appending 1 to the bottom of a given column vector, coordinates to homogenous camera coordinates $y$ by the equation:
-\begin{equation}
+\begin*{equation}
 Px = y
-\end{equation}
+\end*{equation}
 
 \begin{problem}
 Write a function that takes in a camera location and outputs the transformation matrix.
@@ -127,17 +127,39 @@ M(j) = A_j \cdot e_j
 Then
 \begin{equation}
 M \cdot s = b
+\end{equation}
+\begin{equation}
 \frac{b}{\sum_i M} = \hat{b}
 \end{equation}
 And $\hat{b}$ is the RGB value of a picture taken by the single pixel camera at location $c$.
 
 \begin{problem}
-Using the previous problems, write a function that takes in an array of vertices of a tesselation, color values for the faces of the tesselation and a camera position and outputs single pixel RGB value.
+Using the previous problems, write a function that takes in an array of vertices of a tesselation, color values for the faces of the tesselation and a camera position in shperical coordinates and outputs single pixel RGB value. Below is ploting script for 3d Tesselations. Included is data from a satilite that makes a tesselation of the earth, Use it to test your fuction.
 \end{problem}
+
+\begin{lstlisting}
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import matplotlib.colors as colors
+# This function plots a 2D tesselation, F, with the colors C. 
+def visualize3d(F,C):
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    l=len(F)
+    for n in xrange(l):
+        verts = [zip(F[n,0]*.5+.5,F[n,1]*.5+.5,F[n,2]*.5+.5)]
+        tri=Poly3DCollection(verts)
+        tri.set_color(colors.rgb2hex(C[n]))
+        tri.set_edgecolor('k')
+        ax.add_collection3d(tri)
+    plt.show()
+\end{lstlisting}
+
 
 You can extend this for any tesselated object 2d or 3d. The only thing that changes is how you calculate the area of the face (For example shoelace formula gives the area of any simple polygon.) The Projective Transform remains the same. 
 
-\section{Application}
+\section*{Application}
 The single pixel camera is used in the field of compressed sensing (though the camera works a little differently than the one you made in this lab)
 
 %\begin{figure}[h]
