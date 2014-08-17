@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 from scipy.optimize import fmin_cg
 
+
 def steepestDescent(Q, b, x, niter=10):
     '''
     Minimize .5x^TQx - b^Tx + c using the method of Steepest Descent.
@@ -22,6 +23,7 @@ def steepestDescent(Q, b, x, niter=10):
         r = Q.dot(x) - b
         x += -((r*r).sum()/((r*(Q.dot(r))).sum()))*r
     return pts
+
 
 def conjugateGradient(Q, b, x, allpts=True):
     '''
@@ -52,6 +54,7 @@ def conjugateGradient(Q, b, x, allpts=True):
     else:
         return x
 
+
 def steepVsConj():
     Q = np.array([[1.,0], [0,10.]])
     b = np.array([0.,0.])
@@ -79,7 +82,7 @@ def steepVsConj():
     plt.plot(np.array(pts2)[:,0],np.array(pts2)[:,1], '*-')
     plt.savefig('steepVsConj.pdf')
     plt.clf()
-#steepVsConj()
+
 
 def linReg():
     # Do a simple linear regression with one predictor variable
@@ -98,14 +101,15 @@ def linReg():
     plt.scatter(x,y)
     plt.savefig('linregression.pdf')
     plt.clf()
-#linReg()
+
 
 def logReg():
-    y = np.array([0, 0, 0, 0, 1, 0, 1, 0, 1, 1])
-    x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     def objective(b):
         '''Return -1*l(b[0], b[1]), where l is the log likelihood.'''
         return np.log(1+np.exp(b[0]+b[1]*x)).sum() - (y*(b[0]+b[1]*x)).sum()
+    
+    y = np.array([0, 0, 0, 0, 1, 0, 1, 0, 1, 1])
+    x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     guess = np.array([1., 1.])
     b = fmin_cg(objective, guess)
     dom = np.linspace(0,11,100)
@@ -113,4 +117,9 @@ def logReg():
     plt.plot(dom, 1./(1+np.exp(-b[0]-b[1]*dom)))
     plt.savefig('logreg.pdf')
     plt.clf()
-#logReg()
+
+
+if __name__ == "__main__":
+    logReg()
+    linReg()
+    steepVsConj()
