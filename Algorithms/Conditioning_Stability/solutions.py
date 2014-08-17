@@ -1,25 +1,8 @@
 import numpy as np
-from numpy.random import rand, normal
 from scipy import linalg as la
 from scipy.linalg.flapack import dtrtrs
 from matplotlib import pyplot as plt
 
-def wilkinson_poly():
-    """ Reproduce the Wilkinson Polynomial example shown in the lab. """
-    roots = np.arange(1, 21)
-    cfs = np.array([1, -210, 20615, -1256850, 53327946, -1672280820,
-                    40171771630, -756111184500, 11310276995381,
-                    -135585182899530, 1307535010540395,
-                    -10142299865511450, 63030812099294896,
-                    -311333643161390640, 1206647803780373360,
-                    -3599979517947607200, 8037811822645051776,
-                    -12870931245150988800, 13803759753640704000,
-                    -8752948036761600000, 2432902008176640000])
-    peturbation = normal(scale=1E-5, size=cfs.size)
-    computed_roots = np.poly1d(cfs + peturbation).roots
-    plt.scatter(roots.real, roots.imag)
-    plt.scatter(computed_roots.real, computed_roots.imag, color='r')
-    plt.show()
 
 def root_error(roots):
     """ Make a scatter plot of the real and imaginary parts of
@@ -54,7 +37,7 @@ def estimate_condition(eig, A, peturbation = 1E-4, tries=10000):
     A_norm = la.norm(A)
     changes = np.empty(tries)
     for i in xrange(tries):
-        dx = normal(scale=peturbation, size=A.size).reshape(A.shape)
+        dx = np.random.normal(scale=peturbation, size=A.size).reshape(A.shape)
         changes[i] = la.norm(A_eigs - eig(A + dx)) / A_eigs_norm
         changes[i] /= la.norm(dx) / A_norm
     return changes.max()
@@ -82,22 +65,22 @@ def bad_arr_2(n, peturbation = 1E-8):
     by computing A.dot(A.T) for a matrix A that is
     not square and then adding some small changes
     so it is not exactly singular. """
-    A = rand(n, n // 2)
-    return A.dot(A.T) + peturbation * rand(n, n)
+    A = np.random.rand(n, n // 2)
+    return A.dot(A.T) + peturbation * np.random.rand(n, n)
 
 # Some helper functions for the last problem
 def check_solve(A):
-    b = rand(A.shape[0])
+    b = np.random.rand(A.shape[0])
     b2 = A.dot(b)
     return la.norm(b - la.solve(A, b2))
 
 def check_qr(A):
-    b = rand(A.shape[0])
+    b = np.random.rand(A.shape[0])
     b2 = A.dot(b)
     return la.norm(b - qr_solve(A, b2))
 
 def check_lstsq(A):
-    b = rand(A.shape[0])
+    b = np.random.rand(A.shape[0])
     b2 = A.dot(b)
     return la.norm(b - la.lstsq(A, b2)[0])
 
