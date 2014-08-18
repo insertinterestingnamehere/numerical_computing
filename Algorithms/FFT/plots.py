@@ -1,6 +1,8 @@
 # coding: utf-8
 #This file generates the plots for the 1d fft algorithms
-# lab
+
+
+## TODO: update plots and verify
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import wavfile
 from scipy import fft
-import anfft
+from pyfftw.interfaces import scipy_fftpack as pyfft
 
 #plots pulseramp waev
 def pulseramp():
@@ -83,4 +85,4 @@ def plot_down_saw_spec_correct():
     plt.clf()
     
 if __name__ == "__main__":
-    pulse_ramp()
+    pulseramp()
