@@ -6,19 +6,17 @@ import numpy as np
 import scipy as sp
 from scipy import misc
 import pyfftw
+from helperCode import hamming
 
-def hamming(n):
-    """
-    Generate a hamming window of n points as a numpy array.
-    """
-    return 0.54 - 0.46 * np.cos(2 * np.pi / n * (np.arange(n) + 0.5))
 
 def FFT2(A):
     B = pyfftw.interfaces.scipy_fftpack.fft(A, axis=0)
     return pyfftw.interfaces.scipy_fftpack.fft(B, axis=1)
 
+
 def melScale(f):
     return 2595*np.log10(1+f/700)
+
 
 def powerCepstrum():
     '''
@@ -53,6 +51,7 @@ def powerCepstrum():
     plt.savefig('PowerCepstrum.pdf')
     plt.clf()
 
+
 def hammingWindow():
     '''
     Generate plot of a Hamming window and windowed signal.
@@ -79,6 +78,7 @@ def hammingWindow():
     plt.xlabel('Windowed Signal')
     plt.savefig('Hamming.pdf')
     plt.clf()
+
 
 def plotMelScale():
     '''
@@ -114,6 +114,7 @@ def plotMelScale():
     plt.ylabel('Magnitude')
     plt.savefig('melScale.pdf')
     plt.clf()
+
 
 def plotFFT():
     '''
