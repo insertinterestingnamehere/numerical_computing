@@ -1,5 +1,5 @@
 import matplotlib
-#matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -24,7 +24,7 @@ def dwt2():
     plt.axis('off')
     plt.savefig('dwt2.pdf')
     plt.clf()
-#dwt2()
+    
 
 def hardThresh(coeffs, tau):
     for i in xrange(1,len(coeffs)):
@@ -32,11 +32,13 @@ def hardThresh(coeffs, tau):
             c[:] = pywt.thresholding.hard(c, tau)
     return coeffs
     
+    
 def softThresh(coeffs, tau):
     for i in xrange(1,len(coeffs)):
         for c in coeffs[i]:
             c[:] = pywt.thresholding.soft(c, tau)
     return coeffs
+
 
 def denoise():
     wave = 'db4'
@@ -63,4 +65,8 @@ def denoise():
     
     plt.savefig('denoise.pdf')
     plt.clf()
-denoise()
+
+
+if __name__ == "__main__":
+    dwt2()
+    denoise()
