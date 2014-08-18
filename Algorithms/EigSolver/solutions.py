@@ -3,6 +3,7 @@ import scipy as sp
 from scipy import linalg as la
 from scipy.linalg import hessenberg
 import numpy as np
+from numpy.linalg import matrix_power
 
 def qr_solver(A, niter=1000, tol=1e-3):
     '''
@@ -104,3 +105,36 @@ def eig(A, normal = False, iter = 100):
 			Q = sp.dot(Q,Qi)
 		v = sp.diag(A)
 		return v,Q
+
+
+def markov_freethrow():
+    '''
+    Compute the answers to problem 1 in the lab.
+    Initialize the given Markov matrix, and perform all
+    calculations within the function.
+    Returns:
+        n1 -- n1 is the answer to part 1
+        n2 -- n2 is the answer to part 2
+    '''
+    A = np.array([[.75, .5], [.25, .5]])
+    n1 = A.dot(A)[0,0]
+    n2 = matrix_power(A, 20)[0,0]
+    return n1, n2
+
+def markov_stablept():
+    '''
+    Calculate the answers to problem 2 in the lab.
+    Hint: to see if there is a stable fixed point, raise the
+    matrix to some high powers (like powers of 15-20), and see
+    if the columns are converging to some common array. If
+    they are, return the common array, and if not, return None.
+    Returns:
+        n1 -- transition matrix asked for in part 1
+        n2 -- probability of being in state 2 after 2 
+              transitions (starting from state 1)
+        n3 -- array giving the stable fixed point if exists, or None
+    '''
+    A = np.array([[1./4, 1./3, 1./2], [1./4, 1./3, 1./3], [1./2, 1./3, 1./6]])
+    n2 = A.dot(A)[1,0]
+    n3 = matrix_power(A, 20)[:,0]
+    return A, n2, n3
