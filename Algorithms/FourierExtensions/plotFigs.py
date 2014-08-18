@@ -154,8 +154,10 @@ def plotFFT():
     plt.savefig('2dfft.pdf')
     plt.clf()
 
-powerCepstrum()
-hammingWindow()
-plotFFT()
-plotMelScale()
+
+if __name__ == "__main__":
+    powerCepstrum()
+    hammingWindow()
+    plotFFT()
+    plotMelScale()
     
