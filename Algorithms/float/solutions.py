@@ -1,28 +1,38 @@
 import numpy as np
 
 # problem 1
-class precise(object):
+class Precise(object):
     def __init__(self, val=0, exp=0):
         self.val = val
         # note, I'm storing the power of the last significant digit.
         self.sig = exp - len(str(self.val)) +1
+        
+        
     def exp(self):
-		# get the exponent from the sig value.
+        # get the exponent from the sig value.
         return len(str(self.val)) - 1 + self.sig
+    
+    
     def pyfloat(self):
-		# return a python float from the floating point object.
+        # return a python float from the floating point object.
         return self.val * 10**(self.sig)
+    
+    
     def copy(self):
-		# make a copy of the floating point object.
+        # make a copy of the floating point object.
         new = precise(val=self.val)
         new.sig = self.sig
         return new
+    
+    
     def __repr__(self):
-		# print method
+        # print method
         s = str(self.val)
         return s[0] + '.' + s[1:] + " x 10^" + str(self.exp())
+    
+    
     def __add__(self, other):
-		# addition
+        # addition
         if self.sig < other.sig:
             new = self.copy()
             new.val *= 10**(other.sig - self.sig)
@@ -37,58 +47,78 @@ class precise(object):
             new = other.copy()
             new.val += self.val
         return new
+    
+    
     def __mul__(self, other):
-		# multiplication
+        # multiplication
         new = self.copy()
         new.sig += other.sig
         new.val *= other.val
         return new
+    
+    
     def __sub__(self, other):
-		# subtraction
+        # subtraction
         new = other.copy()
         new.val *= -1
         return self + new
+    
+    
     def truncate(self, newsig):
-		# truncation
+        # truncation
         if self.sig < newsig:
             self.val = int(str(self.val)[:(self.sig-newsig)])
             self.sig = newsig
  
- class significant(object):
-	# most of these methods are based on the previous class
-    def __init__(self, val=precise(), err=precise()):
+class Significant(object):
+    # most of these methods are based on the previous class
+    def __init__(self, val=Precise(), err=Precise()):
         self.val = val
         # note: error should ALWAYS be positive
         self.err = err
+    
+    
     def pyfloat(self):
         return self.val.pyfloat()
+    
+    
     def copy(self):
         new = significant()
         new.val = self.val.copy()
         new.err = self.err.copy()
         return new
+    
+    
     def __repr__(self):
         return str(self.val) + " +- " + str(self.err)
+    
+    
     def __add__(self, other):
         new = self.copy()
         new.val += other.val
         new.err += other.err
         return new
+    
+    
     def __sub__(self, other):
         new = self.copy()
         new.val -= other.val
         new.err += other.err
         return new
+    
+    
     def __mul__(self, other):
         new = self.copy()
         new.val *= other.val
         new.err  = self.err*other.val + self.val*other.err + self.err*other.err
         return new
+    
+    
     def truncate(self):
-        if self.err.val is 1:
+        if self.err.val == 1:
             self.err.sig = self.err.exp()
             self.val.truncate(self.err.sig)
-        elif self.err.val is not 0:
+        elif self.err.val != 0:
             self.err.sig = self.err.exp() + 1
             self.err.val = 1
             self.val.truncate(self.err.sig)
