@@ -4,8 +4,7 @@ from matplotlib import pyplot as plt
 
 import numpy as np
 from scipy import linalg as la
-from matplotlib import pyplot as plt
-import IntPointI_solutions as sol
+import IntPointSolutions as sol
 
 def interiorPath():
     '''
@@ -44,7 +43,6 @@ def interiorPath():
     plt.savefig('interiorPath.pdf')
     plt.clf()
 
-#interiorPath()
 
 def leastAbsDev():
     """
@@ -98,4 +96,8 @@ def leastAbsDev():
     plt.plot(dom, coeffs2[0]*dom+coeffs2[1])
     plt.savefig('leastAbsDev.pdf')
     plt.clf()
-#leastAbsDev()
+
+
+if __name__ == "__main__":
+    interiorPath()
+    leastAbsDev()
