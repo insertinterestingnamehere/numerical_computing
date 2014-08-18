@@ -162,7 +162,7 @@ def randomLP(m,n):
     A[A[:,-1]<0] *= -1
 
     # adjust so that the solution to the program is a prescribed point v in the first
-    quadrant.
+    # quadrant.
     v = np.random.random(n)*10
     #k = np.random.randint(n,m+1)
     k = n
