@@ -4,7 +4,7 @@ from scipy import linalg as la
 from scipy.linalg import hessenberg
 import numpy as np
 
-def qrSolver(A, niter=1000, tol=1e-3):
+def qr_solver(A, niter=1000, tol=1e-3):
     '''
     Calculate the eigenvalues of a matrix A using QR iteration.
     Inputs:
