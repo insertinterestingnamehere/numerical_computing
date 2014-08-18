@@ -1,7 +1,8 @@
+from __future__ import division
+
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
-from __future__ import division
 import numpy as np
 from numpy import array as arr
 from scipy.interpolate import interp1d
@@ -27,11 +28,6 @@ def tridiagonal_approach():
         a, c= np.zeros(N), np.zeros(N)
         b[0], b[N] = 1., 1.
         f[0], f[N] = alpha, beta
-        # for i in range(0,N-1):
-        # 	b[i+1] = -epsilon*(1./h[i] + 1./h[i+1])# a(\phi_i, \phi_i) 
-        # 	f[i+1] = -.5*(h[i] + h[i+1])
-        # 	a[i] = epsilon/h[i] + .5
-        # 	c[i+1] = epsilon/h[i+1] - .5
                 
                 
         # i = 0 to N-2
@@ -42,15 +38,6 @@ def tridiagonal_approach():
                 
                 
         return a, b, c, f, x
-
-
-    
-            
-    # print "a = \n", a
-    # print "b = \n", b
-    # print "c = \n", c
-    # print "f = \n", f
-    # print "x = \n", x
     
     n = [2**i for i in range(4,22)]
     
@@ -59,10 +46,10 @@ def tridiagonal_approach():
     for j in range(len(n)): 
         a, b, c, f, x = matrix_diagonals(n[j])
         numerical_soln = tridiag(a,b,c,f)
-        analytic_soln = AnalyticSolution(x,alpha, beta,epsilon)
+        analytic_soln = AnalyticSolution(x, alpha, beta,epsilon)
         max_error_fe[j] = np.max(np.abs(numerical_soln - analytic_soln))
     
-    print "max_error = ", max_error_fe
+    #print "max_error = ", max_error_fe
     
     
     plt.loglog(n,max_error_fe,'-k',linewidth=2.)
@@ -73,13 +60,11 @@ def tridiagonal_approach():
     numerical_soln = tridiag(a,b,c,f)
     epsilon = .02
     analytic_soln = AnalyticSolution(x,alpha, beta,epsilon)
-    print "Error = ", np.max(np.abs(numerical_soln- analytic_soln))
+    #print "Error = ", np.max(np.abs(numerical_soln- analytic_soln))
     # plt.plot(x,numerical_soln,'-*r',lw=2.)
     plt.plot(x,analytic_soln,'-k',lw=2.)
     plt.savefig("FEM_singular_solution.pdf")
-    plt.show()
-    return 
-
+    plt.clf()
 
 def basis_functions_plot():
     fig = plt.figure()
@@ -121,9 +106,8 @@ def basis_functions_plot():
     plt.xticks(np.linspace(0.,1.,6),['$x_0$','$x_1$','$x_2$','$x_3$','$x_4$','$x_5$'],fontsize=18)
     # print Axis.get_majorticklabels(plt.axis)
     plt.savefig("basis_functions.pdf")
-    
     plt.clf()
-    return 
+     
 
 
 def one_basis_function_plot():
@@ -149,6 +133,6 @@ def one_basis_function_plot():
 
 
 if __name__ == "__main__":
-    # basis_functions_plot()
-    # one_basis_function_plot()
-    tridiagonal_approach()
+    basis_functions_plot()
+    one_basis_function_plot()
+    #tridiagonal_approach()
