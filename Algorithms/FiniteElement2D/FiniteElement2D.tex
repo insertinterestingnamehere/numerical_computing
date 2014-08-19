@@ -106,5 +106,37 @@ plt.show()
 As was mentioned before, hat functions on triangulations are often used in Finite Element analysis.
 When using the Finite element mehtod, regardless of the number of dimensions, it is necessary to transform a problem to its weak formulation.
 This allows the approximation of the action of a PDE on a domain via the computation of integrals.
-To begin, we will consider the differential equation
+To begin, we will consider the differential operator
 \[-\nabla \cdot \left(a\left(x\right) \nabla u\left(x\right)\right) + b\left(x\right) \cdot \nabla u\left(x\right) + c\left(x\right) u\left(x\right) = d\left(x\right)\]
+on a triangulated domain $\Omega$.
+For simplicity, we will first consider the case where $u$ is assumed to have Neumann boundary conditions.
+The weak formulation of this problem on a function space $V$ is to find a function $u$ such that $a\left(u, v\right) = l\left(v\right)$ for all $v \in V$ with $a$ and $l$ defined as the following integral operators.
+\begin{align*}
+a\left(u, v\right) &= \int_\Omega \left( a\left(x\right) \nabla u\left(x\right) \cdot \nabla v\left(x\right) + \left(b\left(x\right) \cdot \nabla u\left(x\right)\right) v\left(x\right) + c\left(x\right) u\left(x\right) v\left(x\right) \right) dx\\
+l\left(v\right) &= \int_\Omega d\left(x\right) v\left(x\right) dx
+\end{align*}
+
+We will find an approximate solution to the PDE that lies in the space $V$ of functions that are continuous and linear on each of the triangles in the triangulation of $\Omega$.
+Let $\phi_i$ be the hat function centered at the $i$'th vertex of the triangulation of $\Omega$.
+The $\phi_i$ are a basis for $V$, so we may say that we seek coefficients $u_i$ such that for any set of coefficients $v_i$,
+\[a\left(\sum_i u_i \phi_i , \sum_j v_j \phi_j \right) = l\left(\sum_j v_j \phi_j\right)\]
+Since $a$ is linear in its second term and $l$ is linear, this is equivalent to finding coefficients $u_i$ such that
+\[a\left(\sum_i u_i \phi_i , \phi_j \right) = l\left(\phi_j\right)\]
+Since $a$ is also linear in its first term, this is equivalent to finding $u_i$ such that
+\[\sum_i u_i a\left(\phi_i, \phi_j\right) = l\left(\phi_j\right)\]
+This problem can be represented as a linear system $A u = \Phi$ where $\Phi_j = l\left(\phi_j\right)$ and $A_{j, i} = a\left(\phi_i, \phi_j\right)$.
+Generally speaking, this problem can be solved by construct the matrix $A$, and the vector $\Phi$, and then solving the resulting system.
+
+\begin{info}
+The matrix $A$ in the linear system constructed here is often referred to as the ``stiffness matrix."
+The vector $\Phi$ is commonly known as the ``load vector."
+\end{info}
+
+\begin{info}
+Notice that $a\left(\phi_i, \phi_j\right)$ depends entirely on the area where $\phi_i$ and $\phi_j$ are both nonzero.
+If the supports of the functions $\phi_i$ and $\phi_j$ do not overlap, $a\left(\phi_i, \phi_j\right) = 0$.
+Since only neighboring hat functions yield nonzero terms in the sum, the matrix $A$ is usually sparse.
+\end{info}
+
+\subsection*{Constructing the Stiffness Matrix and Load Vector}
+It is not always easiest to construct the stiffness matrix and load vector by considering the basis functions one at a time.
