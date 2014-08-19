@@ -110,6 +110,59 @@ It is much easier for a computer to perform arithmetic operations without having
 Unnecessary type declarations can potentially slow things down, but whenever a large number of computations involve the same data type, adding type declarations should speed things up considerably.
 % Statements using \li{cdef} are also not allowed inside loops so you will have to declare all the variables you need before you use them.
 
+Table \ref{table:cython_types} shows the different numeric types that are available in Cython.
+Cython uses the same type naming conventions as C and C++.
+On most normal modern systems, the sizes listed for integers will apply, though some are still dependent on the operating system.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|p{2.8cm}|p{2.5cm}|p{6cm}|}
+\hline
+Cython Type & NumPy Type& Description \\
+\hline
+float & float32 & 32 bit floating point number \\
+double & float64 & 64 bit floating point number \\
+float complex & complex64 & 64 bit floating point complex number \\
+double complex & complex128 & 128 bit floating point complex number \\
+char & int8 & 8 bit signed integer \\
+unsigned char & uint8 & 8 bit unsigned integer \\
+short & int16 & 16 bit signed integer \\
+unsigned short & uint16 & 16 bit unsigned integer \\
+int & int32 & 32 bit signed integer \\
+unsigned int & uint32 & 32 bit unsigned integer \\
+long & int32 or int64 & 32 or 64 bit signed integer (size depends on platform) \\
+unsigned long & uint32 or uint64 & 32 or 64 bit unsigned integer (size depends on platform ) \\
+long long & int64 & 64 bit signed integer \\
+unsigned long long & uint64 & 64 bit unsigned integer \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Numeric types available in Cython.}
+\label{table:cython_types}
+\end{table}
+
+Cython also has some experimental support for compiling the same set of operations for different types.
+For example, the following Cython file defines a function \li{myadd} that will work for both 32 and 64 bit floating point numbers.
+\begin{lstlisting}
+ctypedef fused floating:
+    float
+    double
+def myadd(floating a, floating b):
+    return a + b
+\end{lstlisting}
+\li{ctypedef} is a type declaration.
+The \li{fused} keyword tells Cython that we are defining a fused type.
+\li{floating} is the name of the fused type we are defining.
+Some specific fused types are already predefined in the Cython module.
+The following would be equivalent to the previous example:
+\begin{lstlisting}
+from cython cimport floating
+def myadd(floating a, floating b):
+    return a + b
+\end{lstlisting}
+Use fused types with caution.
+As of this writing they are a new and experimental feature.
+
 \section*{Optimized Array Access}
 It is often necessary to iterate over large arrays very quickly.
 The \li{__getitem__} method (equivalent to array access using \li{[ ]}) of NumPy arrays is written for Python and includes the corresponding overhead.
