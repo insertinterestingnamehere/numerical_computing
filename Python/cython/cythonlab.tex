@@ -185,73 +185,71 @@ Cython does not allow you to dereference a pointer using the \li{*} syntax.
 It requires square brackets \li{[ ]} instead.
 
 \section*{Compiler Directives}
-There are also some compiler directives you can pass to the Cython compiler which will speed up array access.
+There are several compiler directives which may be passed to the Cython compiler to speed up array access.
 By default, Cython checks to see if the indices used in array accesses are within the bounds of the array.
 Cython also allows negative indexing the same way Python does.
-These features incur some performance loss and may be removed once a program has been carefully debugged.
+These features incur some performance loss and may be removed after a program has been carefully debugged.
 Compiler directives in Cython can be included as comments or as function decorators.
 Directives included in comments will apply to the whole file, while function decorators will only apply to the function or method immediately following the decorators.
-The comments to turn off bounds checking and negative indices are, respectively:
+The comments to turn off bounds checking and negative indices are
 \begin{lstlisting}
 #cython: boundscheck=False
 #cython: wraparound=False
 \end{lstlisting}
-To use the function decorators you must first include the \li{cython} module.
-This is done by including the line \li{cimport cython} in your import statements.
-The decorators are:
+To use the function decorators, first import the \li{cython} module by including the line \li{cimport cython} in your import statements.
+The decorators are
 \begin{lstlisting}
 cimport cython
 @cython.boundscheck(False)
 @cython.wraparound(False)
 \end{lstlisting}
-When using these compiler directives, you must be \emph{absolutely certain} that you are \emph{not} using negative indices or accessing any array out of bounds.
+When using these compiler directives, be \emph{absolutely certain} that your program is \emph{not} using negative indices or accessing any array out of bounds.
 Doing so could access and possibly modify some portion of memory that has not been allocated as part of an array.
 That can cause all kinds of trouble.
-It is usually best to only include these directives after you have finished debugging your program.
+It is usually best to only include these directives after debugging a program.
 
 Cython has several other useful compiler directives.
-One that you should be aware of is the \li{cdivision} option.
+One to be aware of is the \li{cdivision} option.
 In Python, the \li{\%} operator returns a number with the sign of the second argument, while C keeps the sign of the first argument.
 In Python, \li{-1\%5} returns \li{4}, while in C, this returns \li{-1}.
 Cython, by default, will behave like Python.
 Cython will also check for zero division and raise a \li{ZeroDivisionError} when necessary.
-Again, this does cost a little, so if you are working with integer division and want a slight speedup, you can set \li{cdivision} to \li{True} in the same way you would change the \li{boundscheck} and \li{wraparound} options.
-This will make the \li{\%} operator behave like it would in C and turn off the check for zero division.
+This feature does have some cost. To obtain a slight speedup, make the \li{\%} operator behave like it would in C and turn off the check for zero division by setting \li{cdivision} to \li{True}.
 
 \section*{Functions in Cython}
-As you may expect, adding type declarations can also apply to function arguments in Cython.
+Adding type declarations can also apply to function arguments in Cython.
 You can optionally declare the types of the inputs for the function to ensure that it receives the right arguments.
-The syntax is what you would probably expect.
 \begin{lstlisting}
 from numpy cimport ndarray as ar
 def myfunction(ar[double] X, int n, double h, items):
     ...
 \end{lstlisting}
-Notice that we did not have to include type declarations for all of the arguments.
+Notice that type declarations were not included for all of the arguments.
 The untyped arguments are expected to be Python objects with the corresponding methods.
 Computations involving these untyped arguments will use Python instead of C.
 Keyword arguments are also supported.
 
 Cython also allows you to make C functions that are only callable within the extension library you are currently building.
-These functions are declared using the same syntax as you would in Python except that you replace the keyword \li{def} with \li{cdef}.
-These functions can be called within the module you are building, but are not actually imported into your namespace when you load the Cython module.
+These functions are declared using the same syntax as in Python, except the keyword \li{def} is replaced with \li{cdef}.
+These functions can be called within the module, but are not actually imported into the namespace of the Cython module.
 
-Cython also allows you to declare functions using the \li{cpdef} statement.
+Cython functions may be declared using the \li{cpdef} statement.
 These functions are C functions that, when compiled, are also wrapped as Python functions so they can be called in Python.
-This allows you to do the function calls within the module in C, while still making a Python wrapper for your function available for use outside the module itself.
-You can specify the return type for functions declared using \li{cdef} and \li{cpdef} like you would a variable, for example:
+This allows function calls within the module to be made in C, while still making a Python wrapper for your function available for use outside the module itself.
+The return type for functions declared using \li{cdef} and \li{cpdef} may also be specified, for example:
 \begin{lstlisting}
 from numpy cimport ndarray as ar
 cpdef int myfunction(ar[double] X, int n, double h, items):
     ...
 \end{lstlisting}
-This will make two functions, one will be a C function which will return an integer value.
+This will make two functions. 
+One will be a C function which will return an integer value.
 The other will be a Python wrapper for the C function.
 The Python-accessible function will accept all the same arguments and return the same value, but it will be callable from Python.
 
 \section*{Some Examples}
 To illustrate how to use Cython we will take the dot product of two one-dimensional arrays.
-This would be done in Python like this:
+This can be done in Python as follows:
 \begin{lstlisting}
 def pydot(A, B):
     tot = 0.
@@ -259,8 +257,7 @@ def pydot(A, B):
         tot += A[i] * b[i]
     return tot
 \end{lstlisting}
-Assuming we are using the IPython notebook we can define and compile a cython function to do this by evaluating the following cells:
-
+In the IPython notebook a Cython function to do this may be defined and compiled by evaluating the following cells:
 \begin{lstlisting}
 %load_ext cythonmagic
 \end{lstlisting}
@@ -279,7 +276,7 @@ def cydot(ar[double] A, ar[double] B):
         tot += A[i] * B[i]
     return tot
 \end{lstlisting}
-We can then time our function by evaluating the following cell
+This function may be timed by evaluating the following cell.
 \begin{lstlisting}
 from numpy.random import rand
 n = 10000000
@@ -288,14 +285,14 @@ B = rand(n)
 %timeit cydot(A, B)
 \end{lstlisting}
 
-Figure \ref{cython:dot} compares the timings of our new dot-product function with other possible implementations.
+Figure \ref{cython:dot} compares the timings of this new dot-product function with other possible implementations.
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{dot.pdf}
 \caption{
-The times of the pure Python dot-product, the Cython based dot-product, and the dot-product built into NumPy which links to the Intel MKL.
-As you can see, the Cython version can run nearly as fast as the version built into NumPy.
+The running times of the pure Python dot-product, the Cython based dot-product, and the dot-product built into NumPy which links to the Intel MKL.
+The Cython version can run nearly as fast as the version built into NumPy.
 }
 \label{cython:dot}
 \end{figure}
