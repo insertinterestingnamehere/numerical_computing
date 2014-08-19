@@ -70,6 +70,15 @@ def translate():
     fig.savefig("translate.pdf")
     plt.close(fig.number)
     
+def combo():
+    p = solutions.shear(pts, -1.02, .5)
+    p = solutions.translate(p, np.array([-2, .5]))
+    p = solutions.reflect(p, np.array([-2, .5]))
+    
+    fig = plotOldNew(pts, p, "General Affine")
+    fig.savefig("combo.pdf")
+    plt.close(fig.number)
+
 
 if __name__ == "__main__":
     stretch()
@@ -77,3 +86,4 @@ if __name__ == "__main__":
     shear()
     reflect()
     translate()
+    combo()
