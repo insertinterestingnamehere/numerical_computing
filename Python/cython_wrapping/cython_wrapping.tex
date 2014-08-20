@@ -62,16 +62,16 @@ You will also need to pass the size of the array as a separate parameter to avoi
 \end{warn}
 
 \section*{Wrapping a C Function}
-Consider the following C function to compute the solution to a tridiagonal system.
-it works by taking pointers to four arrays.
-Array \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
-Array \li{b} and \li{x} have length \li{n} and represent the main diagonal of the banded matrix and the right hand side of the system of equations.
-\li{c} and \li{x} are modified in place to compute the solution the the system.
-\li{c} is used to store temporary values and \li{x} is transformed into the solution to the system.
+The following C function computes the solution to a tridiagonal system.
+It begins by requiring pointers to four arrays.
+Arrays \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
+Arrays \li{b} and \li{x} have length \li{n} and represent the main diagonal of the banded matrix and the right hand side of the system of equations.
+\li{c} and \li{x} are modified in place to compute the solution of the system.
+\li{c} is used to store temporary values and \li{x} is transformed into the solution of the system.
 
 \lstinputlisting[style=fromfile, language=C, name=ctridiag.c]{./ctridiag/ctridiag.c}
 
-This file can be compiled to a \li{.o} file so that this function can be called by other programs by running the following command in a terminal:
+This file can be compiled to a \li{.o} file so that \texttt{ctridiag} can be called by other programs. To do this, we run the following command in a terminal:
 \begin{lstlisting}[style=ShellInput]
 gcc -fPIC -c ctridiag.c -o ctridiag.o
 \end{lstlisting}
@@ -81,8 +81,8 @@ Those that are familiar with C may have noticed that we did not include a \li{ma
 The \texttt{-c} flag is what prevents this from causing errors with the compiler.
 The \texttt{-fPIC} option is required when building code for a shared object.
 
-Once we have run this command the file has been compiled to a \of file, but it still is not accessible in Python.
-Python, though it relies on C internally, needs some special interfaces to interact with \of files like this.
+Once we have run this command the file has been compiled to a \of file, but it is still inaccessible from Python.
+Although Python relies on C internally, it needs some special interfaces to interact with these \of files.
 A general approach for accessing these external functions from Python is to define in some way what inputs each function takes.
 We will show how this is done with Cython.
 Since a Cython file compiles to a C file which is then compiled to a callable extension for Python, it can be used to interface with C code and other object files.
@@ -91,7 +91,7 @@ We will use the following approach:
 \item Write a C header that specifies what the function is named and how it is called.
 \item Write a Cython file that imports the header to its C file and defines a Python wrapper for C function to import.
 \item Compile the Cython file to C code.
-\item Compile the Cython file to a Python extension, giving it access to the the object file we are accessing and giving the compiler access to the proper header files.
+\item Compile the Cython file to a Python extension, giving it access to the object file we are accessing and giving the compiler access to the proper header files.
 \end{enumerate}
 
 An approach similar to this will work for some other types of \of files compiled from other languages as well.
