@@ -1,19 +1,19 @@
 \lab{Application}{Single Pixel Camera}{Single Pixel Camera}
 \label{lab:SPC}
 
-\objective{You build a single pixel camera that to take pictures of 2d and 3d tesselations.}
+\objective{You will build a single pixel camera that to take pictures of 2d and 3d tessellations.}
 
 \section*{Single Pixel Camera}
-When you look at a picture on a computer screen it is divided into areas called pixels. Each pixel is a square that has a Red-Green-Blue (RGB) color vaule. When a  modern digital camera takes a picture it divides the picture in to pixels and stores the amount red, green, and blue light the comes in at each square.
+When you look at a picture on a computer screen it is divided into areas called pixels. Each pixel is a square that has a Red-Green-Blue (RGB) color value. When a  modern digital camera takes a picture it divides the picture in to pixels and stores the amount red, green, and blue light that comes in at each square.
 
 A single pixel camera treats the whole image as one pixel and thus only stores one RGB value that is the average color value of the whole image.  
 
 \section*{2D Images}
-In this lab we are going to represent the world as tesselated image. A tesselated image is a tiling with geometric shapes. 
+In this lab we are going to represent the pictures as tessellated image. A tessellated image is a tiling with geometric shapes with no overlaps or gaps. 
 
-In this lab we assume that $\mathcal{S}$ has a given tesselation $\mathcal{T} = \{F_i\}$, where $F_i$ represents a particular face of our tesselation. Without loss of generality, we will assume that each $F_i$ is a triangle. We will represent the vertices of $F_i$ by $F^j_i$, where $F^j_i$ will be a column vector of length two representing the coordinates of $F_i$.
+In this lab we assume that $\mathcal{S}$ has a given tessellation $\mathcal{T} = \{F_i\}$, where $F_i$ represents a particular face of our tessellation. Without loss of generality, we will assume that each $F_i$ is a triangle. We will represent the vertices of $F_i$ by $F^j_i$, where $F^j_i$ will be a column vector of length two representing the coordinates of $F_i$.
 
-Recall from mutivarible calculus that the area of a triangle is half the magnitude of the cross product. For $F_i$ this is given by
+Recall from multivariable calculus that the area of a triangle is half the magnitude of the cross product. For $F_i$ this is given by
 \begin{align}
 v_1 &= F_i^1 - F_i^0 \\
 v_2 &= F_i^2 - F_i^0 \\
@@ -21,19 +21,19 @@ A_i &= \frac{1}{2}\big|v_1[0] v_2[1] - v_1[1] v_2[0]\big|
 \end{align}
 
 
-We represent our signal, in this case our RBG color values, as a vector $s$, where the length of $s$ is the number of faces of our tesselation $\mathcal{T}$. We assume, naturally, that the value of our signal  on the face $F_i$ is exactly the value $s[i]$. We can then, using the areas previously calculated, express the single-pixel measurement of the signal ot the camera as an inner product:
+We represent our signal, in this case our RBG color values, as a vector $s$, where the length of $s$ is the number of faces of our tessellation $\mathcal{T}$. We assume, naturally, that the value of our signal  on the face $F_i$ is exactly the value $s[i]$. We can then, using the areas previously calculated, express the single-pixel measurement of the signal of the camera as an inner product:
 \begin{equation}
 A \cdot s = b
 \end{equation}
-In addition we assume that the total area of the image is equal to the sum of our tesselations. So  
+In addition, we assume that the total area of the image is equal to the sum of our tessellation. So  
 \begin{equation}
-\hat{b} = \frac{b}{\sum_i A}
+\hat{b} = \frac{b}{\sum_i A_i}
 \end{equation}
 
 Then $\hat{b}$ will be the RGB values of the singe pixel.
 
 \begin{problem}
-Write a function that takes in $S$, a 3-d array of the vertices of 2d tesselation faces, and $s$ , the RBG values of the each tesselation. Output the RGB value given by the single pixel camera. Below is code to visualize the tesselation and $\hat{b}$.  Included is test data. Your output for the test data should be...
+Write a function that takes in $S$, a 3-d array of the vertices of 2d tessellation faces, and $s$ , the RBG values of the each tessellation. Output the RGB value given by the single pixel camera. Below is code to visualize the tessellation and $\hat{b}$.  Included is test data. Your output for the test data should be...
 \end{problem}
 
 \begin{lstlisting}
@@ -54,20 +54,20 @@ plt.show()
 \end{lstlisting}
 
 \section*{Projective Transforms}
-Now say that we have a tesselated 3d object and we would like to take a single pixel picture of it.
+Now say that we have a tessellated 3d object and we would like to take a single pixel picture of it.
 
 We begin by selecting a random camera location $c$. The location is selected randomly on a sphere centered at the origin, with norm large enough that the entire surface lies inside the sphere. The camera is assumed to point directly at the origin.
 
-In order to keep the distance of the camera from the origin constanst, this is best done by inputing the spherical coordinates and then changing to rectagular. Recall the that the formula to change polar coordinates to recetagular is 
+In order to keep the distance of the camera from the origin constant, this is best done by inputting the spherical coordinates and then changing to rectangular. Recall the that the formula to change polar coordinates to rectangular is 
 \[
 S(\theta,\phi,r)=(r*\sin(\phi)*\cos(\theta),r*\sin(\phi)*\sin(\theta),r*\cos(\phi))
 \theta \in [0,2\pi),\phi \in [0,\pi), r \in [0,\infty)
 \]
 \begin{problem}
-Write a function that changes spherical coordinates to rectagular.
+Write a function that changes spherical coordinates to rectangular.
 \end{problem}
 
-We then utilize the projective transform to calculate how the camera ``sees'' the faces of the surface. This is a well-known technique, so we will simply state the appropriate equations:
+We then utilize the projective transform to calculate how the camera ``sees'' the faces of the surface. Here we state the appropriate equations:
 
 \begin{align}
 t &= \text{acos}(\frac{-c_2}{\|c\|}) \\
@@ -112,15 +112,29 @@ Here $f$ represents the distance from the camera to the image plane, which is es
 Write a function that takes in a transformation matrix, a list of points in world coordinates, and a constant $f$ and outputs the projective transform of the points.
 \end{problem}
 
-Now we essentially we have 2d points and we can calculate the areas as we did in the 2d case. Now we have the areas of each face of our tesselation with respect to our camera view. One thing that we need to worry about is the visibility of of the face $F_j$. This constant, for convex surfaces, will either be zero or one. In this case the constant, if the center of the face denoted $Fc_j$ and $r$ is the radius of the tesselation. Then
+\begin{figure}
+\begin{subfigure}{.49\textwidth}
+\includegraphics[width=\textwidth]{3dbefore.png}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+\includegraphics[width=\textwidth]{projection.png}
+\end{subfigure}
+\caption{3d tesselation and its projection}
+\label{fig:proj}
+\end{figure}
+
+Now we essentially we have 2d points and we can calculate the areas as we did in the 2d case. Now we have the areas of each face of our tessellation with respect to our camera view. One thing that we need to worry about is the visibility of the face $F_j$. This constant, for convex surfaces, will either be zero or one. In this case the constant, if the center of the face denoted $Fc_j$ and $r$ is the radius of the tessellation. Then
 \[
-e_j=||c-Fc_j||_2<\sqrt{||c||_2^2+r^2}
+e_j=||c-Fc_j||_2<\sqrt{||c||_2^2+r^2}-\epsilon
 \] 
-Where $e_j$ is a constant representing the  the visibility of of the face $F_j$. Then:
+Where $\epsilon$ is small (I recommend .2 if the camera distance is 3).
+Then $e_j$ is a constant representing the  the visibility of of the face $F_j$.
 
 \begin{problem}
-Write a function that takes in an array of vertices of a tesselation, a camera position and the radius of the tesselation and outputs an array of visibilty constants.
+Write a function that takes in an array of vertices of a tessellation , a camera position and the radius of the tessellation and outputs an array of visibility constants.
 \end{problem}
+Then:
+
 \begin{equation}
 M(j) = A_j \cdot e_j
 \end{equation}
@@ -129,12 +143,12 @@ Then
 M \cdot s = b
 \end{equation}
 \begin{equation}
-\frac{b}{\sum_i M} = \hat{b}
+\frac{b}{\sum_j M_j} = \hat{b}
 \end{equation}
 And $\hat{b}$ is the RGB value of a picture taken by the single pixel camera at location $c$.
 
 \begin{problem}
-Using the previous problems, write a function that takes in an array of vertices of a tesselation, color values for the faces of the tesselation and a camera position in shperical coordinates and outputs single pixel RGB value. Below is ploting script for 3d Tesselations. Included is data from a satilite that makes a tesselation of the earth, Use it to test your fuction.
+Using the previous problems, write a function that takes in an array of vertices of a tessellation, color values for the faces of the tessellation and a camera position in spherical coordinates and outputs single pixel RGB value. Below is plotting script for 3d tessellations. Included is data from a satellite that makes a tessellation of the earth, Use it to test your function.
 \end{problem}
 
 \begin{lstlisting}
@@ -157,13 +171,7 @@ def visualize3d(F,C):
 \end{lstlisting}
 
 
-You can extend this for any tesselated object 2d or 3d. The only thing that changes is how you calculate the area of the face (For example shoelace formula gives the area of any simple polygon.) The Projective Transform remains the same. 
+You can extend this for any tessellated object 2d or 3d. The only thing that changes is how you calculate the area of the face (For example shoelace formula gives the area of any simple polygon.) The Projective Transform remains the same. 
 
 \section*{Application}
 The single pixel camera is used in the field of compressed sensing (though the camera works a little differently than the one you made in this lab)
-
-%\begin{figure}[h]
-%\includegraphics[scale = .4]{Kevin_Bacon.jpg}
-%\caption{Kevin Bacon.  Image source: Wikipedia.}
-%\end{figure}
-
