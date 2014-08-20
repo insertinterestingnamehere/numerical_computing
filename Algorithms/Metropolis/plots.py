@@ -12,9 +12,12 @@ def samples_logs():
     samples, logs = metropolis.metropolis(x, mu, sigma, n_samples=2500)
     plt.plot(samples[:,0], samples[:,1], '.')
     plt.savefig('samples.pdf')
-
     plt.clf()
+    
     plt.plot(logs)
     plt.savefig('logprobs.pdf')
+    plt.clf()
 
-samples_logs()
+
+if __name__ == "__main__":
+    samples_logs()
