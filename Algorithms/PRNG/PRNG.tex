@@ -121,6 +121,7 @@ There have been statistical tests devised for measuring the quality of a random 
 
 \begin{problem}
 Use the overlappng permutations test to see how random python's random number generator is compared to the LCG you wrote in problem 1.
+Create a bar graph with 120 bins, one for each ordering, to view graphically the difference.
 \end{problem}
 
 \section*{Blackjack}
@@ -162,41 +163,75 @@ As seen in the last lab, weak PRNGs are periodic and are predictable once a few 
 This lab will have you break blackjack based on a weak PRNG.
 
 \section*{Cracking Blackjack}
-For these next problems you will need three files that are provided with this lab: Black.py, BlackEasy.py, and bjHelp.py.
-Black.py and BlackEasy.py are are programs that run games of Blackjack that use a Linear Congruentail Generator (LCG) to shuffle the cards.
-They generate 52 random numbers and then the argsort of those numbers is the order of the cards.
+For these next problems you will need four files that are provided with this lab: BlackHard.py, BlackEasy.py, bjHelp.py, and bjDump.py.
+BlackHard.py and BlackEasy.py are programs that run games of Blackjack that use a Linear Congruentail Generator (LCG) to shuffle the cards.
+They generate 52 random numbers and then use the argsort of those numbers as the ordering of the cards.
 The parameters for BlackEasy.py are a$=2521$, c$=13$, mod$=2^{16}$.
-For Black.py they are a$=25214903917$, c$=11$, mod$=2^{48}$.
+For BlackHard.py they are a$=25214903917$, c$=11$, mod$=2^{48}$.
+
 In order to play them type \li{python <<filename>> <<numberofgames>>} in your command line.
-They are both seeded initially by the time.
+Both use seeds based on the time, using \li{ (int)(time.time())}, which is the number of seconds from the start of the epoch cast as an integer. However, BlackEasy.py further scrambles it's seed, which for our purposes is in an unknown fashion.
+Cards are popped off the deck one at a time, first one to the player, one to the dealer, one to the player, and one last one to the dealer. 
 
-bjHelp.py contains two functions that will help you "predict" the cards:
-SuffleHack(n,a,c,mod,seed) gives the first $n$ card shuffles given the parameters for a LCG.
-The shuffles are represented by numbers.
-Hacker(Stats,['card','card','card']) Stats is the output of SuffleHack and takes a list of 3 cards (see below).
-It prints all shuffles as a list of cards in Stats that have the same first three cards as the inputted list.
+Initially 3 cards are visible (the last of the dealer's is face down) so our algorithms will deal with these first three cards, and the ordering (player,dealer,player) will be very important. 
+After the first four cards are down the next cards are popped off in the order that they appear. 
+After each game the deck is reshuffled.
 
-The trick to being able to "predict" the cards is to find the initial seed value.
+bjHelp.py contains several functions to help you with the game's mechanics.
+ Cards have a string representation ( '6diamond' for 6 of diamonds, 'Kclub' for king of clubs) and a number representation that determines their natural ordering. 
+bjHelp.py has functions for generating the list  of cards and converting arrays to and from the string and integer representation of cards. 
+Particularly useful is the function \li{Shuffle}, which returns the first n decks (or games) in integer representation in n arrays of 52 given the number of games, the LCG parameters, and a seed value.
 
-Cards- A, 2-10, J, Q, or K combined with heart, diamond, club, or spade in single quotes.
-Examples: '6diamond', 'Kclub'.
+bjDump.py has the functions \li{dumpEasy} and \li{dumpHard} to emulate the shuffling of the blackjack programs. 
+Both take in the number of games as parameters. 
+\li{dumpEasy} returns a list of shufflings based on a time based seed. 
+\li{blackHard} also returns a list shufflings, as well as an appoximate time that the seed was chosen ( we'll explain the purpose of this later).
+
+Your goal will be to do a sweep of seed values and cross check the decks produced by Shuffle against the first three cards from several games. 
+The cross checking can be done using \li{numpy.where}. 
+For example, the following can be used to find all the decks in \li{decks} whose first three cards are '6club','4club','3club'.
+
+\begin{lstlisting}
+np.where((decks[:,0:3]==bjHelp.convertToNum(['6club','Aheart','8spade'])).all(axis=1))[0]
+\end{lstlisting}
+
+The ouput is an array with all the indicies of the decks whose first three cards satisfy the conditions. 
+The \li{all(axis=1)} is necessary to give a 1d array of truth values to \li{np.where}.
+You will need to extend this command to match sets of three from more than one game, which amounts to merely an indexing issue.
 
 \begin{warn}
 Both BlackEasy.py and Black.py use functions that are incompatible with ipython. They need to run \li{python Black.py} in command line.
 \end{warn}
 
 
-
 \begin{problem}
-Play 10 games of BlackEasy.py and by the 5th game be able to predict the cards.
-You can write your own functions or use the ones in bjHelp.py.
-You will want to open two command prompts, one to play the game and one to predict the cards. 
+Create a function to crack the shuffling algorithm of \li{blackEasy.py}. 
+Have it take in a list of 3-tuples of the first three cards (in string representaion) of games and the number of games to play and then return the list of decks (in string representation) for the number of games specified. 
+For example, you might give your function 4 lists of 3 cards each and have it calculate for 10 games. 
+The output should then be an array of 10 by 52 strings. 
+Although there may be more than one possible list of shuffling that satisfy the card orderings, in practice we will use enough hands to determine a unique list of shuffles. Just return by default the first list of shuffles in your result.
+
+Although there are $52!$ different shufflings there are not that many possible seed values. 
+From the parameters to the LCG, determine how many seed values there are and what values you should test.
+There should be few enough that you can test all of them in a reasonable amount of time.
+
+You can load up each result from bjHelp.Shuffle using the number of games specified for each seed value into an array and then use a call to \li{numpy.where} to find matches.
+You will need to add in some more indices and perhaps another call to \li{all}.
+
+You can use \li{bjDump.dumpEasy} to check that your function works. You should be able to determine the ordering in less than 5 games, usually in only one or two.
 \end{problem}
 
-Not too hard.
-That is because there is only $2^{16}$ seed values.
-This next one you will have to look at more hands until you can find out the initial seed value.
-
 \begin{problem}
-Play 20 games of Black.py and by the 15th game be able to predict the cards.
+Create a function to crack the shuffling algorithm of \li{blackHard.py}
+This time there may be too many seed values for your computer to test in a reasonable amount of time. 
+However, we know that the seed value is foolishly chosen by \li{(int)(time.time())}.
+If we know at aproximately what time the seed is chosen, perhaps by syncing our time with whatever server we are working with, we can greately narrow down the possible space of seed values.
+Have your function take in a list of 3-tuples of cards and the number of games, as before.
+Have your function also take in an additional parameter for the approximate time that the seed was chosen.
+If the time is not supplied, get it from \li{(int)(time.time())}.
+Assume that whatever time you start with is within five minutes of the time the seed was chosen.
+
+With this time, create a sweep as before of possible seed values and use \li{where} to find matches.
+It may take more games than before to find a unique match.
+You can check that your function works using \li{bjDump.dumpHard}.
 \end{problem}
