@@ -19,7 +19,7 @@ Here we will wrap the subroutine in unmodified form.
 In Lab \ref{lab:cythonwrap} we modified the Fortran file to make it callable from C.
 F2PY will take care of this for us so that we can wrap the subroutine directly.
 Here is the file in its unmodified form:
-\lstinputlisting[style=fromfile, language=Fortran,name=ftridiag.f90]{./ftridiag/ftridiag.f90}
+\lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
 We can wrap this file by running the following in our terminal:
 \begin{lstlisting}[style=ShellInput]
 f2py -c ftridiag.f90 -m ftridiag
@@ -46,6 +46,7 @@ If the function were a part of a Fortran module \li{tridiag} F2PY would have mad
 
 \begin{warn}
 When working with arrays that have more than one dimension, F2PY expects arrays that are Fortran ordered, i.e. arrays that have their columns stored in contiguous blocks.
+By default it will raise an error if it receives a C-contiguous array, though it can be configured to silently make a copy instead.
 You can make a Fortran ordered array by taking the transpose of a C contiguous array.
 You will have to be careful about this if you are wrapping Fortran code using the default settings.
 \end{warn}
@@ -57,12 +58,9 @@ The following \li{setup.py} file will do the same thing as the terminal command 
 \begin{problem}
 Included with this lab is a pure-fortran version of the \li{fssor} subroutine that you wrapped in Lab \ref{lab:cythonwrap}.
 Wrap it again using f2py.
-Make a setup script that uses Python's \li{os} module to interface with the command line and run the appropriate build command.
-(This sort of setup is also possible using a \li{.sh} script on Unix based operating systems or a \li{.bat} or \li{.cmd} script on Windows).
-Notice how, in the test file, we have to pass the array in Fortran order by default.
-F2PY will raise an error by default if we do not pass a Fortran ordered array.
-Notice also that, when wrapping automatically in this way, F2PY was able to infer that \li{m} and \li{n} are the dimensions of the array.
-On the other hand, we have not defined default vaues for the tolerance and the maximum number of iterations.
+Write a \li{setup.py} file as shown above.
+When wrapping automatically in this way, F2PY was able to infer that \li{m} and \li{n} are the dimensions of the array.
+On the other hand, we have not defined default vaues for the tolerance and the maximum number of iterations, so those must still be passed in as arguments.
 \end{problem}
 
 \section*{Detailed Compilation Steps}
