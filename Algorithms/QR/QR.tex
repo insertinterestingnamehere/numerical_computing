@@ -56,11 +56,9 @@ orthonormal basis $\{\q_i\}_{i=1}^n$ as a matrix $Q$ of column
 vectors.  Then we have that $A = Q R$, where $R$ is the above
 nonsingular upper-triangular $n\times n$ matrix.
 Numerically, the Gram Schmidt process can have problems due to
-finite precision arithmetic. In some cases, rounding errors may cause
-the resulting basis to fail to be orthonormal. To combat this, we
-actually carry out a slightly revised algorithm called Modified Gram
-Schmidt.  To do this, we compute $\q_1$ as before.  We then project
-it out of each of the remaining original vectors
+finite precision arithmetic. 
+
+In some cases, rounding errors may cause the resulting basis to fail to be orthonormal. To combat this, we consider the Modified Gram-Schmidt which can be used to carry out a slightly revised algorithm.  To do this, we first compute $\q_1$ as before.  We then project it out of each of the remaining original vectors
 $\x_2,\x_3,\ldots,\x_n$ via
 \[
 \x_k := \x_k - \langle \q_1,\x_{k} \rangle \q_1,\quad k=2,\ldots,n.
@@ -96,56 +94,36 @@ all $\q_i$ are obtained.
 
 \begin{problem}
 \label{prob:QR}
-Write your own implementation of the QR decomposition.
-Write a function \li{QR} that accepts as input a square matrix $A$ of full rank, 
-and computes the QR decomposition, returning the matrices 
-$Q$ and $R$ (which should be the same shape as $A$).
-Be sure to use the numerically stable Modified Gram-Schmidt algorithm.
-Also assume that there are no zeros on the main diagonal.
+Write your own implementation of the QR decomposition. Write a function \li{QR} that accepts as input a square matrix $A$ of full rank, and computes the QR decomposition, returning the matrices $Q$ and $R$ (which should be the same shape as $A$). Be sure to use the numerically stable Modified Gram-Schmidt algorithm. Also assume there are no zeros on the main diagonal.
 
 You can test that you have the right decomposition by verifying that $QR=A$ and $Q^T Q = I$. While this is true most of the time, it may not always be true due to roundoff.
 \end{problem}
 
 \begin{problem}
-The QR decomposition gives a really nice way to calculate the magnitude of the determinant 
-of a square matrix of full rank.
-Write a function \li{QRDet} that accepts a square matrix of full rank as input, and returns
-the magnitude of the determinant of that matrix. Use your QR decomposition to perform this
+The QR decomposition gives a really nice way to calculate the magnitude of the determinant of a square matrix of full rank. Write a function \li{QRDet} that accepts a square matrix of full rank as input, and returns the magnitude of the determinant of that matrix. Use your QR decomposition to perform this
 calculation.
 
-You may check your work by comparing your results to those produce by \li{scipy.linalg.det}. 
+You may check your work by comparing your results to those produced by \li{scipy.linalg.det}. 
 \end{problem}
 
 \section*{QR Decomposition in SciPy}
 The linear algebra library in SciPy wraps the very efficient algorithms of LAPACK to calculate the QR decomposition.
 In addition to being much faster, SciPy's QR decomposition is also much more general and can decompose non-square matrices.
-\begin{lstlisting}
->>> import numpy as np
->>> from scipy import linalg as la
->>> A = np.random.rand(4,3)
->>> Q, R = la.qr(A)
->>> Q.dot(R) == A                      # there are False entries
->>> np.allclose(Q.dot(R), A)           # A = QR
->>> np.allclose(Q.T.dot(Q), np.eye(4)) # Q is indeed, orthogonal
-\end{lstlisting}
+
+\lstinputlisting[style=fromfile]{scipy.py}
 
 In order to interpret the results correctly, we need to understand that the computer has limited precision (especially with floating point numbers).
-This is why \li{Q.dot(R)} is not exactly equal to \li{A}.
-We can see that the matrix product of $QR$ is very close to $A$.
-This shows that indeed the product of $Q$ and $R$ is $A$.
-Note also that $Q^T Q = I$.
-This implies that the column vectors of $Q$ are orthonormal.
+This is why \li{Q.dot(R)} is not exactly equal to \li{A}. However, we can see that the matrix product of $QR$ is very close to $A$ using the \li{allclose} method. This verifies that the product of $Q$ and $R$ is indeed $A$. Also note that $Q^T Q = I$, which implies that the column vectors of $Q$ are orthonormal.
 
 \section*{Solving Least Squares Problems}
-The QR decomposition can be used to solve the linear least squares problem if $A$ is full rank.
-If $A$ is less than full rank, then we have to calculate the least squares solution a little more creatively.
+The QR decomposition can only be used to solve the linear least squares problem if $A$ is full rank. If $A$ is less than full rank, then we have to calculate the least squares solution more creatively.
+
 %MATLAB's least squares backslash operator is based off the QR decomposition.
 %SciPy uses the SVD to solve least squares problems because, although it is slower, the algorithm is more numerically stable.
-For large or ill-conditioned problems, the QR decomposition provides
-a nice method for computing least squares solutions of
-over-determined matrices.
-Consider the least squares problem $Ax=b$.
-We can approximate the solution with $\widehat x = (A^T A)^{-1}A^T b$.
+
+
+For large or ill-conditioned problems, the QR decomposition provides a nice method for computing least squares solutions of over-determined matrices.
+Consider the least squares problem $Ax=b$. We can approximate the solution with $\widehat x = (A^T A)^{-1}A^T b$.
 Alternatively, we write the linear system as
 \[ Q R x = b. \]
 We then multiply both sides by $Q^T$, yielding
@@ -164,29 +142,31 @@ You may test your function against the output of SciPy's least squares function,
 \end{problem}
 
 \section*{Orthonormal transformations}
-Recall that a matrix $Q$ is \emph{unitary} if $Q^\mathsf{H} Q = I$ or for real matrices,
-$Q^T Q = I$.
+Recall that a matrix $Q$ is \emph{unitary} if $Q^\mathsf{H} Q = I$ or, for real matrices, $Q^T Q = I$.
 For the real case we say that such a matrix is \emph{orthonormal}.
 
-Unitary transformations have the very desirable property of being numerically stable.
-The number $\kappa(A) = \norm{A} \norm{A^{-1}}$ is called the \emph{condition number} of $A$.
-We'll discuss condition number more in another lab; for now, all you need to know is that if $\kappa(A)$ is small, then calculations involving $A$ are less susceptible to numerical errors.
+Unitary transformations have the very desirable property of being numerically stable. The number $\kappa(A) = \norm{A} \norm{A^{-1}}$ is called the \emph{condition number} of $A$. We'll discuss condition number more in another lab; for now, all you need to know is that if $\kappa(A)$ is small, then calculations involving $A$ are less susceptible to numerical errors.
+
+
 For the induced 2-norm, it holds that $\norm{Q}=1$ when $Q$ is unitary.
-The Cauchy-Schwarz inequality $\norm{AB} \leq \norm{A} \norm{B}$ also holds for this norm, and
-so it follows that $\kappa(A) = \norm{A} \norm{A^{-1}} \geq \norm{A A^{-1}} = \norm{I} = 1$.
-Note that if $Q$ is unitary, $Q^{-1} = Q^\mathsf{H}$ and $Q^\mathsf{H}$ is also unitary, so $\kappa(Q) = \norm{Q} \norm{Q^\mathsf{H}} = 1$.
-This means that orthonormal matrices have the smallest possible condition number.
+The Cauchy-Schwarz inequality 
+
+\centerline{$\norm{AB} \leq \norm{A} \norm{B}$}
+also holds for this norm, and so it follows that 
+
+\centerline{$\kappa(A) = \norm{A} \norm{A^{-1}} \geq \norm{A A^{-1}} = \norm{I} = 1$.}
+
+
+Note that if $Q$ is unitary, $Q^{-1} = Q^\mathsf{H}$ and $Q^\mathsf{H}$ is also unitary, so $\kappa(Q) = \norm{Q} \norm{Q^\mathsf{H}} = 1$. This means that orthonormal matrices have the smallest possible condition number.
 
 Any orthogonal matrix $Q$ can be described as a reflection, a rotation, or some combination of the two.
 If $det(Q) = 1$, then $Q$ is a rotation.
-If $det(Q) = -1$, then $Q$  is a reflection or a composition of a reflection and a rotation.
-Let's explore these two types of unitary transformations and some of their applications.
-We will focus on the real case to simplify matters.
+If $det(Q) = -1$, then $Q$  is a reflection or a composition of a reflection and a rotation. Let's explore these two types of unitary transformations and some of their applications. We will focus on the real case to simplify matters.
 
 \section*{Householder reflections}
 A Householder reflection is a linear transformation $P: \mathbb{R}^n \rightarrow \mathbb{R}^n$ that reflects a vector $x$ about a hyperplane.
 See figure \ref{fig:Householder_reflector}.
-Recall that a hyperplane can be defined by a unit vector $v$ which is orthogonal to the hyperplane.
+Recall that a hyperplane can be defined by a unit vector $v$ which is orthogonal to the hyperplane. 
 As shown in figure \ref{fig:Householder_reflector}, $x - \langle v,x \rangle v$ is the projection of $x$ onto the hyperplane orthogonal to $v$.
 However, to reflect \emph{across} the hyperplane, we must move twice as far; that is, $Px = x - 2\langle v,x \rangle v$.
 This can be written $Px = x - 2v(v^\mathsf{H} x)$, so $P$ has matrix representation $P = I - 2v v^\mathsf{H}$.
@@ -373,6 +353,8 @@ I & 0 \\
 A[:k,:k] & A[:k,k:] \\
 A[k:,:k] & A[k:,k:]
 \end{pmatrix}
+\]
+\[
 =
 \begin{pmatrix}
 A[:k,:k] & A[:k,k:] \\
@@ -401,10 +383,7 @@ A[k:,:k] & A[k:,k:] - 2 A[k:,k:] v_k v_k^\mathsf{H}
 
 When we are iterating through the columns of $R$ and zeroing out the entries below the main diagonal we are able to safely ignore all the entries that lie in columns we have already processed because they are already zero.
 
-This algorithm returns orthonormal $Q$ and upper triangular $R$ satisfying $A = QR$.
-Notice that we did not explicitly construct each orthonormal reflector matrix.
-We applied the changes we needed to each portion of the array that needed to be changed.
-Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
+This algorithm returns orthonormal $Q$ and upper triangular $R$ satisfying $A = QR$.nNotice that we did not explicitly construct each orthonormal reflector matrix. We applied the changes we needed to each portion of the array that needed to be changed. Doing the operations in this way allows us to avoid unnecessarily increasing the computational complexity of the algorithm.
 A few other clever optimizations can still be applied, but they will not change the overall complexity of the algorithm.
 
 %It should now be clear how it was that we computed $R$ using this algorithm.
@@ -417,10 +396,8 @@ A few other clever optimizations can still be applied, but they will not change 
 %It is interesting to note that we can use the $v_k$ to behave like $Q$ or $Q^{-1}$ depending on the order in which we apply them.
 %Such an approach does not require the computation of $Q$ or $Q^{-1}$ at all.
 
-Another important thing to notice is that an outer product is needed to compute
-$v_k \left( v_k^\mathsf{H} A[k:,k:] \right)$, not an inner product.
-Make sure that you account for this when you write the code to run this algorithm.
-You can either make the vectors $v_k$ column vectors (two dimensional with a single column) instead of just one-dimensional arrays, or you can use the built in function \li{np.outer} in the appropriate place.
+Another important thing to notice is that an outer product is needed to compute $v_k \left( v_k^\mathsf{H} A[k:,k:] \right)$, not an inner product.
+Make sure this is accounted for when you write the code to run this algorithm. You can either make the vectors $v_k$ column vectors (two dimensional with a single column) instead of just one-dimensional arrays, or you can use the built in function \li{np.outer} in the appropriate location.
 
 \begin{problem}
 \label{prob:HouseholderQR}
@@ -436,21 +413,19 @@ of your function, and check that the result matches the original input matrix.
 We will now examine the stability of the Householder QR algorithm.
 We will use SciPy's built in QR factorization which uses Householder reflections internally.
 
-Try the following in Python.
+Try the following.
+
+\lstinputlisting[style=fromfile]{stability.py}
+
+Observe:
 
 \begin{lstlisting}
->>> import numpy as np
->>> from numpy.random import rand
->>> from scipy import linalg as la
->>> Q, X = la.qr(rand(500,500)) # create a random orthonormal matrix:
->>> R = np.triu(rand(500,500)) # create a random upper triangular matrix
->>> A = np.dot(Q,R) # Q and R are the exact QR decomposition of A
->>> Q1, R1 = la.qr(A) # compute QR decomposition of A
 >>> la.norm(Q1-Q)/la.norm(Q) # check error in Q
 0.282842955725
 >>> la.norm(R1-R)/la.norm(R) # check error in R
 0.0428922016647
 \end{lstlisting}
+
 This is terrible!
 This algorithm works in $16$ decimal points of precision, but $Q_1$ and $R_1$ are only accurate to $0$ and $1$ decimal points, respectively.
 We've lost $16$ decimal points of precision!
@@ -473,10 +448,11 @@ The errors in $Q_1$ and $R_1$ are called \emph{forward errors}.
 The error in $A_1$ is the \emph{backward error}.
 
 In fact, the large errors in \li{Q1} and \li{R1} were not because the algorithm was bad, it was because $A$ was poorly conditioned.
-The condition number for randomly generated upper triangular matrices generally very high, and this was the case here.
-This has, in turn, made the condition number of $A$ extremely large as well.
-Try the following to compute the condition numbers of $A$.
-In this case the condition numbers of $A$ and $R$ are computed to be different, though, in theory, they should be exactly the same.
+The condition number for randomly generated upper triangular matrices is generally very high, and this was the case here.
+This has, in turn, made the condition number of $A$ extremely large.
+
+Try the following to compute the condition number of $A$.
+In this case the condition number of $A$ and $R$ are computed to be different, though, in theory, they should be exactly the same.
 \begin{lstlisting}
 >>> from numpy.linalg import cond
 >>> cond(A)
@@ -486,22 +462,20 @@ In this case the condition numbers of $A$ and $R$ are computed to be different, 
 \end{lstlisting}
 
 Householder QR factorization is more numerically stable than Gram-Schmidt or even Modified Gram-Schmidt (MGS).
-However, MGS is still useful for some types of iterative methods, because it finds the orthonormal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
+However, MGS is still useful for some types of iterative methods because it finds the orthonormal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
 
 \subsection*{Upper Hessenberg Form}
 An upper Hessenberg matrix is a square matrix with zeros below the first subdiagonal.
 Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthonormal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
 
-The Hessenberg decomposition can be computed using Householder reflections, in a process very similar to Householder triangularization.
+The Hessenberg decomposition can be computed using Householder reflections in a process very similar to Householder triangularization.
 Let's demonstrate this process on a $5 \times 5$ matrix $A$.
-Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$; thus our strategy is to multiply $A$ on the right and left by a series of orthonormal matrices until it is in Hessenberg form.
-If we try the same $Q_1$ as in the first step of the Householder algorithm, then with $Q_1 A$ we introduce zeros in the first column of $A$.
+Note that $A=Q^THQ$ is equivalent to $QAQ^T = H$. Our strategy is to multiply $A$ on the right and left by a series of orthonormal matrices until it is in Hessenberg form.
+If we use the same $Q_1$ as in the first step of the Householder algorithm, then with $Q_1 A$ we introduce zeros in the first column of $A$.
 However, since we now have to multiply $Q_1 A$ on the left by $Q_1^T$, all those zeros are destroyed, as demonstrated below.
-In order to zero out the entire first column we chose $Q_1$ so that it does not fix the first row.
-When we apply the same operation on the right, this ruins the column that we just zeroed out.
+In order to zero out the entire first column we must choose $Q_1$ appropriately so it does not fix the first row. When we apply the same operation on the right, this ruins the column that we just zeroed out.
 (Although this process may seem futile now, it actually does tend to decrease the size of the subdiagonal entries.
-If we repeat it over and over again, the subdiagonal entries will often converge to zero.
-That's the idea behind the $QR$ algorithm in Lab \ref{lab:EigSolve}.)
+If we repeat over and over again, the subdiagonal entries will often converge to zero. That's the idea behind the $QR$ algorithm in Lab \ref{lab:EigSolve}.)
 \[
 \begin{array}{ccccc}
 \begin{pmatrix}
@@ -577,7 +551,7 @@ This is even more convenient when we are working with Hermitian matrices.
 In that case, the matrices applied on the left zero out everything below the first subdiagonal and the matrices applied on the right zero out everything above the first superdiagonal, leaving us with a tridiagonal matrix.
 There are remarkably efficient ways to solve systems involving tridiagonal matrices, so this is especially convenient.
 
-The pseudocode for computation of the Hessenberg form of a matrix is shown in Algorithm \ref{Alg:Hessenberg}.
+The pseudocode for computing the Hessenberg form of a matrix is shown in Algorithm \ref{Alg:Hessenberg}.
 The exact inner workings of this algorithm are similar to the inner workings of Algorithm \ref{Alg:Householder}.
 
 \begin{algorithm}
