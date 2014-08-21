@@ -15,23 +15,12 @@ def PRNG(size, a=1103515245, c=12345, mod=2**31-1, seed=4329):
     final = random/float(mod)
     return final
 
-def PRNGint(size, least=0, greatest=2, a=1103515245, c=12345, mod=2**31-1, seed=432946458):
-    final = PRNG(size, a, c, mod, seed)
-    final = (final*(greatest-least)).astype(int) + least
-    return final
 
 def PRNG1():
     n = 512
-    m = 2
-    final = PRNGint(n**2, 0, m)
+    final = PRNG(n**2, 3, 2, 2**16)
     imsave('PRNG1.png', final.reshape(n, n))
-
-def PRNG2():
-    n = 2**9
-    final = PRNG(n**2, 25214903917, 11, 2**48, 2*17+7)
-    imsave('PRNG2.png', final.reshape(n, n))
 
 
 if __name__ == "__main__":
     PRNG1()
-    PRNG2()
