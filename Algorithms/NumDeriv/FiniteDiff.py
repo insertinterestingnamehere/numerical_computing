@@ -1,5 +1,5 @@
-import scipy as sp
-import FiniteDiff as FD
+import numpy as np
+
 
 def der(fc, x, h=.0001, degree=1, type='centered', accuracy=2):
     """ Computes the numerical of the callable function 'fc at all the
@@ -26,9 +26,9 @@ def der(fc, x, h=.0001, degree=1, type='centered', accuracy=2):
     else:
         acc = int(accuracy) - 1
     if int(degree) not in [1, 2]:
-        raise ValueError ("Only first and second derivatives are supported")
+        raise ValueError("Only first and second derivatives are supported")
     if acc not in [0, 1, 2]:
-        raise ValueError ("Invalid accuracy")
+        raise ValueError("Invalid accuracy")
     if type == 'centered':
         xdifs = np.array([fc(x+i*h) for i in xrange(-3, 4)])
         return np.inner(A[degree-1,acc], xdifs.T) / h**degree
@@ -39,7 +39,8 @@ def der(fc, x, h=.0001, degree=1, type='centered', accuracy=2):
         xdifs = np.array([fc(x-i*h) for i in xrange(5)])
         return np.inner(B[degree-1,acc], xdifs.T) / (-h)**degree
     else:
-        raise ValueError ("invalid type")
+        raise ValueError("invalid type")
+
 
 def partial(fc, x, i, h=.0001, ty="centered", ac=2):
     """ Computes a partial derivative with respect to index 'i'.
@@ -50,6 +51,7 @@ def partial(fc, x, i, h=.0001, ty="centered", ac=2):
         return fc(x+add)
     return der(fcpart, 0., h=h, type=ty, accuracy=ac)
 
+
 def jac(fc, x, ty="centered", ac=2, h=.0001):
     """Compute the Jacobian matrix of a function.
     'fc' is a callable function that operates on a 1D array.
@@ -57,6 +59,7 @@ def jac(fc, x, ty="centered", ac=2, h=.0001):
     Dimensions of the domain and range are infered from 'x'
     and the output of 'fc'."""
     return np.array([partial(fc, x, [i], h=h, ty=ty, ac=ac) for i in xrange(x.size)]).T
+
 
 def multipartial(fc, x, li, h=.0001, ty="centered", ac=2):
     """ Computes multiple partial derivatives via recursion.
@@ -68,6 +71,7 @@ def multipartial(fc, x, li, h=.0001, ty="centered", ac=2):
         part = lambda x: partial(fc, x, li[-1], h=h, ty=ty, ac=ac)
         return multipartial(part, x, li[:-1], h=h, ty=ty, ac=ac)
 
+
 def hessian(fc, x, h=.0001, ty="centered", ac=2):
     """ Hessian matrix of function 'fc' at point 'x'.
     Computed using difference 'h' and difference type 'ty' of acccuracy 'ac'.
@@ -75,8 +79,9 @@ def hessian(fc, x, h=.0001, ty="centered", ac=2):
     hes = np.empty((x.size, x.size))
     for i in xrange(x.size):
         for j in xrange(x.size):
-            hes[i,j] = multipartial(fc, x, [i,j], h=h, ty=ty, ac=ac)
+            hes[i,j] = multipartial(fc, x, [i, j], h=h, ty=ty, ac=ac)
     return hes
+
 
 # Here are alternate versions for the Jacobian and Hessian functions.
 def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
@@ -97,7 +102,7 @@ def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
         jac -- array the same shape as pts, giving the approximate Jacobian at 
                each point in pts.
     '''
-    jac = np.empty((m,n))
+    jac = np.empty((m, n))
     for i in xrange(n):
         off = np.zeros(n)
         off[i] = h
@@ -108,7 +113,7 @@ def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
                 jac[:, i] = (f(pt-2*off)/12 - 2*f(pt-off)/3 + 2*f(pt+off)/3 - f(pt+2*off)/12)/h
             if o == 6:
                 jac[:, i] = (-f(pt-3*off)/60 + 3*f(pt-2*off)/20 - 3*f(pt-off)/4 + 
-                          f(pt+3*off)/60 - 3*f(pt+2*off)/20 + 3*f(pt+off)/4)/h
+                             f(pt+3*off)/60 - 3*f(pt+2*off)/20 + 3*f(pt+off)/4)/h
         if mode == 'forward':
             if o == 1:
                 jac[:, i] = (-f(pt)+f(pt+off))/h
@@ -125,6 +130,7 @@ def Jacobian(f, m, n, pt, mode='centered', o=2, h=1e-5):
                 jac[:, i] = -(-11*f(pt)/6 + 3*f(pt-off) - 3*f(pt-2*off)/2 + f(pt-3*off)/3)/h
     return jac
 
+
 def Hessian(f, n, pt, h=1e-5):
     '''
     Approximate the Hessian of a function at a given point.
@@ -136,7 +142,7 @@ def Hessian(f, n, pt, h=1e-5):
     Returns:
         hess -- numpy array giving the approximated Hessian matrix
     '''
-    hess = np.empty((n,n))
+    hess = np.empty((n, n))
     off = np.eye(n)*h
     for i in xrange(n):
         for j in xrange(n):
