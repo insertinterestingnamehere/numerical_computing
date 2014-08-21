@@ -96,30 +96,33 @@ We will use the following approach:
 
 An approach similar to this will work for some other types of \of files compiled from other languages as well.
 
-The header file that defines how to interface with the C function is very simple:
+The header file that defines how to interface with the C function is very simple. 
+This file will tell Cython how to interact with the object file once it has been loaded.
 
 \lstinputlisting[style=fromfile, language=C, name=ctridiag.h]{./ctridiag/ctridiag.h}
 
-We can now use this header file to tell Cython how to interact with the object file once it has been loaded.
-Here is a simple Cython file that defines a Python wrapper for the C function contained in the object file:
+
+The following Cython file defines a Python wrapper for the C function contained in the object file:
 
 \lstinputlisting[style=fromfile, language=Python, name=cython_ctridiag.pyx]{./ctridiag/cython_ctridiag.pyx}
 
 \begin{info}
-This is a good example of the reason header files are used.
+This is a good example of why header files are used.
 A C header file tells the C compiler how to interface with compiled C functions that it will link to later in compilation.
 The compiler then allows for the use of the given function throughout the C file as if it had already been defined.
-The Cython \li{cdef extern} declaration shown in this cython file is used in the same way for the Cython compiler.
-Essentially what it does is it tells the Cython compiler, "When the C file generated from this .pyx file is compiled it will be linked against a C library that contains a C function that acts like this:..."
+
+The Cython \li{cdef extern} declaration is used in the same way for the Cython compiler.
+It essentially tells the Cython compiler, "When the C file generated from this .pyx file is compiled it will be linked against a C library that contains a C function that acts like this: ..."
 Describing the C function this way to the Cython compiler allows it to check for undefined references and improper function use before building the C file.
-It is possible to define Cython headers much the same way we define C headers.
+
+It is possible to define Cython headers in much the same way as C headers.
 These headers use the .pxd file extension and can be imported via the \li{cimport} statement in Cython.
 .pxd files are called Cython declaration files.
 When you use a \li{cimport} statement to import basic C functions or to interface with NumPy arrays and NumPy datatypes, you are really importing Cython declaration files that contain the proper signatures so that the Cython compiler can know how these functions are meant to behave.
 Several different tools for automatically generating Cython declaration files from C and C++ headers are available online.
 \end{info}
 
-Now that we have the needed source files written, we can build the Python extension.
+Now that the necessary source files are written, we can build the Python extension.
 On Windows, using the compiler MinGW (a version of gcc for windows), the compilation can be performed by running the following setup file.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_windows64.py]{./ctridiag/ctridiag_setup_windows64.py}
@@ -129,13 +132,12 @@ The following file works on Linux and Macintosh machines using gcc.
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_linux.py]{./ctridiag/ctridiag_setup_linux.py}
 
 The distutils module in Python is designed to allow the compilation of Python extensions on different platforms with a single setup file.
-The following setup file uses distutils to compile the Cython file.
-It should run on Windows, Linux, or Macintosh based computers.
-This is a more standard way to build this sort of Cython extension.
+The following setup file uses distutils to compile the Cython file, and may be run on Windows, Linux, or Macintosh-based computers.
+This is a more standard way to build a Cython extension.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_distutils.py]{./ctridiag/ctridiag_setup_distutils.py}
 
-This setup file can be called via command line using the following command:
+This setup file can be called via the command line with the following command:
 \begin{lstlisting}[style=ShellInput]
 python ctridiag_setup_distutils.py build_ext --inplace
 \end{lstlisting}
