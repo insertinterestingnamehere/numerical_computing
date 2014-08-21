@@ -3,10 +3,13 @@ matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn import datasets
+from sklearn.datasets import load_iris
 from sklearn import decomposition
+from scipy import linalg as la
 
-iris = datasets.load_iris()
+import solutions
+
+iris = load_iris()
 
 def iris_base():
     fig = plt.figure(figsize=(10, 10))
@@ -23,6 +26,7 @@ def iris_base():
 def ibase():
     iris_base()
     plt.savefig('iris0.pdf')
+    plt.clf()
 
 def iris1():
     fig = iris_base()
@@ -36,6 +40,7 @@ def iris1():
     plt.quiver(mean[0], mean[1], 1.5 * stds[0], 0, scale_units='xy', angles='xy', scale=1)
     plt.quiver(mean[0], mean[1], 0, 1.5 * stds[1], scale_units='xy', angles='xy', scale=1)
     plt.savefig('iris1.pdf')
+    plt.clf()
 
 def iris2():
     fig = iris_base()
@@ -56,7 +61,35 @@ def iris2():
                5 * variance_ratio[1] * components[1,1], 
                scale_units='xy', angles='xy', scale=1)
     plt.savefig('iris2.pdf')
+    plt.clf()
+    
+def iris_pca_scree():
+    #First make PCA plot of iris dataset
+    U, S, Vh = la.svd(iris.data, full_matrices=False)
+    X = U.dot(np.diag(S))
+    
+    setosa = iris.target==0
+    versicolor = iris.target==1
+    virginica = iris.target==2
+    p1, p2 = X[:,0], X[:,1]
+    plt.scatter(p1[setosa], p2[setosa], marker='.', color='blue', label='Setosa')
+    plt.scatter(p1[versicolor], p2[versicolor], marker='.', color='red', label='Versicolor')
+    plt.scatter(p1[virginica], p2[virginica], marker='.', color='green', label='Virginica')
+    plt.xlabel("First Principal Component")
+    plt.ylabel("Second Principal Component")
+    plt.legend(loc=2)
+    plt.savefig('iris_pca.pdf')
+    plt.clf()
+    
+    L = S**2
+    scree = solutions.scree(L/L.sum(dtype=float))
+    scree.savefig('iris_scree.pdf')
+    plt.clf()
+    
 
-ibase()
-iris1()
-iris2()
+
+if __name__ == "__main__":
+    #ibase()
+    #iris1()
+    #iris2()
+    iris_pca_scree()
