@@ -7,7 +7,7 @@ import numpy as np
 import math
 from discretelognorm import discretelognorm
 
-def plot_reservation_wage():
+def reservation_wage():
     m = 20
     v = 200
     N = 500
@@ -62,10 +62,10 @@ def plot_reservation_wage():
     plt.plot(w,wr)
     plt.savefig('reservation_wage.pdf')
     plt.clf()
-plot_reservation_wage()
+
 
 #plot discrete policy function
-def plot_disc_policy():
+def disc_policy():
     #First compute policy function...==========================================
     N = 500
     w = sp.linspace(0,100,N)
@@ -125,4 +125,9 @@ def plot_disc_policy():
     plt.xlabel(r'$w\prime$')
     plt.yticks([0,1])
     plt.savefig('disc_policy.pdf')
-    
+    plt.clf()
+
+
+if __name__ == "__main__":
+    reservation_wage()
+    disc_policy()
