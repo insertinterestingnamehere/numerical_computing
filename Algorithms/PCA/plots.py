@@ -89,7 +89,7 @@ def iris_pca_scree():
 
 
 if __name__ == "__main__":
-    #ibase()
-    #iris1()
-    #iris2()
+    ibase()
+    iris1()
+    iris2()
     iris_pca_scree()
