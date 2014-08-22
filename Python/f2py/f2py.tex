@@ -7,20 +7,20 @@ Various utilities exist to do this, and many are specialized for specific tasks.
 F2PY is a utility that can be used to automatically wrap Fortran subroutines so that they are callable from Python.
 It is included with NumPy and in most cases does not usually require heavy configuration for use.
 The primary requirement for using F2PY is a working Fortran compiler.
-If you have access to GFortran, the Fortran equivalent of gcc, it should work well.
+If you have access to gfortran, the Fortran equivalent of gcc, it should work well.
 
 \section*{Examples}
 
-F2PY is very simple to use.
+F2PY is an interface generator designed to be used primarily to generate Python bindings for array based functions and subroutines from Fortran.
 Many simple Fortran files can be compiled \emph{automatically} without any hand-written interfaces between languages.
 Windows 64 bit users, if you encounter errors, see the Windows 64 bit install guide.
-We will start by wrapping the Fortran function we wrapped as a part of Lab \ref{lab:cythonwrap}.
-Here we will wrap the subroutine in unmodified form.
-In Lab \ref{lab:cythonwrap} we modified the Fortran file to make it callable from C.
-F2PY will take care of this for us so that we can wrap the subroutine directly.
-Here is the file in its unmodified form:
+Here we will wrap a Fortran function that performs a basic tridiagonal solve.
+This function is essentially the same as the one wrapped in Lab \ref{lab:cythonwrap}.
+In Lab \ref{lab:cythonwrap} the Fortran function had been modified so that it was already callable from C.
+F2PY takes care of necessary name and type changes so that pure Fotran functions and subroutines can be wrapped without modification.
+We will wrapp the following unmodified version of the algorithm for a tridiagonal solve.
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
-We can wrap this file by running the following in our terminal:
+This subroutine can be wrapped by running the following in the terminal:
 \begin{lstlisting}[style=ShellInput]
 f2py -c ftridiag.f90 -m ftridiag
 \end{lstlisting}
@@ -28,27 +28,26 @@ Depending on the way your system is configured, the following command may be nee
 \begin{lstlisting}[style=ShellInput]
 python f2py.py -c ftridiag.f90 -m ftridiag
 \end{lstlisting}
-We can also tell F2PY to pass additional optimization flags to the compiler using the \li{--opt} flag, as in:
+Additional optimization flags can be passed to the compiler using the \li{--opt} flag, as in:
 \begin{lstlisting}[style=ShellInput]
 f2py -c ftridiag.f90 -m ftridiag --opt="-O3 -march=native"
 \end{lstlisting}
 
 Running these commands will create a file called \li{ftridiag.pyd} on a Windows computer or \li{ftridiag.so} on a Linux or Mac based computer.
 This file is a Python module that is linked against the compiled Fortran code.
-All the details about array type, shape, size, etc. have been infered by F2PY.
-We can test the module in nearly the same way we tested the Fortran version of the tridiagonal algorithm that we wrapped as part of Lab \ref{lab:cythonwrap}.
-Here is the file for testing that with the corresponding changes.
+All the details about array type, shape, size, etc. are infered by F2PY.
+This wrapper can be tested using a test similar to the one used in Lab \ref{lab:cythonwrap}
 \lstinputlisting[style=fromfile, name=ftridiag_test.py]{./ftridiag/test.py}
 \begin{info}
-For our example here we compiled the subroutine by itself instead of compiling an entire module.
-If the function were a part of a Fortran module \li{tridiag} F2PY would have made it available to us as \li{ftridiag.tridiag.ftridiag}.
+This example shows how to compile a single subroutine.
+If the subroutine were a part of a Fortran module, F2PY would have created a submodule for the compile module.
+For example, if the subroutine were contained in the module \li{tridiag}, after compilation, it would be available in the Python submodule \li{ftridiag.tridiag} as \li{ftridiag.tridiag.ftridiag}.
 \end{info}
 
 \begin{warn}
 When working with arrays that have more than one dimension, F2PY expects arrays that are Fortran ordered, i.e. arrays that have their columns stored in contiguous blocks.
 By default it will raise an error if it receives a C-contiguous array, though it can be configured to silently make a copy instead.
-You can make a Fortran ordered array by taking the transpose of a C contiguous array.
-You will have to be careful about this if you are wrapping Fortran code using the default settings.
+A Fortran ordered array can be made by taking the transpose of a C contiguous array.
 \end{warn}
 
 Again, similar to working with Cython, we can also create a \li{setup.py} file to create our Python extension module.
@@ -64,7 +63,7 @@ On the other hand, we have not defined default vaues for the tolerance and the m
 \end{problem}
 
 \section*{Detailed Compilation Steps}
-Though F2PY can be used automatically as we have just shown, it can be used to generate more carefully customized wrappers for Fortran functions and subroutines.
+Though F2PY can be used automatically as shown, it can be used to generate more carefully customized wrappers for Fortran functions and subroutines.
 When compiling an extension, F2PY performs two basic steps that are accessible to users:
 \begin{itemize}
 \item Create a \li{.pyf} signature file defining the interface for the Fortran subroutines
@@ -73,7 +72,7 @@ When compiling an extension, F2PY performs two basic steps that are accessible t
 If we want a more specific interface for the Fortran code we are wrapping we can generate the signature file, then modify it so that F2PY will make a Python function with the desired calling signature.
 
 Consider the \li{ftridiag} subroutine used above.
-We can have F2PY generate a signature file based on the contents of the file \li{ftridiag.f90} by using the command
+F2PY can be used to generate a signature file based on the contents of the file \li{ftridiag.f90} via the command
 \begin{lstlisting}[style=ShellInput]
 f2py ftridiag.f90 -m ftridiag -h ftridiag.pyf
 \end{lstlisting}
@@ -81,12 +80,17 @@ The signature file created by F2PY is
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.pyf]{./ftridiag/ftridiag.pyf}
 This looks almost like a function signature in Fortran, except that F2PY has accounted for the fact that \li{n} is one more than the dimension of the first array.
 
-Notice how F2PY handles the argument that represents the sizes of the various arrays present.
 
 
 % Wrap a C function using f2py to teach about signature files.
 
 % Wrap a LAPACK function (dgtsv?), have them do it too.
+
+\begin{warn}
+The LAPACK routines available in \li{scipy.linalg.lapack} do not raise errors when passed a C contiguous array.
+Instead, the array is copied into Fortran contiguous form before it is passed to the Fortran subroutine.
+This means that code is less likely to raise errors, but the implicit copying of arrays may slow a program down unnecessarily.
+\end{warn}
 
 % Discuss how memory layout affects performance.
 
