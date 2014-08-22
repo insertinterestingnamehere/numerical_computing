@@ -2,6 +2,16 @@
 ! return any values.
 subroutine ftridiag(a, b, c, x, n)
     
+!   Use the implicit none statement to say that
+!   every variable must be explicitly declared
+!   with a type.
+!   Fortran allows a programmer to use undeclared
+!   variables and has methods for inferring types
+!   of undeclared variables. Using implicit type
+!   declarations tends to cause errors and is now
+!   widely considered poor style.
+    implicit none
+
 !   Here we declare the types for the inputs.
 !   The 'dimension' statement tells the compiler that
 !   the argument is an array of the given shape.
