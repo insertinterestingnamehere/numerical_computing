@@ -44,6 +44,12 @@ If the subroutine were a part of a Fortran module, F2PY would have created a sub
 For example, if the subroutine were contained in the module \li{tridiag}, after compilation, it would be available in the Python submodule \li{ftridiag.tridiag} as \li{ftridiag.tridiag.ftridiag}.
 \end{info}
 
+\begin{info}
+In many cases F2PY can automatically infer the correct values for arguments that are used to convey information about array shape.
+These arguments are usually included as optional arguments in the calling signature for the Python function.
+F2PY also verifies that the shapes of the arrays passed to each subroutine match the shapes of arrays shown in the declaration of the interface for the subroutine.
+\end{info}
+
 \begin{warn}
 When working with arrays that have more than one dimension, F2PY expects arrays that are Fortran ordered, i.e. arrays that have their columns stored in contiguous blocks.
 By default it will raise an error if it receives a C-contiguous array, though it can be configured to silently make a copy instead.
@@ -80,7 +86,18 @@ The signature file created by F2PY is
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.pyf]{./ftridiag/ftridiag.pyf}
 This looks almost like a function signature in Fortran, except that F2PY has accounted for the fact that \li{n} is one more than the dimension of the first array.
 
+Notice that F2PY has automatically recognized that the last argument to the Fortran subroutine can be inferred directly from the length of the arrays given as arguments.
+When it detects that an argument can be inferred from array shapes, it includes it as an optional argument in the Python binding.
+F2PY also automatically checks that the dimensions of the arrays passed are consistent with the dimensions listed in the subroutine declaration.
 
+A F2PY signature file can, in turn, be used to create a Python extension module that wraps the Fortran subroutines as described in the signature file.
+The following command will use the signature file and Fortran source file above to create a Python extension module.
+\begin{lstlisting}[style=ShellInput]
+f2py -c ftridiag.pyf ftridiag.f90
+\end{lstlisting}
+
+Signature files can also be used in \li{setup.py} scripts like this:
+\lstinputlisting[style=fromfile, language=Python, name=setup.py]{./ftridiag/setup_with_sig.py}
 
 % Wrap a C function using f2py to teach about signature files.
 
