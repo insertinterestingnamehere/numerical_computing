@@ -20,4 +20,6 @@ def feasibleRegion():
     plt.ylim([-1, 5])
     plt.savefig('feasiblePolytope.pdf')
     plt.clf()
-feasibleRegion()
+    
+if __name__ == "__main__":
+    feasibleRegion()
