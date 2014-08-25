@@ -48,39 +48,7 @@ y(3 \pi/4) &= -\frac{1+3\sqrt{2}}{2}.
 The following code implements the secant method to solve \eqref{bvp1}.
 Notice that \li{odeint} is the solver used for the initial value problems.
 
-\begin{lstlisting}
-import numpy as np
-from scipy.integrate import odeint
-from matplotlib import pyplot as plt
-
-def find_t(f, a, b, alpha, beta, t0, t1, maxI):
-    sol1 = 0
-    i = 0
-    while abs(sol1 - beta) > 1E-8 and i < maxI:
-        sol0 = odeint(f, np.array([alpha, t0]), [a, b], atol=1e-9)[1,0]
-        sol1 = odeint(f, np.array([alpha, t1]), [a, b], atol=1e-9)[1,0]
-        t2 = t1 - (sol1 - beta) * (t1 - t0) / float(sol1 - sol0)
-        t0 = t1
-        t1 = t2
-        i += 1
-    if(i == maxI):
-        print "'t' not found"
-    return t2
-
-def solveSecant(f, X, a, b, alpha, beta, t0, t1, maxI):
-    t = find_t(f, a, b, alpha, beta, t0, t1, maxI)
-    sol = odeint(f, np.array([alpha, t]), X, atol=1e-9)[:,0]
-    return sol
-
-def ode(y, x): 
-     return np.array([y[1], - 4 * y[0] - 9 * np.sin(x)])
-
-X = np.linspace(0, 3 * np.pi / 4, 100)
-Y = solveSecant(ode, X, 0, 3 * np.pi / 4, 1, - (1. + 3 * np.sqrt(2)) / 2,
-                (1 + (1. + 3 * np.sqrt(2)) / 2) / (- 3 * np.pi / 4), -1, 40)
-plt.plot(X, Y, linewidth=2)
-plt.show()
-\end{lstlisting}
+\lstinputlisting[style=FromFile]{secant_method.py}
 
 % The following code employs the secant method to find the initial slope $y'(0) = t$ of a solution of \ref{bvp1}.
 % The numerical solution may then be computed and plotted using \li{dopri5} and \li{matplotlib}.
