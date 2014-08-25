@@ -5,10 +5,13 @@ import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 import numpy as np
 import math
-import scipy as sp
+from scipy import stats as st
+import discretenorm
 from matplotlib import pyplot as plt
 from matplotlib import cm
-from mpl_toolkits . mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
+
+
 def eatCake(beta, N, Wmax=1., T=None, finite=True, plot=False):
     """
     Solve the finite horizon cake-eating problem using Value Function iteration.
@@ -47,14 +50,14 @@ def eatCake(beta, N, Wmax=1., T=None, finite=True, plot=False):
             X,Y=np.meshgrid(x,y)
             fig1 = plt.figure()
             ax1= Axes3D(fig1)
-            ax1.plot_surface(states[X],Y,sp.transpose(values), cmap=cm.coolwarm)
+            ax1.plot_surface(states[X],Y,values.T, cmap=cm.coolwarm)
             plt.show ()
             
             fig2 = plt.figure() 
             ax2 = Axes3D(fig2)
             y = np.arange(0,T+1)
             X,Y=np.meshgrid(x,y)
-            ax2.plot_surface(states[X],Y,sp.transpose(psi), cmap = cm.coolwarm)
+            ax2.plot_surface(states[X],Y,psi.T, cmap = cm.coolwarm)
             plt.show()
     else:
         values = np.zeros(N)
@@ -72,27 +75,27 @@ def eatCake(beta, N, Wmax=1., T=None, finite=True, plot=False):
             
     return values, psi
 
-def plot_finite_horiz():
+def finite_horiz():
     #First compute solution to problem 1
     beta = 0.9;
     T = 10;
     N = 100;
-    u = lambda c: sp.sqrt(c);
-    W = sp.linspace(0,1,N);
-    X, Y = sp.meshgrid(W,W);
+    u = lambda c: np.sqrt(c);
+    W = np.linspace(0,1,N);
+    X, Y = np.meshgrid(W,W);
     Wdiff = Y-X
     index = Wdiff <0;
     Wdiff[index] = 0;
     util_grid = u(Wdiff);
     util_grid[index] = -10**10;
-    V = sp.zeros((N,T+2));
-    psi = sp.zeros((N,T+1));
+    V = np.zeros((N,T+2));
+    psi = np.zeros((N,T+1));
     
     
     for k in xrange(T,-1,-1):
-        val = util_grid + beta*sp.tile(sp.transpose(V[:,k+1]),(N,1));
-        vt = sp.amax(val, axis = 1);
-        psi_ind = sp.argmax(val,axis = 1)
+        val = util_grid + beta*np.tile(V[:,k+1].T,(N,1));
+        vt = np.amax(val, axis = 1);
+        psi_ind = np.argmax(val,axis = 1)
         V[:,k]    = vt;
         psi[:,k]    = W[psi_ind];
     
@@ -113,22 +116,23 @@ def plot_finite_horiz():
     plt.ylabel(r'$V$')
     plt.xlabel(r'$t$')
     plt.savefig('fixed_w.pdf')
+    plt.clf()
     
 #plot delta -> 0    
-def plot_delta():     
+def delta():     
     beta = 0.99
     N = 1000
-    u = lambda c: sp.sqrt(c)
-    W = sp.linspace(0,1,N)
-    X, Y = sp.meshgrid(W,W)
-    Wdiff = sp.transpose(X-Y)
+    u = lambda c: np.sqrt(c)
+    W = np.linspace(0,1,N)
+    X, Y = np.meshgrid(W,W)
+    Wdiff = (X-Y).T
     index = Wdiff <0
     Wdiff[index] = 0
     util_grid = u(Wdiff)
     util_grid[index] = -10**10
     
-    Vprime = sp.zeros((N,1))
-    delta = sp.ones(1)
+    Vprime = np.zeros((N,1))
+    delta = np.ones(1)
     tol = 10**-9
     it = 0
     max_iter = 500
@@ -137,16 +141,17 @@ def plot_delta():
         V = Vprime
         it += 1;
         print(it)
-        val = util_grid + beta*sp.transpose(V)
-        Vprime = sp.amax(val, axis = 1)
+        val = util_grid + beta*V.T
+        Vprime = np.amax(val, axis = 1)
         Vprime = Vprime.reshape((N,1))
-        delta = sp.append(delta,sp.dot(sp.transpose(Vprime - V),Vprime-V))
+        delta = np.append(delta,np.dot((Vprime-V).T,Vprime-V))
         
     plt.figure()
     plt.plot(delta[1:])
     plt.ylabel(r'$\delta_k$')
     plt.xlabel('iteration')
     plt.savefig('convergence.pdf')
+    plt.clf()
 
 def infiniteHorizon():
     """
@@ -161,4 +166,102 @@ def infiniteHorizon():
     plt.plot(states, psi)
     plt.savefig('infiniteHorizon.pdf')
     plt.clf()
-infiniteHorizon()
+
+def disc_norm():
+    x = np.linspace(-3,3,100)
+    y = st.norm.pdf(x,0,1)
+    fig, ax = plt.subplots()
+    fig.canvas.draw()
+    
+    ax.plot(x,y)
+    
+    fill1_x = np.linspace(-2,-1.5,100)
+    fill1_y = st.norm.pdf(fill1_x,0,1)
+    fill2_x = np.linspace(-1.5,-1,100)
+    fill2_y = st.norm.pdf(fill2_x,0,1)
+    ax.fill_between(fill1_x,0,fill1_y,facecolor = 'blue', edgecolor = 'k',alpha = 0.75)
+    ax.fill_between(fill2_x,0,fill2_y,facecolor = 'blue', edgecolor = 'k',alpha = 0.75)
+    for label in ax.get_yticklabels():
+        label.set_visible(False)
+    for tick in ax.get_xticklines():
+        tick.set_visible(False)
+    for tick in ax.get_yticklines():
+        tick.set_visible(False)
+    
+    plt.rc("font", size = 16)
+    plt.xticks([-2,-1.5,-1])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    labels[0] = r"$v_k$"
+    labels[1] = r"$\varepsilon_k$"
+    labels[2] = r"$v_{k+1}$"
+    ax.set_xticklabels(labels)
+    plt.ylim([0, .45])
+
+    
+    plt.savefig('discnorm.pdf')
+    plt.clf()
+    
+def stoch_value():    
+    #Compute Solution==========================================================
+    sigma = .5
+    mu = 4*sigma
+    K = 7
+    Gamma, eps = discretenorm.discretenorm(K,mu,sigma)
+    
+    N = 100
+    W = np.linspace(0,1,N)
+    V = np.zeros((N,K))
+    
+    u = lambda c: np.sqrt(c)
+    beta = 0.99
+    
+    X,Y= np.meshgrid(W,W)
+    Wdiff = Y-X
+    index = Wdiff < 0
+    Wdiff[index] = 0
+    
+    util_grid = u(Wdiff)
+    
+    util3 = np.tile(util_grid[:,:,np.newaxis],(1,1,K))
+    eps_grid = eps[np.newaxis,np.newaxis,:]
+    eps_util = eps_grid*util3
+    
+    Gamma_grid = Gamma[np.newaxis,:]
+    
+    delta = 1
+    Vprime = V
+    z = 0
+    while (delta > 10**-9):
+        z= z+1
+        V = Vprime
+        gamV = Gamma_grid*V
+        Expval = np.sum(gamV,1)
+        Exp_grid = np.tile(Expval[np.newaxis,:,np.newaxis],(N,1,K))
+        arg = eps_util+beta*Exp_grid
+        arg[index] = -10^10
+        Vprime = np.amax(arg,1)
+        psi_ind = np.argmax(arg,1)
+        psi = W[psi_ind]
+        delta = np.linalg.norm(Vprime - V)
+    
+    #============================================================    
+    #Plot 3D    
+    x=np.arange(0,N)
+    y=np.arange(0,K)
+    X,Y=np.meshgrid(x,y)
+    fig1 = plt.figure()
+    ax1= Axes3D(fig1)
+    ax1.set_xlabel(r'$W$')
+    ax1.set_ylabel(r'$\varepsilon$')
+    ax1.set_zlabel(r'$V$')
+    ax1.plot_surface(W[X],Y,np.transpose(Vprime), cmap=cm.coolwarm)
+    plt.savefig('stoch_value.pdf')
+    plt.clf()
+    
+    
+if __name__ == "__main__":
+    disc_norm()
+    stoch_value()
+    finite_horiz()
+    delta()
+    infiniteHorizon()
