@@ -140,7 +140,6 @@ def delta():
     while (delta[-1] >= tol) and (it < max_iter):
         V = Vprime
         it += 1;
-        print(it)
         val = util_grid + beta*V.T
         Vprime = np.amax(val, axis = 1)
         Vprime = Vprime.reshape((N,1))
