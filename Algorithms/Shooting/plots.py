@@ -34,57 +34,16 @@ def Figure_Cannon_with_AirResistance():
     
     T,X,Y = Cannon(nu = 0.,va = 45,phi=np.pi/3,b=200)
     T,X1,Y1 = Cannon(nu = 0.0003,va = 45,phi=np.pi/3,b=200)
-    plt.plot(T,np.zeros(T.shape),'-k',np.zeros(10),np.linspace(0,80,10),'-k')
-    plt.plot(X1,Y1,'--r',linewidth=2.0); plt.plot(X1[-1],Y1[-1],'or',markersize=6.)
-    plt.plot(X,Y,'-k',linewidth=2.0); plt.plot(X[-1],Y[-1],'ok',markersize=6.)
+    #plt.plot(T,np.zeros(T.shape),'-k',np.zeros(10),np.linspace(0,80,10),'-k')
+    plt.plot(X1, Y1, '--r', linewidth=2.0)
+    plt.plot(X1[-1], Y1[-1], 'or', markersize=6.)
+    plt.plot(X, Y, '-k', linewidth=2.0)
+    plt.plot(X[-1], Y[-1], 'ok', markersize=6.)
     
-    plt.axis([-10,200,-5,85])
-    # plt.savefig("Cannon_with_AirResistance.pdf")
-    plt.show()
+    plt.axis([0, 200, 0, 85])
+    plt.savefig("Cannon_with_AirResistance.pdf")
     plt.clf()
-    return
-
-
-def Example(): 
-    # y'' +4y = -9sin(x), y(0) = 1., y(3*pi/4.) = -(1.+3*sqrt(2))/2., y'(0) = -2
-    # Exact Solution: y(x) = cos(2x) + (1/2)sin(2x) - 3sin(x)
     
-    def find_t(f,a,b,alpha,beta,t0,t1,maxI):
-            
-        sol1 = 0
-        i = 0
-        print "Guesses = ", t0,t1
-        while( abs(sol1-beta) > 10**-8 and i < maxI):
-            sol0 = odeint(f,np.array([alpha,t0]), [a,b],atol=1e-10)[1,0]
-            sol1 = odeint(f,np.array([alpha,t1]), [a,b],atol=1e-10)[1,0]
-            t2 =  t1 - ( sol1 - beta)*(t1-t0)/( sol1-sol0)
-            t0 = t1
-            t1 = t2
-            i = i+1
-        if(i is maxI):
-            print "t not found"
-        print "Iterations = ", i
-        return t2
-
-            
-    def solveSecant(f,X,a,b,alpha,beta,t0,t1,maxI):
-        t = find_t(f,a,b,alpha,beta,t0,t1,maxI)
-        print "Final t = ", t
-        sol = odeint(f,np.array([alpha,t]), X,atol=1e-10)[:,0]
-        return sol
-    
-    
-    def ode(y,x): 
-        return np.array([y[1], -4*y[0]-9*np.sin(x)])
-
-    X = np.linspace(0,3*np.pi/4,100)
-    Y = solveSecant(ode,X,0,3*np.pi/4,1,-(1.+3*np.sqrt(2)) /2,
-                                            (1+(1.+3*np.sqrt(2)) /2)/(-3*np.pi/4),-1,40)
-    
-    plt.plot(X,Y,'-k',linewidth=2)
-    plt.show()
-    return 
-
 
 def Exercise1():
     def find_t(f,a,b,alpha,beta,t0,t1,maxI):
@@ -124,9 +83,9 @@ def Exercise1():
     
     plt.plot(X,Y1,'-b',linewidth=1.5)
     plt.plot(X,Y2,'-g',linewidth=1.5)
-    plt.show()
-    return
-
+    plt.savefig('Fig1.pdf')
+    plt.clf()
+    
 
 def Exercise2():
     # y''(x) = 3 + 2*y/x^2, x  in [1,e], y(1) = 6, y(e)= e^2 + 6/e
@@ -174,14 +133,12 @@ def Exercise2():
     # plt.plot(X[::5],Y2[::5],'*r')
     plt.xlabel('$x$',fontsize=16)
     plt.ylabel('$y$',fontsize=16)
-    # plt.savefig('Fig2.pdf')
-    plt.show()
+    plt.savefig('Fig2.pdf')
     plt.clf()
-    return
-
+    
 
 def Exercise3():
-def find_t(f,a,b,za,va,beta,t0,t1,maxI):
+    def find_t(f,a,b,za,va,beta,t0,t1,maxI):
         sol1 = -1
         i = 0
         print "Guesses = ", t0,t1
@@ -227,18 +184,13 @@ def find_t(f,a,b,za,va,beta,t0,t1,maxI):
     plt.legend(loc='best')
     plt.xlabel('$x$',fontsize=16)
     plt.ylabel('$y$',fontsize=16)
-    # plt.savefig('Cannon_Shooting.pdf')
-    plt.show()
+    plt.savefig('Cannon_Shooting.pdf')
     plt.clf()
-    return
+    
 
-
-
-
-# Figure_Cannon_with_AirResistance()
-# 
-# Example()
-# Exercise1()
-# Exercise2()
-Exercise3()
+if __name__ == "__main__":
+    Figure_Cannon_with_AirResistance()
+    Exercise1()
+    Exercise2()
+    Exercise3()
 
