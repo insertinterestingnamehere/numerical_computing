@@ -50,7 +50,6 @@ def Exercise1():
         
         sol1 = 0
         i = 0
-        print "Guesses = ", t0,t1
         while( abs(sol1-beta) > 10**-8 and i < maxI):
             sol0 = odeint(f,np.array([alpha,t0]), [a,b],atol=1e-10)[1,0]
             sol1 = odeint(f,np.array([alpha,t1]), [a,b],atol=1e-10)[1,0]
@@ -58,15 +57,11 @@ def Exercise1():
             t0 = t1
             t1 = t2
             i = i+1
-        if(i is maxI):
-            print "t not found"
-        print "Iterations = ", i
         return t2
 
     
     def solveSecant(f,X,a,b,alpha,beta,t0,t1,maxI):
         t = find_t(f,a,b,alpha,beta,t0,t1,maxI)
-        print "Final t = ", t
         sol = odeint(f,np.array([alpha,t]), X,atol=1e-10)[:,0]
             
         return sol
@@ -98,22 +93,17 @@ def Exercise2():
     def find_t(f,a,b,alpha,beta,t0,maxI):
         y = 0
         i = 0
-        print "Guess: t =", t0
         while( abs(y-beta) > 10**-8 and i < maxI):
             sol = odeint(f,np.array([alpha,t0,0,1]), [a,b],atol=1e-10)
             y, z  = sol[1,0], sol[1,2]
             t1 =  t0 - ( y - beta)/z
             t0 = t1
             i = i+1
-        if(i is maxI):
-                print "t not found"
-        print "Iterations = ", i
         return t1
 
     
     def solveSecant(f,X,a,b,alpha,beta,t0,maxI):
         t = find_t(f,a,b,alpha,beta,t0,maxI)
-        print "Final t = ", t
         sol = odeint(f,np.array([alpha,t,0,1]), X,atol=1e-10)[:,0]
         return sol
     
@@ -141,7 +131,6 @@ def Exercise3():
     def find_t(f,a,b,za,va,beta,t0,t1,maxI):
         sol1 = -1
         i = 0
-        print "Guesses = ", t0,t1
         while( abs(sol1-beta) > 10**-8 and i < maxI):
             sol0 = odeint(f,np.array([za,va,t0]), [a,b],atol=1e-10)[1,0]
             sol1 = odeint(f,np.array([za,va,t1]), [a,b],atol=1e-10)[1,0]
@@ -149,9 +138,6 @@ def Exercise3():
             t0 = t1
             t1 = t2
             i = i+1
-        if(i is maxI):
-            print "t not found"
-        print "Iterations = ", i
         return t2
 
     
