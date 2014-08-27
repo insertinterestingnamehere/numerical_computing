@@ -1,5 +1,8 @@
-#! /usr/bin/env python
 from __future__ import division
+
+import matplotlib
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+
 from scipy.integrate import ode
 import numpy as np
 import matplotlib.pyplot as plt
@@ -147,7 +150,7 @@ def Example_Lotka_Volterra():
     plt.ylabel('Predators', fontsize=15)
     plt.savefig("Lotka_Volterra_Phase_Portrait.pdf")
     plt.clf()
-    Y = RK4(Lotka_Volterra, a, 2 * b, 2 * subintervals, ya, dim)
+    Y = solution.RK4(Lotka_Volterra, a, 2 * b, 2 * subintervals, ya, dim)
     plt.plot(np.linspace(a, 2 * b, 2 * subintervals + 1),
              Y[:, 0], '-b', linewidth=2.0)
     plt.plot(np.linspace(a, 2 * b, 2 * subintervals + 1),
@@ -181,13 +184,13 @@ def Exercise_Lotka_Volterra():
     plt.plot(0, 0, 'ok', markersize=8)
     # Plot the solutions in phase space
     plt.plot(Y[:, 0], Y[:, 1], '-k', linewidth=2.0)
-    Y = RK4(Lotka_Volterra, a, b, subintervals,
+    Y = solution.RK4(Lotka_Volterra, a, b, subintervals,
             np.array([1 / 2., 3 / 4.]), dim)
     plt.plot(Y[:, 0], Y[:, 1], '-k', linewidth=2.0)
-    Y = RK4(Lotka_Volterra, a, b, subintervals,
+    Y = solution.RK4(Lotka_Volterra, a, b, subintervals,
             np.array([1 / 16., 3 / 4.]), dim)
     plt.plot(Y[:, 0], Y[:, 1], '-k', linewidth=2.0)
-    Y = RK4(Lotka_Volterra, a, b, subintervals,
+    Y = solution.RK4(Lotka_Volterra, a, b, subintervals,
             np.array([1 / 40., 3 / 4.]), dim)
     plt.plot(Y[:, 0], Y[:, 1], '-k', linewidth=2.0)
     plt.plot(Y[::10, 0], Y[::10, 1], '*b')
@@ -248,11 +251,6 @@ def Exercise_Logistic():
     plt.ylabel('Predators', fontsize=15)
 
 
-# Exercise1()
-# Exercise2()
-# Exercise3()
-
-
-# Example_Lotka_Volterra()
-# Exercise_Lotka_Volterra()
-# Exercise_Logistic()
+if __name__ == "__main__":
+    Example_Lotka_Volterra()
+    
