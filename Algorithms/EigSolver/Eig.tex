@@ -1,9 +1,8 @@
-\lab{Algorithms}{Eigenvalue Solvers And Markov}{Eigenvalue Solvers And Markov}
-\objective{Implement the $QR$ algorithm for finding eigenvalues and learn Markov chains.}
+\lab{Algorithms}{Eigenvalue Solvers And Markov Chains}{Eigenvalue Solvers And Markov Chains}
+\objective{Implement the QR algorithm for finding eigenvalues and learn Markov chains.}
 \label{lab:EigSolve}
 
 \section*{Eigenvalues are hard to find}
-
 Finding the eigenvalues of $n \times n$ matrix $A$ means solving the following equation, where $x$ is a nonzero vector and $\lambda$ is a scalar.
 \begin{align}
 A x &= \lambda x \notag \\
@@ -18,16 +17,19 @@ If $A$ is $n \times n$, the degree of $p(\lambda)$ is  $n$.
 Finding the roots is easy for small $n$, but it becomes difficult or impossible as $n$ increases.
 Abel's Theorem  outlines the problem.
 
-\begin{theorem}
-{\bf Abel's Impossibility Theorem:} There is no general algebraic solution for solving a polynomial equation of degree $n>4$.
-\label{Theorem:Abel}
+\begin{theorem}[Abel's Impossibility Theorem]
+There is no general algebraic solution for solving a polynomial equation of degree $n>4$.
+\label{thm:Abel}
 \end{theorem}
 
 Therefore, there is no method that will exactly find the eigenvalues of an arbitrary matrix.
-This is a significant result. In practice it means that we often rely on iterative methods, which converge to the eigenvalues.
+This is a significant result. 
+In practice it means that we often rely on iterative methods, which converge to the eigenvalues.
 
 \section*{The Power Method}
-There are many such iterative methods for finding eigenvalues. The Power Method is a simple fast way to find the largest eigenvalue and eigenvector. You begin with a vector $x_0$, that has norm 1, and do the iteration.
+There are many such iterative methods for finding eigenvalues. 
+The Power Method is a simple fast way to find the largest eigenvalue and eigenvector. 
+You begin with a vector $x_0$, that has norm 1, and do the iteration.
 \[
 x_{k+1}=\frac{Ax_k}{\norm{Ax_k}}
 \]
@@ -35,7 +37,6 @@ it works when
 \begin{itemize}
 \item The matrix $A$ has a eigenvalue that is strictly greater in magnitude than its other eigenvectors.
 \item your starting vector $x_0$ has a nonzero component in the direction of the eigenvector of the dominant eigenvalue.
-
 \end{itemize}
 
 This often converges slowly (geometric with the ration given by $\norm{\lambda_2/\lambda_1}$ but is especially useful when your matrix has all positive values because you are guaranteed to have a dominant eigenvalue and the modulus of dominant eigenvalue is often much greater than the rest of the eigenvalues so the convergence is much faster.
@@ -43,19 +44,22 @@ Whenever you have an eigenvector you can compute its corresponding eigenvalue us
 \[
 \lambda = \frac{Ax\cdot x}{x\cdot x}
 \]
+The down side is that it only finds the largest eigenvector and eigenvalue. The next algorithm finds more eigenvalues.
 \begin{problem}
-Write a method that takes a in matrix and a tolerance and computes its largest eigenvalue and the eigenvector. Have your starting vector be random. Use the two-norm and have the iteration stop when the maximun change of the vector is less than the tolerance. Test your function on positive matrices.
+Write a method that takes a in matrix and a tolerance and computes its largest eigenvalue and the eigenvector. 
+Have your starting vector be random. 
+Use the two-norm and have the iteration stop when the maximun change of the vector is less than the tolerance. 
+Test your function on positive matrices.
 \end{problem}
 
 \begin{comment}
-An overview of the proof of the method is that you can write a matrix in Jordan Conical form $A=VJV^{-1}$ where $V$ is the matrix of the generalized eigenspaces. But the first column is is the eigenvector corresponding to largest eigenvalue and $J$ is a upper trianglar matrix of eigenvalues and ones.  Note that $A^k=VJ^kV^{-1}$. The limit as $k \rightarrow \infty$ of $(\frac{1}{\lambda_1}J)^k$ is a matrix of all zeros except for a one in the upper right hand corner. So $(\frac{A}{\norm{A}})^k \approx VJ^kV^{-1}$ So the largest eigenvalue dominates.
+An overview of the proof of the method is that you can write a matrix in Jordan Conical form $A=VJV^{-1}$ where $V$ is the matrix of the generalized eigenspaces. 
+But the first column is is the eigenvector corresponding to largest eigenvalue and $J$ is a upper trianglar matrix of eigenvalues and ones.
+Note that $A^k=VJ^kV^{-1}$. The limit as $k \rightarrow \infty$ of $(\frac{1}{\lambda_1}J)^k$ is a matrix of all zeros except for a one in the upper right hand corner. 
+So $(\frac{A}{\norm{A}})^k \approx VJ^kV^{-1}$ So the largest eigenvalue dominates.
 \end{comment}
 
-The down side is that it only finds the largest eigenvector and eigenvalue. The next algorithm finds more eigenvalues.
-
-\section*{The $QR$ algorithm}
-
-
+\section*{The QR algorithm}
 We will explore one of the simplest: the $QR$ algorithm.
 The following recurrence describes the $QR$ Algorithm in its most basic form:
 \begin{equation*}
@@ -66,19 +70,11 @@ Yes, it's as easy as it looks.
 All this algorithm does at each step is find the $QR$ decomposition of $A_k$ and multiply $Q_k$ and $R_k$ together again but in the opposite order.
 How does this simple algorithm find the eigenvalues of $A$?
 
-\begin{comment}
-\begin{problem}
-\label{problem:similarity proof}
-Prove that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity).
-Then prove that $A_n \sim A$ for all $n$.
-\end{problem}
-\end{comment}
-
 Observe that $A_{k+1} \sim A_k$ (where $\sim$ denotes matrix similarity).
 Then $A_n \sim A$ for all $n$.
 This statement shows that $A_n$ has the same eigenvalues as $A$.
 Preservation of eigenvalues is the first important feature that makes the algorithm work.
-The other important feature is that each iteration of the algorithm effectively transfers some of the``mass" from the lower to the upper triangle.
+The other important feature is that each iteration of the algorithm effectively transfers some of the ``mass'' from the lower to the upper triangle.
 Under very general conditions, $A_n$ will converge to a matrix of the form
 
 \begin{equation*}
@@ -103,7 +99,6 @@ Each of these pairs corresponds to a $2 \times 2$ block in $S$, where the eigenv
 In this case, $S$ is called the \emph{real Schur form} of $A$.
 
 \subsection*{Hessenberg preconditioning}
-
 Recall that an upper Hessenberg matrix looks like
 \[
 \begin{pmatrix}
@@ -124,6 +119,7 @@ Write a function \li{qrSolver} that implements the QR algorithm as described abo
 Have your function accept a real-valued $n \times n$ matrix $A$, a number of iterations, and a tolerance number,
 and return the corresponding estimate for all the eigenvalues of $A$.
 Note that you will need to find the eigenvalues of the $2 \times 2$ $S_i$ directly, whenever there are any.
+\label{prob:qr_solver}
 \end{problem}
 
 Reducing the matrix to Schur form also has the added benefit that each iteration for an $n \times n$ array can be computed in $\mathcal{O} \left( n^2 \right)$ time instead of $\mathcal{O} \left( n^3 \right)$.
@@ -140,7 +136,6 @@ The solution to Problem \ref{prob:givens_hessenberg_modified} is especially impo
 \end{comment}
 
 \begin{comment}
-
 \begin{problem}
 If $A$ is normal, its Schur form is diagonal.
 For normal $A$, have your function additionally output the eigenvector corresponding to each eigenvalue.
@@ -148,7 +143,6 @@ Hint 1: Test your function on Hermitian and real symmetric matrices; they are bo
 Hint 2: Your work in Problem \ref{problem:similarity proof} will help.
 You have already made all the necessary calculations, you just need to store the information correctly.
 \end{problem}
-
 \end{comment}
 
 \begin{problem}
@@ -167,7 +161,8 @@ Further, the QR algorithm is not the only iterative method used to find eigenval
 Arnoldi iteration is similar to the QR algorithm but exploits sparsity.
 Other methods include the Jacobi method and the Rayleigh quotient method.
 
-As a final note, it is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned. Convergence is not unconditionally guaranteed. 
+As a final note, it is important to remember that eigenvalue solvers can be wrong, particularly for matrices that are ill-conditioned. 
+Convergence is not unconditionally guaranteed. 
 
 \section*{Markov Chains}
 A Markov Chain describes a particular type of random process that
@@ -184,7 +179,7 @@ We can find similar probabilities if he starts on lily pad 2 or 3.
 Such probabilities are known as the \emph{transition probabilities}.
 In figure \ref{fig:markov1} we have a transition diagram that reflects the various probabilities of jumping from one lily pad to another.
 
-\begin{figure}[h]
+\begin{figure}
 \includegraphics[width=\textwidth]{markov1}
 \caption{Transition diagram for Fredo the Frog}
 \label{fig:markov1}
@@ -236,7 +231,6 @@ A^\infty = \begin{pmatrix}
 \]
 and this can, in fact, be proven carefully.
 This means that after several jumps, the probability that we will find Fredo on a given lily pad will have nothing to do with where he started initially.
-
 
 We can generalize this notion beyond that of frogs and lily pads.
 Let the state distribution of our system be represented by a probability vector
@@ -293,7 +287,7 @@ How can we check that a stable fixed point exists?
 
 Notice this is just the power method iteration without dividing by the norm. Since the all of the columns of $A$ sum to one and $x_0$ sums to one the one norm of $Ax_k=1$ for all $k$. So this goes to a stable fixed point and that fixed point turns out to be the eigenvector corresponding to the largest eigenvalue. Note that all the columns sum up to one and that a matrix and its transpose have the same eigenvalues. It can be shown that if all the rows of a positive matrix sum to the same number that number is the largest eigenvalue and the corresponding eigenvector is the one vector. So the $A.T$ has the eigenvalue $\lambda=1$ so $A$. So for any Markov chain the largest eigenvalue will be $\lambda=1$.
 
-\section*{Example}
+\begin{example}
 Consider the Markov chain given by
 \[
 A = \begin{pmatrix}
@@ -318,6 +312,7 @@ So we need to multiply it by the appropriate constant so that all of the entries
 array([ 0.41836735,  0.23469388,  0.34693878])
 \end{lstlisting}
 We can check this answer by taking $A$ to a high exponent, say $A^{100}$.
+\end{example}
 
 \begin{problem}
 Suppose a basketball player's success at shooting free throws can be described with the following Markov chain
@@ -329,6 +324,7 @@ where the first state corresponds to success and the second state to failure.
 \item If the player makes his first free throw, what is the probability that he also makes his third one?
 \item What is the player's average free throw percentage?
 \end{enumerate}
+\label{prob:markov_freethrow}
 \end{problem}
 
 \begin{problem}
@@ -341,7 +337,8 @@ Consider the Markov process given by the transition diagram in Figure \ref{fig:m
 
 \begin{enumerate}
 \item Find the transition matrix.
-\item If the Markov process is in state 1 initially, find the probability that it is in state 2 after 2 transitions.
+\item If the Markov process is in state 1 initially, find the probability that it is in state 2 after two transitions.
 \item Find the stable fixed point if it exists.
 \end{enumerate}
+\label{prob:markov_stablept}
 \end{problem}
