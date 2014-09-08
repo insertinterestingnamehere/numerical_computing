@@ -1,6 +1,6 @@
 import numpy as np
 
-class Camera:
+class Camera(object):
     def __init__(self, faces, verts, C):
         Fs = self._buildfaces(faces, verts)
         l = len(Fs)
@@ -60,6 +60,7 @@ class Camera:
         b = np.empty(3)
         b = np.dot(M, self.C)
         return M, b
+
     def add_pic(self, theta, psi, r=3):
         M, b = self._SPC(theta, psi, r)
         if self.b is None:
@@ -68,6 +69,7 @@ class Camera:
         else:
             self.b = np.concatenate((self.b, np.array([b])), axis=0)
             self.M = np.concatenate((self.M, np.array([M])), axis=0)
+
     def add_lots_pic(self, n, r=3):
         self.b = np.empty((n, 3))
         self.M = np.empty((n, 1012))
@@ -77,8 +79,10 @@ class Camera:
             M, b = self._SPC(theta, psi, r)
             self.b[i] = b
             self.M[i] = M
+
     def returnData(self):
         return self.M, self.b
+        
     def clear(self):
         self.b = None
         self.M = None
