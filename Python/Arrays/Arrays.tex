@@ -1,10 +1,10 @@
-\lab{Python}{NumPy Arrays and NumPy and SciPy}{NumPy Arrays and NumPy and SciPy} 
-\objective{Create and manipulate powerful NumPy $n$-dimensional arrays and learn features available in NumPy and SciPy.}
+\lab{Python}{NumPy and SciPy}{NumPy and SciPy} 
+\objective{Create and manipulate NumPy arrays and learn features available in NumPy and SciPy.}
 \label{lab:NumPyArrays}
 
 \section*{Introduction}
 
-NumPy and SciPy\footnote{SciPy is also the name of a Python coding environment that includes the NumPy and SciPy libraries, as well as IPython, matplotlib, and other tools.} are the two Python libraries most used for scientific computing. NumPy is a package for manipulating vectors and arrays, and SciPy is a higher-level library built on NumPy. The basic object in NumPy is the \emph{array}, which is conceptually similar to a matrix. However, unlike a matrix, which has two dimensions, a NumPy \li{array} can have arbitrarily many dimensions. NumPy is optimized for fast array computations, and you will see in a later exercise [TODO: ref] just what a difference this can make.
+NumPy and SciPy\footnote{SciPy is also the name of a Python coding environment that includes the NumPy and SciPy libraries, as well as IPython, matplotlib, and other tools.} are the two Python libraries most used for scientific computing. NumPy is a package for manipulating vectors and arrays, and SciPy is a higher-level library built on NumPy. The basic object in NumPy is the \emph{array}, which is conceptually similar to a matrix. However, unlike a matrix, which has two dimensions, a NumPy \li{array} can have arbitrarily many dimensions. Algorithms in NumPy are usually implemented in C or Fortran and are capable of extremely fast array computations. You will see in a later exercise (Problem \ref{numpy_is_fast_problem}) just what a difference this can make.
 
 The convention is to import NumPy as follows.
 
@@ -18,7 +18,7 @@ The strategies discussed in the section ``Learning Python'' of Lab [TODO ref 1] 
 \item Official SciPy Documentation (\url{http://docs.scipy.org/doc/})
 \item Sections 1.3 and 1.5 of the SciPy Lecture Notes (\url{http://scipy-lectures.github.io/})
 \end{itemize}
-The remainder of this lab is a \emph{brief} summary of the tools available in NumPy and SciPy, beginning with NumPy arrays.
+The remainder of this lab is a brief summary of the tools available in NumPy and SciPy, beginning with NumPy arrays.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,12 +42,6 @@ array([[1, 1, 2],
        [3, 3, 4]])
 \end{lstlisting} 
 
-You can access the dimension of any array with the command \li{ndim}.
-\begin{lstlisting}
->>> b.ndim
-2
-\end{lstlisting}
-
 You can view the length of each dimension with the \li{shape} command, and change the shape of an array with the \li{np.reshape()} function. The number of arguments passed to \li{reshape} tells NumPy the dimension of the new array, and the arguments specify the length of each dimension. An argument of \li{-1} tells NumPy to make that dimension as long a necessary.
 \begin{lstlisting}
 >>> b.shape
@@ -60,11 +54,7 @@ array([[1, 1],
 array([1, 1, 2, 3, 3, 4])
 \end{lstlisting}
 
-Finally, \li{size} tells you the number of elements in the array.
-\begin{lstlisting}
->>> b.size
-6
-\end{lstlisting}
+Array objects also support the usual binary operators, including addition \li{+} and componentwise multiplication \li{*}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Data Types}
@@ -172,14 +162,31 @@ in the submodule \li{np.random}.
 \begin{lstlisting}
 >>> np.random.rand(5) # uniformly distributed values 
 array([ 0.21845499,  0.73352537,  0.28064456,  0.66878454,  0.44138609])
-
-# Return an array of 6 randomly generated integers uniformly
-# distributed in [0, 5).
->>> np.random.randint(0, 5, 6) 
-array([ 3,  1,  0,  3,  4,  1])
 \end{lstlisting} 
+Some other commonly used functions are \li{np.random.normal}, which samples from the normal distribution, and \li{np.random.randint}, which randomly selects integers from a range.
 
+There are many more functions for creating arrays besides these, some of which are described in Table \ref{numpycreate}.
 
+\begin{table} 
+\begin{tabular}{l|l} 
+Function & Description 
+\\ \hline 
+\li{diag} & Extract a diagonal or construct a diagonal array.\\
+\li{empty} & Return a new array of given shape and type, without initializing entries. \\ 
+\li{empty_like} & Return a new array with the same shape and type as a given array. \\
+\li{eye} & Return a 2-D array with ones on the diagonal and zeros elsewhere. \\ 
+\li{identity} & Return the identity array. \\ 
+\li{meshgrid} & Return coordinate matrices from two coordinate vectors.\\ 
+\li{ones} & Return a new array of given shape and type, filled with ones. \\ 
+\li{ones_like} & Returns an array of ones with the same shape and type as a given array. \\ 
+\li{zeros} & Return a new array of given shape and type, filled with zeros. \\ 
+\li{zeros_like} & Return an array of zeros with the same shape and type as a given array. \\ 
+\end{tabular} 
+\caption{Some functions for creating arrays in NumPy.}
+\label{numpycreate} 
+\end{table} 
+
+\begin{comment}
 We can create arrays that
 consist entirely of ones or zeros using \li{np.ones()} and
 \li{np.zeros()} respectively. We can also allocate an ``empty'' array without initializing its values. The syntax for these commands is similar.
@@ -227,6 +234,7 @@ array([[4, 4, 4],
        [7, 7, 7]])
 \end{lstlisting} 
 \li{X} is the set of x-coordinates of pairs in the cartesian product of \li{x} with \li{y}, and \li{Y} is the set of y-coordinates. That is, \li{(X[i, j], Y[i, j]) = (x[i], y[j])}.
+\end{comment}
 
 \begin{comment} 
 When
@@ -275,45 +283,7 @@ lab. \begin{lstlisting}
   speed does become an issue.
 \end{comment}
 
-\begin{problem}
-This problem will show you that NumPy arrays are drastically more efficient than nested Python lists for large computations. You will compare matrix multiplication in Python and NumPy.
-\begin{enumerate}
-\item A matrix in Python can be implemented as a list of lists. The following function will multiply two such matrices.
 
-\lstinputlisting[style=fromfile]{arr_mult.py}
-
-You can create a $k \times k$ matrix  of the integers 0 through $k^2-1$ as follows.
-
-\begin{lstlisting}
->>> k = 10 
->>> A = [range(i, i+k) for i in range(0, k**2, k)]
-\end{lstlisting}
-
-\item A matrix in NumPy is just a 2-D array. How can you multiply two NumPy arrays in the sense of matrix multiplication?
-
-\item In IPython, you can find the execution time of a line of code by prefacing it with \li{\%timeit}.\footnote{If you aren't using IPython, you will need
-to use the timeit function documented here: \url{https://docs.python.org/2/library/timeit.html}.} For \li{k=100}, \li{k=200}, and \li{k=300}, time how long it takes to square a $k \times k$ matrix using the method \li{arr_mult} defined above and the NumPy method for array multiplication.
-% Below is a comparison of runtimes needed to square a matrix
-% \begin{center} \begin{tabular}{|c|l|l|} \hline Data Structure & Size &
-% Time (s) \\ \hline Python List & $1\times1$ & 0.0000181198 \\
-% \cline{2-3} & $10\times10$ & 0.0002758503 \\ \cline{2-3} &
-% $100\times100$ & 0.1336028576 \\ \cline{2-3} & $1000\times1000$ &
-% 200.4009799957 \\ \hline \hline NumPy Array & $1\times1$ &
-% 0.0000298023 \\ \cline{2-3} & $10\times10$ & 0.0000109673 \\
-% \cline{2-3} & $100\times100$ & 0.0009210110 \\ \cline{2-3} &
-% $1000\times1000$ & 2.1682999134 \\ \hline \end{tabular}
-% %
-% \end{center}
-% 
-% 
-% 
-\end{enumerate}
-
-The reason for the drastic speed difference is that the algorithms in NumPy are heavily optimized and
-are usually implemented in C or Fortran. NumPy interfaces with some of the best packages
-available for doing computational linear algebra and can be used to
-write relatively fast programs.
-\end{problem}
 
 \begin{comment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -329,97 +299,76 @@ instances.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Indexing and Slicing} 
-Indexing for a 1-D NumPy array works exactly like indexing for a Python list. To access a single entry of a multi-dimenional array, say a 3-D array, you should use the syntax \li{f[i, j, k]}. While the syntax \li{f[i][j][k]} will also work, it is significantly slower because each bracket returns an array slice.
+Indexing for a 1-D NumPy array works exactly like indexing for a Python list. To access a single entry of a multi-dimenional array, say a 3-D array, you should use the syntax \li{f[i, j, k]}. While the syntax \li{f[i][j][k]} will also work, it is significantly slower because each bracket returns an array slice. Similarly, slicing an array works just like slicing a list, but with more dimensions.
 \begin{lstlisting}
->>> k = np.arange(25).reshape((5, 5))
->>> k[4, -2]
-23
-\end{lstlisting}
-
-
-Similarly, slicing an array works just like slicing a list, but with more dimensions.
-
-\begin{lstlisting}
->>> k = np.arange(25).reshape((5,5)) 
->>> k
+>>> a = np.arange(25).reshape((5,5)) 
+>>> a
 array([[ 0,  1,  2,  3,  4],
        [ 5,  6,  7,  8,  9],
        [10, 11, 12, 13, 14],
        [15, 16, 17, 18, 19],
        [20, 21, 22, 23, 24]])
-# Return every other element of the rows and every third element of
-# the columns.  
->>> k[::2, ::3] 
-array([[ 0,  3],
-       [10, 13],
-       [20, 23]])
-# Reverse the order of the columns; the : indicates a slice including
-# all of that axis.
->>>k[:, ::-1] 
+>>> a[4, -2]
+23
+
+# Extract the lower right 2x2 subarray.
+>>> a[3:, 3:] 
+array([[18, 19],
+       [23, 24]])
+       
+# Extract the second column. The returned array is 1-D.
+>>> a[:, 1] 
+array([ 1,  6, 11, 16, 21]) 
+
+# Reverse the order of the columns.
+>>> a[:, ::-1] 
 array([[ 4,  3,  2,  1,  0],
        [ 9,  8,  7,  6,  5],
        [14, 13, 12, 11, 10],
        [19, 18, 17, 16, 15],
        [24, 23, 22, 21, 20]])
-# Extract the lower right 2x2 subarray.
->>> k[3:, 3:] 
-array([[18, 19],
-       [23, 24]])
-# Extract the second column. The returned array is 1D.
->>> k[:, 1] 
-array([ 1,  6, 11, 16, 21]) 
 \end{lstlisting}
 
 Fancy indexing is a second way to access elements of an array. There are two types of fancy indexing: boolean and integer. 
 Boolean indexing uses an array of \li{True} or \li{False} values to 
-determine which elements of the array to take. 
+determine which elements of the array to take. You can create true-false valued arrays by using logical operations on arrays. See \url{https://scipy-lectures.github.io/intro/numpy/operations.html#other-operations} for examples and \url{http://docs.scipy.org/doc/numpy/reference/routines.logic.html} for a full list of such operations.
 
 
 
 \begin{lstlisting}
->>> b = k
-
-# We refer to this array as "bmask" because we are "masking" the
-# values not specified.
->>> bmask = (b > 15) & (b < 23) 
-# Note that logic operations on arrays result in true-false valued arrays.
->>> bmask 
+# Logic operations on arrays result in true-false valued arrays.
+>>> amask = np.logical_and(a<23, a>15); bmask 
 array([[False, False, False, False, False],
        [False, False, False, False, False],
        [False, False, False, False, False],
        [False,  True,  True,  True,  True],
        [ True,  True,  True, False, False]], dtype=bool)
->>> b[bmask]
+
+>>> a[amask]
 array([16, 17, 18, 19, 20, 21, 22])
-# This is the condensed form. 
->>> b[(b > 15) & (b < 23)] 
-array([16, 17, 18, 19, 20, 21, 22])
->>> b[~bmask] # invert the mask
-array([ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 23, 24])
 \end{lstlisting}
 
 Integer indexing uses Python lists to determine what array values to access.
 \begin{lstlisting}
-# Return an array of elements b[0,0], b[2,2], and b[4,4].
->>> b[(0, 2, 4), (0, 2, 4)] 
-array([ 0, 12, 24])
-# This is the same as above, but with ranges instead of tuples; 
-# the range(0, 5, 2) is equivalent to the tuple (0, 2, 4).
->>> b[range(0, 5, 2), range(0, 5, 2)] 
-array([ 0, 12, 24])
-# Take the first (0) and last (-1) columns. Note that this is a list of discrete
-# indices, not a slice. The : indicates a slice including all of that axis.
+# Return an array of elements b[0,0], b[0, 0], b[2,3], and b[4,1].
+>>> a[[0, 0, 2, 4], [0, 0, 3, 1]] 
+array([ 0,  0, 13, 21])
+# Take the first (0) and last (-1) columns.
 >>> b[:, [0, -1]]  
 array([[ 0,  4], [ 5,  9], [10, 14], [15, 19], [20, 24]])
 \end{lstlisting}
 
 Fancy indexing can
 be used for assignment. For example, we can set all values of an array
-that are less than \li{.5} to \li{0} in the following way: 
-\begin{lstlisting}
->>> from numpy.random import rand 
->>> A = rand(10, 10) 
->>> A[A<.5] = 0.
+that are less than \li{10} to \li{0} in the following way: 
+\begin{lstlisting} 
+>>> a[a<10] = 0
+>>> a
+array([[ 0,  0,  0,  0,  0],
+       [ 0,  0,  0,  0,  0],
+       [10, 11, 12, 13, 14],
+       [15, 16, 17, 18, 19],
+       [20, 21, 22, 23, 24]])
 \end{lstlisting}
 
 
@@ -447,39 +396,23 @@ very different.
 
 A view of an array \li{a} is a distinct object from \li{a} in Python, but it references the same place in memory. Thus, when you change elements in a view, you also change the array it references.
 \begin{lstlisting}
->>> k = np.reshape(np.arange(25), (5,5)) 
->>> k
-array([[ 0,  1,  2,  3,  4],
-       [ 5,  6,  7,  8,  9],
-       [10, 11, 12, 13, 14],
-       [15, 16, 17, 18, 19],
-       [20, 21, 22, 23, 24]])
+>>> k = np.arange(5)
+
 # Slicing produces a view of k. 
 >>> m = k[:]
 >>> m
-array([[ 0,  1,  2,  3,  4],
-       [ 5,  6,  7,  8,  9],
-       [10, 11, 12, 13, 14],
-       [15, 16, 17, 18, 19],
-       [20, 21, 22, 23, 24]]) 
-# This indicates that m and k are distinct objects.
+
+# Check that m and k are distinct objects in Python.
 >>> id(m) == id(k) 
 False
-# Change the third element of m (itself a list) to 500
+
+# Change the third element of m to 500
+# Changing m also changes k.
 >>> m[2] = 500 
 >>> m
-array([[  0,   1,   2,   3,   4],
-       [  5,   6,   7,   8,   9],
-       [500, 500, 500, 500, 500],
-       [ 15,  16,  17,  18,  19],
-       [ 20,  21,  22,  23,  24]])
-# Changing m also changed k.
+array([  0,   1, 500,   3,   4])
 >>> k 
-array([[  0,   1,   2,   3,   4],
-       [  5,   6,   7,   8,   9],
-       [500, 500, 500, 500, 500],
-       [ 15,  16,  17,  18,  19],
-       [ 20,  21,  22,  23,  24]])
+array([  0,   1, 500,   3,   4])
 \end{lstlisting} 
 
 A copy of an array is a separate array with its own memory. Thus, when you change a copy of an array, you do not affect the original array. Because copying an array takes up more space in memory, it should only be done when necessary. An array can
@@ -487,32 +420,20 @@ be copied using the \li{np.copy()} function (also available as a method of
 the array object). 
 
 \begin{lstlisting}
->>> j = np.reshape(np.arange(25), (5,5))
+>>> j = np.arange(5)
 >>> n = np.copy(j) 
-# We still have unique objects.
+
+# Check that j and n are distinct objects in Python.
 >>> id(n) == id(j) 
 False
+
+# Change the third element of n to 500
+# Changing n does not affect j.
 >>> n[2] = 500 
 >>> n
-array([[  0,   1,   2,   3,   4],
-       [  5,   6,   7,   8,   9],
-       [500, 500, 500, 500, 500],
-       [ 15,  16,  17,  18,  19],
-       [ 20,  21,  22,  23,  24]])
->>> j
-array([[ 0,  1,  2,  3,  4],
-       [ 5,  6,  7,  8,  9],
-       [10, 11, 12, 13, 14],
-       [15, 16, 17, 18, 19],
-       [20, 21, 22, 23, 24]])
-# Fills the values of an existing array, j, with n.
->>> j[:] = n
->>> j
-array([[  0,   1,   2,   3,   4],
-       [  5,   6,   7,   8,   9],
-       [500, 500, 500, 500, 500],
-       [ 15,  16,  17,  18,  19],
-       [ 20,  21,  22,  23,  24]])
+array([  0,   1, 500,   3,   4])
+>>> j 
+array([  0,   1, 2,   3,   4])
 \end{lstlisting} 
 
 The function \li{np.reshape()} returns a view whenever possible. Otherwise, it returns a copy of the reshaped array. [QUESTION: what does "whenever possible" mean here?]
@@ -581,16 +502,52 @@ array([6, 7, 8])
 array([2, 5, 8])
 \end{lstlisting}
 
+\begin{problem}\label{numpy_is_fast_problem}
+This problem will show you that NumPy arrays are drastically more efficient than nested Python lists for large computations. You will compare matrix multiplication in Python and NumPy.
+
+A matrix in NumPy is just a 2-D array. On the other hand, a matrix in Python can be implemented as a list of lists. You can create a $k \times k$ matrix  of the integers 0 through $k^2-1$ as follows.
+
+\begin{lstlisting}
+>>> A = [range(i, i+k) for i in range(0, k**2, k)]
+\end{lstlisting}
+
+The following function will multiply two such matrices.
+
+\lstinputlisting[style=fromfile]{arr_mult.py}
+
+
+
+
+For \li{k=100}, \li{k=200}, and \li{k=300}, time\footnote{In IPython, you can find the execution time of a line of code by prefacing it with \li{\%timeit}. If you aren't using IPython, you will need
+to use the timeit function documented here: \url{https://docs.python.org/2/library/timeit.html}.} how long it takes to square a $k \times k$ matrix using the method \li{arr_mult} defined above and the NumPy method for matrix multiplication.
+% Below is a comparison of runtimes needed to square a matrix
+% \begin{center} \begin{tabular}{|c|l|l|} \hline Data Structure & Size &
+% Time (s) \\ \hline Python List & $1\times1$ & 0.0000181198 \\
+% \cline{2-3} & $10\times10$ & 0.0002758503 \\ \cline{2-3} &
+% $100\times100$ & 0.1336028576 \\ \cline{2-3} & $1000\times1000$ &
+% 200.4009799957 \\ \hline \hline NumPy Array & $1\times1$ &
+% 0.0000298023 \\ \cline{2-3} & $10\times10$ & 0.0000109673 \\
+% \cline{2-3} & $100\times100$ & 0.0009210110 \\ \cline{2-3} &
+% $1000\times1000$ & 2.1682999134 \\ \hline \end{tabular}
+% %
+% \end{center}
+% 
+% 
+% 
+
+\end{problem}
+
 \begin{problem}
 % There should be more problems like this in the vectorization lab. I'll
 % include this one here for now though.
-Write a function which, given an integer $n$, makes an $n\times n$ array
-of random normally distributed floating point values, computes the mean
-(iterate along each column to compute the mean from each row), 
-then computes the variance of these means. The
-computation of the variance should only take one line. 
-As you increase the value of n, what do you notice about the output of 
-the function? This illustrates one version of
+Write a function which accepts an integer $n$ as input and does the following:
+\begin{enumerate}
+\item Creates an $n\times n$ array of \li{floats} randomly chosen from a normal distribution
+\item Computes the mean of each row (use a built-in command)
+\item Computes the variance of these means (use a built-in command).
+\end{enumerate}
+As you increase $n$, what happens to the output of 
+your function? This illustrates one version of
 the Law of Large Numbers, about which you will learn more later on.
 \end{problem}
 
@@ -626,7 +583,7 @@ array.
 \end{comment}
 
 \begin{problem} 
-Operations that create completely new arrays are often slower than 
+Operations that create new arrays are often slower than 
 operations that create views because allocating an array can be time 
 consuming. 
 \begin{enumerate}
@@ -642,30 +599,30 @@ respectively.
 \begin{problem} 
 One good application of array slicing is the Jacobi
 method for solving Laplace's equation, which is used to model
-steady-state heat flow on a square. This is an example of a simple
-iterative method. In this case we will modify our array in place. 
-\begin{enumerate}
-\item Make a function that accepts an array and a tolerance as input and does the
+steady-state heat flow on a square. This problem will help you implement the Jacobi method.
+
+Make a function that accepts an array and a tolerance as input and does the
 following: 
-\item Make a copy of the array. 
-\item Create a variable to track the difference between the arrays. Initialize
+\begin{enumerate}
+\item Makes a copy of the array. 
+\item Creates a variable to track the difference between the arrays. Initialize
 it as the tolerance parameter your function accepts. 
 \item While the difference is greater than or equal
 to the tolerance 
 \begin{enumerate} 
-\item set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors. Use the values from the old array for this computation. 
+\item Set all points that are not on an edge of the new array equal to the average of their 4 immediate neighbors. Use the values from the old array for this computation. 
 This should only take one line and should be based entirely on array slicing, NOT iterating through the array.
 (Hint: given a 2D array \li{A}, the slice \li{A[1:-1,1:-1]} references
 all non-edge entries, \li{A[:-2,1:-1]} references the upper neighbors,
 and \li{A[1:-1,2:]} references the right neighbors.) 
-\item update the difference to be the maximum of the absolute value of the new array
+\item Update the difference to be the maximum of the absolute value of the new array
 minus the old one. 
-\item copy the values from the new array into the old
+\item Copy the values from the new array into the old
 one (without creating a new array). 
 \end{enumerate} 
 \end{enumerate}
 
-Now use the following code to generate a plot of your results
+Now use the following code to generate a plot of your results.
 \lstinputlisting[style=fromfile]{laplace_plot.py} 
 It should resemble the following figure.
 
@@ -796,10 +753,10 @@ For a more detailed description of array broadcasting rules, see
 \url{http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html}.
 
 \begin{problem}
-Create a $100\times100\times3$ array of integers taking values in the range 
+Create a $100\times100\times3$ array of random integers taking values in the range 
 [0, 256]. Such an array can represent an RGB image of $100\times100$ pixels, 
 where each pixel is associated with an array of three integers indicating the 
-amounts of red, green, and blue color present in that pixel, respectively.
+amounts of red, green, and blue color present in that pixel.
 Use array broadcasting to multiply the red and green values by $0.5$. 
 (Such an operation would tone down the red and green colors and make the 
 image appear more blue.) 
@@ -1037,19 +994,19 @@ np.polyval(p, a)
 \[
 \arcsin x = \sum_{n=0}^{\infty} \frac{\left(2 n\right) ! x^{2 n + 1}}{\left(2 n + 1\right)\left(n!\right)^2 4^n}
 \]
-Use your approximation to find a close approximation of $\pi$. Hint: think of the powers of $x$ that
+This series converges on $(-1, 1)$. Use your series approximation to approximate $\pi$. Hint: think of the powers of $x$ that
 are not included in the series as having zero coefficients.
 
 \item The lambert W function is the inverse of $x e^x$.
-It's taylor series is
+Its taylor series is below (note the index starts at 1).
 \[
 W(x) = \sum_{n=1}^{\infty} \frac{\left(-n\right)^{n-1} x^n}{n!}
 \]
 This series has a radius of convergence of $\frac{1}{e}$.
-Use the series to find a number $x$ such that $x e^x = \frac{1}{4}$.
-Verify that your computation is correct.
+Use the series to approximate a number $x$ such that $x e^x = \frac{1}{4}$.
+Verify that your approximation is close.
 
-(Note: Be careful with your indices; check to see where each taylor series begins!)
+
 \end{enumerate}
 \end{problem}
 
