@@ -2,37 +2,35 @@
 \label{lab:Python_DataStructures}
 \objective{Empower students with basic knowledge of the fundamental, canonical data structures in order to understand performance and runtime characteristics.}
 
-Both storing and retrieving data take time.
-Whether its growth is logarithmic, linear, exponential, or factorial, as a data set grows, so too does the time it takes to manipulate it.
+Both storing and retrieving data take time. As a data set grows, so too does the time required to manipulate it. 
 The overhead associated with working with large data sets makes it crucial that we have a fundamental knowledge of the data structures used to store them.
 As we understand the characteristics of such data structures, we will be able to choose the data structure that will help us most efficiently access the data that we need.
 
 \section*{Abstract Data Types}
 The fundamental way to store data is via \emph{primitive data types}.
 We are actually already quite familiar with these data types: booleans, strings, floats, and integers.
-Most information that we care to store is in one of these forms; however, these primitive types can quickly become unwieldy for storing large amounts of information.
-Imagine having a different name for every piece of data you use!
-Luckily, we can create more natural ways to store data by using primitive data types, along with arrays, as our building blocks (consider object oriented programming).
+Most information that we care to store is in one of these forms; however, these primitive types can quickly become unwieldy for storing large amounts of information, especially since we rarely want to store a single string, float or integer. Rather, we want to organize our data in different ways depending on what we intend to do with it.
+We can do this by using primitive data types, along with arrays, as our building blocks (consider object oriented programming).
 More complex data structures are called \emph{abstract data types}.
 Python possesses a couple of the more common abstract data types, including dictionaries and sets.
 However, the performance of each abstract data type slows down as the size of the data structure increases.
- This is why it is so important that we understand the underlying advantages and disadvantages of these structures.
+This is why it is so important that we understand the underlying advantages and disadvantages of these structures; such an understanding allows us to choose the most optimal structure for our purposes.
 
 Most abstract data types use an object called a \emph{node} to store data.
 A node essentially acts as a box in which we store an arbitrary piece of data.
 What exactly \emph{is} a node, however?
-A node is a building block for whichever kind of data structure we want to create: it is whatever we want it to be.
+A node is a building block for whichever kind of data structure we want to create; it is whatever we want it to be and it contains whatever we need it to contain.
 This versatility allows us to define nodes to store absolutely anything; what they contain both depends on the data structure itself and data that is actually being stored.
 For example, the node of a binary search tree (which we will later discuss in section \ref{Binary Search Tree}) contains three things: a piece of data, a reference to its left child, and a reference to its right child.
-The node of a linked list contains only two things: a piece of data and a reference to the next node it links to.
+The node of a singly linked list contains only two things: a piece of data and a reference to the next node it links to.
 
 If we didn't use nodes, or ``data boxes'', we would have to build a new structure for each data type we wanted to store.
-Thus, nodes allow us to abstract the data structure from the kind of data we store inside of them; nodes allow us to generalize the functionality of a data structure.
+Thus, nodes allow us to abstract the data structure from the kind of data we store inside of them, which allows us to generalize the functionality of a data structure.
 
 \section*{Linked Lists}
 \emph{Linked lists} are one of the most basic of all abstract data structures.
 A linked list, in essence, is simply a list of nodes that are linked together.
-There are three common types of linked lists: singly-linked, doubly-linked, and circularly-linked.
+There are two main types of linked lists: singly-linked and doubly-linked. Either of these types can have the additional property of being circularly-linked.
 
 \begin{figure}[h]
 \centering
@@ -147,17 +145,21 @@ class SLinkedList(object):
 \end{lstlisting}
 
 \subsection*{Finding, Inserting and Removing}
-Unlike arrays, which have random access, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
+Arrays have random access, which means that each element can be accessed roughly as easily and efficiently as any other. However, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
 In a singly-linked list, it is also often a good idea to track the node prior to our index; this will prove useful for our insertion and removal methods. 
 We add a find method to our \li{SLinkedList} class:
 \begin{lstlisting}
+# Returns the node at the given index and the node previous to it.
 def find(self, index):
     nfind = self.head
     nprev = None
+    # Keeps track of the index of nfind.
     count = 0
     if index >= self.counter:
         raise IndexError
     else:
+        # Update nprev and nfind until we reach the node at the index desired.
+        # nfind.next evaluates to True while nfind.next != None
         while count < index and nfind.next:
             count += 1
             nprev = nfind
@@ -181,6 +183,7 @@ To insert into a linked list, we consider three cases: head insertion, tail inse
         if index > self.counter:
             raise IndexError
         if index == 0: # Head insertion
+            # Assign old head node as n.next
             n.next = self.head
             # Set n as the new head node.
             self.head = n
