@@ -1,0 +1,78 @@
+\newcommand{\of}{\texttt{.o}~}
+
+\lab{Python}{Interfacing With C++ Using Cython}{Interfacing With C++ Using Cython}
+\label{lab:cythonwrap_cpp}
+
+\objective{Learn to interface with object files using Cython. This lab should be worked through on a machine that has already been configured to build Cython extensions using gcc or MinGW.}
+
+
+
+
+
+
+
+\section*{Interfacing with C++}
+Cython can also be used to wrap C++ functions and classes.
+It can compile entire modules to C++ instead of C if we specify C++ as the language in the setup file.
+Here we will focus primarily on wrapping C++ classes since wrapping a C++ function is roughly the same as wrapping a function from C or Fortran.
+Cython also supports wrapping templated classes and functions.
+Many other C++ features like operator overloading and the \li{new} and \li{del} operators are also supported when using C++.
+
+The process for exposing a C++ class to Cython is essentially the same.
+The C++ code must first be compiled to an object file.
+In our Cython file we then declare that we will be importing functions and classes from a C++ file so that the Cython compiler knows how they will behave.
+We then compile our Cython file by first compiling to C++
+
+Included with this lab are three C++ classes.
+The \li{Permutation} class is the primary class we will be wrapping.
+It implements arithmetic for the Cauchy cycle representation of permutations.
+For those not familiar with permutation arithmetic, there are some examples in the file \li{unittest.py}.
+The other two classes are used in the construction of the \li{Permutation} class.
+Because the Permutation class depends on the \li{Node} and \li{Cycle} classes, they must all be compiled together.
+Here is the \li{setup.py} to set up the wrapper for the \li{Permutation} class.
+
+\lstinputlisting[style=fromfile, language=Python, name=pypermutation_setup.py]{./permutations/pypermutation_setup.py}
+
+\begin{warn}
+When wrapping C++ classes, templates, etc. you should always make sure that you specify the language as C++ as we have shown in this setup file.
+\end{warn}
+
+We need to tell the Cython compiler how to interface with the C++ class.
+This can be done in much the same way that we defined the interfaces for C and Fortran functions, but we now need to declare that we are importing a class with several functions that act on it.
+We will include the declarations corresponding to this class in a \li{.pxd} file.
+\li{.pxd} are called \emph{declaration} files.
+Though declarations are, strictly speaking, not ``Cython headers'', they can be used in similar ways.
+Here we will declare the Permutation class and some of its public methods so that we can use them in Cython.
+\lstinputlisting[style=fromfile, language=Python, name=Permutation.pxd]{./permutations/Permutation_incomplete.pxd}
+This \li{.pxd} file can be included in our Cython file with the line \li{from Permutation cimport Permutation}.
+Cython comes with several pre-built declaration files.
+These declaration files are good examples of the proper syntax for wrapping C++ class templates.
+Some of these declaration files allow Cython code to interface with containers and other classes from the C++ standard library like \li{deque}, \li{list}, \li{map}, \li{pair}, \li{queue}, \li{set}, \li{stack}, \li{string}, \li{utility}, and \li{vector}.
+Each of these declaration files can be loaded by using something like
+\begin{lstlisting}
+from libcpp.vector cimport vector
+\end{lstlisting}
+Cython also supports some kinds of automatic conversion from Python data types to standard library containers.
+See the Cython documentation for more information on interfacing with C++ containers.
+
+As we mentioned before, the general approach for wrapping a C++ class is to make a Cython class that wraps a pointer to the C++ class.
+Here is an example of how this is done.
+\lstinputlisting[style=fromfile, language=Python, name=pypermutation.pyx]{./permutations/pypermutation_incomplete.pyx}
+Notice that we included the declaration file for the class.
+
+\begin{problem}
+The Permutation class includes methods to trace an index through the inverse permutation, get the minimum index that is changed by the permutation, and raise the permutation to a power.
+The declarations for these functions are commented out in the \li{pypermutation.pyx} file.
+Uncomment the declarations and add in the code necessary so that these methods are also available in Python.
+These functions are declared in the header \li{Permutation.hpp}, but they are not declared in the declaration file \li{Permutation.pxd}.
+Add the proper declarations to the declaration file.
+
+Note: the argument $z$ that is included in the power function for the Permutation class is a mandatory argument for the exponentiation operator in Cython.
+It tells the computer to compute the power of a number mod another number.
+In this case, raise an error if $z$ is not \li{None}.
+
+Look at the \li{__mul__} method for an example of how to construct and return a new PyPermutation object.
+Keep in mind that the \li{power} method of the \li{Permutation} class in C++ returns a pointer to a new \li{Permutation} object.
+\end{problem}
+
+\let\of\undefined
