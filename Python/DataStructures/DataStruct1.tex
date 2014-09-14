@@ -290,7 +290,7 @@ class BinTree(object):
 Inserting a node into a binary search tree is a simple procedure.
 Our goal is to insert into a leaf node, so we travel to the right if the element is greater than the current node or travel to the left if the element is less than the current node.
 Once we reach a node without a subtree in the appropriate location, we add our new node as its new child node.
-Thus, we always insert into leaf nodes; we never insert a non-leaf node into a BST.
+This way, we never insert a non-leaf node into a BST.
 
 Let's demonstrate this process with an example.
 
@@ -371,8 +371,8 @@ def insert(self, data):
                 node.left = _recur_insert(node.left, item)
             elif data > node.value:
                 node.right = _recur_insert(node.right, item)
-        # After the base case, each of the previous calls to
-        # the recursive function finish by returning the previous node.
+        # After the base case, each of the previous calls to the
+        # recursive function finishes by returning the previous node.
         return node
     self.root = _recur_insert(self.root, data)
     self.size += 1
@@ -616,7 +616,7 @@ Figure \ref{fig:AVL btree} displays the elements from figure \ref{fig:Degenerate
 \label{fig:AVL btree}
 \end{figure}
 
-We will not discourse upon the specific algorithms for AVL balancing or red-black balancing here.
+We will not cover the specific algorithms for AVL balancing or red-black balancing here.
 However, a comparison between the two figures makes it clear that a balanced tree will enable far more efficient searching than an unbalanced tree.
 
 \section*{Heaps}
@@ -743,17 +743,16 @@ To remove the root of a heap, we replace the root with the last leaf on the lowe
 
 \section*{Hash Tables}
 A \emph{hash table} is a very simple data structure that trades space for speed.
-The key advantage of a hash table is this speed; most of the operations of a hash table execute in constant time, independent of the size of the data structure.
-Unlike previous data structures we have studied, however, we do not construct a hash table by defining a node class.
+The key advantage of a hash table is this speed; most of the operations of a hash table execute in constant time, independent of its size.
 In essence, a hash table is actually an array where each piece of data is associated with its index as a key.
-As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries.
+As such, hash tables have very fast lookup times; they form the underlying structure of Python's dictionaries.
 
 One of the key components of a hash table is a \emph{hash function}.
-A hash function takes our data as an input and then outputs a positive integer used to index the array.
-Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
+A hash function takes a piece data as an input and outputs a positive integer which becomes the index for that piece of data.
+Since the hash function must be executed to perform any operation on the hash table (e.g. insertion or lookup), it is important that the hash function executes quickly.
 Thus, the heart of a hash table is a good hash function.
 
-We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (a Python list) and by taking both the array size and the hash function as arguments.
+We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (in this case, a Python list) and by taking both the array size and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
     def __init__(self, hsize, hashfunc):
@@ -768,7 +767,7 @@ class HashTable(object):
 \end{lstlisting}
 
 What makes a good hash function?
-Hash functions need to distribute items evenly throughout the hash table.
+A good hash function will execute quickly, but it is equally important for it to distribute items evenly throughout the hash table. 
 Since we usually mod by the table size at the end (to keep the index within proper range), we need to make sure the remainders mod $n$ are evenly distributed.
 Consider a simple example where we use a hash table to store strings.
 Our hash function will index a string by the string's length mod the size of the table.
@@ -777,7 +776,7 @@ Therefore, before we mod the string length by the table size, we multiply by a l
 A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
 \begin{lstlisting}
 def HashFunction(string, tablesize, prime=5417):
-    index = (len(string) * prime)  %  Tablesize
+    index = (len(string) * prime)  %  tablesize
     return index
 \end{lstlisting}
 Let's apply our example hash function to a table of size 4.
@@ -797,10 +796,11 @@ Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
 \begin{problem}
 Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
 
-Initialize a hash table of size 11 using the example \li{HashFunction()} from above.
+Initialize a hash table of size 11 using the example \li{HashFunction()} given above.
 Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'.
 Print your hash table. What happens when you insert `clouded leopard'?
-What happens when you insert `jaguar'?
+What happens when you insert `jaguar'? (Consider all the attributes of the hash table, not just the elements themselves).
+\emph{Helpful Hint:} Keep in mind the various methods of \li{self}; for example, to access indices of our hashtable, we use \li{self.hashtable[index]}.
 \label{Prob:Basic hash insert}
 \end{problem}
 
@@ -808,7 +808,7 @@ As we saw in the previous problem, our example hash function is still far from p
 In our example hash table, if we try to store the string `leopard', our hash function sends it to 3.
 But `cat' is already stored in spot 3!
 This is called a \emph{hash collision}.
-So how can we deal with collisions?
+How do we deal with hash collisions?
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto,thick]
 \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
@@ -895,10 +895,11 @@ Though linear probing is certainly a valid method to resolve hash collisions, it
 For example, a linear probe tends to cause elements in the table to cluster together.
 Furthermore, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
 Quadratic probing seeks to mitigate the issues associated with linear probing by spreading out hash collisions more evenly.
-A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
+A quadratic probing hash function with constants $c_1$ and $c_2$ is of the form
 \begin{equation*}
-h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}
+h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}.
 \end{equation*}
+When we experience a hash collision or search for data, we increment $i$ and use $h(x,i)$ to step through the table until we find an empty spot or the desired piece of data, respectively.
 
 \subsection*{Chaining}
 Chaining is a form of \emph{closed addressing}, meaning that the output of the hash function actually does point to the location of the data.
@@ -925,7 +926,7 @@ Thus we add `leopard' to the list in spot 3 that already contains `cat'.
 
 \begin{problem}
 Improve your \li{insert} method to deal with hash collisions via chaining, rather than probing. 
-Note that, with this method, you need not return an error if the hash table is already full (the new insertion will simply be appended to the proper index's list).
+Note that, with this method, you need not return an error if the hash table is already full (the new insertion will simply be appended to the proper index's list). Keep in mind that when we use chaining to deal with hash collisions, the indices of our hash table are associated with lists, not strings.
 Recreate and print your feline hash table(including 'jaguar' and 'clouded leopard') using this new method of insertion. 
 \label{prob:Chaining insert}
 \end{problem}
@@ -976,11 +977,10 @@ Now that we have no hash collisions, there are no lists to iterate through and o
 \end{center}
 
 \begin{problem}
-Create a method for your hash table to resize.
+Create a method for your (closed addressing) hash table to resize.
 Implement this method such that, if the load factor exceeds $.75$, it will resize the hash table so that the load factor will be below $.33$.
-Don't forget to rehash the elements already within the table.
-Call this resize method at the end of your insertion method, so that the function never inserts into a saturated table.
-
+Don't forget to rehash the elements already within the table. 
+Call this resize method at the end of your insertion method, so that it never inserts into a saturated table.
 Now, insert `siberian tiger' and `bengal tiger' into your feline hash table. What is its new size? 
 \label{prob:Hash resizing}
 \end{problem}
