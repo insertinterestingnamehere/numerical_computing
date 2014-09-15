@@ -110,7 +110,15 @@ You may check your work by comparing your results to those produced by \li{scipy
 The linear algebra library in SciPy wraps the very efficient algorithms of LAPACK to calculate the QR decomposition.
 In addition to being much faster, SciPy's QR decomposition is also much more general and can decompose non-square matrices.
 
-\lstinputlisting[style=fromfile]{scipy.py}
+\begin{lstlisting}
+>>> import numpy as np
+>>> from scipy import linalg as la
+>>> A = np.random.rand(4,3)
+>>> Q, R = la.qr(A)
+>>> Q.dot(R) == A                      # there are False entries
+>>> np.allclose(Q.dot(R), A)           # A = QR
+>>> np.allclose(Q.T.dot(Q), np.eye(4)) # Q is indeed, orthogonal
+\end{lstlisting}
 
 In order to interpret the results correctly, we need to understand that the computer has limited precision (especially with floating point numbers).
 This is why \li{Q.dot(R)} is not exactly equal to \li{A}. However, we can see that the matrix product of $QR$ is very close to $A$ using the \li{allclose} method. This verifies that the product of $Q$ and $R$ is indeed $A$. Also note that $Q^T Q = I$, which implies that the column vectors of $Q$ are orthonormal.
@@ -415,7 +423,12 @@ We will use SciPy's built in QR factorization which uses Householder reflections
 
 Try the following.
 
-\lstinputlisting[style=fromfile]{stability.py}
+\begin{lstlisting}
+>>> Q, X = la.qr(np.random.rand(500,500)) # create a random orthonormal matrix:
+>>> R = np.triu(np.random.rand(500,500)) # create a random upper triangular matrix
+>>> A = np.dot(Q,R) # Q and R are the exact QR decomposition of A
+>>> Q1, R1 = la.qr(A) # compute QR decomposition of A
+\end{lstlisting}
 
 Observe:
 
