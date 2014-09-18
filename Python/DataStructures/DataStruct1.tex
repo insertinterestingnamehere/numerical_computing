@@ -533,306 +533,119 @@ Thus, the heart of a hash table is a good hash function.
 We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (in this case, a Python list) and by taking both the array size and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
-    def __init__(self, capacity, hashfunc):
-        # Efficiently extends a list to the designated hash table size.
+    def __init__(self, capacity):
+        # Efficiently extend a list to the designated hash table size
         self.hashtable = [None] * hsize
         
-        # Keeps track of the number of elements within the hash table.
+        # Keeps track of the number of elements within the hash table
         self.size = 0
         
         # Indicates the size of the hash table
-        self.capacity = hsize
+        self.capacity = capacity
         
-        # Indicates the hash function
-        self._hash = hashfunc
+    def load_factor(self):
+        # The load factor tells how saturated a hash table is
+        return float(self.size)/self.capacity
 \end{lstlisting}
 
-What makes a good hash function?
-A good hash function will execute quickly, but it is equally important for it to distribute items evenly throughout the hash table. 
-Since we usually mod by the table size at the end (to keep the index within proper range), we need to make sure the remainders mod $n$ are evenly distributed.
-Consider a simple example where we use a hash table to store strings.
-Our hash function will index a string by the string's length mod the size of the table.
-As the size of such a hash table grows, however, fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
-Therefore, before we mod the string length by the table size, we multiply by a large prime number.
-A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
+
+A good hash function will execute quickly and distribute items uniformly throughout the table.
+For this lab, we will use Python's built-in \li{hash} function.
+The principle idea of inserting into a hash function is demonstrated below.
 \begin{lstlisting}
-def HashFunction(string, tablesize, prime=5417):
-    index = (len(string) * prime)  %  tablesize
-    return index
+>>> capacity = 5
+>>> table = [None] * capacity
+>>> hash('three')
+8354070563160704301
+>>> hash('three') % capacity
+1
+>>> table[1] = 'one'
+>>> print table
+[None, 'three', None, None, None]
+>>> table[hash('four') % capacity] = 'four'
+>>> table[hash('five') % capacity] = 'five'
+>>> print table
+['four', 'three', 'five', None, None]
+
+# We can locate 'five' quickly
+# Notice that is faster than the list's builtin methods
+>>> %timeit table.index('five')
+1000000 loops, best of 3: 190 ns per loops
+>>> %timeit table[hash('five') % capacity]
+10000000 loops, best of 3: 111 ns per loop
+>>> table[hash('two') % capacity] = 'two'
+# Note that our load factor is 4/5.
+>>> print table
+['four', 'three', 'five', 'two', None]
+
+# When our load factor passes a certain threshold, we need to make the hash table bigger
+# Resizing the hash table means rehashing everything in it
+>>> def resize(table, new_cap):
+        new_table = [None] * new_cap
+        for i in table:
+            new_table[hash(i) % new_cap] = i
+        return new_table
+>>> table = resize(table, 7)
+>>> print table
+[None, None, None, 'two', None, None, 'four']
 \end{lstlisting}
-Let's apply our example hash function to a table of size 4.
-Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
-\begin{figure}
-\begin{tikzpicture}[thick]
-\tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=-.03 cm of 0] {}; % The -.03 ensures that our table lines intersect, rather than combine to create thicker lines.
-    \node[block] (2) [right=-.03 cm of 1] {};
-    \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-\end{tikzpicture}
-\end{figure}
+
+The ideal hash function maps unique inputs to unique outputs that are uniformly distributed over the hash space.
+However, it is extremely difficult to create an ideal hash function; most hash functions will experience hash collisions.
+Hash collisions are when two unique inputs are mapped to the same index in the hash table (in our example above, resizing the hash table resulted in hash collisions that lost half the strings we stored in the table).
+Fortunately, there are ways to handle hash collisions.
+
+\paragraph{Probing.}
+One method that we can use to resolve hash collisions is probing.
+A short example will be succintly illustrate this method.
+\begin{lstlisting}
+>>> capacity = 5
+>>> table = [None] * capacity
+# Now we add the words 'one' and 'two'
+# Notice what happens when we add 'two'
+>>> table[hash('one') % capacity] = 'one'
+>>> print table
+[None, None, None, 'one', None]
+>>> table[hash('two') % capacity]
+'one'
+
+# We can resolve the collision by looking for the next available index
+# Starting at index 3, we look at index 3+1 % capacity, 3+2 % capacity, 3+3 % capacity, ..., until we find and empty index
+# Seeing that index 4 is None, we store 'two' there
+>>> table[4] = 'two'
+>>> print table
+[None, None, None, 'one', 'two']
+\end{lstlisting}
+This is called linear probing.  
+There are other variations of this idea which are more optimal.
+
+\paragraph{Chaining}
+Another method for resolving hash collisions is chaining.
+This method slightly alters the structure of our hash table, so that at each index, a list is stored.
+When an item is mapped to an index, it is appeneded to the list at that index.
+\begin{lstlisting}
+>>> capacity = 5
+>>> table = [list() for i in xrange(capacity)]
+
+# Now we add the words 'one' and 'two'
+# Notice what happens when we add 'two'
+>>> table[hash('one') % capacity].append('one')
+>>> print table
+[[], [], [], ['one'], []]
+>>> table[hash('two') % capacity].append('two')
+>>> print table
+[[], [], [], ['one', 'two'], []]
+\end{lstlisting}
+
+
 \begin{problem}
-Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
+Add an insert method to your \li{HashTable} class. Don't forget to update your size for the number of elements within the hashtable!
+Use chaining to handle hash collisions.
+When you hash table exceeds a load factor of .8, resize the hash table so that the load factor is below .3
 
 Initialize a hash table of size 11 using the example \li{HashFunction()} given above.
 Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'.
 Print your hash table. What happens when you insert `clouded leopard'?
 What happens when you insert `jaguar'? (Consider all the attributes of the hash table, not just the elements themselves).
-\emph{Helpful Hint:} Keep in mind the various methods of \li{self}; for example, to access indices of our hashtable, we use \li{self.hashtable[index]}.
-\label{Prob:Basic hash insert}
+\label{prob:Basic hash insert}
 \end{problem}
-
-As we saw in the previous problem, our example hash function is still far from perfect.
-In our example hash table, if we try to store the string `leopard', our hash function sends it to 3.
-But `cat' is already stored in spot 3!
-This is called a \emph{hash collision}.
-How do we deal with hash collisions?
-\begin{figure}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto,thick]
-\tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=-.03 cm of 0] {};
-   \node[block] (2) [right=-.03 cm of 1] {};
-   \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
-   \path[red]
-   (leopard.west) edge[bend left] (3.south);
-   \node[draw = none, node distance = 1.75cm] [left of=0]{};  % Centralize this particular figure
-\end{tikzpicture}
-\end{figure}
-
-The ideal hash function maps unique inputs to unique outputs that are uniformly distributed over the hash space.
-However, it is extremely difficult to create an ideal hash function; most hash functions will experience hash collisions.
-Fortunately, there are ways to handle hash collisions.
-The two methods that we will discuss are called open addressing and chaining.
-
-\subsection*{Open Addressing}
-The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of the piece of data.
-\emph{Probing} is one of the more popular forms of open addressing; in this section we will discuss both linear and quadratic probing.
-
-In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
-We can do this by sequentially visiting each location and, when we find an empty one, storing our data in that location.
-The following is an example of a linear probing hash function where $n$ is the size of the hash table, $h(x)$ is the hash function, and $i$ is a constant:
-\begin{equation*}
-h(x, i) = h(x) + i \pmod{n}
-\end{equation*}
-
-We start with $i = 0$, and if the spot is full, we increment $i$ until we find an empty spot.
-If we go back to our earlier example, we can store `leopard' in our hash table using linear probing.
-Our hash function sends us to spot 3, but it is already filled, so we start stepping through the table.
-Since 3 is at the end of the table, we go to the beginning (namely $4 \% 4$) and, because spot 0 is already filled, we proceed to index 1.
-Spot 1 is empty, so we store `leopard' there.
-\begin{figure}
-  \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=-.03 cm of 0] {`leopard'};
-   \node[block] (2) [right=-.03 cm of 1] {};
-   \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
-   \path[red]
-   (leopard.west) edge[bend left] (3.south)
-   (3.south) edge[bend left] (0.south)
-   (0.south) edge[bend right, out=-20, shorten <=.2cm] (1.south);
-  \end{tikzpicture}
-\end{figure}
-\begin{problem}
-Expand the \li{insert} method of your \li{HashTable} class to enable linear probing.
-Do not allow your method to insert, however, if the hash table is full.
-From your previous hash table, again add `clouded leopard' and `jaguar'.
-Which index does your new insert method send `clouded leopard' to?
-What about `jaguar'?
-\label{prob:Linear probing insert}
-\end{problem}
-
-When we use linear probing to insert a piece of data, how can we later find it?
-If we simply use our hash function, we will be directed to the incorrect index.
-We then have to begin iterating through the table to search for our data.
-Let's supplement our \li{HashTable} class with a \li{find} method.
-\begin{lstlisting}
-def find(self, data):
-    index = self._hash(data, self.hsize)
-    # Steps through the table until it reaches either the data or 
-    # the initial index.
-    for i in xrange(self.hsize):
-        newindex = (index + i) % self.hsize
-        # Optional step: prints the indices each step of the search.
-        print 'Searching ' + str(newindex)
-        if self.hashtable[newindex] == data:
-            return True
-    return False
-\end{lstlisting}
-
-Though linear probing is certainly a valid method to resolve hash collisions, it has its own set of drawbacks.
-For example, a linear probe tends to cause elements in the table to cluster together.
-Furthermore, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
-Quadratic probing seeks to mitigate the issues associated with linear probing by spreading out hash collisions more evenly.
-A quadratic probing hash function with constants $c_1$ and $c_2$ is of the form
-\begin{equation*}
-h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}.
-\end{equation*}
-When we experience a hash collision or search for data, we increment $i$ and use $h(x,i)$ to step through the table until we find an empty spot or the desired piece of data, respectively.
-
-\subsection*{Chaining}
-Chaining is a form of \emph{closed addressing}, meaning that the output of the hash function actually does point to the location of the data.
-With chaining, each location of the hash table references a list of the data pieces sent to that index.
-When one or more pieces of information hash to the same location, they are simply appended to that location's list.
-
-Let's add `leopard' to our earlier example, this time using chaining.
-Our hash function sends us to 3, but `cat' is already there.
-Thus we add `leopard' to the list in spot 3 that already contains `cat'.
-\begin{figure}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=-.03 cm of 0] {};
-    \node[block] (2) [right=-.03 cm of 1] {};
-    \node[block] (3) [right=-.03 cm of 2] {`cat'};
-    \node[block, node distance = 1.5cm](leopard)[below of=3]{`leopard'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \draw[->] (3) -- (leopard);
-\end{tikzpicture}
-\end{figure}
-
-\begin{problem}
-Improve your \li{insert} method to deal with hash collisions via chaining, rather than probing. 
-Note that, with this method, you need not return an error if the hash table is already full (the new insertion will simply be appended to the proper index's list). Keep in mind that when we use chaining to deal with hash collisions, the indices of our hash table are associated with lists, not strings.
-Recreate and print your feline hash table(including 'jaguar' and 'clouded leopard') using this new method of insertion. 
-\label{prob:Chaining insert}
-\end{problem}
-
-With a good hash function, the average size of the hash location's list is relatively short, so searching the list doesn't affect the overall performance of the hash table.
-We update our \li{find} method to search a hash table implemented via chaining:
-\begin{lstlisting}
-def find(self, data):
-    index = self._hash(data, self.hsize)
-    for i in self.hashtable[index]:
-        if i == data:
-            return True
-    return False
-\end{lstlisting}
-
-\subsection*{Hash Table Details}
-As a hash table fills up, its performance degrades.
-This is because more hash collisions occur, forcing us to use either linear probing or chaining to resolve them.
-As a result, we have to search through lists or iterate through the table more often.
-To combat this, we often track a \emph{load factor} for the hash table.
-This load factor reveals how `saturated' the table is by calculating the ratio of the number of elements in the hash table to the size of the hash table.
-We can easily add method to calculate the load factor of our \li{HashTable} class:
-\begin{lstlisting}
-def load(self):
-    loadfactor = float(self.elsize)/self.hsize
-    return loadfactor
-\end{lstlisting}
-
-When the load factor exceeds a certain threshold, we must allocate more space for the table.
-However, since the hash function was dependant on the size of the table, we need to re-hash everything already in the table.
-This can sometimes be a very expensive operation.
-It's important to avoid resizing the table whenever possible.
-
-After adding `leopard' into our earlier example, our hash table is very full. Let's re-hash it into a table with size 8.
-Our new hash function sends a string to its size mod 8 (rather than mod 4, as before).
-`cat' is sent to 3, `lion' to 4, and `leopard' to 7.
-Now that we have no hash collisions, there are no lists to iterate through and our hash table performs far more efficiently.
-\begin{figure}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {};
-\foreach \s/\t/\u in {1/0/ , 2/1/ , 3/2/ , 4/3/`cat', 5/4/`lion', 6/5/ , 7/6/`leopard'}{
-    \node[block] (\s) [right=-.03 of \t] {\u};}
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3, 4, 5, 6, 7}{
-    \node[block] [above=0cm of \s]{\s};}
-\end{tikzpicture}
-\end{figure}
-
-\begin{problem}
-Create a method for your (closed addressing) hash table to resize.
-Implement this method such that, if the load factor exceeds $.75$, it will resize the hash table so that the load factor will be below $.33$.
-Don't forget to rehash the elements already within the table. 
-Call this resize method at the end of your insertion method, so that it never inserts into a saturated table.
-Now, insert `siberian tiger' and `bengal tiger' into your feline hash table. What is its new size? 
-\label{prob:Hash resizing}
-\end{problem}
-\begin{comment}
-\section*{Sparse Matrices}
-Matrices are powerful tools, but they can take a lot of space in memory.
-A $n \times n$ matrix takes $n^2$ places of storage!
-If every entry in the matrix is useful information this is fine, but if the matrix is filled with a lot of zeros, that means we are using almost $n^2$ spots in memory to store useless zeros.
-Not only does this unnecessarily take up space, it means that during computation we will spend a lot of time adding and multiplying zeros.
-That can be a lot of useless computation.
-The solution to this is \emph{sparse matrices}.
-They are other data structures used to represent a matrix by only storing non-zero entries.
-
-One common way is a dictionary.
-The index of the spot in the matrix is the key and the number in that spot is the value.
-For example,
-\[
-\begin{pmatrix}
-0 & 0 & 0 & 0 & 0 \\
-22 & 0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 \\
-0 & 0 & 5 & 0 & 0 \\
-0 & 0 & 0 & 0 & -4
-\end{pmatrix}
-\]
-would be stored as
-\[
-\begin{tabular}{|c|l|}
-\hline
-Key & Value \\
-\hline
-(1,0) & 22 \\
-\hline
-(3,2) & 5 \\
-\hline
-(4,4) & -4 \\
-\hline
-\end{tabular}
-\].
-
-In this case, we stored a 5 by 5 matrix in a dictionary with only 3 key-value pairs.
-
-SciPy has a nice implementation of sparse matrices.
-Not only does SciPy reduce the amount of space needed to store matrices, it has fast algorithms for matrix operations that takes advantage of the fact that there are so many zeros.
-
-\begin{problem}
-Use your time function from Section 1 and the code given below to time matrix multiplication using sparse matrices versus normal matrix multiplication for $ n = 100, 500, 1000, 1500,$ and $2000$. Which is faster? What happens as the matrices grow larger?
-\begin{lstlisting}
-from scipy import sparse
-import numpy as np
-
-#dimension of matrices
-n = 100
-
-# create 2 random sparse matrices with density 0.1
-A = sparse.rand(n,n)
-B = sparse.rand(n,n)
-
-#Multiply using sparse matrix techniques
-A.dot(B)
-
-#Change to dense matrices
-A_dense = A.todense()
-B_dense = B.todense()
-
-#Multiply with normal matrix multiplication
-A_dense.dot(B_dense)
-
- \end{lstlisting}
- \label{prob:Sparse}
- \end{problem}
-\end{comment}
-
-
