@@ -50,7 +50,7 @@ for i in xrange(n):
 
 The code above is $O(n)$ because it takes approximately $n$ steps to complete. For-loops are a good indicator of the complexity.  A double for-loop suggests $O(n^2)$ or worse.  
 
-You can also approximate the temporal complexity of a function by timing how long it takes to run on inputs of various sizes. The ratios of the run times will give you clues about the temporal complexity of the algorithm. For example, if an algorithm is $O(n^3)$, then doubling the size of the input should make the algorithm take $(2n)^3/n^3=8$ times as long.
+You can also approximate the temporal complexity of a function by timing how long it takes to run on inputs of various sizes. This is especially useful if your temporal complexity is some polynomial. In this case, the ratios of the run times will give you clues about the temporal complexity of the algorithm. For example, if an algorithm is $O(n^3)$, then doubling the size of the input should make the algorithm take $(2n)^3/n^3=8$ times as long.
 \begin{comment}
 \begin{problem}
 Time the runtime of the following code for \li{n = 1000, 2000, 4000, 8000}.
@@ -77,8 +77,8 @@ Fill in the following table. Here, $f(n)$ is the temporal complexity of an algor
 
 \begin{center}
 \begin{tabular}{| l |p{15mm}|p{15mm}|p{15mm}|p{15mm}|p{15mm}|}\hline
-$f(n)$ & $\log(n)$ & $n\log(n)$ & $n$ & $n^2$ & $2^n$ \\ \hline
-$f(2n)/f(n)$&  & & & & \\
+$f(n)$ & $n$ & $n^2$ & $n^3$ & $n^4$  \\ \hline
+$f(2n)/f(n)$&  & & &  \\
 \hline
 \end{tabular}
 \end{center}
@@ -86,10 +86,27 @@ $f(2n)/f(n)$&  & & & & \\
 \end{problem}
 
 \begin{problem}\label{complexity_timeit}
-Determine the temporal complexity of each of the following functions. Do this as follows:
+Determine the temporal complexity of each of the following functions. 
+\begin{enumerate}
+\item 
+\begin{lstlisting}
+def function1(n):
+    t = 0
+    for i in xrange(n):
+        t += sum(xrange(i))
+\end{lstlisting}
+
+\item
+\begin{lstlisting}
+def function2(n):
+    sum(xrange(1000*n))
+\end{lstlisting}
+\end{enumerate}
+
+Do this as follows:
 \begin{enumerate}
 \item Time how long the function takes to run on an input of size $n$ for $n=1000, 2000, 4000$, and $8000$.
-\item Compute the average of the ratios between successive runtimes from part (1).
+\item Compute the averages of the ratios between successive runtimes from part (1).
 \item Use Problem \ref{complexity_ratios} to determine the temporal complexity.
 \end{enumerate}
 \end{problem}
@@ -207,8 +224,8 @@ The final matrix \li{B} in the example above is a special kind of matrix called 
 
 \begin{problem}
 Write a function that takes an integer argument \li{n} and returns a sparse $n\times n$
-tri-diagonal array in \li{csr_matrix} format with $2$'s along the diagonal and $-1$'s along
-the two sub-diagonals above and below the diagonal.
+tri-diagonal array with $2$'s along the diagonal and $-1$'s along
+the two sub-diagonals above and below the diagonal. The array should be in \li{csr_matrix} format
 This matrix is the derivative operator in numerical analysis of differential equations.
 \emph{Hint}: Read about the \li{format} keyword parameter of the \li{sparse.spdiags()} method.
 \label{prob:sparse_tridiag}
@@ -310,6 +327,7 @@ double-precision floating point numbers, which is about 2.4 MB, or less storage 
 
 This computer solved the system in only 80.8 milliseconds.
 
+\begin{comment}
 \begin{problem}
 Write a function that accepts an integer argument \li{n} as well as a keyword argument \li{sparse} whose value is either \li{True} or \li{False} (default to \li{False}). Then do the following:
 \begin{enumerate}
@@ -320,21 +338,21 @@ Write a function that accepts an integer argument \li{n} as well as a keyword ar
 \item Time the function for \li{n = 2000} using both the sparse and the full option.
 \end{enumerate}
 \end{problem}
+\end{comment}
 
 \begin{problem}
 Write a function that accepts an integer argument \li{n} and returns $\lambda n^2$, where
-$\lambda$ is the smallest eigenvalue of the same $n \times n$ sparse tri-diagonal array as described above.
+$\lambda$ is the smallest eigenvalue of the sparse tri-diagonal array you built in Problem \ref{prob:sparse_tridiag}.
 
-To calculate $\lambda$, use \li{scipy.sparse.linalg.eigs}. You will need to set the \li{which = 'SM'}
-optional argument. If \li{A} is your tri-diagonal sparse matrix, you will need to use
-\li{A.asfptype()} as the argument for the \li{eigs} function (so that the matrix has the right data type).
-Check the documentation of the \li{eigs} function to see what it returns, so that you will know how to
-get the smallest eigenvalue.
+If \li{A} is your tri-diagonal matrix, calculate $\lambda$ using the method \li{scipy.sparse.linalg.eigs} as follows.
+\begin{lstlisting}
+# Read the documentation to figure out what you should set `k` to be
+sl.eigs(A.asfptype(), k=?, which = 'SM')
+\end{lstlisting}
+The code \li{A.asfptype()} ensures that your matrix has the right data type, and the parameter \li{which = 'SM'} tells the function to look for the smallest eigenvalues. Read the documentation to figure out what you should set the keyword parameter \li{k} to be. Also, read the documentation to understand the output of this function.
 
-What value does $\lambda n^2$ approach as $n \rightarrow \infty$?
+What value does $\lambda n^2$ approach as $n$ approaches infinity? This value is meaningful in operator theory. \li{Hint}: This value is the square of an important number.
 
-\li{Helpful Hint}: It's the square of an important number.
-This is related to operator theory: the second derivative operator has this eigenvalue in certain cases.
 \end{problem}
 
 
