@@ -18,7 +18,8 @@ and so the Fourier transform fails to provide local information in both the
 time and frequency domains. This brings us to the following question: are
 there types of transforms that avoid the shortcomings mentioned above? The
 answer is an emphatic yes. Enter Wavelet analysis.
-
+\begin{comment}
+We don't need a lot of this expository content in the lab.
 \subsection*{The Haar Wavelet}
 
 As noted earlier, the Fourier transform is based on the complex exponential
@@ -136,7 +137,7 @@ Now calculate the details for $f(x) = \sin(x)$ on the same interval and for the
 same $m$ values given above. Use previous results to compute the coefficients
 for $f_5$, $f_7$, and $f_9$ and plot them.
 \end{problem}
-
+\end{comment}
 \subsection*{The Discrete Wavelet Transform}
 
 What purpose do these details and approximation frames serve? According to the
@@ -167,7 +168,7 @@ transform in many applications. See Figure \ref{fig:dwt1D} for an example of the
 \includegraphics[width = 0.5\textwidth]{dwt1D}
 \caption{A level 4 wavelet decomposition of a signal. The top panel is the original signal,
 the next panel down is the approximation frame, and the remaining panels are the detail coefficients.
-Notice how the approximation frame resembles a smoothed version of the original signal, while the 
+Notice how the approximation frame resembles a smoothed version of the original signal, while the
 details capture the high-frequency oscillations and noise.}
 \label{fig:dwt1D}
 \end{figure}
@@ -183,8 +184,87 @@ filter bank, one iteration of which is shown graphically in the figure. We prese
 algorithm without getting into the details of why it works.
 \begin{figure}[H]
 \centering
-\includegraphics[width = 0.5\textwidth]{dwt1}
-\caption{The one-dimensional discrete wavelet transform.}
+\begin{tikzpicture}[auto, node distance=1.5cm, thick, main node/.style={circle, draw}, LoHi/.style={rectangle, draw}, minimum size=.75cm]
+    \node[draw=none](Aj){A$_j$};
+    \node[draw=none](j1)[right of=Aj]{};
+    \node[LoHi](Lo)[above right of=j1]{Lo};
+    \node[LoHi](Hi)[below right of=j1]{Hi};
+    \node[main node](1)[right of=Lo]{};
+    \node[main node](2)[right of=Hi]{};
+    \node[draw=none](Aj+1)[right of=1]{A$_{j+1}$};
+    \node[draw=none](Dj+1)[right of=2]{D$_{j+1}$};
+
+\foreach \s/\t in {Aj/j1.center, 1/Aj+1, 2/Dj+1}{
+    \draw[->] (\s) -- (\t);}
+\foreach \s/\t in {j1.center/Lo, j1.center/Hi}{
+    \draw[](\s) |- (\t);}
+\foreach \s/\t in {Lo/1, Hi/2}{
+    \draw[](\s) -- (\t);}
+\foreach \s in {1, 2}{
+    \draw[->, shorten >=.2cm, shorten <=.2cm] (\s.north) -- (\s.south);}
+\end{tikzpicture}
+
+\vspace{2cm}
+%In the following pictures, the designation `j' stands for junction
+
+\begin{tikzpicture}[auto, node distance=1.5cm, thick, main node/.style={circle, draw}, LoHi/.style={rectangle, draw}, minimum size=.75cm]
+% Initial Node   	
+   \node[draw=none](LLj){LL$_j$};
+% Upper branch
+   \node[draw=none](j1)[right of=LLj]{};
+   \node[LoHi](Lo1)[above right of=j1]{Lo};
+   \node[main node](1)[right of=Lo1]{};
+   \node[draw=none](j2)[right of=1]{};
+   \node[LoHi](Hi2)[right of = j2]{Hi};
+   \node[LoHi](Lo2)[above of=Hi2]{Lo};
+   \node[main node](2)[right of=Lo2]{};
+   \node[main node](3)[right of=Hi2]{};
+   \node[draw=none](LLj+1)[right of=2]{LL$_{j+1}$};
+   \node[draw=none](LHj+1)[right of=3]{LH$_{j+1}$};
+% Lower branch
+   \node[LoHi](Hi1)[below right of=j1]{Hi};
+   \node[main node](15)[right of=Hi1]{};
+   \node[draw=none](j25)[right of=15]{};
+   \node[LoHi](Lo25)[right of = j25]{Lo};
+   \node[LoHi](Hi25)[below of=Lo25]{Hi};
+   \node[main node](25)[right of=Lo25]{};
+   \node[main node](35)[right of=Hi25]{};
+   \node[draw=none](HLj+1)[right of=25]{HL$_{j+1}$};
+   \node[draw=none](HHj+1)[right of=35]{HH$_{j+1}$};
+% Enable the labeling of Rows and Columns
+\node[draw=none, node distance=2.5cm](reference)[above of=j2]{};
+\node[draw=none, node distance=2.2cm](Rows)[left of=reference]{rows};
+\node[draw=none, node distance=2.2cm](Columns)[right of=reference]{columns};
+% Straight Edges
+\foreach \s/\t in {Lo1/1, Hi1/15, 1/j2.center, 15/j25.center, j2.center/Hi2, j25.center/Lo25,Lo2/2, Hi2/3, Lo25/25, Hi25/35}{
+    \path[draw] (\s) edge (\t);}
+% Branching edges
+\foreach \s/\t in {j1.center/Lo1, j1.center/Hi1, j2.center/Lo2, j25.center/Hi25}{
+    \draw[] (\s) |- (\t);}
+% Arrow Edges
+\foreach \s/\t in {LLj/j1.center, 2/LLj+1, 3/LHj+1, 25/HLj+1, 35/HHj+1}{
+    \draw[->] (\s) -- (\t);}
+% Arrows in Circles
+\foreach \s in {1, 2, 3, 15, 25, 35}{
+    \draw[->, shorten >=.2cm, shorten <=.2cm] (\s.north) -- (\s.south);}
+\end{tikzpicture}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tikzpicture}
+% Key
+    \node[draw=none, node distance=2.5cm](K)[below of=Aj]{Key:};
+    \node[rectangle, draw, minimum size=.5cm, node distance=1cm](rect)[right of=K]{};
+    \node[draw=none, node distance=1.3cm](conv)[right of=rect]{= convolve};
+    \node[circle, draw, minimum size=.5cm, node distance=1cm](circ)[below of=rect]{};
+    \node[draw=none, node distance=1.5cm](conv)[right of=circ]{= downsample};
+    \draw[->, shorten >=.1cm, shorten <=.1cm] (circ.north) -- (circ.south);
+\end{tikzpicture}
+\end{center}
+\caption{The one-dimensional (top) and two-dimensional (bottom) discrete wavelet transform
+implemented as a filter bank.}
+\label{fig:filterbank}
 \end{figure}
 The input, $A_j$, represents the level-$j$ approximation frame, and we initialize $A_0$ to
 simply be the original signal. Lo and Hi are the low-pass and high-pass filters, respectively.
@@ -244,8 +324,8 @@ to an image.
 
 \begin{figure}
     \includegraphics[width=0.8\textwidth]{dwt2D.pdf}
-    \caption{The level 2 wavelet coefficients of the Lena image. The upper left quadrant 
-    is the approximation frame, and the other quadrants are the details. Notice how the 
+    \caption{The level 2 wavelet coefficients of the Lena image. The upper left quadrant
+    is the approximation frame, and the other quadrants are the details. Notice how the
     details highlight the parts of the image with high-frequency textures and borders.}
     \label{fig:dwt2D}
 \end{figure}
@@ -259,13 +339,6 @@ since each row has been downsampled by a factor of 2. Then for each of these two
 intermediate matrices, operate on each column, yielding a total of four matrices of
 size $2^{n-1} \times 2^{n-1}$. Figure \ref{fig:2dwt}
 gives a graphical depiction of one iteration of the algorithm.
-
-\begin{figure}[t]
-    \includegraphics[width=0.8\textwidth]{2dwt.jpg}
-    \caption{The 2-dimensional discrete wavelet transform.}
-    \label{fig:2dwt}
-\end{figure}
-
 
 We initialize $LL_0$ to be the
 original image matrix, and we terminate once the length of the rows or columns
@@ -348,7 +421,7 @@ wavelet transform as described above.
 As before, the input to your function should consist of
 three arrays: the input image, the low-pass filter, and the high-pass filter.
 You should return a list of the following form: $$[LL_n,(LH_n,HL_n,HH_n), \ldots
-,(LH_1,HL_1,HH_1)].$$ 
+,(LH_1,HL_1,HH_1)].$$
 
 The inverse wavelet transform function should take as input a list
 of that same form, as well as the reconstruction low-pass and high-pass filters,
@@ -457,46 +530,52 @@ The output of this code should be a plot resembling the lower left plot given in
 
 We have only introduced a couple of the basic tools available in PyWavelets. There
 are of course many more functions and methods that facilitate a more comprehensive
-Wavelet analysis. In the remainder of this lab, we will explore three particular 
+Wavelet analysis. In the remainder of this lab, we will explore three particular
 applications of Wavelet analysis in the realm of image processing and compression.
 
-%\section*{Edge Detection}
-%It is often useful to identify the edges of objects and figures
-%represented in images. The edge information can be used to classify images
-%and group them with other similar images (this is part of a field called
-%\textit{computer vision}), to segment the image into component parts, to
-%sharpen blurry images, to filter out unnecessary details of the image,
-%and so forth. Of course, our human eyes are very adept at recognizing edges,
-%but enabling a computer to do the same is much more difficult. An edge can
-%be thought of as a discontinuity in the image or a region of high contrast
-%in either color or brightness. We can therefore leverage the high-frequency
-%detail coefficients of the wavelet transform to detect the edges. Execute the
-%following code:
-%\begin{lstlisting}
-%>>> # calculate one level of wavelet coefficients
-%>>> coeffs = pywt.wavedec2(lena,'haar', level=1)
-%\end{lstlisting}
-%
-%Note that the approximation coefficients are very close to the original
-%image, while the detail coefficients are much more sparse, and roughly
-%capture the edges in the image. In particular, the upper right coefficients
-%emphasize the vertical edges, the lower left coefficients emphasize the
-%horizontal edges, and the lower right coefficients emphasize the diagonal
-%edges.
-%
-%\begin{problem}
-%Now zero out the approximation coefficients and use your inverse DWT
-%function to recreate the image. Plot its absolute value. This image is
-%a fairly good representation of the edges. If we add this to the original
-%image, we can increase the contrast at the edges (that is, make the dark
-%side darker, and the light side lighter). Do this, and plot the original
-%image side-by-side with the sharpened image. What do you notice? There
-%are many image-sharpening techniques, and those based on wavelets
-%are more sophisticated than what we have done here, but this gives the
-%basic idea.
-%\end{problem}
-%the above section needs work, or maybe should be taken out completely.
+\begin{comment}
+This section could be cool, but it's not hashed out very well yet.
+\section*{Edge Detection}
+It is often useful to identify the edges of objects and figures
+represented in images. The edge information can be used to classify images
+and group them with other similar images (this is part of a field called
+\textit{computer vision}), to segment the image into component parts, to
+sharpen blurry images, to filter out unnecessary details of the image,
+and so forth. Of course, our human eyes are very adept at recognizing edges,
+but enabling a computer to do the same is much more difficult. An edge can
+be thought of as a discontinuity in the image or a region of high contrast
+in either color or brightness. We can therefore leverage the high-frequency
+detail coefficients of the wavelet transform to detect the edges. Execute the
+following code:
+\begin{lstlisting}
+>>> # calculate one level of wavelet coefficients
+>>> coeffs = pywt.wavedec2(lena,'haar', level=1)
+\end{lstlisting}
 
+Note that the approximation coefficients are very close to the original
+image, while the detail coefficients are much more sparse, and roughly
+capture the edges in the image. In particular, the upper right coefficients
+emphasize the vertical edges, the lower left coefficients emphasize the
+horizontal edges, and the lower right coefficients emphasize the diagonal
+edges.
+
+\begin{problem}
+Now zero out the approximation coefficients and use your inverse DWT
+function to recreate the image. Plot its absolute value. This image is
+a fairly good representation of the edges. If we add this to the original
+image, we can increase the contrast at the edges (that is, make the dark
+side darker, and the light side lighter). Do this, and plot the original
+image side-by-side with the sharpened image. What do you notice? There
+are many image-sharpening techniques, and those based on wavelets
+are more sophisticated than what we have done here, but this gives the
+basic idea.
+\end{problem}
+the above section needs work, or maybe should be taken out completely.
+\end{comment}
+
+\begin{comment}
+This section is good, but there's just not room for it in this lab if we 
+want a fairly complete section on image compression.
 \section*{Noise Removal}
 Noise in an image can be defined as unwanted visual artifacts that
 obscure the true image. Images can acquire noise from a variety of
@@ -548,7 +627,7 @@ thresholding also zeros out all coefficients of magnitude less than
 $\tau$, but in addition maps every other coefficient $\beta$ to
 $\beta - \tau$ if $\beta > 0$ or $\beta + \tau$ if $\beta < 0$.
 
-Implementing these simple thresholding algorithms in Python is 
+Implementing these simple thresholding algorithms in Python is
 straight-forward, but PyWavelets already provides this functionality.
 The following code gives an example.
 
@@ -580,7 +659,7 @@ assume that we already have a decent estimate of the variance.
 
 \begin{figure}[t]
     \includegraphics[width=\linewidth]{denoise.pdf}
-    \caption{Noisy Lena (left), denoised using hard thresholding (center), 
+    \caption{Noisy Lena (left), denoised using hard thresholding (center),
     and denoised using soft thresholding (right).}
     \label{fig:denoise}
 \end{figure}
@@ -599,7 +678,7 @@ coefficient list unchanged.
 \begin{problem}
 Create a noisy version of the Lena image by adding Gaussian
 white noise of mean 0 and standard deviation $\sigma = 20$ (i.e. \li{scale=20}).
-Compute four levels of the wavelet coefficients using the Daubechies 4 Wavelet, 
+Compute four levels of the wavelet coefficients using the Daubechies 4 Wavelet,
 and input these into your
 thresholding functions (with $\tau = 3\sigma$ for the hard threshold,
 and $\tau = 3\sigma/2$ for the soft threshold). Reconstruct the
@@ -610,15 +689,23 @@ What do you notice? How does lowering or raising the
 threshold affect the reconstructed images? What happens if you use
 a different Wavelet?
 \end{problem}
+\end{comment}
+
 
 \section*{Image Compression}
-We now turn to the problem of image compression. Explicitly saving
-the value of every pixel in an image can be very costly in both
-storage and transmission, and numerous image compression techniques
+We now turn to the topic of image compression.
+Image compression refers to the process of mapping a digital image to a
+string of bits in such a way that the bits occupy less disk space than the
+original image. When it comes to storing
+or sending large quantities of images, explicitly saving
+the value of every pixel in an image can be very costly.
+Numerous image compression techniques
 have been developed over the years to deal with this problem.
-Transform methods have long played an important role in these
-techniques; the popular JPEG image compression standard is based on
-the discrete cosine transform. Starting from the early 1990's, much
+Transform methods, which utilize transformations such as the Fourier or Wavelet transforms,
+have long played an important role in these
+techniques; 
+for example, the popular JPEG image compression standard is based on
+the discrete cosine transform. Starting from the early 1990s, much
 research has gone into compression methods using the discrete wavelet
 transform, and to great success. The JPEG2000 compression standard
 and the FBI Fingerprint Image database, along with other systems,
@@ -627,17 +714,292 @@ take the wavelet approach.
 The general framework for compression is fairly straightforward. First,
 the image to be compressed undergoes some form of preprocessing (this
 can include subtracting out its mean, tiling the image, or perhaps
-nothing at all). Next, the wavelet coefficients are computed using some
-specially constructed wavelet (JPEG2000 uses the either the
-Cohen-Daubechies-Feauveau 9/7 or 5/3 wavelet) and then \textit{quantized},
- a process that we will explain shortly. The quantized coefficients are
- then grouped in a particular way and passed through an entropy encoder
- (such as Huffman coding, run length coding, or arithmetic coding). This
- coding step comes from the realm of information theory, and we will not
- worry about it in this lab. What you have left is a compact stream of bits
- that can then be saved or transmitted much more efficiently than the
- original image. All of the above steps are invertible, allowing us to
- reconstruct the image from the bitstream.
+nothing at all). Next, the discrete wavelet transform is used to calculate
+the wavelet coefficients, and these are then \textit{quantized},
+i.e. mapped to a set of discrete values. The quantized coefficients are
+then grouped in a particular way and passed through an entropy encoder
+(such as Huffman coding, run length coding, or arithmetic coding), which reduces
+the number of bits required to store the coefficients.
+What you have left is a compact stream of bits
+that can then be saved or transmitted much more efficiently than the
+original image. All of the above steps are invertible, allowing us to
+reconstruct the image from the compressed bitstream. See Diagram
+\ref{tikz:wsqscheme}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[rect/.style= {draw=none, node distance = 3cm},
+	rect2/.style = {draw, thick, minimum width=3cm, minimum
+	height=1cm}, >=stealth', shorten >=2pt]
+
+\node[rect] (IM) [] {Image};
+\node[rect2, node distance=3cm] (PR) [right of = IM]
+	{Pre-Processing};
+\node[rect2, node distance=4.5cm] (WD)[right of= PR]
+	{Wavelet Decomposition};
+\node[rect2, node distance=1.75cm](Q) [below=of PR.west, anchor=west]
+	{Quantization};
+\node[rect2, node distance = 1.75cm](EC)[below=of WD.west, anchor=west]
+	{Entropy Coding};
+\node[rect, node distance= 3.5cm](BS)[right of=EC]
+	{Bit Stream};
+
+\foreach \s/\t in {IM/PR, PR/WD, Q/EC, EC/BS}
+	{\path[->, thick](\s) edge (\t);}
+\draw[|-,-|,->, thick](WD.south) |-+(0,-1em)-| (Q.north);
+
+
+\end{tikzpicture}
+\label{tikz:wsqscheme}
+\caption{Wavelet Image Compression Schematic}
+\end{figure}
+
+\subsection*{WSQ: The FBI Fingerprint Image Compression Algorithm}
+The Wavelet Scalar Quantization (WSQ) algorithm is among the first successful wavelet-based
+image compression algorithms. By the start of the 1990s, the FBI was faced with an
+ever-growing collection of millions of fingerprint cards and scans, as well as with
+an increasing demand for fingerprint identification from local law enforcement. Their
+previous system for storing these fingerprints could no longer cope with these challenges.
+To address these problems, the FBI developed the WSQ algorithm as a means to compress
+high resolution fingerprint scans. This algorithm is capable of achieving compression ratios
+in excess of 10-to-1 while retaining enough image quality to meet the needs of fingerprint
+identification in law enforcement. We will implement a basic version of this algorithm.
+
+INSERT IMAGE OF ORIGINAL FINGERPRINT AND COMPRESSED FINGERPRINT
+
+\subsection*{WSQ: Preprocessing}
+The input to the algorithm is a matrix of nonnegative 8-bit integer values giving
+the grayscale pixel values for the fingerprint image. We process the image
+by the following formula:
+\[
+M' = \frac{M-m}{r},
+\]
+where $M$ is the original image matrix, $M'$ is the processed image,
+$m$ is the mean pixel value, and $r = \max\{\max(M) - m, m - \min(M)\}/128$
+(here $\max(M)$ and $\min(M)$ refer to the maximum and minimum pixel values
+in the matrix). This preprocessing serves to ensure that roughly half of the
+new pixel values are negative, while the other half are positive, and all fall
+in the range $[-128,\,128]$. 
+\begin{problem}
+Implement the preprocessing step, as well as its inverse. Note that to invert
+the pre-processing, you will need to know the values for $m$ and $r$. Hence,
+these values need to persist over the course of the entire algorithm.
+\end{problem}
+
+\subsection*{WSQ: Calculating the Wavelet Coefficients}
+The official standard for the WSQ algorithm uses a slight modification of the
+discrete wavelet transform that we have studied in this lab. The differences
+are somewhat technical and do not affect performance drastically, so we will
+stick with the PyWavelets implementation. 
+
+INSERT SUBBAND PATTERN DIAGRAM (USE TIKZ GRID)
+
+We need to calculate the subband pattern found in Diagram REFERENCE.
+While this pattern may appear complicated at first, we can obtain the
+required subband coefficients rather easily. To start, decompose the image
+into 16 subbands, first by using the \li{dwt2} function to split the 
+image into four subbands, and then applying the function again to each of the
+four subbands. You may find it helpful to write a function that accomplishes 
+just this task. You should now have a grid of 16 subbands.
+
+Next, split each of the three subbands found in the top left corner of the subband 
+grid into 16 additional subbands, in the same way as before. You now have a grid
+of $13 + 3(16) = 61$ subbands. 
+
+Finally, take the very top left subband, and split this into four additional subbands.
+You should have 64 subbands. Place them into a list in the order indicated by 
+the number in Diagram REFERENCE.
+
+\begin{problem}
+Implement the subband decomposition as described above. The input is a matrix
+and the output is a list of the 64 subbands in the order indicated.
+
+Implement the inverse of this decomposition, i.e. write code that will take
+a list of the 64 subbands and reproduce the original matrix. Your code will
+need to make use of the \li{idwt2} function to compute the inverse discrete
+wavelet transform.
+\end{problem}
+
+\subsection*{WSQ: Quantization}
+By quantization, we mean the process of mapping each wavelet coefficient to an 
+integer value. Quantization is the main source of compression in the algorithm. By mapping
+the wavelet coefficients to a relatively small set of integer values, we reduce
+the complexity of the data, which will allow us to efficiently encode the information
+in a bit string. Further, a large portion of the wavelet coefficients will be mapped to 0
+and discarded completely. We must take care, however, to perform this quantization in a
+manner that achieves good compression without discarding so much information that we 
+are unable to reconstruct the image accurately.
+
+Given a wavelet coefficient $a$ in subband $k$, the corresponding quantized
+coefficient $p$ is given by
+\[
+p = 
+\begin{cases}
+   \left\lfloor\frac{a-Z_k/2}{Q_k}\right\rfloor + 1, & a> Z_k/2 \\
+   0,       & -Z_k/2 \leq a \leq Z_k/2\\
+   \left\lceil\frac{a + Z_k/2}{Q_k}\right\rceil - 1, & a < -Z_k/2
+  \end{cases}
+\]
+The values $Z_k$ and $Q_k$ are dependent on the subband, and determine how much
+compression is achieved. If $Q_k=0$, we simply map the coefficient to 0. 
+Selecting appropriate values for these parameters is a
+tricky problem in itself, so we provide you with a list of these values for each 
+subband.
+
+Note that quantization is not a perfectly invertible process. Once we have quantized
+the wavelet coefficients, some information is permanently lost. However, we can
+roughly reconstruct the wavelet coefficients from the quantized coefficients 
+using the following formula (where again, this is for a quantized coefficient $q$
+in subband $k$, and $\hat{a}_k$ refers to the reconstructed wavelet coefficient).
+This process is called \emph{dequantization}.
+\[
+\hat{a}_k = 
+\begin{cases}
+(p-C)Q_k + Z_k/2, & p> 0\\
+0, & p = 0\\
+(p + C)Q_k - Z_k/2, & p < 0
+\end{cases}
+\]
+For our purposes, take $C = 0.44$.
+\begin{problem}
+Implement the quantization step. The inputs should be a list of the 64 subbands, as
+well as a list containing the parameter values $Z_k$ and $Q_k$ for each of the 64
+subbands. The output should be a list of the 64 quantized subbands. Try to use
+vectorization to simplify the coding and increase efficiency. 
+
+Implement the dequantization step as well. The inputs to this step should be
+a list of the 64 quantized subbands, as well as the list of parameter values
+for each subband. The output should be a list of the 64 subbands containing
+the reconstructed wavelet coefficients.
+\end{problem}
+\subsection*{WSQ: Grouping}
+At this point in the algorithm, you should have a list of length 64, where the $k$-th 
+entry is a matrix containing the quantized wavelet coefficients for the $k$-th subband.
+We will segment this list into three groups, each group containing the quantized coefficients
+for a particular subset of subbands. The effect of this grouping to that we obtain three
+lists of quantized coefficients, and each of these lists has a higher degree of homogeneity
+than the original list of all 64 quantized subbands. This is important for the entropy coding,
+since we can achieve better compression when encoding groups of similar coefficients separately.
+
+Group subbands $0$ through $18$ together, $19$ through $51$ together, and finally $52$ through $63$
+together. You may understand the logic of these groupings when glancing back at Diagram REFERENCE.
+Each group should be a list of numbers rather than matrices. Below is sample code for producing the
+first group. You a similar approach for forming the other two groups.
+\begin{lstlisting}
+>>> # assume coeffs is my list of the 64 quantized subbands
+>>> group1 = []     # this will hold the group 1 coefficients
+>>> shapes1 = []    # this keeps track of the subband dimensions
+>>> for i in xrange(19):
+>>>     shapes1.append(coeffs[i].shape)
+>>>     group1.extend(coeffs[i].ravel())
+\end{lstlisting}
+Notice that the code also produces a list containing the dimensions of each of the subbands in the group.
+This is useful when recreating the subbands from the list of coefficients. We can do this
+reconstruction for the first group as follows:
+\begin{lstlisting}
+>>> # reconstruct the subbands from the group1 values
+>>> new_coeffs = []     # this will hold the reconstructed subbands
+>>> i = 0
+>>> for shape in shapes1:
+>>>     l = shape[0]*shape[1] # number of entries in the subband
+>>>     new_coeffs.append(np.array(group1[i:i+l]).reshape(shape))
+\end{lstlisting}
+\begin{problem}
+Implement the grouping procedure and its inverse, as described above. You will need to
+keep track of the lists containing the dimensions of the subbands over the course
+of the algorithm, as these are needed in the reconstruction phase.
+\end{problem}
+\subsection*{Reading and Writing Bits with bitstring}
+In the final stage of the algorithm, we take our groups of quantized coefficients
+and map them to bit patterns. We then concatenate these bit patterns into a single
+bit string, and write this to file. Pure Python is not equipped to manipulate data
+at the bit level, so we will use the Python package \li{bitstring} to facilitate
+the process. In this section we work through a quick tutorial on \li{bitstring} 
+that will present the functions required for the WSQ algorithm.
+
+Once you have installed the package, type the import command:
+\begin{lstlisting}
+>>> import bitstring as bs
+\end{lstlisting}
+In order to build a string of bits, we initialize a \li{BitArray} object, and then add the
+desired bit patterns.
+\begin{lstlisting}
+>>> bits = bs.BitArray()
+>>> bits.append('0b1101')
+>>> bits.append('0b01')
+\end{lstlisting}
+We can add an 8- or 16-bit representations of an integer as follows:
+\begin{lstlisting}
+>>> # add the 8-bit integer 212, and then the 16-bit integer 1047
+>>> bits.append('uint:8=212')
+>>> bits.append('uint:16=1047')
+\end{lstlisting}
+To view the bits contained in the \li{BitArray}, we can print the \li{bin} attribute.
+To save the bits to file, we can call the \li{tofile()} method.
+\begin{lstlisting}
+>>> # view the entire bit string
+>>> print bits.bin
+110101110101000000010000010111
+
+>>> # save to file
+>>> f = file('bits.bs', 'wb')
+>>> bits.tofile(f)
+>>> f.close()
+\end{lstlisting}
+
+Now let's read the bits in the file. Since we will only be reading, and not altering,
+the bit stream in the file, we will use a \li{ConstBitStream} object.
+\begin{lstlisting}
+>>> bitreader = bs.ConstBitStream(filename='bits.bs')
+>>> # check to see how many bits are in the stream
+>>> print bitreader.length
+32
+\end{lstlisting}
+Notice that the length of the bit stream in the file is 32, whereas we only wrote 30 bits to file.
+The reason for this is that a file must contain byte-sized chunks of data. Since a byte is 8 bits,
+the \li{bitstring} package automatically appends enough 0 bits when writing the bit stream so that
+its length is a multiple of 8.
+
+When reading the data from a bit stream, we simply call the \li{read} method, giving it an input string
+that specifies the way to interpret the bits, and the number of bits to read. To read the next 3 bits as
+binary, the input string would be \li{'bin:3'}, whereas to read the next 16 bits as an unsigned integer 
+you would provide the input string \li{'uint:16'}.
+Let's read the first 6 bits, one at a time:
+\begin{lstlisting}
+>>> for i in xrange(6):
+>>>     print bitreader.read('bin:1')
+1
+1
+0
+1
+0
+1
+\end{lstlisting}
+We know that the next 8 bits should be interpreted as an unsigned integer, and likewise for the 
+following 16 bits. Thus, we read these bits as follows:
+\begin{lstlisting}
+>>> print bitreader.read('uint:8')
+212
+>>> print bitreader.read('uint:16')
+1047
+\end{lstlisting}
+The final two bits, as explained above, are simply zeros that were added for file alignment purposes:
+\begin{lstlisting}
+>>> print bitreader.read('bin:2')
+00
+\end{lstlisting}
+You now have all the tools necessary to read and write the compressed image bit stream.
+
+\subsection*{WSQ: Huffman Coding}
+Huffman coding is a technique for assigning binary codes to a collection of symbols in such a way
+that minimizes the total number of bits needed to encode the symbols.
+More frequent symbols will be assigned shorter binary codes, while rare symbols will have
+longer codes. Although it is not difficult to calculate the Huffman codes for a given collection
+of symbols, in this lab we will assume that the codes have already been generated and given to 
+us. Our task lies in simply converting the quantized coefficients into their correct binary codes.
+
+The WSQ standard instructs us to generate Huffman codes separately for each of the three groups
+of quantized coefficients, and so we provide you with three lists containing these codes.
 
  The step in this process that we will focus on is quantization. Put simply,
  quantization is a process whereby the coefficients are converted into
