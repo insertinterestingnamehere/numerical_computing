@@ -18,19 +18,16 @@ This is why it is so important that we understand the underlying advantages and 
 
 Most abstract data types use an object called a \emph{node} to store data.
 A node essentially acts as a box in which we store an arbitrary piece of data.
-What exactly \emph{is} a node, however?
-A node is a building block for whichever kind of data structure we want to create; it is whatever we want it to be and it contains whatever we need it to contain.
-This versatility allows us to define nodes to store absolutely anything; what they contain both depends on the data structure itself and data that is actually being stored.
+It usually serves as a building block for whichever kind of data structure we want to create; it is whatever we want it to be and it contains whatever we need it to contain.
+This versatility lets us to define nodes to store absolutely anything; what they contain both depends on the data structure itself and data that is actually being stored.
+Using nodes allows us to store extra information pertinent to the functioning of the datastructure.
 For example, the node of a binary search tree (which we will later discuss in section \ref{Binary Search Tree}) contains three things: a piece of data, a reference to its left child, and a reference to its right child.
-The node of a singly linked list contains only two things: a piece of data and a reference to the next node it links to.
-
-If we didn't use nodes, or ``data boxes'', we would have to build a new structure for each data type we wanted to store.
-Thus, nodes allow us to abstract the data structure from the kind of data we store inside of them, which allows us to generalize the functionality of a data structure.
+The node of a singly linked list contains only two things: a piece of data and a reference to the next node in the list.
 
 \section*{Linked Lists}
-\emph{Linked lists} are one of the most basic of all abstract data structures.
+\emph{Linked lists} are one of the most simple of all abstract data structures.
 A linked list, in essence, is simply a list of nodes that are linked together.
-There are two main types of linked lists: singly-linked and doubly-linked. Either of these types can have the additional property of being circularly-linked.
+There are two main types of linked lists: singly-linked (figure \ref{fig:singly_linked} and doubly-linked (figure \ref{fig:doubly_linked}.
 
 \begin{figure}
 \centering
@@ -49,13 +46,13 @@ There are two main types of linked lists: singly-linked and doubly-linked. Eithe
   \draw[black!20!blue] (H) edge (1.north);
 \end{tikzpicture}
 \caption{Singly-linked List}
+\label{fig:singly_linked}
 \end{figure}
 
 A singly-linked node stores a piece of data (its value), and a single reference that points to the next node in the list.
-We implement a singly-linked node class as follows:
-
+We begin to implement a singly-linked node class as follows:
 \begin{lstlisting}
-class Node():
+class Node(object):
     def __init__(self, data):
         self.next = None
         self.value = data
@@ -82,46 +79,19 @@ class Node():
   \draw[black!20!blue] (T) edge (4.north);
 \end{tikzpicture}
 \caption{Doubly-linked List}
+\label{fig:doubly_linked}
 \end{figure}
 
 Doubly-linked nodes have two references: one that points to the previous node and one that points to the next node in the list.
 This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.
 We modify our node, then, to allow for a reference to the previous node.
-
 \begin{lstlisting}
-class Node():
+class Node(object):
     def __init__(self, data):
         self.next = None
         self.previous = None
         self.value = data
 \end{lstlisting}
-
-\begin{figure}
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
-  thick,main node/.style={rectangle,draw}, minimum size=.5cm]
-\tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
-  \node[main node] (1) {B};
-  \node[main node] (2) [right of=1] {F};
-  \node[main node] (3) [right of=2] {G};
-  \node[main node] (4) [right of=3] {C};
-  \node[](H) [above left of=1, node distance = 1.5cm, color = black!20!blue] {Head};
-  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};
-  \node[rect node][right of=1, node distance = .36cm]{};
-  \node[rect node][right of=2, node distance = .36cm]{};
-  \node[rect node][right of=3, node distance = .36cm]{};
-  \node[rect node](5)[right of=4, node distance = .36cm]{};
-\foreach \s/\t  in {1/2, 2/3, 3/4}{
-	\path[draw](\s) edge[shorten <=.1cm](\t);}
-\path[] (5.east) edge[out=-70, in=-40] node[right] {} (1.south);
-\path[black!20!blue]
-    (H) edge (1.north)
-    (T) edge (4.north);
-\end{tikzpicture}
-\caption{Circularly-linked List}
-\end{figure}
-A circularly-linked list is a special type of linked list (be it singly-linked or doubly-linked) where the last node (the \emph{tail}) of the list points to the first node (the \emph{head}) of the list as its next node.
-In a circularly, doubly-linked list, the head also points to the tail as its previous node.
 
 We begin constructing a singly-linked list class with a reference to the head node:
 \begin{lstlisting}
@@ -130,81 +100,85 @@ class SLinkedList(object):
         self.head = None
 \end{lstlisting}
 
-Linked lists may also have a reference to the tail node and a counter to keep track of the size of the list.
+Linked lists may also have a reference to the tail node and a size counter to keep track of the size of the list.
 Including a tail reference allows us to avoid traversing the entire list each time we wish to insert at the end.
-Similarly, without a counter we would have to recount the list every time we wanted to know its size.
+Similarly, without a size counter we would have to recount the list every time we wanted to know its size.
 \begin{lstlisting}
 class SLinkedList(object):
     def __init__(self):
         self.head = None
         self.tail = None
-        self.counter = 0
-
-    def size(self):
-        return self.counter
+        self.size = 0
+    
+    def __len__(self):
+        return self.size
 \end{lstlisting}
 
-\subsection*{Finding, Inserting and Removing}
-Arrays have random access, which means that each element can be accessed roughly as easily and efficiently as any other. However, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
+\subsection*{Searching, Inserting and Removing}
+To locate a node, our linked must start at the head of the list and follow references to other nodes until the desired node is found.
 In a singly-linked list, it is also often a good idea to track the node prior to our index; this will prove useful for our insertion and removal methods. 
 We add a find method to our \li{SLinkedList} class:
 \begin{lstlisting}
 # Returns the node at the given index and the node previous to it.
 def find(self, index):
+    if index >= len(self):
+        raise IndexError
+
     nfind = self.head
     nprev = None
     # Keeps track of the index of nfind.
     count = 0
-    if index >= self.counter:
-        raise IndexError
-    else:
-        # Update nprev and nfind until we reach the node at the index desired.
-        # nfind.next evaluates to True while nfind.next != None
-        while count < index and nfind.next:
-            count += 1
-            nprev = nfind
-            nfind = nfind.next
-        return nprev, nfind
+
+    # Update nprev and nfind until we reach the node at the index desired.
+    # nfind.next evaluates to True while nfind.next != None
+    while count < index and nfind.next:
+        count += 1
+        nprev = nfind
+        nfind = nfind.next
+    return nprev, nfind
 \end{lstlisting}
 
-In order to insert or delete nodes found in the middle of the list, then, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
-Insertion itself is a very efficient procedure, but traversing the list to \emph{find} the insert location takes longer as the size of the list grows. 
-However, because we already have head and tail references, nodes can be inserted or removed from either end of a linked list in \emph{constant time}.
-This means the time a function takes is independent of the size of the list.
-Methods that operate in constant time are key to understanding the advantages in efficiency of any particular data structure.
+In order to insert or delete nodes found in the middle of the list, then, we must first locate the correct node by traversing the list, starting at the head and visiting each node.
+Insertion itself is a very efficient procedure, but traversing the list to find the insert location takes longer as the size of the list grows. 
+However, because we already have head and tail references, nodes can be inserted or removed from either end of a linked list very efficiently, regardless of the size of the list.
 
-When we insert, we must remember to update the \li{next} reference in the node previous and to set the \li{next} reference in the new node we are inserting.
+When inserting into a list, we must remember to update the all the appropriate references.
 To insert into a linked list, we consider three cases: head insertion, tail insertion, and middle insertion. 
-
 \begin{lstlisting}
-    def insert(self, index, data):
-        # Initialize a temporary node to store the desired piece of data.
-        n = Node(data)        
-        if index > self.counter:
-            raise IndexError
-        if index == 0: # Head insertion
-            # Assign old head node as n.next
-            n.next = self.head
-            # Set n as the new head node.
-            self.head = n
-            # If n is the only node, set as the tail.
-            if self.counter == 0:
-                self.tail = self.head
-        elif index == self.counter: # Tail insertion
-            self.tail.next = n
-            # Set n as the new tail
-            self.tail = n
-        else: # Middle insertion
-            nprev, nindex = self.find(index)
-            n.next = nindex
-            nprev.next = n
-        self.counter += 1
+def insert(self, index, data):
+    if index > len(self):
+        raise IndexError
+        
+    # Initialize a temporary node to store the desired piece of data.
+    n = Node(data)
+    
+    if index == 0:
+        # Inserting at the head
+        # Assign old head node as n.next
+        n.next = self.head
+        # Set n as the new head node
+        self.head = n
+        
+        # If n is the only node, set as the tail also
+        if len(self) == 0:
+            self.tail = self.head
+    elif index == len(self):
+        # Inserting at the tail
+        self.tail.next = n
+        # Set n as the new tail
+        self.tail = n
+    else: 
+        # Middle insertion
+        nprev, nindex = self.find(index)
+        n.next = nindex
+        nprev.next = n
+    self.size += 1
 \end{lstlisting}
 
 \begin{problem}
-Removing a node is similar to inserting a node, we must consider head removal, tail removal, and middle removal.
+Removing a node is similar to inserting a node, we must consider removing from the head, tail, or middle of the list.
 Implement a \li{remove(self, index)} method in your \li{SLinkedList} class.
-Be sure to update your counter and references appropriately as you compensate for all possible situations  (the index corresponds to a list with a single node, the index is out of range, etc.)
+Be sure to update your size and references appropriately as you compensate for all possible situations (the index corresponds to a list with a single node, the index is out of range, etc.)
 
 The code below provides a few additional methods to supplement your \li{SLinkedList} class: one that will clear the list and one that will represent the list as a string.
 These functions may be useful for testing your removal method.
@@ -228,23 +202,20 @@ In our \li{clear} method, this property allows us to set the reference to the he
 
 \section*{Stacks, Queues, and Deques}
 Stacks, queues (pronounced `cues'), and deques (pronounced `decks') can be thought of as types of linked lists where access is restricted.
-Rather than accessing data anywhere in the list, we only add and remove from certain sides, which means that the methods of these structures operate in constant time.
+Rather than accessing data anywhere in the list, we only add and remove from certain areas, which means that the methods of these structures operate independent of the list size.
 
 \begin{itemize}
-\item \emph{Stacks}: These are built on the in `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
+\item \emph{Stacks}: These are built on the `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
 You can imagine this as a pile of plates in the kitchen cupboard.
-Rarely, if ever, do you take the plate on the bottom of the pile.
-Instead you take the one on the top.
-When putting plates in the cupboard, you similarly put them on the top of the pile.
 This means that the last plate put in will be the first one taken out.
-To implement this, we would only add and remove from the same side of a linked list.
+To implement this, we would only insert and remove from the same end of a linked list.
 \item \emph{Queues}: Queues use a `first in, first out' implementation, meaning that the first thing put in will be the first thing taken out.
 This is similar to people waiting in line.
 The first person in line will be the first served and taken out of the line.
-This is implemented as a linked list where we add on the right and remove from the left.
-\item \emph{Deques}: This structure is a double-ended queue; we can add and remove from either end of a deque.
+This is implemented as a linked list where we insert on one end and remove on the opposite end.
+\item \emph{Deques}: This structure is a double-ended queue; we can insert and remove from either end of a deque.
 Really the only difference between this and a linked list is that we cannot add and remove from the middle.
-Python's \li{collections} module already contains a deque object, which is discussed on page \pageref{deques} of our initial lab, \nameref{lab:Standard Library}.
+Python's collections module already contains a deque object, which is discussed on page \pageref{deques} of our initial lab, \nameref{lab:Standard Library}.
 \end{itemize}
 
 \section*{Trees}
