@@ -2,7 +2,7 @@
 \label{lab:Python_DataStructures}
 \objective{Empower students with basic knowledge of the fundamental, canonical data structures in order to understand performance and runtime characteristics.}
 
-Both storing and retrieving data take time. As a data set grows, so too does the time required to manipulate it. 
+Both storing and retrieving data take time. As a data set grows, so too does the time required to manipulate it.
 The overhead associated with working with large data sets makes it crucial that we have a fundamental knowledge of the data structures used to store them.
 As we understand the characteristics of such data structures, we will be able to choose the data structure that will help us most efficiently access the data that we need.
 
@@ -102,14 +102,14 @@ class SLinkedList(object):
         self.head = None
         self.tail = None
         self.size = 0
-    
+
     def __len__(self):
         return self.size
 \end{lstlisting}
 
 \subsection*{Searching, Inserting and Removing}
 To locate a node, our linked must start at the head of the list and follow references to other nodes until the desired node is found.
-In a singly-linked list, it is also often a good idea to track the node prior to our index; this will prove useful for our insertion and removal methods. 
+In a singly-linked list, it is also often a good idea to track the node prior to our index; this will prove useful for our insertion and removal methods.
 We add a find method to our \li{SLinkedList} class:
 \begin{lstlisting}
 # Returns the node at the given index and the node previous to it.
@@ -132,26 +132,26 @@ def find(self, index):
 \end{lstlisting}
 
 In order to insert or delete nodes found in the middle of the list, we must first locate the correct node by traversing the list, starting at the head and visiting each node.
-Insertion itself is a very efficient procedure, but traversing the list to find the insert location takes longer as the size of the list grows. 
+Insertion itself is a very efficient procedure, but traversing the list to find the insert location takes longer as the size of the list grows.
 However, because we already have head and tail references, nodes can be inserted or removed from either end of a linked list very efficiently, regardless of the size of the list.
 
 When inserting into a list, we must remember to update the all the appropriate references.
-To insert into a linked list, we consider three cases: head insertion, tail insertion, and middle insertion. 
+To insert into a linked list, we consider three cases: head insertion, tail insertion, and middle insertion.
 \begin{lstlisting}
 def insert(self, index, data):
     if index > len(self):
         raise IndexError
-        
+
     # Initialize a temporary node to store the desired piece of data.
     n = Node(data)
-    
+
     if index == 0:
         # Inserting at the head
         # Assign old head node as n.next
         n.next = self.head
         # Set n as the new head node
         self.head = n
-        
+
         # If n is the only node, set as the tail also
         if len(self) == 0:
             self.tail = self.head
@@ -160,7 +160,7 @@ def insert(self, index, data):
         self.tail.next = n
         # Set n as the new tail
         self.tail = n
-    else: 
+    else:
         # Middle insertion
         nprev, nindex = self.find(index)
         n.next = nindex
@@ -181,7 +181,7 @@ def clear(self):
 
 def __str__(self):
     return '[' + ','.join(map(str, iter(self)) + ']'
-    
+
 def __iter__(self):
     temp = self.head
     while temp:
@@ -224,7 +224,7 @@ This type of organization substantially reduces search time, making trees an exc
 By simply knowing that our target element is less than or greater than the root, we can immediately eliminate half of the binary tree from the search.
 Because the process of locating a node is so quick, the processes of inserting and removing nodes are similarly efficient.
 
-We begin building a BST by defining our node class. 
+We begin building a BST by defining our node class.
 A node in a binary search tree holds a piece of data as well as references to its left and right children which can, in turn, be the roots of subtrees.
 We call a node without any children a \emph{leaf} node.
 \begin{lstlisting}
@@ -240,7 +240,7 @@ class BinarySearchTree(object):
     def __init__(self):
         self.root = None
         self.size = 0
-        
+
     def __len__(self):
         return self.size
 \end{lstlisting}
@@ -314,7 +314,7 @@ Let's demonstrate this process with an example.
 To begin writing an insertion method for our \li{BinarySearchTree} class, we consider BST's themselves.
 BSTs are a recursive data structure because each of the left and right subtrees of a parent node are, themselves, BSTs.
 Therefore, many of the algorithms for working with binary search trees can also be recursive.
-A recursive function is a function that calls itself until it reaches a base case. 
+A recursive function is a function that calls itself until it reaches a base case.
 In the case of a BST, the recursive function allows us to travel right or left as appropriate until we reach a missing subtree.
 To supplement our \li{insert} method, we will write a recursive function to call within our insert function:
 \begin{lstlisting}
@@ -331,17 +331,17 @@ def insert(self, data):
                 node.left = _recur_insert(node.left, item)
             elif data > node.value:
                 node.right = _recur_insert(node.right, item)
-                
+
         # After the base case, each of the previous calls to the
         # recursive function finishes by returning the previous node.
         return node
-        
+
     self.root = _recur_insert(self.root, data)
     self.size += 1
 \end{lstlisting}
 We call this recursive function and set it equal to the root node.
-The function will continually call itself until it finds an empty node. 
-It inserts the data as a node, and then \li{return node} will finish each of the previous calls to the recursive function. 
+The function will continually call itself until it finds an empty node.
+It inserts the data as a node, and then \li{return node} will finish each of the previous calls to the recursive function.
 (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
 Finally, we finish our insertion method by updating our size.
 
@@ -503,10 +503,45 @@ This swap still preserves the binary search property of the tree and removing $2
 \end{enumerate}
 
 \begin{problem}
-Give your binary tree class a method for removing nodes.
-Make sure to account for each of the three cases presented above.
+Provided below is a removal method for binary search trees.
+The \li{_recur_remove} method takes two arguments: the parent node, n; and the candidate for removal, cand.
+For this problem, edit the following code by inserting comments explaining each step of the removal method.
 
-\emph{Helpful Hint}: It may be a good idea to write a recursive function to call within your remove method. 
+\begin{lstlisting}
+def remove(self, item):
+    def _recur_remove(n, cand):
+        if n is None:
+            return
+        else:
+            if cand < n.value:
+                n.left = _recur_remove(n.left, cand)
+            elif cand > n.value:
+                n.right = _recur_remove(n.right, cand)
+            elif cand == n.value:
+                if n.left is None and n.right is None:
+                    return
+                elif n.left is not None and n.right is None:
+                    nleft = n.left
+                    del n
+                    return nleft
+                elif n.left is None and n.right is not None:
+                    nright = n.right
+                    del n
+                    return nright
+                else:
+                    nmin = n.right
+                    while nmin.left is not None:
+                        nmin = nmin.left
+                    n.value, nmin.value = nmin.value, n.value
+                    n.right = _recur_remove(n.right, nmin.value)
+                    return n
+            return n
+    if self.root is None:
+        return
+    else:
+        self.root = _recur_remove(self.root, item)
+    self.size -= 1
+\end{lstlisting}
 \label{prob:Binary Removal}
 \end{problem}
 
@@ -529,13 +564,13 @@ class HashTable(object):
     def __init__(self, capacity):
         # Efficiently extend a list to the designated hash table size
         self.hashtable = [None] * hsize
-        
+
         # Keeps track of the number of elements within the hash table
         self.size = 0
-        
+
         # Indicates the size of the hash table
         self.capacity = capacity
-        
+
     def load_factor(self):
         # The load factor tells how saturated a hash table is
         return float(self.size)/self.capacity
@@ -609,7 +644,7 @@ A short example will be succintly illustrate this method.
 >>> print table
 [None, None, None, 'one', 'two']
 \end{lstlisting}
-This is called linear probing.  
+This is called linear probing.
 There are other variations of this idea which are more optimal.
 
 \paragraph{Chaining.}
@@ -647,6 +682,6 @@ The implementations of linked lists, trees, and hash tables in this lab were des
 In real situations, you will likely use Python's deques, sets, or dictionaries.
 Python doesn't have a built-in implementation of trees, but there are several Python libraries that have highly optimized implementations of trees.
 
-Performance tuning for data structures can be tricky even for professionals.  
+Performance tuning for data structures can be tricky even for professionals.
 For this reason, it is better to avoid writing your implementation when one already exists.
 \end{info}
