@@ -2,39 +2,35 @@
 \label{lab:Python_DataStructures}
 \objective{Empower students with basic knowledge of the fundamental, canonical data structures in order to understand performance and runtime characteristics.}
 
-Both storing and retrieving data take time.
-Whether its growth is logarithmic, linear, exponential, or factorial, as a data set grows, so too does the time it takes to manipulate it.
+Both storing and retrieving data take time. As a data set grows, so too does the time required to manipulate it. 
 The overhead associated with working with large data sets makes it crucial that we have a fundamental knowledge of the data structures used to store them.
 As we understand the characteristics of such data structures, we will be able to choose the data structure that will help us most efficiently access the data that we need.
 
 \section*{Abstract Data Types}
 The fundamental way to store data is via \emph{primitive data types}.
 We are actually already quite familiar with these data types: booleans, strings, floats, and integers.
-Most information that we care to store is in one of these forms; however, these primitive types can quickly become unwieldy for storing large amounts of information.
-Imagine having a different name for every piece of data you use!
-Luckily, we can create more natural ways to store data by using primitive data types, along with arrays, as our building blocks (consider object oriented programming).
+Most information that we care to store is in one of these forms; however, these primitive types can quickly become unwieldy for storing large amounts of information, especially since we rarely want to store a single string, float or integer. Rather, we want to organize our data in different ways depending on what we intend to do with it.
+We can do this by using primitive data types, along with arrays, as our building blocks.
 More complex data structures are called \emph{abstract data types}.
-Python possesses a couple of the more common abstract data types, including dictionaries and sets.
-However, the performance of each abstract data type slows down as the size of the data structure increases.
- This is why it is so important that we understand the underlying advantages and disadvantages of these structures.
+Typically, the performance of each abstract data type slows down as the size of the data structure increases.
+However, some data structures slow down more slowly or gracefully than others.
+This is why it is so important that we understand the underlying advantages and disadvantages of these structures.
+Such an understanding allows us to choose the most optimal structure for our purposes.
 
 Most abstract data types use an object called a \emph{node} to store data.
 A node essentially acts as a box in which we store an arbitrary piece of data.
-What exactly \emph{is} a node, however?
-A node is a building block for whichever kind of data structure we want to create: it is whatever we want it to be.
-This versatility allows us to define nodes to store absolutely anything; what they contain both depends on the data structure itself and data that is actually being stored.
+It usually serves as a building block for whichever kind of data structure we want to create; it is whatever we want it to be and it contains whatever we need it to contain.
+This versatility lets us to define nodes to store absolutely anything; what they contain both depends on the data structure itself and data that is actually being stored.
+Using nodes allows us to store extra information pertinent to the functioning of the datastructure.
 For example, the node of a binary search tree (which we will later discuss in section \ref{Binary Search Tree}) contains three things: a piece of data, a reference to its left child, and a reference to its right child.
-The node of a linked list contains only two things: a piece of data and a reference to the next node it links to.
-
-If we didn't use nodes, or ``data boxes'', we would have to build a new structure for each data type we wanted to store.
-Thus, nodes allow us to abstract the data structure from the kind of data we store inside of them; nodes allow us to generalize the functionality of a data structure.
+The node of a singly linked list contains only two things: a piece of data and a reference to the next node in the list.
 
 \section*{Linked Lists}
-\emph{Linked lists} are one of the most basic of all abstract data structures.
+\emph{Linked lists} are one of the most simple of all abstract data structures.
 A linked list, in essence, is simply a list of nodes that are linked together.
-There are three common types of linked lists: singly-linked, doubly-linked, and circularly-linked.
+There are two main types of linked lists: singly-linked (figure \ref{fig:singly_linked} and doubly-linked (figure \ref{fig:doubly_linked}.
 
-\begin{figure}[h]
+\begin{figure}
 \centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,thick,main node/.style={rectangle,draw}, minimum size=.5cm]
 \tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
@@ -51,19 +47,22 @@ There are three common types of linked lists: singly-linked, doubly-linked, and 
   \draw[black!20!blue] (H) edge (1.north);
 \end{tikzpicture}
 \caption{Singly-linked List}
+\label{fig:singly_linked}
 \end{figure}
 
-A singly-linked node stores a piece of data (its value), and a single reference that points to the next node in the list.
-We implement a singly-linked node class as follows:
 
+A singly-linked node stores a piece of data (its value), and a single reference that points to the next node in the list.
+Doubly-linked nodes have two references: one that points to the previous node and one that points to the next node in the list.
+This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.
+We begin to implement a singly-linked node class as follows:
 \begin{lstlisting}
-class Node():
+class Node(object):
     def __init__(self, data):
         self.next = None
         self.value = data
 \end{lstlisting}
 
-\begin{figure}[h]
+\begin{figure}
 \centering
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm, thick,main node/.style={rectangle,draw}, minimum size=.5cm]
 \tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.9cm}}
@@ -84,46 +83,8 @@ class Node():
   \draw[black!20!blue] (T) edge (4.north);
 \end{tikzpicture}
 \caption{Doubly-linked List}
+\label{fig:doubly_linked}
 \end{figure}
-
-Doubly-linked nodes have two references: one that points to the previous node and one that points to the next node in the list.
-This allows for a doubly-linked list to be traversed in both directions, whereas a singly-linked list can only be traversed in one direction.
-We modify our node, then, to allow for a reference to the previous node.
-
-\begin{lstlisting}
-class Node():
-    def __init__(self, data):
-        self.next = None
-        self.previous = None
-        self.value = data
-\end{lstlisting}
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto, node distance=1.5cm,
-  thick,main node/.style={rectangle,draw}, minimum size=.5cm]
-\tikzset{rect node/.style={rectangle, draw, minimum height = .5cm, minimum width=.2cm}}
-  \node[main node] (1) {B};
-  \node[main node] (2) [right of=1] {F};
-  \node[main node] (3) [right of=2] {G};
-  \node[main node] (4) [right of=3] {C};
-  \node[](H) [above left of=1, node distance = 1.5cm, color = black!20!blue] {Head};
-  \node[draw = none, black!20!blue, node distance = 1.5cm] [above right of=4] (T) {Tail};
-  \node[rect node][right of=1, node distance = .36cm]{};
-  \node[rect node][right of=2, node distance = .36cm]{};
-  \node[rect node][right of=3, node distance = .36cm]{};
-  \node[rect node](5)[right of=4, node distance = .36cm]{};
-\foreach \s/\t  in {1/2, 2/3, 3/4}{
-	\path[draw](\s) edge[shorten <=.1cm](\t);}
-\path[] (5.east) edge[out=-70, in=-40] node[right] {} (1.south);
-\path[black!20!blue]
-    (H) edge (1.north)
-    (T) edge (4.north);
-\end{tikzpicture}
-\caption{Circularly-linked List}
-\end{figure}
-A circularly-linked list is a special type of linked list (be it singly-linked or doubly-linked) where the last node (the \emph{tail}) of the list points to the first node (the \emph{head}) of the list as its next node.
-In a circularly, doubly-linked list, the head also points to the tail as its previous node.
 
 We begin constructing a singly-linked list class with a reference to the head node:
 \begin{lstlisting}
@@ -132,76 +93,85 @@ class SLinkedList(object):
         self.head = None
 \end{lstlisting}
 
-Linked lists may also have a reference to the tail node and a counter to keep track of the size of the list.
+Linked lists may also have a reference to the tail node and a size counter to keep track of the size of the list.
 Including a tail reference allows us to avoid traversing the entire list each time we wish to insert at the end.
-Similarly, without a counter we would have to recount the list every time we wanted to know its size.
+Similarly, without a size counter we would have to recount the list every time we wanted to know its size.
 \begin{lstlisting}
 class SLinkedList(object):
     def __init__(self):
         self.head = None
         self.tail = None
-        self.counter = 0
-
-    def size(self):
-        return self.counter
+        self.size = 0
+    
+    def __len__(self):
+        return self.size
 \end{lstlisting}
 
-\subsection*{Finding, Inserting and Removing}
-Unlike arrays, which have random access, a linked list must walk through each node, starting with its single reference to the head, to find later ones in the list.
+\subsection*{Searching, Inserting and Removing}
+To locate a node, our linked must start at the head of the list and follow references to other nodes until the desired node is found.
 In a singly-linked list, it is also often a good idea to track the node prior to our index; this will prove useful for our insertion and removal methods. 
 We add a find method to our \li{SLinkedList} class:
 \begin{lstlisting}
+# Returns the node at the given index and the node previous to it.
 def find(self, index):
+    if index >= len(self):
+        raise IndexError
+
     nfind = self.head
     nprev = None
+    # Keeps track of the index of nfind.
     count = 0
-    if index >= self.counter:
-        raise IndexError
-    else:
-        while count < index and nfind.next:
-            count += 1
-            nprev = nfind
-            nfind = nfind.next
-        return nprev, nfind
+
+    # Update nprev and nfind until we reach the node at the index desired.
+    # nfind.next evaluates to True while nfind.next != None
+    while count < index and nfind.next:
+        count += 1
+        nprev = nfind
+        nfind = nfind.next
+    return nprev, nfind
 \end{lstlisting}
 
-In order to insert or delete nodes found in the middle of the list, then, we must first locate the correct node by traversing the list - starting at the head and visiting each node.
-Insertion itself is a very efficient procedure, but traversing the list to \emph{find} the insert location takes longer as the size of the list grows. 
-However, because we already have head and tail references, nodes can be inserted or removed from either end of a linked list in \emph{constant time}.
-This means the time a function takes is independent of the size of the list.
-Methods that operate in constant time are key to understanding the advantages in efficiency of any particular data structure.
+In order to insert or delete nodes found in the middle of the list, we must first locate the correct node by traversing the list, starting at the head and visiting each node.
+Insertion itself is a very efficient procedure, but traversing the list to find the insert location takes longer as the size of the list grows. 
+However, because we already have head and tail references, nodes can be inserted or removed from either end of a linked list very efficiently, regardless of the size of the list.
 
-When we insert, we must remember to update the \li{next} reference in the node previous and to set the \li{next} reference in the new node we are inserting.
+When inserting into a list, we must remember to update the all the appropriate references.
 To insert into a linked list, we consider three cases: head insertion, tail insertion, and middle insertion. 
-
 \begin{lstlisting}
-    def insert(self, index, data):
-        # Initialize a temporary node to store the desired piece of data.
-        n = Node(data)        
-        if index > self.counter:
-            raise IndexError
-        if index == 0: # Head insertion
-            n.next = self.head
-            # Set n as the new head node.
-            self.head = n
-            # If n is the only node, set as the tail.
-            if self.counter == 0:
-                self.tail = self.head
-        elif index == self.counter: # Tail insertion
-            self.tail.next = n
-            # Set n as the new tail
-            self.tail = n
-        else: # Middle insertion
-            nprev, nindex = self.find(index)
-            n.next = nindex
-            nprev.next = n
-        self.counter += 1
+def insert(self, index, data):
+    if index > len(self):
+        raise IndexError
+        
+    # Initialize a temporary node to store the desired piece of data.
+    n = Node(data)
+    
+    if index == 0:
+        # Inserting at the head
+        # Assign old head node as n.next
+        n.next = self.head
+        # Set n as the new head node
+        self.head = n
+        
+        # If n is the only node, set as the tail also
+        if len(self) == 0:
+            self.tail = self.head
+    elif index == len(self):
+        # Inserting at the tail
+        self.tail.next = n
+        # Set n as the new tail
+        self.tail = n
+    else: 
+        # Middle insertion
+        nprev, nindex = self.find(index)
+        n.next = nindex
+        nprev.next = n
+    self.size += 1
 \end{lstlisting}
 
 \begin{problem}
-Removing a node is similar to inserting a node, we must consider head removal, tail removal, and middle removal.
+Removing a node is similar to inserting a node, we must consider removing from the head, tail, or middle of the list.
 Implement a \li{remove(self, index)} method in your \li{SLinkedList} class.
-Be sure to update your counter and references appropriately as you compensate for all possible situations  (the index corresponds to a list with a single node, the index is out of range, etc.)
+Be sure to update your size and references appropriately as you compensate for all possible situations (the index corresponds to a list with a single node, the index is out of range, etc.)
 
 The code below provides a few additional methods to supplement your \li{SLinkedList} class: one that will clear the list and one that will represent the list as a string.
 These functions may be useful for testing your removal method.
@@ -210,9 +180,9 @@ def clear(self):
     self.head = None
 
 def __str__(self):
-    return `[` + `,'.join(map(str, iter(self)) + `]'
+    return '[' + ','.join(map(str, iter(self)) + ']'
     
-def__iter__(self):
+def __iter__(self):
     temp = self.head
     while temp:
         yield temp.value
@@ -225,49 +195,38 @@ In our \li{clear} method, this property allows us to set the reference to the he
 
 \section*{Stacks, Queues, and Deques}
 Stacks, queues (pronounced `cues'), and deques (pronounced `decks') can be thought of as types of linked lists where access is restricted.
-Rather than accessing data anywhere in the list, we only add and remove from certain sides, which means that the methods of these structures operate in constant time.
+Rather than accessing data anywhere in the list, we only add and remove from certain areas, which means that the methods of these structures operate independent of the list size.
 
 \begin{itemize}
-\item \emph{Stacks}: These are built on the in `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
+\item \emph{Stacks}: These are built on the `last in, first out' principle, meaning that the last item that was put in the stack will be the first one to leave.
 You can imagine this as a pile of plates in the kitchen cupboard.
-Rarely, if ever, do you take the plate on the bottom of the pile.
-Instead you take the one on the top.
-When putting plates in the cupboard, you similarly put them on the top of the pile.
 This means that the last plate put in will be the first one taken out.
-To implement this, we would only add and remove from the same side of a linked list.
+To implement this, we would only insert and remove from the same end of a linked list.
 \item \emph{Queues}: Queues use a `first in, first out' implementation, meaning that the first thing put in will be the first thing taken out.
 This is similar to people waiting in line.
 The first person in line will be the first served and taken out of the line.
-This is implemented as a linked list where we add on the right and remove from the left.
-\item \emph{Deques}: This structure is a double-ended queue; we can add and remove from either end of a deque.
+This is implemented as a linked list where we insert on one end and remove on the opposite end.
+\item \emph{Deques}: This structure is a double-ended queue; we can insert and remove from either end of a deque.
 Really the only difference between this and a linked list is that we cannot add and remove from the middle.
-Python's \li{collections} module already contains a deque object, which is discussed on page \pageref{deques} of our initial lab, \nameref{lab:Standard Library}.
+Python's collections module already contains a deque object, which is discussed on page \pageref{deques} of our initial lab, \nameref{lab:Standard Library}.
 \end{itemize}
-
-\begin{problem}
-Implement a queue and a stack by having them inherit from your linked list class.
-Have your stack add to and remove from the right.
-Have your queue add to the right and remove from the left.
-\label{prob:Stack and queue}
-\end{problem}
 
 \section*{Trees}
 \label{Binary Search Tree}
 Donald Knuth, author of \emph{The Art of Computer Programming}, once said that ``Trees sprout up just about everywhere in computer science.''
-\emph{Trees} are similar to linked lists, but the nodes of a tree can reference with greater versatility (rather than simply referencing the \li{next} and/or \li{previous} nodes).
-Like the head node of a linked list, a tree begins with an initial reference node, here called the \emph{root} node.
-Unlike linked lists, however, the nodes within a tree can point to multiple nodes (called \emph{child} nodes), depending on the way the tree is defined.
-We can create many different types of trees by the way we organize the nodes within them; one of the simplest of these types is called a \emph{binary search tree} (BST).
+We can create many different types of trees by the way we organize the nodes within them.
+One of the simplest of these trees is called a \emph{binary search tree}(BST).
 
-A binary tree is a tree that has a maximum of two children per node, an ordered structure, and no duplicate elements.
-Trees are commonly ordered such that the left half of the tree contains elements less than the root, and the right half contains elements greater than the root.
-This type of organization substantially cuts down search time, making trees an excellent data structure to use when our primary goal is efficient searching.
-By simply knowing that our target element is less or greater than the root, we can immediately eliminate half of our binary tree from the search.
+A binary search tree is a tree that has a root node with a maximum of two children, commonly referred to as a left child and a right child.
+They are commonly ordered such that the left child of the root node contains elements less than the root, and the right child contains elements greater than the root.
+The tree is a recursive structure, where each child node is potentially the root of a subtree with the same properties.
+This type of organization substantially reduces search time, making trees an excellent data structure to use when our primary goal is efficient searching.
+By simply knowing that our target element is less than or greater than the root, we can immediately eliminate half of the binary tree from the search.
 Because the process of locating a node is so quick, the processes of inserting and removing nodes are similarly efficient.
 
-We begin building a BST by defining our node class. A node in a binary search tree holds a piece of data as well as references to its left and right children (which can, in turn, be subtrees of this \emph{parent} node).
+We begin building a BST by defining our node class. 
+A node in a binary search tree holds a piece of data as well as references to its left and right children which can, in turn, be the roots of subtrees.
 We call a node without any children a \emph{leaf} node.
-
 \begin{lstlisting}
 class Node(object):
     def __init__(self, data):
@@ -275,19 +234,22 @@ class Node(object):
         self.left = None
         self.right = None
 \end{lstlisting}
-We initialize our BST similarly to a linked list, with a reference to the root and to a counter to keep track of the size.
+We initialize our BST similarly to a linked list, with a reference to the root and to a size counter to keep track of the size.
 \begin{lstlisting}
-class BinTree(object):
+class BinarySearchTree(object):
     def __init__(self):
         self.root = None
         self.size = 0
+        
+    def __len__(self):
+        return self.size
 \end{lstlisting}
 
 \subsection*{Inserting}
 Inserting a node into a binary search tree is a simple procedure.
-Our goal is to insert into a leaf node, so we recursively insert to the right if the element is greater than the current node or insert to the left if the element is less than the current node.
-Once we reach a node without a left or right subtree, we add our new node as its new child node.
-Thus, we always insert into leaf nodes; we never insert a non-leaf node into a BST.
+Our goal is to insert into a leaf node, so we travel to the right if the element is greater than the current node or travel to the left if the element is less than the current node.
+Once we reach a node without a subtree in the appropriate location, we add our new node as its new child node.
+This way, we insert only leaf nodes into a BST.
 
 Let's demonstrate this process with an example.
 
@@ -349,45 +311,49 @@ Let's demonstrate this process with an example.
     $28$ must then take $476$ as its parent node and, because $28 < 476$, it is placed as the left child of $476$.
 \end{minipage}
 
-To begin writing an insertion method for our \li{BinTree} class, we consider BST's themselves.
+To begin writing an insertion method for our \li{BinarySearchTree} class, we consider BST's themselves.
 BSTs are a recursive data structure because each of the left and right subtrees of a parent node are, themselves, BSTs.
-Therefore, many of the algorithms for working with binary search trees are also recursive.
-A recursive function is a function that calls itself until it reaches a base case.
-To supplement our \li{insert} method, we write a recursive function to call within our insert function:
+Therefore, many of the algorithms for working with binary search trees can also be recursive.
+A recursive function is a function that calls itself until it reaches a base case. 
+In the case of a BST, the recursive function allows us to travel right or left as appropriate until we reach a missing subtree.
+To supplement our \li{insert} method, we will write a recursive function to call within our insert function:
 \begin{lstlisting}
 def insert(self, data):
     def _recur_insert(node, item):
-        # This base case identifies the proper leaf node for
-        # insertion and returns the data as a Node.
+        # This is the base case; we have reached the proper node for insertion
+        # and we now return the data as a Node to the previous function call,
+        # setting it as the right or left node of its parent.
         if node is None:
             return Node(item)
-        # Allows you to recursively travel through the binary tree
-        # until you reach a leaf node.
         else:
+            # Recursively travel through the tree until you reach a leaf node
             if data < node.value:
                 node.left = _recur_insert(node.left, item)
             elif data > node.value:
                 node.right = _recur_insert(node.right, item)
-        # After the base case, each of the previous calls to
-        # the recursive function finish by returning the previous node.
+                
+        # After the base case, each of the previous calls to the
+        # recursive function finishes by returning the previous node.
         return node
+        
     self.root = _recur_insert(self.root, data)
     self.size += 1
 \end{lstlisting}
-We call this recursive function by setting it equal to the root node.
-The function will continually call itself until it finds an empty node, insert the data as a \li{Node()}, and use \li{return node} to finish each of the previous calls to the recursive function. 
+We call this recursive function and set it equal to the root node.
+The function will continually call itself until it finds an empty node. 
+It inserts the data as a node, and then \li{return node} will finish each of the previous calls to the recursive function. 
 (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
-Finally, we finish our insertion method by updating our counter.
+Finally, we finish our insertion method by updating our size.
 
-\subsection*{Finding}
-Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them.
-In fact, for large trees, a recursive algorithm will consume a lot of resources.
-When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is, indeed, to be found within the tree.
+\subsection*{Searching}
+Although recursive functions are often useful and intuitive with trees, we are by no means required to use them.
+In fact, for large trees, a recursive algorithm may incur a large overhead.
+When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is to be found within the tree.
 
 \begin{problem}
 Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node.
 If no such node exists, return \li{False}.
-\label{Finding Nodes}
+\label{prob:Finding Nodes}
 \end{problem}
 
 \subsection*{Removing}
@@ -441,6 +407,7 @@ If the node we want to delete has no children then we simply remove the node.
 In this case, we have to worry about children.
 If we were to just delete the node, we would lose the entire subtree.
 The solution, however, is simple enough: we promote the single child to take the place of the node we are deleting.
+This preserves the binary search property.
 \begin{center}
 \begin{minipage}{0.3\textwidth}
     \begin{tikzpicture}[
@@ -488,12 +455,11 @@ We can't simply promote a child node.
 Indeed, how would we decide which child to promote?
 Fortunately, we can reduce this case down to one of the previous two cases.
 Suppose we are removing node $23$, which has two children.
-We first locate the \emph{in order successor}: either the smallest node of the right subtree or the greatest node of the left subtree.
-In this case, we identify node $28$ as the in order successor.
-Note that, because $28$ is the smallest node of the right subtree, it cannot have a child to it's left, which implies it either has one child to the right or no children at all.
+We first locate either the smallest node of the right subtree or the greatest node of the left subtree.
+In this case, we identify node $28$ as the smallest node in the right subtree.
+Because $28$ is the smallest node of the right subtree, it cannot have a child to its left, which implies it either has one child to the right or no children at all.
 We swap the data of nodes $28$ and $23$ (so node $28$ now has the data that $23$ had and vice versa).
-Thus, removing $23$ has been reduced to a simpler case.
-\begin{center}
+This swap still preserves the binary search property of the tree and removing $23$ has been reduced to a simpler case.
 \begin{minipage}{0.3\textwidth}
 \begin{tikzpicture}[
   level distance=1.5 cm,
@@ -508,9 +474,7 @@ Thus, removing $23$ has been reduced to a simpler case.
 		child{node[circle,draw](28){28}}
 		child[fill=none] {edge from parent[draw=none]}
 	};	
-  \node[draw=none, node distance=3cm](Note)[right of =28] {In order successor};
   \path[->, >=stealth', auto]
-     (Note) edge (28)
      (23) edge[out = 5, in=15, blue, looseness=1.5] (28)
      (28) edge[bend left, red] (23);
 \end{tikzpicture}
@@ -536,7 +500,6 @@ Thus, removing $23$ has been reduced to a simpler case.
 	    };
     \end{tikzpicture}
 \end{minipage}
-\end{center}
 \end{enumerate}
 
 \begin{problem}
@@ -547,508 +510,143 @@ Make sure to account for each of the three cases presented above.
 \label{prob:Binary Removal}
 \end{problem}
 
-\subsection*{Balanced Trees}
-Binary search trees often perform very well if the primary goal for our structure is efficient searching.
-However, the order of insertion into a binary search tree largely determines how well the tree performs.
-Binary search trees work best when elements are added in a random order.
-This keeps the levels of the tree relatively complete, rather than imbalanced where certain subtrees are far larger than others.
-If the elements are sorted before they are added to a BST, the efficiency of using a binary search tree is completely mitigated.
-As is evident in figure \ref{fig:Degenerate Tree}, the resulting degenerate tree is essentially a linked list.
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-  level distance=.5 cm, % level and sibling distance edited to allow for the tree to fit on the page, and to better resemble a linked list
-  level 1/.style={sibling distance=2.5cm},
-  level 2/.style={sibling distance=2.5cm},
- thick, minimum size = .9cm]
-    \node[circle,draw] {6}
-	child[fill=none] {edge from parent[draw=none]}	
-	child {node[circle,draw]{23}
-		child[fill=none] {edge from parent[draw=none]}
-		child{node[circle,draw]{41}
-			child[fill=none] {edge from parent[draw=none]}
-			child{node[circle,draw]{50}
-				child[fill=none] {edge from parent[draw=none]}
-				child{node[circle,draw]{77}
-					child[fill=none] {edge from parent[draw=none]}
-					child{node[circle,draw]{196}
-						child[fill=none] {edge from parent[draw=none]}
-						child{node[circle,draw]{400}}
-					}
-				}
-			}
-		}
-	};
-\end{tikzpicture}
-\caption{Example of a degenerate tree}
-\label{fig:Degenerate Tree}
-\end{figure}
-
-One method for solving these problems is to keep the tree balanced.
-On each insertion and removal, the tree is re-balanced to maintain optimal performance.
-AVL trees (Adelson-Velskii and Landis' Trees) and red-black trees are examples of balanced trees.
-Figure \ref{fig:AVL btree} displays the elements from figure \ref{fig:Degenerate Tree} as an AVL-balanced tree.
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-  level distance=1.5 cm,
-  level 1/.style={sibling distance=3cm},
-  level 2/.style={sibling distance=1.5cm},
- thick, minimum size = .9cm]
-  \node[circle,draw] {50}
-	child {node[circle,draw]{23}
-		child{node[circle,draw]{6}
-		}
-		child{node[circle,draw]{41}
-		}
-	}
-	child{node[circle,draw]{196}
-		child{node[circle,draw]{77}
-		}
-		child{node[circle,draw]{400}
-		}
-	};
-\end{tikzpicture}
-\caption{Example of an AVL-balanced tree}
-\label{fig:AVL btree}
-\end{figure}
-
-We will not discourse upon the specific algorithms for AVL balancing or red-black balancing here.
-However, a comparison between the two figures makes it clear that a balanced tree will enable far more efficient searching than an unbalanced tree.
-
-\section*{Heaps}
-A \emph{heap} is another tree-based data structure; however, heaps are only partially ordered and are always \emph{complete}.
-In a complete tree, every level of the tree, except possibly the last, is filled to its capacity.
-Furthermore, each of the leaves on the last level of a complete tree must be oriented to the left.
-Heaps are always complete because of the way they are partially ordered: parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
-In a max heap, for example, each parent is greater than its children.
-However, the order of the children within each level doesn't matter, as long as each child is less than its parent node.
-\begin{figure}[h]
-\begin{centering}
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](87) {87}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw]{53}
-		child{node[circle,draw]{8}
-			child{node[circle,draw]{5}}
-			child[fill=none] {edge from parent[draw=none]}
-		}
-		child{node[circle,draw]{-1}}
-	};
-\end{tikzpicture}
-\end{centering}
-\caption{Example of a max heap}
-\label{fig:Max Heap}
-\end{figure}
-Note, as in figure \ref{fig:Max Heap}, that this ordering puts the maximum of the heap at the root of the tree.
-Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to find the maximum or minimum of a data set in constant time.
-We are also commonly use heaps for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
-However, because heaps are only partially ordered, searching for nodes in heap, other than the root, is not as efficient a procedure as in a BST.
-
-To add into a heap, we put the node into the farthest left available leaf on the lowest level of the tree.
-Then we compare it to its parent according to our chosen ordering: in the max heap below, if the node is greater than its parent, we switch the two nodes.
-We continue this process until either the new node reaches a greater parent or until it becomes the new root.
-
-\begin{minipage}{.65\textwidth}
-
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](87){87}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw](53){53}
-		child{node[circle,draw](8){8}
-			child{node[circle,draw]{5}}
-			child{node[circle,draw=red, fill=red!20!](98){98}}
-		}
-		child{node[circle,draw]{-1}
-        }
-	};
-\foreach \s/\t in {98/8, 8/53, 53/87}{
-    \path[->, >=stealth, auto]
-	    (\s) edge[bend right, red] (\t)
-        (\t) edge[bend right] (\s);}
-\node[draw=none, node distance = .25cm][above of=87]{};
-\end{tikzpicture}
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](98){98}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw]{87}
-		child{node[circle,draw]{53}
-			child{node[circle,draw]{5}}
-			child{node[circle,draw]{8}}
-		}
-		child{node[circle,draw]{-1}
-        }
-	};
-\node[draw=none, node distance = 3.25cm][below of=98]{};
-\draw[->, double, double equal sign distance, -implies, thick, shorten >=.2cm, shorten <=.2cm]
-        (0,1.5) -- (0,.5);
-\end{tikzpicture}
-\end{minipage}
-\begin{minipage}{.3\textwidth}
-In the example to the left, we add element $98$ to our Max heap.
-We begin by inserting $98$ as the next available leaf on the bottom level.
-Now we must compare it to its parent, $8$.
-Because $98 > 8$, the two nodes switch locations on the heap.
-This pattern continues with each successive parent-child comparison: $98 > 53$, and $98 > 87$.
-Finally, our inserted node, $98$, becomes the new root (and therefore the new maximum) of this heap.
-\end{minipage}
-
-Since heaps are really only useful for keeping track of the root, removing the maximum is easy, but removing any other node is not.
-To remove the maximum (the root), we simply compare the root's children and promote the greatest to be the new root.
+If data we put in a binary search tree is ordered, we lose the efficiency advantage of these trees.
+We can use a balanced binary search tree to avoid this issue and retain the efficiency of binary search trees for any kind of data.
 
 \section*{Hash Tables}
-A \emph{hash table} is a very simple data structure that trades space for speed.
-The key advantage of a hash table is this speed; most of the operations of a hash table execute in constant time, independent of the size of the data structure.
-Unlike previous data structures we have studied, however, we do not construct a hash table by defining a node class.
-In essence, a hash table is actually an array where each piece of data is associated with its index as a key.
-As such, hash tables have very fast lookup times; they form the underlying data structure of Python's dictionaries.
+A \emph{hash table} is a very simple data structure that trades memory space for speed.
+The key advantage of a hash table is this speed; most of the operations of a hash table execute very efficiently, independent of its size.
+As such, hash tables have very fast lookup times; they form the underlying data structure for Python's set and dictionary types.
 
 One of the key components of a hash table is a \emph{hash function}.
-A hash function takes our data as an input and then outputs a positive integer used to index the array.
-Since the hash function must be executed to perform any operation on the hash table, it is important that the hash function executes quickly.
+A hash function takes a piece data as an input and outputs a natural number which corresponds to the index for that piece of data.
+Since the hash function must be executed to perform any operation on the hash table (e.g. insertion or lookup), it is imperative that the hash function execute quickly.
 Thus, the heart of a hash table is a good hash function.
 
-We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (a Python list) and by taking both the array size and the hash function as arguments.
+We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (in this case, a Python list) and by taking both the array size and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
-    def __init__(self, hsize, hashfunc):
-        # Efficiently extends a list to the designated hash table size.
+    def __init__(self, capacity):
+        # Efficiently extend a list to the designated hash table size
         self.hashtable = [None] * hsize
-        # Keeps track of the number of elements within the hash table.
-        self.elsize = 0
+        
+        # Keeps track of the number of elements within the hash table
+        self.size = 0
+        
         # Indicates the size of the hash table
-        self.hsize = hsize
-        # Indicates the hash function
-        self._hash = hashfunc
+        self.capacity = capacity
+        
+    def load_factor(self):
+        # The load factor tells how saturated a hash table is
+        return float(self.size)/self.capacity
 \end{lstlisting}
 
-What makes a good hash function?
-Hash functions need to distribute items evenly throughout the hash table.
-Since we usually mod by the table size at the end (to keep the index within proper range), we need to make sure the remainders mod $n$ are evenly distributed.
-Consider a simple example where we use a hash table to store strings.
-Our hash function will index a string by the string's length mod the size of the table.
-As the size of such a hash table grows, however,  fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
-Therefore, before we mod the string length by the table size, we multiply by a large prime number.
-A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
+
+A good hash function will execute quickly and distribute items uniformly throughout the table.
+For this lab, we will use Python's built-in \li{hash} function.
+The principle idea of inserting into a hash function is demonstrated below.
 \begin{lstlisting}
-def HashFunction(string, tablesize, prime=5417):
-    index = (len(string) * prime)  %  Tablesize
-    return index
+>>> capacity = 5
+>>> table = [None] * capacity
+>>> hash('three')
+8354070563160704301
+>>> hash('three') % capacity
+1
+>>> table[1] = 'one'
+>>> print table
+[None, 'three', None, None, None]
+>>> table[hash('four') % capacity] = 'four'
+>>> table[hash('five') % capacity] = 'five'
+>>> print table
+['four', 'three', 'five', None, None]
+
+# We can locate 'five' quickly
+# Notice that is faster than the list's builtin methods
+>>> %timeit table.index('five')
+1000000 loops, best of 3: 190 ns per loops
+>>> %timeit table[hash('five') % capacity]
+10000000 loops, best of 3: 111 ns per loop
+>>> table[hash('two') % capacity] = 'two'
+# Note that our load factor is 4/5.
+>>> print table
+['four', 'three', 'five', 'two', None]
+
+# When our load factor passes a certain threshold, we need to make the hash table bigger
+# Resizing the hash table means rehashing everything in it
+>>> def resize(table, new_cap):
+        new_table = [None] * new_cap
+        for i in table:
+            new_table[hash(i) % new_cap] = i
+        return new_table
+>>> table = resize(table, 7)
+>>> print table
+[None, None, None, 'two', None, None, 'four']
 \end{lstlisting}
-Let's apply our example hash function to a table of size 4.
-Then `cat' would be stored at index $3$ and `lion' would be stored at index $0$.
-\begin{center}
-\begin{tikzpicture}[thick]
-\tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=-.03 cm of 0] {}; % The -.03 ensures that our table lines intersect, rather than combine to create thicker lines.
-    \node[block] (2) [right=-.03 cm of 1] {};
-    \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-\end{tikzpicture}
-\end{center}
-\begin{problem}
-Add an insert method to your \li{HashTable} class. Don't forget to update your counter for the number of elements within the hashtable!
-
-Initialize a hash table of size 11 using the example \li{HashFunction()} from above.
-Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', and `cat'.
-Print your hash table. What happens when you insert `clouded leopard'?
-What happens when you insert `jaguar'?
-\label{Prob:Basic hash insert}
-\end{problem}
-
-As we saw in the previous problem, our example hash function is still far from perfect.
-In our example hash table, if we try to store the string `leopard', our hash function sends it to 3.
-But `cat' is already stored in spot 3!
-This is called a \emph{hash collision}.
-So how can we deal with collisions?
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto,thick]
-\tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=-.03 cm of 0] {};
-   \node[block] (2) [right=-.03 cm of 1] {};
-   \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
-   \path[red]
-   (leopard.west) edge[bend left] (3.south);
-   \node[draw = none, node distance = 1.75cm] [left of=0]{};  % Centralize this particular figure
-\end{tikzpicture}
-\end{center}
 
 The ideal hash function maps unique inputs to unique outputs that are uniformly distributed over the hash space.
 However, it is extremely difficult to create an ideal hash function; most hash functions will experience hash collisions.
+Hash collisions are when two unique inputs are mapped to the same index in the hash table (in our example above, resizing the hash table resulted in hash collisions that lost half the strings we stored in the table).
 Fortunately, there are ways to handle hash collisions.
-The two methods that we will discuss are called open addressing and chaining.
 
-\subsection*{Open Addressing}
-The term \emph{open addressing} indicates that the output of the hash function doesn't necessarily identify the location of the piece of data.
-\emph{Probing} is one of the more popular forms of open addressing; in this section we will discuss both linear and quadratic probing.
-
-In the event of a hash collision, linear probing seeks to resolve the collision by looking for the next available location in the hash table.
-We can do this by sequentially visiting each location and, when we find an empty one, storing our data in that location.
-The following is an example of a linear probing hash function where $n$ is the size of the hash table, $h(x)$ is the hash function, and $i$ is a constant:
-\begin{equation*}
-h(x, i) = h(x) + i \pmod{n}
-\end{equation*}
-
-We start with $i = 0$, and if the spot is full, we increment $i$ until we find an empty spot.
-If we go back to our earlier example, we can store `leopard' in our hash table using linear probing.
-Our hash function sends us to spot 3, but it is already filled, so we start stepping through the table.
-Since 3 is at the end of the table, we go to the beginning (namely $4 \% 4$) and, because spot 0 is already filled, we proceed to index 1.
-Spot 1 is empty, so we store `leopard' there.
-\begin{center}
-  \begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-   \node[block] (0) [] {`lion'};
-   \node[block] (1) [right=-.03 cm of 0] {`leopard'};
-   \node[block] (2) [right=-.03 cm of 1] {};
-   \node[block] (3) [right=-.03 cm of 2] {`cat'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \node[block, node distance = 1.5cm, red] (leopard) [below right of=3]{`leopard'};
-   \path[red]
-   (leopard.west) edge[bend left] (3.south)
-   (3.south) edge[bend left] (0.south)
-   (0.south) edge[bend right, out=-20, shorten <=.2cm] (1.south);
-  \end{tikzpicture}
-\end{center}
-\begin{problem}
-Expand the \li{insert} method of your \li{HashTable} class to enable linear probing.
-Do not allow your method to insert, however, if the hash table is full.
-From your previous hash table, again add `clouded leopard' and `jaguar'.
-Which index does your new insert method send `clouded leopard' to?
-What about `jaguar'?
-\label{prob:Linear probing insert}
-\end{problem}
-
-When we use linear probing to insert a piece of data, how can we later find it?
-If we simply use our hash function, we will be directed to the incorrect index.
-We then have to begin iterating through the table to search for our data.
-Let's supplement our \li{HashTable} class with a \li{find} method.
+\paragraph{Probing.}
+One method that we can use to resolve hash collisions is probing.
+A short example will be succintly illustrate this method.
 \begin{lstlisting}
-def find(self, data):
-    index = self._hash(data, self.hsize)
-    # Steps through the table until it reaches either the data or 
-    # the initial index.
-    for i in xrange(self.hsize):
-        newindex = (index + i) % self.hsize
-        # Optional step: prints the indices each step of the search.
-        print 'Searching ' + str(newindex)
-        if self.hashtable[newindex] == data:
-            return True
-    return False
+>>> capacity = 5
+>>> table = [None] * capacity
+# Now we add the words 'one' and 'two'
+# Notice what happens when we add 'two'
+>>> table[hash('one') % capacity] = 'one'
+>>> print table
+[None, None, None, 'one', None]
+>>> table[hash('two') % capacity]
+'one'
+
+# We can resolve the collision by looking for the next available index
+# Starting at index 3, we look at index 3+1 % capacity, 3+2 % capacity, 3+3 % capacity, ..., until we find and empty index
+# Seeing that index 4 is None, we store 'two' there
+>>> table[4] = 'two'
+>>> print table
+[None, None, None, 'one', 'two']
+\end{lstlisting}
+This is called linear probing.  
+There are other variations of this idea which are more optimal.
+
+\paragraph{Chaining.}
+Another method for resolving hash collisions is chaining.
+This method slightly alters the structure of our hash table, so that at each index, a list is stored.
+When an item is mapped to an index, it is appeneded to the list at that index.
+\begin{lstlisting}
+>>> capacity = 5
+>>> table = [list() for i in xrange(capacity)]
+
+# Now we add the words 'one' and 'two'
+# Notice what happens when we add 'two'
+>>> table[hash('one') % capacity].append('one')
+>>> print table
+[[], [], [], ['one'], []]
+>>> table[hash('two') % capacity].append('two')
+>>> print table
+[[], [], [], ['one', 'two'], []]
 \end{lstlisting}
 
-Though linear probing is certainly a valid method to resolve hash collisions, it has its own set of drawbacks.
-For example, a linear probe tends to cause elements in the table to cluster together.
-Furthermore, if our hash table is densely populated or our hash function has a lot of collisions, we lose the efficiency of a hash table because we must resort to a linear search.
-Quadratic probing seeks to mitigate the issues associated with linear probing by spreading out hash collisions more evenly.
-A quadratic probing hash function where $c_1$ and $c_2$ are constants is of the form
-\begin{equation*}
-h(x, i) = h(x) + c_1i + c_2i^2 \pmod{n}
-\end{equation*}
-
-\subsection*{Chaining}
-Chaining is a form of \emph{closed addressing}, meaning that the output of the hash function actually does point to the location of the data.
-With chaining, each location of the hash table references a list of the data pieces sent to that index.
-When one or more pieces of information hash to the same location, they are simply appended to that location's list.
-
-Let's add `leopard' to our earlier example, this time using chaining.
-Our hash function sends us to 3, but `cat' is already there.
-Thus we add `leopard' to the list in spot 3 that already contains `cat'.
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {`lion'};
-    \node[block] (1) [right=-.03 cm of 0] {};
-    \node[block] (2) [right=-.03 cm of 1] {};
-    \node[block] (3) [right=-.03 cm of 2] {`cat'};
-    \node[block, node distance = 1.5cm](leopard)[below of=3]{`leopard'};
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3}{
-    \node[block] [above=0cm of \s]{\s};}
-   \draw[->] (3) -- (leopard);
-\end{tikzpicture}
-\end{center}
-
 \begin{problem}
-Improve your \li{insert} method to deal with hash collisions via chaining, rather than probing. 
-Note that, with this method, you need not return an error if the hash table is already full (the new insertion will simply be appended to the proper index's list).
-Recreate and print your feline hash table(including 'jaguar' and 'clouded leopard') using this new method of insertion. 
-\label{prob:Chaining insert}
+Add an insert method to your \li{HashTable} class. Don't forget to update your size for the number of elements within the hashtable!
+Use chaining to handle hash collisions.
+When your hash table exceeds a load factor of .8, resize the hash table so that the load factor is below .3
+
+Initialize a hash table of size 4 using the example \li{HashFunction()} given above.
+Add the following felines: `lion', `tiger', `cheetah', `cougar', `colocolo', `cat', `clouded leopard', and `jaguar'.
+Print your hash table.
+\label{prob:hash_table}
 \end{problem}
 
-With a good hash function, the average size of the hash location's list is relatively short, so searching the list doesn't affect the overall performance of the hash table.
-We update our \li{find} method to search a hash table implemented via chaining:
-\begin{lstlisting}
-def find(self, data):
-    index = self._hash(data, self.hsize)
-    for i in self.hashtable[index]:
-        if i == data:
-            return True
-    return False
-\end{lstlisting}
+\begin{info}
+Usually exisiting implementations of data structures are better to use.
+The implementations of linked lists, trees, and hash tables in this lab were designed to familiarize you with the data structure's mechanics through example and practice.
+In real situations, you will likely use Python's deques, sets, or dictionaries.
+Python doesn't have a built-in implementation of trees, but there are several Python libraries that have highly optimized implementations of trees.
 
-\subsection*{Hash Table Details}
-As a hash table fills up, its performance degrades.
-This is because more hash collisions occur, forcing us to use either linear probing or chaining to resolve them.
-As a result, we have to search through lists or iterate through the table more often.
-To combat this, we often track a \emph{load factor} for the hash table.
-This load factor reveals how `saturated' the table is by calculating the ratio of the number of elements in the hash table to the size of the hash table.
-We can easily add method to calculate the load factor of our \li{HashTable} class:
-\begin{lstlisting}
-def load(self):
-    loadfactor = float(self.elsize)/self.hsize
-    return loadfactor
-\end{lstlisting}
-
-When the load factor exceeds a certain threshold, we must allocate more space for the table.
-However, since the hash function was dependant on the size of the table, we need to re-hash everything already in the table.
-This can sometimes be a very expensive operation.
-It's important to avoid resizing the table whenever possible.
-
-After adding `leopard' into our earlier example, our hash table is very full. Let's re-hash it into a table with size 8.
-Our new hash function sends a string to its size mod 8 (rather than mod 4, as before).
-`cat' is sent to 3, `lion' to 4, and `leopard' to 7.
-Now that we have no hash collisions, there are no lists to iterate through and our hash table performs far more efficiently.
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt, auto, thick]
- \tikzstyle{block} = [rectangle, draw, minimum height = .55cm, minimum width = 1.5cm]
-    \node[block] (0) [] {};
-\foreach \s/\t/\u in {1/0/ , 2/1/ , 3/2/ , 4/3/`cat', 5/4/`lion', 6/5/ , 7/6/`leopard'}{
-    \node[block] (\s) [right=-.03 of \t] {\u};}
-\tikzstyle{block} = [draw=none]
-\foreach \s in {0, 1, 2, 3, 4, 5, 6, 7}{
-    \node[block] [above=0cm of \s]{\s};}
-\end{tikzpicture}
-\end{center}
-
-\begin{problem}
-Create a method for your hash table to resize.
-Implement this method such that, if the load factor exceeds $.75$, it will resize the hash table so that the load factor will be below $.33$.
-Don't forget to rehash the elements already within the table.
-Call this resize method at the end of your insertion method, so that the function never inserts into a saturated table.
-
-Now, insert `siberian tiger' and `bengal tiger' into your feline hash table. What is its new size? 
-\label{prob:Hash resizing}
-\end{problem}
-\begin{comment}
-\section*{Sparse Matrices}
-Matrices are powerful tools, but they can take a lot of space in memory.
-A $n \times n$ matrix takes $n^2$ places of storage!
-If every entry in the matrix is useful information this is fine, but if the matrix is filled with a lot of zeros, that means we are using almost $n^2$ spots in memory to store useless zeros.
-Not only does this unnecessarily take up space, it means that during computation we will spend a lot of time adding and multiplying zeros.
-That can be a lot of useless computation.
-The solution to this is \emph{sparse matrices}.
-They are other data structures used to represent a matrix by only storing non-zero entries.
-
-One common way is a dictionary.
-The index of the spot in the matrix is the key and the number in that spot is the value.
-For example,
-\[
-\begin{pmatrix}
-0 & 0 & 0 & 0 & 0 \\
-22 & 0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 & 0 \\
-0 & 0 & 5 & 0 & 0 \\
-0 & 0 & 0 & 0 & -4
-\end{pmatrix}
-\]
-would be stored as
-\[
-\begin{tabular}{|c|l|}
-\hline
-Key & Value \\
-\hline
-(1,0) & 22 \\
-\hline
-(3,2) & 5 \\
-\hline
-(4,4) & -4 \\
-\hline
-\end{tabular}
-\].
-
-In this case, we stored a 5 by 5 matrix in a dictionary with only 3 key-value pairs.
-
-SciPy has a nice implementation of sparse matrices.
-Not only does SciPy reduce the amount of space needed to store matrices, it has fast algorithms for matrix operations that takes advantage of the fact that there are so many zeros.
-
-\begin{problem}
-Use your time function from Section 1 and the code given below to time matrix multiplication using sparse matrices versus normal matrix multiplication for $ n = 100, 500, 1000, 1500,$ and $2000$. Which is faster? What happens as the matrices grow larger?
-\begin{lstlisting}
-from scipy import sparse
-import numpy as np
-
-#dimension of matrices
-n = 100
-
-# create 2 random sparse matrices with density 0.1
-A = sparse.rand(n,n)
-B = sparse.rand(n,n)
-
-#Multiply using sparse matrix techniques
-A.dot(B)
-
-#Change to dense matrices
-A_dense = A.todense()
-B_dense = B.todense()
-
-#Multiply with normal matrix multiplication
-A_dense.dot(B_dense)
-
- \end{lstlisting}
- \label{prob:Sparse}
- \end{problem}
-\end{comment}
-
-
+Performance tuning for data structures can be tricky even for professionals.  
+For this reason, it is better to avoid writing your implementation when one already exists.
+\end{info}
