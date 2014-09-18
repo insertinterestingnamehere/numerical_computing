@@ -221,20 +221,19 @@ Python's collections module already contains a deque object, which is discussed 
 \section*{Trees}
 \label{Binary Search Tree}
 Donald Knuth, author of \emph{The Art of Computer Programming}, once said that ``Trees sprout up just about everywhere in computer science.''
-\emph{Trees} are similar to linked lists, but the nodes of a tree can reference with greater versatility (rather than simply referencing the \li{next} and/or \li{previous} nodes).
-Like the head node of a linked list, a tree begins with an initial reference node, here called the \emph{root} node.
-Unlike linked lists, however, the nodes within a tree can point to multiple nodes (called \emph{child} nodes), depending on the way the tree is defined.
-We can create many different types of trees by the way we organize the nodes within them; one of the simplest of these types is called a \emph{binary search tree} (BST).
+We can create many different types of trees by the way we organize the nodes within them.
+One of the simplest of these trees is called a \emph{binary search tree}(BST).
 
-A binary tree is a tree that has a maximum of two children per node, an ordered structure, and no duplicate elements. 
-Trees are commonly ordered such that the left half of the tree contains elements less than the root, and the right half contains elements greater than the root. Binary search trees can thus be implemented with any comparable data.
-This type of organization substantially cuts down search time, making trees an excellent data structure to use when our primary goal is efficient searching.
-By simply knowing that our target element is less or greater than the root, we can immediately eliminate half of our binary tree from the search.
+A binary search tree is a tree that has a root node with a maximum of two children, commonly referred to as a left child and a right child.
+They are commonly ordered such that the left child of the root node contains elements less than the root, and the right child contains elements greater than the root.
+The tree is a recursive structure, where each child node is potentially the root of a subtree with the same properties.
+This type of organization substantially reduces search time, making trees an excellent data structure to use when our primary goal is efficient searching.
+By simply knowing that our target element is less than or greater than the root, we can immediately eliminate half of the binary tree from the search.
 Because the process of locating a node is so quick, the processes of inserting and removing nodes are similarly efficient.
 
-We begin building a BST by defining our node class. A node in a binary search tree holds a piece of data as well as references to its left and right children (which can, in turn, be subtrees of this \emph{parent} node).
+We begin building a BST by defining our node class. 
+A node in a binary search tree holds a piece of data as well as references to its left and right children which can, in turn, be the roots of subtrees.
 We call a node without any children a \emph{leaf} node.
-
 \begin{lstlisting}
 class Node(object):
     def __init__(self, data):
@@ -242,19 +241,22 @@ class Node(object):
         self.left = None
         self.right = None
 \end{lstlisting}
-We initialize our BST similarly to a linked list, with a reference to the root and to a counter to keep track of the size.
+We initialize our BST similarly to a linked list, with a reference to the root and to a size counter to keep track of the size.
 \begin{lstlisting}
-class BinTree(object):
+class BinarySearchTree(object):
     def __init__(self):
         self.root = None
         self.size = 0
+        
+    def __len__(self):
+        return self.size
 \end{lstlisting}
 
 \subsection*{Inserting}
 Inserting a node into a binary search tree is a simple procedure.
 Our goal is to insert into a leaf node, so we travel to the right if the element is greater than the current node or travel to the left if the element is less than the current node.
 Once we reach a node without a subtree in the appropriate location, we add our new node as its new child node.
-This way, we never insert a non-leaf node into a BST.
+This way, we insert only leaf nodes into a BST.
 
 Let's demonstrate this process with an example.
 
@@ -316,11 +318,12 @@ Let's demonstrate this process with an example.
     $28$ must then take $476$ as its parent node and, because $28 < 476$, it is placed as the left child of $476$.
 \end{minipage}
 
-To begin writing an insertion method for our \li{BinTree} class, we consider BST's themselves.
+To begin writing an insertion method for our \li{BinarySearchTree} class, we consider BST's themselves.
 BSTs are a recursive data structure because each of the left and right subtrees of a parent node are, themselves, BSTs.
-Therefore, many of the algorithms for working with binary search trees are also recursive.
-A recursive function is a function that calls itself until it reaches a base case. In the case of a BST, the recursive function allows us to travel right or left as appropriate until we reach an empty node.
-To supplement our \li{insert} method, we write a recursive function to call within our insert function:
+Therefore, many of the algorithms for working with binary search trees can also be recursive.
+A recursive function is a function that calls itself until it reaches a base case. 
+In the case of a BST, the recursive function allows us to travel right or left as appropriate until we reach a missing subtree.
+To supplement our \li{insert} method, we will write a recursive function to call within our insert function:
 \begin{lstlisting}
 def insert(self, data):
     def _recur_insert(node, item):
@@ -329,32 +332,35 @@ def insert(self, data):
         # setting it as the right or left node of its parent.
         if node is None:
             return Node(item)
-        # Recursively travel through the tree until you reach a leaf node
         else:
+            # Recursively travel through the tree until you reach a leaf node
             if data < node.value:
                 node.left = _recur_insert(node.left, item)
             elif data > node.value:
                 node.right = _recur_insert(node.right, item)
+                
         # After the base case, each of the previous calls to the
         # recursive function finishes by returning the previous node.
         return node
+        
     self.root = _recur_insert(self.root, data)
     self.size += 1
 \end{lstlisting}
-We call this recursive function by setting it equal to the root node.
-The function will continually call itself until it finds an empty node. It inserts the data as a \li{Node()}, and then \li{return node} will finish each of the previous calls to the recursive function. 
+We call this recursive function and set it equal to the root node.
+The function will continually call itself until it finds an empty node. 
+It inserts the data as a node, and then \li{return node} will finish each of the previous calls to the recursive function. 
 (It simply returns each of the parents it recursively visited prior, re-setting them equal to themselves, until it finally returns to \li{self.root}.)
-Finally, we finish our insertion method by updating our counter.
+Finally, we finish our insertion method by updating our size.
 
-\subsection*{Finding}
-Although recursive functions are often useful and intuitive with trees, we  are by no means required to use them.
-In fact, for large trees, a recursive algorithm will consume a lot of resources.
-When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is, indeed, to be found within the tree.
+\subsection*{Searching}
+Although recursive functions are often useful and intuitive with trees, we are by no means required to use them.
+In fact, for large trees, a recursive algorithm may incur a large overhead.
+When writing a method to search for nodes in a BST, we may either use recursion or an alternate method to ascertain whether a piece of data is to be found within the tree.
 
 \begin{problem}
 Add a method for finding nodes to your binary tree class. If a node containing your data exists within the tree, return the node.
 If no such node exists, return \li{False}.
-\label{Finding Nodes}
+\label{prob:Finding Nodes}
 \end{problem}
 
 \subsection*{Removing}
@@ -408,6 +414,7 @@ If the node we want to delete has no children then we simply remove the node.
 In this case, we have to worry about children.
 If we were to just delete the node, we would lose the entire subtree.
 The solution, however, is simple enough: we promote the single child to take the place of the node we are deleting.
+This preserves the binary search property.
 \begin{center}
 \begin{minipage}{0.3\textwidth}
     \begin{tikzpicture}[
@@ -455,12 +462,11 @@ We can't simply promote a child node.
 Indeed, how would we decide which child to promote?
 Fortunately, we can reduce this case down to one of the previous two cases.
 Suppose we are removing node $23$, which has two children.
-We first locate the \emph{in order successor}: either the smallest node of the right subtree or the greatest node of the left subtree.
-In this case, we identify node $28$ as the in order successor.
-Note that, because $28$ is the smallest node of the right subtree, it cannot have a child to it's left, which implies it either has one child to the right or no children at all.
+We first locate either the smallest node of the right subtree or the greatest node of the left subtree.
+In this case, we identify node $28$ as the smallest node in the right subtree.
+Because $28$ is the smallest node of the right subtree, it cannot have a child to its left, which implies it either has one child to the right or no children at all.
 We swap the data of nodes $28$ and $23$ (so node $28$ now has the data that $23$ had and vice versa).
-Thus, removing $23$ has been reduced to a simpler case.
-\begin{figure}
+This swap still preserves the binary search property of the tree and removing $23$ has been reduced to a simpler case.
 \begin{minipage}{0.3\textwidth}
 \begin{tikzpicture}[
   level distance=1.5 cm,
@@ -475,9 +481,7 @@ Thus, removing $23$ has been reduced to a simpler case.
 		child{node[circle,draw](28){28}}
 		child[fill=none] {edge from parent[draw=none]}
 	};	
-  \node[draw=none, node distance=3cm](Note)[right of =28] {In order successor};
   \path[->, >=stealth', auto]
-     (Note) edge (28)
      (23) edge[out = 5, in=15, blue, looseness=1.5] (28)
      (28) edge[bend left, red] (23);
 \end{tikzpicture}
@@ -503,7 +507,6 @@ Thus, removing $23$ has been reduced to a simpler case.
 	    };
     \end{tikzpicture}
 \end{minipage}
-\end{figure}
 \end{enumerate}
 
 \begin{problem}
@@ -517,149 +520,29 @@ Make sure to account for each of the three cases presented above.
 If data we put in a binary search tree is ordered, we lose the efficiency advantage of these trees.
 We can use a balanced binary search tree to avoid this issue and retain the efficiency of binary search trees for any kind of data.
 
-\section*{Heaps}
-A \emph{binary heap} is another tree-based data structure; however, unlike a BST, heaps are only partially ordered and are always \emph{complete}.
-In a complete tree, every level of the tree, except possibly the last, is filled to its capacity.
-Furthermore, each of the leaves on the last level of a complete tree must be oriented to the left.
-Heaps are always complete because of the way they are partially ordered: parents are ordered with respect to children, but unlike a BST, siblings or cousins have no order.
-In a max heap, for example, each parent is greater than its children.
-However, the order of the children within each level doesn't matter, as long as each child is less than its parent node.
-\begin{figure}
-\begin{centering}
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](87) {87}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw]{53}
-		child{node[circle,draw]{8}
-			child{node[circle,draw]{5}}
-			child[fill=none] {edge from parent[draw=none]}
-		}
-		child{node[circle,draw]{-1}}
-	};
-\end{tikzpicture}
-\end{centering}
-\caption{Example of a max heap}
-\label{fig:Max Heap}
-\end{figure}
-Note, as in figure \ref{fig:Max Heap}, that this ordering puts the maximum of the heap at the root of the tree.
-Therefore, the partial ordering of a heap makes finding the root very efficient; we often use max or min heaps when we need to access the maximum or minimum of a data set in constant time.
-Heaps are particularly useful for \emph{priority queues}, because the only element we need access to is the one with the greatest priority.
-However, because heaps are only partially ordered, searching for nodes in the heap other than the root is not as efficient a procedure as in a BST.
-
-To add into a heap, we put the node into the farthest left available leaf on the lowest level of the tree.
-Then we compare it to its parent according to our chosen ordering: in the max heap below, if the node is greater than its parent, we switch the two nodes.
-We continue this process until either the new node reaches a greater parent or until it becomes the new root.
-
-\begin{minipage}{.65\textwidth}
-
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](87){87}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw](53){53}
-		child{node[circle,draw](8){8}
-			child{node[circle,draw]{5}}
-			child{node[circle,draw=red, fill=red!20!](98){98}}
-		}
-		child{node[circle,draw]{-1}
-        }
-	};
-\foreach \s/\t in {98/8, 8/53, 53/87}{
-    \path[->, >=stealth, auto]
-	    (\s) edge[bend right, red] (\t)
-        (\t) edge[bend right] (\s);}
-\node[draw=none, node distance = .25cm][above of=87]{};
-\end{tikzpicture}
-\begin{tikzpicture}[
-  level distance=1 cm, % Normally, this distance would be 1.5cm, but the original pictures to imitate are more condensed
-  level 1/.style={sibling distance=4cm}, % Adjust the level distance to compensate for additional nodes
-  level 2/.style={sibling distance=2cm},
-  level 3/.style={sibling distance=1cm},
-  minimum size = .75cm, thick]
-  \node[circle,draw](98){98}
-	child {node[circle,draw]{27}
-		child{node[circle,draw]{10}
-			child{node[circle,draw]{7}}
-			child{node[circle,draw]{9}}
-		}
-		child{node[circle,draw]{16}
-			child{node[circle,draw]{4}}
-			child{node[circle,draw]{0}}
-		}
-	}
-	child{node[circle,draw]{87}
-		child{node[circle,draw]{53}
-			child{node[circle,draw]{5}}
-			child{node[circle,draw]{8}}
-		}
-		child{node[circle,draw]{-1}
-        }
-	};
-\node[draw=none, node distance = 3.25cm][below of=98]{};
-\draw[->, double, double equal sign distance, -implies, thick, shorten >=.2cm, shorten <=.2cm]
-        (0,1.5) -- (0,.5);
-\end{tikzpicture}
-\end{minipage}
-\begin{minipage}{.3\textwidth}
-In the example to the left, we add element $98$ to our Max heap.
-We begin by inserting $98$ as the next available leaf on the bottom level.
-Now we must compare it to its parent, $8$.
-Because $98 > 8$, the two nodes switch locations on the heap.
-This pattern continues with each successive parent-child comparison: $98 > 53$, and $98 > 87$.
-Finally, our inserted node, $98$, becomes the new root (and therefore the new maximum) of this heap.
-\end{minipage}
-
-Since heaps are really only useful for keeping track of the root, removing the root is easy, but removing any other node is not.
-To remove the root of a heap, we replace the root with the last leaf on the lowest level of the tree. Then we compare the new root to its children. If they are in the correct order, we stop. If not, we swap the root with one of its children (the smaller child in a  min heap and the greater child in a max heap) and then repeat this process with the element we just swapped with its child, which is now the root of a subheap, continuing until the heap property is satisfied.
-
 \section*{Hash Tables}
-A \emph{hash table} is a very simple data structure that trades space for speed.
-The key advantage of a hash table is this speed; most of the operations of a hash table execute in constant time, independent of its size.
-In essence, a hash table is actually an array where each piece of data is associated with its index as a key.
-As such, hash tables have very fast lookup times; they form the underlying structure of Python's dictionaries.
+A \emph{hash table} is a very simple data structure that trades memory space for speed.
+The key advantage of a hash table is this speed; most of the operations of a hash table execute very efficiently, independent of its size.
+As such, hash tables have very fast lookup times; they form the underlying structure of Python's sets and dictionaries.
 
 One of the key components of a hash table is a \emph{hash function}.
-A hash function takes a piece data as an input and outputs a positive integer which becomes the index for that piece of data.
-Since the hash function must be executed to perform any operation on the hash table (e.g. insertion or lookup), it is important that the hash function executes quickly.
+A hash function takes a piece data as an input and outputs a natural number which corresponds to the index for that piece of data.
+Since the hash function must be executed to perform any operation on the hash table (e.g. insertion or lookup), it is imperative that the hash function execute quickly.
 Thus, the heart of a hash table is a good hash function.
 
 We begin defining our \li{HashTable} class, then, by allocating space within a one-dimensional array (in this case, a Python list) and by taking both the array size and the hash function as arguments.
 \begin{lstlisting}
 class HashTable(object):
-    def __init__(self, hsize, hashfunc):
+    def __init__(self, capacity, hashfunc):
         # Efficiently extends a list to the designated hash table size.
         self.hashtable = [None] * hsize
+        
         # Keeps track of the number of elements within the hash table.
-        self.elsize = 0
+        self.size = 0
+        
         # Indicates the size of the hash table
-        self.hsize = hsize
+        self.capacity = hsize
+        
         # Indicates the hash function
         self._hash = hashfunc
 \end{lstlisting}
@@ -669,7 +552,7 @@ A good hash function will execute quickly, but it is equally important for it to
 Since we usually mod by the table size at the end (to keep the index within proper range), we need to make sure the remainders mod $n$ are evenly distributed.
 Consider a simple example where we use a hash table to store strings.
 Our hash function will index a string by the string's length mod the size of the table.
-As the size of such a hash table grows, however,  fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
+As the size of such a hash table grows, however, fewer and fewer strings will be hashed to its end: the function won't distribute the data evenly.
 Therefore, before we mod the string length by the table size, we multiply by a large prime number.
 A large number helps guarantee that the remainders will vary, and the prime helps prevent us from multiplying by a multiple of the table size (which would send us to $0$ every time).
 \begin{lstlisting}
