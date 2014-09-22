@@ -3,7 +3,7 @@
 \objective{Introduce the temporal and spatial complexity and explore SciPy's methods for working with sparse matrices.}
 
 \section*{Complexity}
-The complexity of an algorithm is how hard it is for a computer to solve. Two major constraints on computing are time and available memory (or ``space''). Hence, when you are evaluating an algorithm, you should ask about its temporal complexity and spatial complexity.
+The complexity of an algorithm is how hard it is for a computer to solve. Two major constraints on computing are time and available memory (or ``space''). Hence, when you are evaluating an algorithm, you should ask about its temporal complexity and spatial complexity. This lab intoduces complexity using examples and intuition; for a rigorous introduction, see Volume 2 of the textbook.
 
 \subsection*{Temporal Complexity}
 One of the most important questions in scientific computing is ``How long will a computer take to execute this algorithm?"
@@ -14,30 +14,25 @@ f(n) = \frac{3n^3}{2} + 75n^2 + 250n + 30.
 \end{equation*}
 
 As $n$ increases, the growth of $f(n)$ is dominated by the $n^3$ term.
-For this reason we say that $f(n) \in O(n^3)$, or more commonly, that $f(n)$ is $O(n^3)$ (spoken ``Big O of n cubed'' or ``order of n cubed"). So if we double the size of the input $n$, we would expect the algorithm to need about $2^3=8$ times as many steps, which would make it run about 8 times as long.
+This gives us information about how the runtime of our algorithm increases when we increase input size. If we double the size of the input $n$, we would expect the algorithm to need about $2^3=8$ times as many steps, which would make it run about 8 times as long.
 
 The function $f(n)$ above is called the \emph{temporal complexity} of the algorithm. In general, $n$ is a positive integer that somehow describes the size of the inputs to your algorithm. For example, perhaps your algorithm accepts $n \times n$ arrays, or perhaps it accepts 1-D arrays of length $n$. The temporal complexity of your algorithm is a function that accepts an input size $n$ and returns the number of steps the algorithm needs to execute on that input. As such, temporal complexity is a precise way to describe how the execution time of your algorithm increases as the size of your input increases.
 
-Often, we do not care about the exact definition of $f(n)$ so much as its behavior when $n$ gets large. This leads to the notion of an \emph{asymptotic upper bound}.
-\begin{comment}
-\begin{figure}
+Often, we do not care about the exact definition of $f(n)$ so much as its behavior when $n$ gets large. This leads to the notion of an \emph{asymptotic upper bound}. An asymptotic upper bound is another function $g(n)$ such that eventually, $f(n)$ is less than some constant multiple of $g(n)$. In the above example, $n^3$ is an asymptotic upper bound for $f(n)$ (see Figure \ref{fig:asymp_upper_bound}). If $g(n)$ is an asymptotic upper bound for $f(n)$, we say $f(n)$ is $O(g(n))$. So in the example above, $f(n)$ is $O(n^3)$ (spoken ``Big O of n cubed'' or ``order of n cubed").
+
+\begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{complexitycurves.pdf}
-\caption{Some common asymptotic curves.}
+\includegraphics[width=\textwidth]{asymp_upper_bound.pdf}
+\caption{When $n$ is bigger than 160, $f(n)$ is less than $2n^3$. This means that $n^3$ is an asymptotic upper bound for $f(n)$, so we say $f(n)$ is $O(n^3)$.}
+\label{fig:asymp_upper_bound}
 \end{figure}
-\end{comment}
-
-\begin{definition}[Assymptotic Upper Bounds]
-Let $f(n)$ and $g(n)$ be functions mapping natural numbers to positive real numbers. If there exists a real number $c > 0$ and a natural number $n_0$ such that for all natural numbers $n > n_0$, $f(n) \leq cg(n)$, then $g(n)$ is an \emph{asymptotic upper bound} for $f(n)$. We write $f \in O(g(n))$ or $f = O(g(n))$.
-\end{definition}
-
-This vocabulary allows us to mathematically answer the question at the start of this section: ``How long will a computer take to execute this algorithm?". A useful answer is an asymptotic upper bound for the temporal complexity of the function.
 
 For example, adding two $n \times n$ matrices is $O(n^2)$. This is because it takes 1 step to add each pair of elements in two $n \times n$ arrays, and there are $n^2$ such pairs.
 By comparison, calculating the inverse of a $n \times n$ matrix using Gaussian
 row reduction is $O(n^3)$. (There are more efficient
 algorithms for matrix inversion.)
 
+\begin{comment}
 How do we determine the temporal complexity of a piece of code?
 Calculating the exact temporal complexity of an algorithm is fairly difficult.
 However, there are ways to heuristically evaluate the asymptotic behavior of an algorithm's temporal complexity. For example, consider the following code.
@@ -70,7 +65,7 @@ The plot should look like Figure \ref{prob1} if using the \li{plt.scatter} comma
 \label{prob1}
 \end{figure}
 \end{problem}
-\end{comment}
+
 
 \begin{problem}\label{complexity_ratios}
 Fill in the following table. Here, $f(n)$ is the temporal complexity of an algorithm. The quantity $f(2n)/f(n)$ tells you how much longer each algorithm will take to run when you double the size of the input.
@@ -105,6 +100,7 @@ def function2(n):
 
 Do this as follows:
 \begin{enumerate}
+\renewcommand{\theenumi}{\alph{enumi}}
 \item Time how long the function takes to run on an input of size $n$ for $n=1000, 2000, 4000$, and $8000$.
 \item Compute the averages of the ratios between successive runtimes from part (1).
 \item Use Problem \ref{complexity_ratios} to determine the temporal complexity.
@@ -121,17 +117,89 @@ Your graph should look something like this.
 
 [TODO: put a figure here]
 \end{problem}
-
+\end{comment}
 
 
 \subsection*{Spatial Complexity}
-Analogous to temporal complexity, the spatial complexity of an algorithm is a function that describes how the algorithm's memory use increases as input sizes to the algorithm increase. Spatial and temporal complexity are not completely independent of each other, as the amount of memory required by an algorithm can affect its speed in several ways. The most important way is that when the memory usage exceeds the amount of available RAM, the machine must use the hard disk or some other slower storage method. Therefore, you should try to be aware of how much RAM your algorithm requires. In the next section, we will learn special storage methods that reduce the spatial complexity of handling certain arrays.
+Analogous to temporal complexity, the spatial complexity of an algorithm is a function that describes how the algorithm's memory use increases as input sizes to the algorithm increase. For example, if your algorithm needs to store an $n \times n$ matrix, its memory use will increase at least as fast as $n^2$. Spatial complexity is important because  the spatial complexity of an algorithm can affect its speed in several ways. The most important way is that when the memory usage exceeds the amount of available RAM, the machine must use the hard disk or some other slower storage method.
+
+This vocabulary allows us to discuss the question at the start of this section: ``How long will a computer take to execute this algorithm?". The amount of time a computer takes to execute an algorithm depends on both the algorithm's temporal complexity and on its spatial complexity. 
+
+
+\begin{problem}\label{complexity_problem}
+In this problem you will analyze the complexity of the following functions.
+
+\begin{enumerate}
+\renewcommand{\theenumi}{\alph{enumi}}
+\item
+\begin{lstlisting}
+# Single ``for'' loop
+def func1(n):
+    n = 500*n
+    sum(xrange(n))
+\end{lstlisting}
+
+\item 
+\begin{lstlisting}
+# Double ``for'' loop
+def func2(n):
+    n = 3*n
+    t = 0
+    for i in xrange(n):
+        t += sum(xrange(i))
+\end{lstlisting}
+
+\item
+\begin{lstlisting}
+# Square a matrix
+def func3(n):
+    n = int(1.2*n)
+    A = np.random.rand(n, n)
+    np.power(A, 2)
+\end{lstlisting}
+
+\item
+\begin{lstlisting}
+# Invert a matrix
+from scipy import linalg as la
+def func4(n):
+    A = np.random.rand(n, n)
+    la.inv(A)
+\end{lstlisting}
+
+\item 
+\begin{lstlisting}
+# Find the determinant of a matrix
+from scipy import linalg as la
+def func5(n):
+    n = int(1.25*n)
+    A = np.random.rand(n, n)
+    la.det(A)
+\end{lstlisting}
+\end{enumerate}
+
+
+Do this as follows:
+\begin{enumerate}
+\item Time how long each function takes to run on an input of size $n$ for $n=100, 200, 400$, and $800$.
+\item Graph your data as follows. Note that we rescaled the inputs to the functions so that your lines would begin at roughly the same place on the y-axis.
+\begin{enumerate}
+\item For each function, plot a line using $n=100, 200, 400$, and $800$ for $x$-values and your runtimes for $y$-values. Make sure your $y$-values are all in the same units! When you call the function \li{plt.plot()}, specify a value for the keyword parameter \li{label} so you can reference each line later. For example, the call \li{plt.plot( x, y, label="Function 1")} attaches the label "Function 1" to this line.
+\item After plotting all your lines, call \li{plt.legend()} to draw a legend on your graph. Use the keyword argument \li{loc} to specify the location of the legend. Some possible values are \li{'upper left'} and \li{'right'}. See the documentation for more options. Your final graph should look something like the figure below.
+\end{enumerate}
+\item For each function, discuss how its spatial and temporal complexity could have contributed to its runtime.
+\end{enumerate}
+
+
+\centering
+\includegraphics[width=\textwidth]{complexity_problem.pdf}
+
+\end{problem}
 
 \section*{Sparse Matrices}
-A \emph{sparse} matrix is a matrix that has relatively few nonzero elements. A matrix with few zero entries is \emph{dense}. The SciPy module \li{sparse} has matrix storage methods that are optimized for sparse matrices. When we are not using these special methods, we say we are storing the \emph{full} matrix. We can also use \li{sparse} methods on dense matrices, but doing so will take longer than using the usual methods for handling full matrices. So, sparse versus dense refers to a property of abstract matrices, and sparse versus full refers to how any matrix is stored in memory, regardless of its abstract properties. You minimize spatial complexity when you store a sparse matrix with the \li{sparse} module and a dense matrix as a full (or ``regular'') matrix.
+A \emph{sparse} matrix is a matrix that has relatively few nonzero elements. A matrix with few zero entries is \emph{dense}. The SciPy module \li{sparse} has methods to reduce the temporal and spatial complexity of handling sparse matrices. To reduce spatial complexity, it has matrix storage methods that are optimized for sparse matrices. When we are not using these special methods, we say we are storing the \emph{full} matrix. We can also use \li{sparse} methods on dense matrices, but doing so will take longer than using the usual methods for handling full matrices. So, sparse versus dense refers to a property of abstract matrices, and sparse versus full refers to how any matrix is stored in memory, regardless of its abstract properties. You minimize spatial complexity when you store a sparse matrix with the \li{sparse} module and a dense matrix as a full (or ``regular'') matrix.
 
 This difference in spatial complexity comes because a full array occupies a block of memory for each entry,, so a $n \times n$ array requires $n^2$ blocks of memory. By contrast, SciPy's \li{sparse} methods store only the nonzero entries and their locations in the array. As long as most entries are 0 (i.e., the matrix is sparse), this decreases spatial complexity. As listed in Table \ref{smr}, SciPy has 7 different sparse matrix types, corresponding to 7 ways of storing sparse matrices.
-
 
 
 \begin{table}[ht]
@@ -193,7 +261,7 @@ Create a $500\times 500$ matrix and vector of length 500, both full of random va
 \end{comment}
 
 \subsection*{Creating Sparse Matrices}
-One way to create a sparse matrix is to create a full matrix and then convert it to a sparse matrix, as we did in the previous example. However, it is more memory-efficient if you never create the full matrix. Here are two ways to create sparse matrices directly.
+One way to create a sparse matrix is to create a full matrix and then convert it to a sparse matrix, as we did in the previous example. However, you reduce spatial complexity if you never create the full matrix. Here are two ways to create sparse matrices directly.
 
 The first way is to use the method \li{sparse.spdiags(data, diags, m, n)}. If \li{data} is a 1-D array and \li{diags} is a scalar, then this method creates an $m \times n$ matrix with \li{data} on the specified diagonal. The parameter \li{diags=0} indicates the main diagonal, with lower diagonals indexed by negative numbers and upper diagonals by positive numbers. If \li{data} is a 2-D array and \li{diags} is a list, then this method creates an $m \times n$ matrix with the rows of \li{data} on the diagonals specified by \li{diags}. See the documentation for more information.
 \begin{lstlisting}
@@ -225,9 +293,10 @@ The final matrix \li{B} in the example above is a special kind of matrix called 
 \begin{problem}
 Write a function that takes an integer argument \li{n} and returns a sparse $n\times n$
 tri-diagonal array with $2$'s along the diagonal and $-1$'s along
-the two sub-diagonals above and below the diagonal. The array should be in \li{csr_matrix} format
-This matrix is the derivative operator in numerical analysis of differential equations.
+the two sub-diagonals above and below the diagonal. The array should be in \li{csr_matrix} format.
 \emph{Hint}: Read about the \li{format} keyword parameter of the \li{sparse.spdiags()} method.
+
+This matrix is the derivative operator in numerical analysis of differential equations.
 \label{prob:sparse_tridiag}
 \end{problem}
 
@@ -251,6 +320,25 @@ A second way to create a sparse matrix is to pre-allocate an array of zeros and 
 When the matrix \li{Z} is initialized, all its entries are assumed to be zero. 
 Note that at the end of \li{Z}'s construction, only 302 elements are being stored for a matrix with 120000 entries. 
 
+You may have noticed that the only way to view a matrix as a 2-D array is to convert it to a full matrix. If your matrix is too large to do this,
+you can still visualize it using the \li{plt.spy()} command from matplotlib. This function plots the
+locations of the non-zero entries in a matrix. The following code outputs Figure \ref{fig:mpl_spy}.
+
+\begin{lstlisting}
+>>> from matplotlib import pyplot as plt
+>>> B = np.random.rand(3, 10000)
+>>> A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
+>>> plt.spy(A)
+\end{lstlisting}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=10cm]{spy.png}
+\caption{The output of the \li{spy()} command}
+\label{fig:mpl_spy}
+\end{figure}
+
+
 %insert problem here that lets them play around with large sparse matrices in diff forms
 
 
@@ -267,40 +355,7 @@ the two sub-diagonals above and below the diagonal.
 
 
 
-\section*{Using Sparse Matrices}
-As we have discussed, storing a sparse matrix with the \li{sparse} module decreases spatial complexity. Here is an example.
-
-\begin{lstlisting}
->>>B = np.random.rand(3, 10000)
->>> A = sparse.spdiags(B, range(-1, 2), 10000, 10000)
-
-# Only do this if you have several gigabytes of memory
->>> A_dense = A.todense() 
-
->>> A.data.nbytes # About .24MB of memory.
-240000
-
->>> A_dense.nbytes # About 762.9MB of memory.
-800000000
-
-\end{lstlisting}
-Storing \li{A} as a dense matrix takes more than 3,000 times as much memory. 
-
-You may have noticed that the only way to view a matrix as a 2-D array is to convert it to a full matrix. If your matrix is too large to do this (as was \li{A} in the previous example),
-you can still visualize it using the \li{plt.spy()} command from matplotlib. This function plots
-locations of the non-zero entries in a matrix.
-Taking \li{A_dense} to be the matrix of the previous example, the output of \li{plt.spy(A_dense)} is shown in Figure \ref{fig:mpl_spy}.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=10cm]{spy.png}
-\caption{The output of the \li{spy()} command}
-\label{fig:mpl_spy}
-\end{figure}
-
-
-
-
+\section*{Using Sparse Matrices to Reduce Runtimes}
 In addition to spatial complexity, the \li{sparse} module can reduce temporal complexity. Consider the linear system $A x = b$, where $A$ is a $100000\times 100000$ tri-diagonal matrix.
 Storing a full matrix of that size requires 10 billion double-precision floating-point numbers.  Since it takes 8 bytes to store a double, we need roughly 80GB to store the full matrix.  Lack of storage space makes this system impossible to solve for most desktop computers, but even more problematic is the temporal complexity.
 Methods for directly solving a linear system are usually $O(n^3)$. As a result, even if the computer could store an 80GB matrix in RAM, it would still take several weeks to solve the system. 
@@ -339,6 +394,17 @@ Write a function that accepts an integer argument \li{n} as well as a keyword ar
 \end{enumerate}
 \end{problem}
 \end{comment}
+
+
+\begin{problem}
+Write a function that accepts an integer argument $n$ and does the following:
+\begin{enumerate}
+\item Generates an $n \times 1$ random array $b$.
+\item Solves the linear system $Ax = b$, where $A$ is the array in Problem \ref{prob:sparse_tridiag} of size $n \times n$.
+\end{enumerate}
+\end{problem}
+
+
 
 \begin{problem}
 Write a function that accepts an integer argument \li{n} and returns $\lambda n^2$, where
