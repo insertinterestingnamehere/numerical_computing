@@ -1,29 +1,16 @@
 \lab{Algorithm}{Invertible Affine Transformations and Linear Systems}{Invertible Affine Transformations and Linear Systems}
 \label{lab:ChangeBasis}
-\objective{Understand how to apply various affine transformations to a set of vectors and how to solve linear systems.}
+\objective{Apply affine transformations to a set of vectors in $\mathbb{R}^2$ and solve linear systems.}
 
-
-\section*{Basis}
-A \emph{basis} for a vector space is a linearly independent set of vectors that spans the entire space. Given a basis, it is possible to express every vector in the space as a unique linear combination of the basis vectors (indeed, this property can be taken as the definition for a basis).
-
-Bases themselves are not necessarily unique, however, and it can often be very useful to change the basis representation of vectors, both in theory and practice. Changing bases is an example of an important class of mappings known as \emph{linear transformations}.
-
-In finite dimensional vector spaces like $\mathbb{R}^n$, any linear
-transformation can be implemented as a single left matrix multiplication.
-In other words, a mapping $T : \mathbb{R}^n \to \mathbb{R}^n$ is linear if and only if there exists an $n \times n$ matrix $A$ such that $T\left(X\right) = AX$ for all vectors $X \in \mathbb{R}^n$. If $A$ is the $n \times n$ matrix representation of a linear transformation and $P$ is an $n \times m$ matrix in $\mathbb{R}^n$, then $AP$ is the matrix of transformed points.
-
-Different linear transformations can be represented by different types of matrices. In this lab we will take vectors in $\mathbb{R}^2$ and apply various linear and affine transformations.
-
-We have represented each point as a column of the array \li{pts}.
-It is also common to represent points as rows. In that case, the transformations described below can still be performed by transposing the arrays in the appropriate places.
-
-\section*{Dilation}
-Dilation, or scaling, is a type of linear transformation in which, from a geometrical perspective, points are stretched or compressed.
-The matrix representation, $A$, of a dilation is a diagonal matrix. The values on the main diagonal indicate the amount of stretching in their respective directions.
-
+\section*{Linear Transformations in $\mathbb{R}^2$}
+\subsection*{Dilation}
+A \emph{dilation} of the vector space rescales the vectors. Graphically, a dilation stretches or compresses the space. A linear transformation is a dilation if and only if its matrix representation is diagonal, so in particular all Type II elementary matrices are dilations. The matrix $\begin{pmatrix}
+1.5 & 0\\
+0 & 1.5 \end{pmatrix}$ corresponds to the dilation in Figure \ref{dilation_fig}.
 \begin{figure}
 \includegraphics[width=\textwidth]{stretch.pdf}
 \caption{An example of a dilation. The top image is the original image and the bottom image is the modified image. The figure was stretched by a factor of $1.5$ in all directions.}
+\label{dilation_fig}
 \end{figure}
 
 \begin{problem}
@@ -43,14 +30,11 @@ plt.show()
 \end{lstlisting}
 \end{problem}
 
-\section*{Rotation}
-Rotating points around the origin is another type of linear transformation. To perform a rotation of $\theta$ radians counterclockwise, let
-\[
-A = \begin{pmatrix}
+\subsection*{Rotation}
+A second type of linear transformation is to rotate vectors around the origin. A rotation of $\theta$ radians counterclockwise corresponds to the matrix $\begin{pmatrix}
 \cos(\theta) & -\sin(\theta) \\
 \sin(\theta) & \cos(\theta)
-\end{pmatrix}
-\]
+\end{pmatrix}.$
 
 \begin{figure}
 \includegraphics[width=\textwidth]{rotate.pdf}
@@ -65,7 +49,7 @@ Write a function that accepts an array of points and the angle of rotation (in r
 Plot the original points and their image under the transformation.
 \end{problem}
 
-\section*{Shear}
+\subsection*{Shear}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{shear.pdf}
@@ -74,25 +58,15 @@ The top image is the original and the bottom is the sheared image.}
 \label{basis:shear}
 \end{figure}
 
-A shear is a linear transformation that displaces a vector in a fixed direction. In $\mathbb{R}^2$, a shear can either be horizontal or vertical, and has one of the two following forms, respectively:
-
-\[
-A = \begin{pmatrix}
+A third type of linear transformation is a \emph{shear}, which ``slants'' a set of vectors. The corresponding matrix is a Type III elementary matrix. A horizontal skew has the form $\begin{pmatrix}
 1 & c \\
 0 & 1
-\end{pmatrix}
-\]
-
-\[
-A = \begin{pmatrix}
+\end{pmatrix}$ and a vertical skew has the form $
+ \begin{pmatrix}
 1 & 0 \\
 c & 1
-\end{pmatrix},
-\]
-
-where $c$ indicates the amount of displacement.  
-
-Note that these shearing matrices are instances of a type III elementary matrix. Horizontal shears leave the y-coordinates fixed, while vertical shears leave the x-coordinate fixed. 
+\end{pmatrix}
+$. Notice that horizontal skews fix the $y$-coordinate of a vector while vertical skews fix the $x$-coordinate.
 
 \begin{comment}
 In physics, shears are examples of what are known as Galilean Transformations, and are used to switch between reference frames that differ only by constant relative motion.
@@ -104,33 +78,39 @@ that indicates the direction of shearing (0 for horizontal, 1 for vertical). Hav
 Plot the original points and their image under the transformation.
 \end{problem}
 
-\section*{Reflection}
+\subsection*{Reflection}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{reflect.pdf}
 \caption{An example of a reflection. The top image is the original and the bottom is the image after being reflected about the line $y = \sqrt{3}x$.}
 \label{basis:reflect}
 \end{figure}
-
-Reflection about a line (or in higher-dimensional spaces, a hyperplane) can also be accomplished by a linear transformation. Such a transformation is called a \emph{Householder Transformation}, and the general form of the matrix representation in
-$\mathbb{R}^2$ is
-
+A fourth type of linear transformation is reflections about a line, also called \emph{Householder transformations}. Reflecting about a line spanned by $(l_1, l_2)$ corresponds to the matrix
 \[
-A = \frac{1}{l_1^2 + l_2^2}
+\frac{1}{l_1^2 + l_2^2}
 \begin{pmatrix}
 l_1^2 - l_2^2 & 2l_1l_2 \\
 2l_1l_2 & l_2^2 - l_1^2
-\end{pmatrix},
+\end{pmatrix}.
 \]
 
-where $(l_1, l_2)$ is a vector in the direction of the axis of reflection. In the simple case where the axis of reflection is the line $y=x$, the matrix is just a Type I elementary matrix. See Figure \ref{basis:reflection} for an example.
+For example, the line $y=x$ is spanned by $(1, 1)$. In this case the corresponding matrix $\begin{pmatrix}
+0 & 1\\
+1 & 0
+\end{pmatrix}$ is a Type I elementary matrix, in fact the only one of size $2 \times 2$. See Figure \ref{basis:reflection} for an example.
 
 \begin{problem}
 Write a function that accepts an array of points and an array giving the axis of reflection (in the notation above, this argument is $(l_1, l_2)$. Have it return the reflected points.
 Plot the original points and their image under the transformation.
 \end{problem}
 
-\section*{Translation}
+\subsection*{Composition of Linear Transformations}
+Recall that composition of linear transformations corresponds to matrix multiplication. For example, if $S$ is a matrix representing a shear and $R$ is a matrix representing a rotation, then $RS$ represents a shear followed by a rotation.
+
+In fact, any linear transformation of $\mathbb{R}^2$ is a composition of the transformations discussed in this lab. This is because reflections, dilations, and shears provide us with all the elementary matrices, and every matrix is a product of elementary matrices. 
+
+\section*{Affine Transformations}
+\subsection*{Translation}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{translate.pdf}
@@ -140,20 +120,20 @@ The top image is the original and the bottom is the translated image.}
 \label{basis:translate}
 \end{figure}
 
-Translations are not linear transformations, but they can easily be performed with array operations. Together, with linear transformations, they make up the broader class of transformations called
-``affine transformations." These are transformations of the form $T: \mathbb{R}^n \to \mathbb{R}^n$, $T(X) = AX + b$ where $A$ is an $n\times n$ matrix and $b \in \mathbb{R}^n$. Affine transformations include all compositions of scalings, rotations, and translations.
+A translation is a map $T: \mathbb{R}^2 \rightarrow \mathbb{R}^2$ defined by $T(\mathbf{x}) = \mathbf{x}+\mathbf{b}$ where $\mathbf{b} \in \mathbb{R}^2$. For example, if $\mathbf{b} = (-2, 0)^T$, then applying $T$ to an image will shift it left by 2. See Figure \ref{basis:translation} for an example.
 
 
-Let $b$ be a vector that represents the desired translation.
-In order to shift a set of points, you add to the row how much you would like it to shift in that direction. Thus, to shift the set of points up by 2, simply add \li{b = np.array([[0], [2]])}. This particular shape for $b$ allows for proper array broadcasting.
-See Figure \ref{basis:translation} for an example.
+Translations are usually NOT linear maps. Therefore, they cannot be represented as matrix multiplication.
 
 \begin{problem}
 Write a function that takes an array of points and an array indicating how much to shift them in each direction. The function should return the translated points.
 Plot the original points and their image under the transformation.
 \end{problem}
 
-\section*{Compositions of Transformations}
+\subsection*{Affine Transformations}
+Translations, together, with linear transformations, make up the broader class of transformations called
+``affine transformations." These are transformations of the form $T: \mathbb{R}^2 \to \mathbb{R}^2$, $T(X) = AX + b$ where $A$ is an $n\times n$ matrix and $b \in \mathbb{R}^n$. Affine transformations include all compositions of scalings, rotations, dilations, reflections, and translations. For example, if $S$ represents a shear and $R$ a rotation, and if $\mathbf{b}$ is a vector in $\mathbb{R}^2$, then $T(\mathbf{x}) = RS\mathbf{x} + \mathbf{b}$ first shears $\mathbf{x}$, then rotates it, and finally translates it by $\mathbf{b}$. An example of this is shown in Figure \ref{basis:combo}.
+
 
 \begin{figure}
 \centering
@@ -162,9 +142,6 @@ Plot the original points and their image under the transformation.
 A composition of affine transformations: shear, reflection, and translation.}
 \label{basis:combo}
 \end{figure}
-
-All the various transformations we have discussed can be combined into a single affine transformation through function composition.
-For example, if you want to apply a shear and then a reflection, you can represent the shear as a matrix $S$ and the reflection as a matrix $R$. The combined transformation is then $RS$. The image of $X$ under both transformations and then a translation that moves the origin to point $P$ would be $RSX+P$. An example of this is shown in Figure \ref{basis:combo}.
 
 \begin{problem}
 We can use affine transforms to track the trajectory of a particle $p_1$ that rotates about another particle $p_2$ at a constant angular speed $\omega$ (a positive value means counterclockwise rotation), while $p_2$ moves in a particular direction at a constant speed $v$. 
