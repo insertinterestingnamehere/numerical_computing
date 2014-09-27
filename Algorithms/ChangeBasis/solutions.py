@@ -129,7 +129,7 @@ def translate(pts, shift):
     return pts + shift.reshape((2,1))
 
 
-def trajectory(t,w,v):
+def trajectory(t,w,v,s):
     '''
     Calculate the trajectory of an object rotating about a movign point. 
     Hint: you will use a composition of rotation and translation in this problem. 
@@ -138,13 +138,14 @@ def trajectory(t,w,v):
     Inputs:
         t -- time (in seconds)
         w -- angular velocity of object (radians/seconds)
-        v -- direction speed of center of rotation (meters/second)
+        v -- direction of the center of rotation
+        s -- speed of center of rotation (meters/second)
     Returns:
         the position of the rotating object at time t.
     '''
     angle = t*w
     p = np.array([[0],[1]])
-    shift = t*v*0.5*np.array([math.sqrt(2),math.sqrt(2)])
+    shift = ((s*t)/sum(v**2))*v
     return translation(rotation(p, angle), shift)
 
 
@@ -157,6 +158,6 @@ def plotTrajectory():
     pos = np.zeros((2,len(times)))
     for i in range(len(times)):
         pos[:,i] = trajectory(times[i],np.pi,3).flatten()
-    plt.scatter(pos[0], pos[1])
+    plt.plot(pos[0], pos[1])
     plt.show()
     
