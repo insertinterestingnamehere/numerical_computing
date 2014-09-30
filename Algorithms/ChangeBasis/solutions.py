@@ -7,6 +7,7 @@
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+from scipy import linalg as la
 
 def plotNewOld(new, old):
     ''' 
@@ -145,7 +146,7 @@ def trajectory(t,w,v,s):
     '''
     angle = t*w
     p = np.array([[0],[1]])
-    shift = ((s*t)/sum(v**2))*v
+    shift = ((s*t)/la.norm(v))*v
     return translation(rotation(p, angle), shift)
 
 
@@ -154,10 +155,11 @@ def plotTrajectory():
     Plot the trajectory of the rotating particle as calculated in the trajectory
     function. 
     '''
+    v = np.array([1, 1])
     times = np.arange(0,10,.1)
     pos = np.zeros((2,len(times)))
     for i in range(len(times)):
-        pos[:,i] = trajectory(times[i],np.pi,3).flatten()
+        pos[:,i] = trajectory(times[i],np.pi,v,3).flatten()
     plt.plot(pos[0], pos[1])
     plt.show()
     
