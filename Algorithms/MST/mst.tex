@@ -170,59 +170,204 @@ Figure \ref{mst:graph5} shows a minimum spanning tree of the graph shown in Figu
 \section*{Kruskal's algorithm}
 
 Given a connected, weighted graph G with $n$ nodes, Kruskal's algorithm finds a minimum spanning tree. It is similar to Prim's algorithm, which also finds a minimum spanning tree of a connected, weighted graph. While Prim's algorithm is much faster for dense graphs since it avoids sorting the edges, it is much slower than Kruskal's for sparse graphs. Note that although we have not explicitly required that the graph be undirected, the fact that we are finding a minimum spanning tree means that the graph must be undirected.
-Kruskal's algorithm first sorts the edges from smallest to largest, then starting with the smallest, the algorithm adds edges to the tree for as long as the addition of each new edge does not create a cycle.
+
+Kruskal's algorithm first sorts the edges from smallest to largest, then starting with the smallest, the algorithm adds edges to the tree as long as the addition of each new edge does not create a cycle.
 When $n-1$ edges have been added, the algorithm stops.
 
 In order to avoid creating cycles while building the tree, it is necessary to keep track of which portions of the tree currently lie in connected groups.
-This can be done by creating a dictionary where, when the algorithm starts, each node points to itself as the "root" of its own tree.
-As you add edges to the tree you will change which nodes are the "root" nodes. This tracks which nodes are currently connected.
-Doing this allows us to run the algorithm by iterating over the edges by weight in ascending order, and adding them to the tree if they connect nodes which are not already connected by the current tree.
+This can be done by creating a dictionary where, when the algorithm starts, each node points to itself as the root of its own tree.
+As we iterate over the edges, we compare the roots of the nodes connected by the edge. If they are distinct, then the nodes are in separate trees, so adding this edge will not create a cycle. When we add an edge, we update the root of one of the nodes connected by it so we can track which nodes are already connected by our growing MST.
+We apply Kruskal's algorithm to the graph in Figure \ref{mst:graph4}. We are given a list of edges. Note that since the graph is undirected, we only have one entry for each edge instead of including both \li{(A, B, 2)} and \li{(B, A, 2)} for an edge from \li{A} to \li{B} with weight 2. Before beginning, we initialize what will become our MST as an empty list, initialize a dictionary \li{\{A:A, B:B, C:C, D:D, E:E, F:F\}} where each node points to itself, and sort the edges by weight to get the list \li{[(C, D, 1), (C, E, 1), (D, E, 2), (A, B, 3), (B, F, 4), (E, F, 4), (B, C, 5), (C, F, 5), (A, F, 6)]}. Since there are six nodes in the graph, we will continue until we have 5 edges in the tree.
 
-Consider the graph in Figure 7.4 and apply Kruskal's algorithm.
-First, we initialize our tree to be an empty list: \li{[]}.
-To track the root nodes of each tree, we will also initialize a dictionary where each node points to itself.
-It will look like this: \li{\{A:A, B:B, C:C, D:D, E:E, F:F\}}.
-Since there are 6 nodes in the graph, we will continue until we have 5 edges in the tree.
-Next, sort the edges by weight.
-The result is something like the list \li{[(C, D, 1), (C, E, 1), (D, E, 2), (A, B, 3), (B, F, 4), (E, F, 4), (B, C, 5), (C, F, 5), (A, F, 6)]}.
+\vspace{.25cm}
 
-Now we begin iterating through the edges to build the tree.
+\begin{minipage}{0.35\textwidth}
+\begin{tikzpicture}[node distance= 1.5cm, thick, main 
+	node/.style={circle, draw, minimum size = .75cm}]
+
+\node[main node](B)[]{B};
+\node[main node](C)[right of=B]{C};
+\node[main node](F)[above of=B]{F};
+\node[main node](E)[right of=F]{E};
+\node[draw=none, node distance=.75cm](dummy)[above of= B]{};
+\node[main node, node distance=1cm](A)[left of=dummy]{A};
+\node[main node, node distance=2.5cm](D)[right of=dummy]{D};
+
+\foreach \s/\t in {C/D}{\path[draw](\s)edge(\t);}
+%\node[draw=none]at (1.7,.75)(1){1};
+\node[draw=none]at (2.1,.2)(1_2){1};
+
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.55\textwidth}
+We begin iterating through the edges to build the tree.
 The first edge in the list is \li{(C,D,1)}.
-The root for \li{C} is \li{C} and the root for \li{D} is \li{D}, so we add this edge to the tree.
-The tree becomes \li{[(C, D, 1)]}.
-We then change the root node of \li{D} to be \li{C}.
-The dictionary of root nodes now looks like \li{\{A:A, B:B, C:C, D:C, E:E, F:F\}}.
+The root for \li{C} is \li{C} and the root for \li{D} is \li{D}. Since their roots are distinct, they are in separate trees, so we add this edge to the tree. The tree becomes \li{[(C, D, 1)]}.
+We then change the root node of \li{D} to \li{C}.
+The dictionary of root nodes is now \li{\{A:A, B:B, C:C, D:C, E:E, F:F\}}.
+\end{minipage}
 
+\vspace{.25cm}
+
+\begin{minipage}{0.35\textwidth}
+\begin{tikzpicture}[node distance= 1.5cm, thick, main 
+	node/.style={circle, draw, minimum size = .75cm}]
+
+\node[main node](B)[]{B};
+\node[main node](C)[right of=B]{C};
+\node[main node](F)[above of=B]{F};
+\node[main node](E)[right of=F]{E};
+\node[draw=none, node distance=.75cm](dummy)[above of= B]{};
+\node[main node, node distance=1cm](A)[left of=dummy]{A};
+\node[main node, node distance=2.5cm](D)[right of=dummy]{D};
+
+\foreach \s/\t in {C/D, C/E}{\path[draw](\s)edge(\t);}
+\node[draw=none]at (1.7,.75)(1){1};
+\node[draw=none]at (2.1,.2)(1_2){1};
+
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.55\textwidth}
 Now we process the next edge, \li{(C, E, 1)}.
 The root node of \li{C} is \li{C}, and the root node of \li{E} is \li{E}, so adding this edge does not create a cycle.
 We add this edge into the tree, so the tree is now \li{[(C, D, 1), (C, E, 1)]}.
-Then we change the root of \li{E} so that it is \li{C}, so the dictionary is \li{\{A:A, B:B, C:C, D:C, E:C, F:F\}}.
+Then we change the root of \li{E} to \li{C}, so the dictionary is \li{\{A:A, B:B, C:C, D:C, E:C, F:F\}}.
+\end{minipage}
+
+\vspace{.25cm}
 
 The next edge is \li{(D, E, 2)}.
 The root node of the tree containing \li{D} is \li{C} and the root node of the tree containing \li{E} is \li{C}, so these nodes are already connected, so we do not add this edge to the tree.
 
+\vspace{.25cm}
+
+\begin{minipage}{0.35\textwidth}
+\begin{tikzpicture}[node distance= 1.5cm, thick, main 
+	node/.style={circle, draw, minimum size = .75cm}]
+
+\node[main node](B)[]{B};
+\node[main node](C)[right of=B]{C};
+\node[main node](F)[above of=B]{F};
+\node[main node](E)[right of=F]{E};
+\node[draw=none, node distance=.75cm](dummy)[above of= B]{};
+\node[main node, node distance=1cm](A)[left of=dummy]{A};
+\node[main node, node distance=2.5cm](D)[right of=dummy]{D};
+
+\foreach \s/\t in {A/B, E/C, C/D}{\path[draw](\s)edge(\t);}
+\node[draw=none]at (-.6,.2)(3){3};
+\node[draw=none]at (1.7,.75)(1){1};
+\node[draw=none]at (2.1,.2)(1_2){1};
+
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.55\textwidth}
 The next edge is \li{(A, B, 3)}.
-The root node for \li{A} is \li{A}, and the root node for \li{B} is \li{B}, so we add the edge to the tree and update the dictionary.
+The root node for \li{A} is \li{A}, and the root node for \li{B} is \li{B}, so we add the edge to the tree and change the root node of \li{B} to \li{A}.
 The dictionary becomes \li{\{A:A, B:A, C:C, D:C, E:C, F:F\}}
+\end{minipage}\hfill
 
+\vspace{.25cm}
+
+\begin{minipage}{0.35\textwidth}
+\begin{tikzpicture}[node distance= 1.5cm, thick, main 
+	node/.style={circle, draw, minimum size = .75cm}]
+
+\node[main node](B)[]{B};
+\node[main node](C)[right of=B]{C};
+\node[main node](F)[above of=B]{F};
+\node[main node](E)[right of=F]{E};
+\node[draw=none, node distance=.75cm](dummy)[above of= B]{};
+\node[main node, node distance=1cm](A)[left of=dummy]{A};
+\node[main node, node distance=2.5cm](D)[right of=dummy]{D};
+
+\foreach \s/\t in {A/B, B/F, E/C, C/D}{\path[draw](\s)edge(\t);}
+\node[draw=none]at (-.6,.2)(3){3};
+\node[draw=none]at (-.2,.75)(4){4};
+%\node[draw=none]at (.75,1.7)(4_2){4};
+\node[draw=none]at (1.7,.75)(1){1};
+\node[draw=none]at (2.1,.2)(1_2){1};
+
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.55\textwidth}
 The next edge is \li{(B, F, 4)}.
-The root node for \li{B} is \li{A} and the root node for \li{F} is \li{F}, so we add the edge to the tree and change the root node of \li{F} to be \li{A}.
+The root node for \li{B} is \li{A} and the root node for \li{F} is \li{F}, so we add the edge to the tree and change the root node of \li{F} to \li{A}.
 The dictionary becomes \li{\{A:A, B:A, C:C, D:C, E:C, F:A\}}
+\end{minipage}\hfill
 
+\vspace{.25cm}
+
+\begin{minipage}{0.35\textwidth}
+\begin{tikzpicture}[node distance= 1.5cm, thick, main 
+	node/.style={circle, draw, minimum size = .75cm}]
+
+\node[main node](B)[]{B};
+\node[main node](C)[right of=B]{C};
+\node[main node](F)[above of=B]{F};
+\node[main node](E)[right of=F]{E};
+\node[draw=none, node distance=.75cm](dummy)[above of= B]{};
+\node[main node, node distance=1cm](A)[left of=dummy]{A};
+\node[main node, node distance=2.5cm](D)[right of=dummy]{D};
+
+\foreach \s/\t in {A/B, B/F, F/E, E/C, C/D}{\path[draw](\s)edge(\t);}
+\node[draw=none]at (-.6,.2)(3){3};
+\node[draw=none]at (-.2,.75)(4){4};
+\node[draw=none]at (.75,1.7)(4_2){4};
+\node[draw=none]at (1.7,.75)(1){1};
+\node[draw=none]at (2.1,.2)(1_2){1};
+
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.55\textwidth}
 The next edge is \li{(E, F, 4)}.
 The root node for \li{E} is \li{C} and the root node for \li{F} is \li{A}.
 We add the edge to the tree and end the algorithm since there are now 5 edges in the tree.
-(If we were to continue the algorithm, we would update the root node of \li{A} to be \li{C}.)
+(If we were to continue the algorithm, we would change the root node of \li{A} to \li{C}.)
+\end{minipage}
+
+\vspace{.25cm}
 
 Notice how we updated the root of the root node to one of the nodes in the edge added.
 We manage the root nodes in this manner in order to find the root node by tracing back through the dictionary until we find a node that points to itself.
 For example, to find the root node of \li{F} we first need to get the value for \li{F} from the dictionary.  This is \li{A}.
 Then we get the value for \li{A} from the dictionary which is \li{C}.
 Since the value of \li{C} in the dictionary is itself, the \li{C} is the root node of the graph containing \li{F}.
-It is necessary to trace through the dictionary in this manner each time because we avoid iterating over all of the nodes and updating their root values everytime.
+It is necessary to trace through the dictionary in this manner each time because it allows us to avoid iterating over all of the nodes and updating their root values everytime.
 
-Below is the pseudocode for the algorithm as we have described it above:
 
+Algorithm \ref{alg:kruskal} outlines the psuedocode for the algorithm as described above:
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{kruskal}{$edges$}
+	\State $tree \gets \text{Empty list of edges for MST}$
+	\State $nodes \gets \text{Dictionary that points each node towards its root, initially itself}$
+	\State $remaining \gets \text{Set number of nodes to be processed to } n-1$
+	\Function{track}{$node$}
+		\State $temp \gets \text{Node whose root we are finding}$
+		\While{$temp$ does not point to itself in the dictionary}
+			\State Update $temp$ to be the node it currently points to in $nodes$
+			\State \pseudoli{return} $temp$
+		\EndWhile
+	\EndFunction
+	\For{$n_1, n_2, weight$ in sorted list of edges}
+		\State $root \gets \text{Root node of } n_1$
+		\State $remove \gets \text{Root node of } n_2$
+		\If{$root$ is not $remove$}
+			\State Add the edge to the tree
+			\State Lower $remaining$ by 1
+			\If{$remaining$ is 0}
+				\State \pseudoli{return} $tree$
+			\EndIf
+			\State Set the root of $remove$ to be $root$
+		\EndIf
+	\EndFor	
+\EndProcedure
+\end{algorithmic}
+\caption{Kruskal's algorithm for finding a MST}
+\label{alg:kruskal}
+\end{algorithm}
+
+\begin{comment}
 \begin{itemize}
 
 % Note: The comments in the solutions match the pseudocode.
@@ -279,33 +424,49 @@ Use a \li{for} loop for this and return the tree when it is big enough which bre
 	\end{itemize}
 
 \end{itemize}
-Note on implementation: You can iterate over a sorted copy of a list using the built in \li{sorted} function.
+\end{comment}
+Notice that if $remaining$ is 0, that means that the MST is as big as it needs to be and the for loop ends, and that updating the root of the second node in the edge is what allows us to check if two nodes are already connected.
+
+You can iterate over a sorted copy of a list using the built in \li{sorted} function.
 You can sort by the third value in each tuple using the \li{itemgetter} function that is part of the \li{operator} library included with Python.
 For example:
 \begin{lstlisting}
 from operator import itemgetter
-...
+
 for n1, n2, weight in sorted(edges, key=itemgetter(2)):
     ...
 \end{lstlisting}
 
 \begin{problem}
-Implement Kruskal's algorithm.
-Test your algorithm on random symmetric arrays.
-You can generate a random symmetric array by multiplying a random array by its transpose.
-Use the data from MSTdata.npy to test your tree.
-Use np.load("MSTdata.npy") to get it.
-Use the \li{formChanger} function below to put it in the right form.
+Implement Kruskal's algorithm as in Algorithm \ref{alg:kruskal}
+Test your algorithm on lists of weighted edges generated by the \li{randgraph} function below. Also use the data from MSTdata.npy to test your algorithm.
+Use np.load("MSTdata.npy") to get it, and use the \li{formChanger} function below to put it in the right form.
 \begin{lstlisting}
+from scipy import linalg as la
+import numpy as np
+
+# n is the number of nodes in the graph
+def randgraph(n):
+    # Creates a sparse upper triangular matrix of ints between 1 and 50
+    A = la.triu(np.random.randint(1,50,(n,n))*(np.random.rand(n,n)>.5))
+    S = []
+    # Iterate through (i,j) pairs in A; x is the value of (i,j)
+    for index, x in np.ndenumerate(A):
+        # If an edge exists
+        if x != 0:
+            # Append (i,j) as an edge with weight x
+            S.append((str(index[0]), str(index[1]), x))
+
 def formChanger(oldData):
     newData=[]
     for i in oldData: newData.append((i[0],i[1],int(i[2])))
     return newData
 \end{lstlisting}
 \end{problem}
-\section*{Prim's algorithm}
 
 \begin{comment}
+\section*{Prim's algorithm}
+
 Prim's is a similar algorithm for finding minimum spanning trees.
 While it is much slower than Kruskal's algorithm for sparse graphs, it is much faster for dense graphs because Prim's algorithm avoids sorting the edges.
 
@@ -405,17 +566,33 @@ Create a function which prints these two times.
 \end{problem}
 \end{comment}
 
-Many graph packages have functions for finding the minimal spanning tree. One of these is NetworkX. You begin as follows
+\section*{NetworkX}
+
+You have already used the NetworkX to find the shortest path between nodes in a graph. You can also use NetworkX to find the minimal spanning tree. Recall that NetworkX is used as follows:
 \begin{lstlisting}
 import networkx as nx
-G=nx.Graph()
+
+# Create an undirected graph G.
+G = nx.Graph()
+# Add the node x.
+G.add_node(x)
+
+# Add an edge with weight n from x to y.
+# Remember that NetworkX will add nodes in an edge if they do not already exist and does not permit duplicate nodes
+G.add_edge(x, y, weight=n)
+
+# Add multiple nodes from a list at once
+G.add_nodes_from(N)
+
+# Return the minimal spanning tree using Kruskal's algorithm
+nx.minimum_spanning_tree(G)
 \end{lstlisting}
-You can add a node $x$ with \li{G.add_node(x)} and add a edge from $x$ to $y$ with weight n with \li{G.add_edge(x,y,weight=n)}. Then \li{nx.minimum_spanning_tree(G)} returns the minimal spanning tree using Kruskals algorithm.
 
 \begin{problem}
 Use NetworkX to find the minimal spanning tree of the data in MSTdata.npy.
-Compare the output with that of your algorithm.
-Create a function which prints your comparison.
+Compare the timing of your implementation with that of NetworkX.
+
+\emph{Helpful Hint:} You should not use the output of your \li{formChanger} function to create your NetworkX graph. Instead, use a for loop to iterate over the original data and add an edge \li{i[0], i[2], weight=int(i[2])} for each element \li{i} .
 \end{problem}
 
 %Add specifications
@@ -426,7 +603,7 @@ Create a function which prints your comparison.
 
 One application of Minimal Spanning Trees (MSTs) is image segmentation.
 Kruskal's algorithm is especially good at this.
-You can convert an image into graph. Each pixel is a vertex and you define weights between the nodes. You then build the minimal spanning tree. If you take away the edge with the greatest weight you will get two forests (removing an edge from any graph with no cycles will create two forests). Then you can continue doing this to each forest to split up those forests. Each forest corresponds to a segment of the image.
+You can convert an image into a graph. Each pixel becomes a node and you define weights between the nodes. You then build the minimal spanning tree. If you take away the edge with the greatest weight you will get two forests (removing an edge from any graph with no cycles will create two forests). Then you can continue doing this to each forest to split up those forests. Each forest corresponds to a segment of the image.
 Let $k$ be the number of divisions that is wanted and $n$ be the number of nodes.
 Kruskal's algorithm is performed until $n-(k+1)$ edges are added which is the same as taking out the $k$ edges with greatest weights.
 
