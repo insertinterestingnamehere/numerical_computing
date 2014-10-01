@@ -342,7 +342,7 @@ Algorithm \ref{alg:kruskal} outlines the psuedocode for the algorithm as describ
 	\State $tree \gets \text{Empty list of edges for MST}$
 	\State $nodes \gets \text{Dictionary that points each node towards its root, initially itself}$
 	\State $remaining \gets \text{Set number of nodes to be processed to } n-1$
-	\Function{track}{$node$}
+	\Function{track}{$node$} \Comment{Find the root of the given node}
 		\State $temp \gets \text{Node whose root we are finding}$
 		\While{$temp$ does not point to itself in the dictionary}
 			\State Update $temp$ to be the node it currently points to in $nodes$
@@ -358,7 +358,7 @@ Algorithm \ref{alg:kruskal} outlines the psuedocode for the algorithm as describ
 			\If{$remaining$ is 0}
 				\State \pseudoli{return} $tree$
 			\EndIf
-			\State Set the root of $remove$ to be $root$
+			\State Change the value associated with $remove$ to $root$
 		\EndIf
 	\EndFor	
 \EndProcedure
@@ -368,6 +368,7 @@ Algorithm \ref{alg:kruskal} outlines the psuedocode for the algorithm as describ
 \end{algorithm}
 
 \begin{comment}
+Previous description of the algorithm
 \begin{itemize}
 
 % Note: The comments in the solutions match the pseudocode.
@@ -605,34 +606,65 @@ One application of Minimal Spanning Trees (MSTs) is image segmentation.
 Kruskal's algorithm is especially good at this.
 You can convert an image into a graph. Each pixel becomes a node and you define weights between the nodes. You then build the minimal spanning tree. If you take away the edge with the greatest weight you will get two forests (removing an edge from any graph with no cycles will create two forests). Then you can continue doing this to each forest to split up those forests. Each forest corresponds to a segment of the image.
 Let $k$ be the number of divisions that is wanted and $n$ be the number of nodes.
-Kruskal's algorithm is performed until $n-(k+1)$ edges are added which is the same as taking out the $k$ edges with greatest weights.
+Kruskal's algorithm is performed until $n-(k+1)$ edges are added, which is equivalent to taking out the $k$ edges with greatest weights.
 
 There are many different ways to turn an image into a graph and weight the edges.
 A simple, yet effective, version is to make every pixel a node and the edges are the difference in intensities in the four cardinal directions.
 
-
-This means that there are less than $4n$ edges.
+This means that there are less than $4n$ edges in the graph.
 Other image segmentation algorithms have to use $n^2$ space.
 This gives the MST algorithm a critical advantage over other image segmentation algorithms.
 
 \begin{problem}
-Write a function that takes a black and white image as input and outputs a list of the edges and a list of nodes.
-Store the edges using the form \li{(node,node,weight)}.
+Write a function that takes a black and white .jpg image as input and outputs a list of the weighted edges.
+Store the edges using the form \li{(node,node,weight)}. Use \li{scipy.ndimage.imread('filename.jpg')} to read in an RGB .jpg image. The output will be a three-dimensionsal Numpy array with the third dimension representing the red, green, and blue intensities of each pixel. In a black and white image, these will all be the same, so use the command \li{array[:,:,0]} to create a two-dimensional array with values set as the zeroth index of the corresponding list in the three dimensional array.
+
+\emph{Helpful Hint:} Use the \li{ndenumerate()} command to easily iterate through the indices of the array. Keep in mind that since the array is bidirectional, you do not actually have to create four edges for every index.
 \end{problem}
 
-The provided Kruskal's algorithm takes as inputs the list of nodes, the list of edges and the number of divisions desired.
-The number of divisions often has to be higher than the actual number that is needed because sometimes one or two pixels form a division because the difference between them and the pixels around them is so great.
-You will have to adjust the number of divisions until the desired result is found.  See Figure 9.1.
+Our original Kruskal's algorithm returns a list of edges representing a MST. We modify this algorithm to take in an additional argument representing the number of divisions desired and return a dictionary with the nodes as the keys and their roots as the values (remember that the dictionary used in the original algorithm points \emph{towards} the root instead of pointing to the root itself). The number of distinct roots is the number of divisions, and the number of keys associated with each root gives the size of its tree. When we segment an image, the number of divisions often has to be higher than the actual number that is needed because sometimes one or two pixels form a division because the difference between them and the pixels around them is so great. You will have to adjust the number of divisions until the desired result is found.  See Figure \ref{mst:segmented}.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{kruskal}{$edges$, $div$}
+	\State $nodes \gets \text{Dictionary that points each node towards its root, initially itself}$
+	\State $end \gets \text{Set number of nodes to be processed to } n-div$
+	\Function{track}{$node$} \Comment{Find the root of the given node}
+		\State $temp \gets \text{Node whose root we are finding}$
+		\While{$temp$ does not point to itself in the dictionary}
+			\State Update $temp$ to be the node it currently points to in $nodes$
+			\State \pseudoli{return} $temp$
+		\EndWhile
+	\EndFunction
+	\For{$n_1, n_2, weight$ in sorted list of edges}
+		\State $root \gets \text{Root node of } n_1$
+		\State $remove \gets \text{Root node of } n_2$
+		\If{$root$ is not $remove$}
+			\State Lower $end$ by 1
+			\If{$end$ is 0}
+				\State Change the value associated with $remove$ to $root$
+				\State \pseudoli{return} dict with nodes as keys and their roots as values
+			\EndIf
+			\State Change the value associated with $remove$ to $root$
+		\EndIf
+	\EndFor	
+\EndProcedure
+\end{algorithmic}
+\caption{Modified Kruskal's algorithm for Image Segmentation}
+\label{alg:modifiedkruskal}
+\end{algorithm}
 
 \begin{problem}
-Perform the image segmentation algorithm on the image, then graph the original image and the three largest divisions.
-(Use the Counter class from collections to find the number of pixels in each division.)
+Convert the given image to a list of weighted edges using your previous solution. Implement the modified Kruskal's algorithm as described above and use it to segment the image, then graph the original image and the three largest divisions. 
+
+\emph{Helpful Hint:} Use the \li{Counter} class from \li{collections} to find the number of pixels (nodes) in each divisions, plot the images as subplots, and use \li{plt.imshow()} to view the images.
 \end{problem}
 
+\begin{comment}
 \begin{problem}
 Make a division of the image a different color.
 \end{problem}
-
+\end{comment}
 
 \vfill
 \begin{figure}[ht]
@@ -654,6 +686,7 @@ Make a division of the image a different color.
 \centering
 \includegraphics[width=\textwidth]{MSTseg4.jpg}
 \end{minipage}
-\caption{The original image is in the top left hand corner. The three larges segments are shown in the other corners. The original image was 498x498 and 50000 divisions were used.}
+\caption{The original image is in the top left hand corner. The three largest segments are shown in the other corners. The original image was 498x498 and 50000 divisions were used.}
+\label{mst:segmented}
 \end{figure}
 \vfill 
