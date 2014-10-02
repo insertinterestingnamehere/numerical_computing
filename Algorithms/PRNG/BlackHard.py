@@ -12,9 +12,9 @@ def PlayBlackJack(numberOfRounds=1):
     breaker=[]
     wins=sp.array([0,0])
     seed=int(time.time())
-
+    print seed
     for x in range(numberOfRounds):
-        PlayDeck=Suffle(DeckArray,(x+1)*((seed%50+(seed+1)%2)),seed).tolist()
+        PlayDeck=Suffle(DeckArray,x+1,seed).tolist()
         dealerHand=[]
         playerHand=[]
         playerHand.append(PlayDeck.pop())
