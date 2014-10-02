@@ -1,0 +1,103 @@
+\lab{Algorithms}{The Pseudospectral method for Boundary Value Problems}{The Pseudospectral method for Boundary Value Problems}
+\label{lab:pseudospectral1_revision}
+
+Consider a linear differential equation 
+\[Lu = f, \]
+defined on the interval $[-1,1]$, together with associated boundary conditions. 
+
+We will approximate the solution $u(x)$ by a linear combination of $N+1$ basis functions $\phi_n$, so that 
+\[
+u(x) \approx u_N(x) = \sum_{n=0}^N a_n \phi_n(x). 
+\]
+To determine appropriate constants $a_n$, we will minimize the residual function 
+\[
+R(x,u_N) = Lu_N - f.
+\]
+(Note that $R(x,u) = Lu - f = 0$ for the solution $u(x)$. ) 
+Our aproach up to this point is often called the method of mean weighted residuals. 
+Different approaches to minimizing $R(x,u_N)$ result in different methods. 
+The pseudospectral or collocation method is obtained by forcing the residual function $R(x,u_N)$ to equal zero at $N+1$ points. 
+When done correctly, the pseudospectral method converges rapidly. 
+
+We will let the basis functions $\phi_i$ be the Chebychev polynomials, and the collocation points will be the Gauss-Lobatto points. 
+Specifically, the collocation points are $x_i = \cos(\pi i /N),$ $ i = 0, \ldots, N$.
+
+
+The appropriate solution $u_N$ may be represented with two equivalent forms. 
+First the $N+1$ unknown values $\{u_N(x_i)\}_{i=0}^N$, and second the $N+1$ series coefficients $\{a_i\}_{i=0}^N$. 
+
+These equivalent forms satisfy
+\begin{align}
+	LU &= F \label{spectral1b:grid_point}
+\end{align}
+and 
+\begin{align}
+	MA = F
+\end{align}
+where 
+\begin{align*}
+	U_i &= u(x_i),\\
+	A_i &= a_i,\\
+	F_i &= f(x_i),\\
+	L_{ij} &= \left.(LC_j(x))\right|_{x=x_i},\\
+	H_{ij} &= \left.(L\phi_j(x))\right|_{x=x_i}.
+\end{align*}
+
+
+\[\phi_N(x) = \sum_{j=0}^N \phi_N(x_j)C_j(x),\]
+where each of the basis functions $C_j$ are cardinal functions, defined to be the polynomials of least degree satisfying
+\begin{equation*}
+C_j(x_i) = \begin{cases} 1 & i=j \\ 0 & i \not = j.
+   \end{cases}
+\end{equation*}
+
+
+
+When $L = d/dx$, the corresponding matrix (to \ref{spectral1b:grid_point}) is given by 
+\[L_{ij} = \frac{dC_j}{dx}(x_i) = 
+\begin{cases} (1+2N^2)/6 & i=j=0, \\ -(1+2N^2)/6 & i=j=N, \\
+-x_j/[2(1-x_j^2)] & i=j, \, 0<j<N, \\ 
+(-1)^{i+j}\alpha_i/[\alpha_j(x_i-x_j)] & i \not = j.
+   \end{cases}
+\]
+This matrix is often called the differentiation matrix, and can be used to piece together the matrix $L$ for more complicated differential operators. 
+A stable, vectorized function to build the differentiation matrix is given below. 
+
+
+\begin{lstlisting}
+import numpy as np
+
+def cheb(N):
+	x =  np.cos((np.pi/N)*np.linspace(0,N,N+1))
+	x.shape = (N+1,1)
+	lin = np.linspace(0,N,N+1)
+	lin.shape = (N+1,1)
+	
+	c = np.ones((N+1,1))
+	c[0], c[-1] = 2., 2.
+	c = c*(-1.)**lin
+	X = x*np.ones(N+1) # broadcast along 2nd dimension (columns)
+	
+	dX = X - X.T
+	
+	D = (c*(1./c).T)/(dX + np.eye(N+1))
+	D  = D - np.diag(np.sum(D.T,axis=0))
+	x.shape = (N+1,)
+	# Here we return the differentation matrix and the Chebychev points, 
+	# numbered from x_0 = 1 to x_N = -1
+	return D, x
+
+\end{lstlisting}
+
+% We assume that the solution $u(x)$ has an expansion in terms of the Chebychev polynomials, so that 
+% \[u(x) = \sum_{n=0}^{\infty}a_n \phi_n(x).\]
+%  (We remark that the Chebychev polynomials $\phi_n(x)$ form a basis for $L^2[-1,1]$.) 
+
+
+
+
+
+
+
+
+
