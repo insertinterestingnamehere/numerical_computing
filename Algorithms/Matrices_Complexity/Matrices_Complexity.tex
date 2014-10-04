@@ -122,12 +122,12 @@ Do this as follows:
 \renewcommand{\theenumi}{\alph{enumi}}
 \item Time how long the function takes to run on an input of size $n$ for $n=1000, 2000, 4000$, and $8000$.
 \item Compute the averages of the ratios between successive runtimes from part (1).
-\item Use Problem \ref{complexity_ratios} to determine the temporal complexity.
+\item Use Problem \ref{prob:complexity_ratios} to determine the temporal complexity.
 \end{enumerate}
 \end{problem}
 
 \begin{problem}
-Create a plot depicting the complexities you found in Problem \ref{complexity_timeit} by following these steps. 
+Create a plot depicting the complexities you found in Problem \ref{prob:complexity_timeit} by following these steps. 
 \begin{enumerate}
 \item For each function, plot a line using $n=1000, 2000, 4000$, and $8000$ for $x$-values and your runtimes for $y$-values. When you call the function \li{plt.plot()}, specify a value for the keyword parameter \li{label} so you can reference each line later. For example, the call \li{plt.plot( x, y, label="Function 1")} attaches the label "Function 1" to this line.
 \item After plotting all your lines, call \li{plt.legend()} to draw a legend on your graph. Use the keyword argument \li{loc} to specify the location of the legend. Some possible values are \li{'upper left'} and \li{'right'}. See the documentation for more options.
@@ -145,7 +145,7 @@ Analogous to temporal complexity, the spatial complexity of an algorithm is a fu
 This vocabulary allows us to discuss the question at the start of this section: ``How long will a computer take to execute this algorithm?". The amount of time a computer takes to execute an algorithm depends on both the algorithm's temporal complexity and on its spatial complexity. 
 
 
-\begin{problem}\label{complexity_problem}
+\begin{problem}\label{prob:complexity_problem}
 In this problem you will analyze the complexity of the following functions.
 
 \begin{enumerate}
@@ -218,18 +218,32 @@ Do this as follows:
 
 \section*{Sparse Matrices}
 A \emph{sparse} matrix is a matrix that has relatively few nonzero elements. 
-A matrix with few zero entries is \emph{dense}. 
-The SciPy module \li{sparse} has methods to reduce the temporal and spatial complexity of handling sparse matrices. 
-To reduce spatial complexity, it has matrix storage methods that are optimized for sparse matrices. 
+Sparse matrices arise frequently in both theoretical and real-world applications. 
+We can take advantage of the sparse structure of these matrices to use less memory and do faster computations.
+
+For example, diagonal matrix are sparse. 
+Storing an $n \times n$ diagonal matrix in the naive way means storing $n^2$ values in memory. 
+For most applications, it makes more sense to store the diagonal entries in a 1-dimensional array of $n$ values. 
+In addition to taking up less storage space, this allows for much faster matrix operations. 
+Using the standard algorithm to multiply a matrix by a diagonal matrix involves $n^3$ steps, but most of these are multiplying by or adding zero. 
+A smarter algorithm that knows all off-diagonal entries are zero can accomplish the same task much faster.
+
+\subsection*{The \li{sparse} Module}
+The SciPy module \li{sparse} has storage methods to reduce the temporal and spatial complexity of handling sparse matrices.  
 When we are not using these special methods, we say we are storing the \emph{full} matrix. 
-We can also use \li{sparse} methods on dense matrices, but doing so will take longer than using the usual methods for handling full matrices. 
-So, sparse versus dense refers to a property of abstract matrices, and sparse versus full refers to how any matrix is stored in memory, regardless of its abstract properties. 
-You minimize spatial complexity when you store a sparse matrix with the \li{sparse} module and a dense matrix as a full (or ``regular'') matrix.
+We can also use \li{sparse} methods on dense matrices (matrices with mostly nonzero entries), but doing so will take longer than using the usual methods for handling full matrices. 
 
 This difference in spatial complexity comes because a full array occupies a block of memory for each entry, so a $n \times n$ array requires $n^2$ blocks of memory. 
 By contrast, SciPy's \li{sparse} methods store only the nonzero entries and their locations in the array. 
 As long as most entries are 0 (i.e., the matrix is sparse), this decreases spatial complexity. 
-As listed in Table \ref{smr}, SciPy has 7 different sparse matrix types, corresponding to 7 ways of storing sparse matrices.
+You minimize spatial complexity when you store a sparse matrix with the \li{sparse} module and a dense matrix as a full (or ``regular'') matrix.
+
+SciPy has seven sparse matrix types, listed in Table \ref{table:smr}. 
+Each type is optimized either for storing sparse matrices whose nonzero entries follow certain patterns, or for performing certain computations. 
+For example, the \li{csc_matrix} and \li{csr_matrix} types are optimized for arithmetic operations. 
+We will introduce some other types later in this lab. For more information, see the documentation (\url{http://docs.scipy.org/doc/scipy/reference/sparse.html}).
+
+
 
 
 \begin{table}
@@ -248,11 +262,11 @@ Sparse Matrix Type & Description \\
 \hline
 \end{tabular}
 \caption{Sparse matrix representations in SciPy}
-\label{smr}
+\label{table:smr}
 \end{table}
 
 Let us compare a \li{sparse} matrix computation with a full matrix computation. 
-Note that we can convert any full matrix to a \li{sparse} matrix of any of the types listed in Table \ref{smr}.
+Note that we can convert any full matrix to a \li{sparse} matrix of any of the types listed in Table \ref{table:smr}.
 
 \begin{lstlisting}
 # Create a dense matrix (stored as a full matrix).
@@ -342,8 +356,8 @@ This matrix is the derivative operator in numerical analysis of differential equ
 \end{problem}
 
 A second way to create a sparse matrix is to pre-allocate an array of zeros and then specify the nonzero entries one at a time. 
-The most efficient sparse matrix type for pre-allocation is \li{lil}. 
-Once you are done constructing the sparse matrix, you should convert it to a form that is more efficient for computations (like \li{csr} or \li{csc}).
+The most efficient sparse matrix types for building matrices incrementally are \li{lil_matrix} and \li{dok_matrix}. 
+Once you are done constructing the sparse matrix, you should convert it to a form that is optimized for computations.
 
 
 \begin{lstlisting}
@@ -465,14 +479,10 @@ Write a function that accepts an integer argument $n$ and does the following:
 Write a function that accepts an integer argument \li{n} and returns $\lambda n^2$, where
 $\lambda$ is the smallest eigenvalue of the sparse tri-diagonal array you built in Problem \ref{prob:sparse_tridiag}.
 
-If \li{A} is your tri-diagonal matrix, calculate $\lambda$ using the method \li{scipy.sparse.linalg.eigs} as follows.
-\begin{lstlisting}
-# Read the documentation to figure out what you should set `k` to be.
-sl.eigs(A.asfptype(), k=?, which = 'SM')
-\end{lstlisting}
+If \li{A} is your tri-diagonal matrix, calculate $\lambda$ using the method \li{scipy.sparse.linalg.eigs} with the command \li{sl.eigs(A.asfptype(), which = 'SM')}. 
 The code \li{A.asfptype()} ensures that your matrix has the right data type, and the parameter \li{which = 'SM'} tells the function to look for the smallest eigenvalues. 
-Read the documentation to figure out what you should set the keyword parameter \li{k} to be. 
-Also, read the documentation to understand the output of this function.
+This command will return several of the smallest eigenvalues of \li{A}, and you will have to select the smallest of these. 
+Read the documentation of \li{sl.eigs} for more information.
 
 What value does $\lambda n^2$ approach as $n$ approaches infinity? 
 This value is meaningful in operator theory. 
