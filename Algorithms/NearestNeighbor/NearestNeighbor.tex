@@ -102,14 +102,16 @@ Time both the functions you have created with the number of data points being $1
 Time only the searching of the k-d tree not the building of it.
 Plot both times on the same plot.
 How do the two algorithms compare?
-\end{problem}
+
 
 \begin{figure}[H]
-\includegraphics[scale = .5]{4dTime.pdf}
+\includegraphics[width=\textwidth]{fourDTime.pdf}
 \caption{Your graph should look like this.
 The green line is the naive version and blue line is using a kd-tree.
 As you can see the kd-tree is much faster.}
+\label{fig:fourDTime}
 \end{figure}
+\end{problem}
 
 The complexity of this algorithm is $O(klog(n))$ in optimal time.
 Its worst case is $O(k*n^{1-\frac{1}{k}})$ where $k$ is the number of dimensions and $n$ is the number of points in the tree.
@@ -126,11 +128,12 @@ Plot both times on the same plot. Now how do the two algorithms compare?
 \end{problem}
 
 \begin{figure}[H]
-\includegraphics[scale = .5]{20dTime.pdf}
+\includegraphics[width=\textwidth]{twentyDTime.pdf}
 \caption{
 Your graph should look like this.
 The green line is the naive version and blue line is using a kd-tree.
 As you can see the kd-tree is slightly slower than the naive version.}
+\label{fig:twentyDTime}
 \end{figure}
 
 \begin{problem}
@@ -143,17 +146,16 @@ Create the tree by \li{tree = KDTree(data)} and search it by \li{tree.query(poin
 \li{scipy.spatial} includes a \li{cKDTree} object which is implemented in C.
 Is it any better?
 
-\end{problem}
-\begin{figure}[h!]
-\includegraphics[scale = .5]{curseD.pdf}
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{curseD.pdf}
 \caption{
 Your graph should look similar to this.
 Around 15 dimensions the time jumps.
 At that point using a kd-tree is not more effective than checking all the combinations.}
 \end{figure}
+\end{problem}
 
 \section*{Classification}
-
 A common problem is correctly classifying data.  
 Suppose that you have a ten marbles, five of which are blue with a green stripe and the other five red with a purple stripe.  
 If your friend gave you an eleventh marble that was blue with a brown stripe, which group would you put it in?  
@@ -168,7 +170,6 @@ Classification has myriad and sundry applications.
 In this lab we will use it in the context of optical character recognition.
 
 \section*{Nearest Neighbor Classification}
-
 We will now more formally describe the classification problem and explain the nearest neighbor classification algorithm.  
 Suppose we have a collection of vectors $\{x_1, ..., x_m\}$ in $\R^n$ with corresponding labels $\{l_1, ..., l_k\}$ describing to which group each datum belongs.  
 This collection of vectors and labels is called our training set.  
@@ -181,7 +182,7 @@ $(2,0,0)$ & $1$ \\
 $(3,0,0)$ & $1$ \\
 $(0,3,0)$ & $2$ \\
 $(0,2,0)$ & $2$ \\
-$(\frac{1}{10},2,0)$ & $2$ \\
+$(1/10,2,0)$ & $2$ \\
 $(0,0,4)$ & $3$ \\
 $(0,0,7)$ & $3$ \\
 \end{tabular}
@@ -193,7 +194,7 @@ Let us use the euclidean metric to classify $(0,0,5)$ against our training set.
 We see that the distance from $(0,0,5)$ and $(0,0,4)$ is only $1$, while the distance to the remaining points is at least $2$.  
 The label of $(0,0,4)$ is $3$, and so we assign $(0,0,5)$ the same label.
 
-Now, what if we wished to classify $(\frac{5}{2},\frac{5}{2},0)$?  
+Now, what if we wished to classify $(5/2,5/2,0)$?  
 This presents a problem since this point is equidistant from the points in label $1$ and label $2$.  
 In such a case it is up to the programmer to decide how to break the tie.
 
@@ -221,20 +222,18 @@ The first solution is to scale the data before inputting it into our algorithm.
 In our previous example we could divide age by 100, education by 4, debt by 1000, and credit cards by 10 and then preform a nearest neighbor search on Bob. 
 Then the distance from Bob to James is 
 \[
-d((\frac{30}{100},\frac{4}{4},\frac{5000}{1000},\frac{3}{10}),(\frac{18}{100},\frac{0}{4},\frac{5000}{1000},\frac{4}{10})) = .12^2 + 1^2 + .1^2 = 1.0244.
+d\left( \left( \frac{30}{100},\frac{4}{4},\frac{5000}{1000},\frac{3}{10} \right),\left(\frac{18}{100},\frac{0}{4},\frac{5000}{1000},\frac{4}{10}\right)\right) = .12^2 + 1^2 + .1^2 = 1.0244.
 \]
 while the distace from Alice to Bob is
 \[
-d((\frac{30}{100},\frac{4}{4},\frac{5000}{1000},\frac{3}{10}),(\frac{29}{100},\frac{4}{4},\frac{4900}{1000},\frac{3}{10})) = .1^2 + .01^2 = 0.0101.
+d\left(\left(\frac{30}{100},\frac{4}{4},\frac{5000}{1000},\frac{3}{10}\right),\left(\frac{29}{100},\frac{4}{4},\frac{4900}{1000},\frac{3}{10}\right)\right) = .1^2 + .01^2 = 0.0101.
 \]
 So now Bob is closer to Alice.
 
 \begin{problem}
-
 Write a function that takes in data points and the a vector that is used to be the scale. 
 The function outputs the scaled data points. 
 So if we were using it for our baking example it would take in the array representing the data Alice, Bob and James (where each person is a row) and the vector $[100,4,1000,10]$ and output the scaled data of Alice, Bob and James.
-
 \end{problem}
 
 Another alternative is to change the metric we use to measure distance with. 
@@ -245,7 +244,6 @@ If we use Euclidean metric green is closer to red than orange is when we'd proba
 In this case the Euclidean metric is not satisfactory and so we might create a new metric to measure the distance between colors. 
 
 \section*{K-Nearest Neighbor Classification}
-
 Often we can improve the accuracy of a classifier by looking for other points besides the nearest neighbor.  
 Instead, we may choose an arbitrary number $k$ and give the point to be classified the majority label in from it's $k$ nearest neighbors. 
 
@@ -262,7 +260,7 @@ One should ensure to consider how to treat situations like this when working on 
 The sklearn library has a neighbors module with a class KNeighborsClassifier for solving the $k$ nearest neighbors problem
 \begin{lstlisting}
 from sklearn import neighbors
-nbrs = neighbors.KNeighborsClassifier(n_neighbors=8 ,weights = 'distance' ,p=2)
+nbrs = neighbors.KNeighborsClassifier(n_neighbors=8, weights='distance', p=2)
 \end{lstlisting}
 
 The \li{neighbors.KNeighborsClassifier} sets up the knearestnieghbor algorithm. 
@@ -284,10 +282,9 @@ nbrs.predict(testpoints)
 The function \li{predict} takes in points to classify and outputs their respective labels.  
 %More information about this package can be found at http://scikit-learn.org/stable/modules/neighbors.html.
 \begin{problem}
-
 Get the post office handwritten digit data set. Load them with
 \begin{lstlisting}
-labels,points,testlabels,testpoints=np.load('PostalData.npz').items()
+labels, points, testlabels, testpoints = np.load('PostalData.npz').items()
 \end{lstlisting}
 This contains a training set and a test set. 
 When you load the data the first entry of each array will be a name. 
@@ -302,11 +299,10 @@ Which combination gives the most correct classifications?
 
 A similar classification process is used by the United States Postal Service to automatically determine the zip code to send a letter to.
 
-\end{problem}
-
-\begin{figure}[h]
-\includegraphics[scale = 4]{Example.png}
+\begin{figure}[H]
+\includegraphics[width=.25\textwidth]{Example.png}
 \caption{An example of the number 6 taken from the data set}
 \end{figure}
+\end{problem}
 
 

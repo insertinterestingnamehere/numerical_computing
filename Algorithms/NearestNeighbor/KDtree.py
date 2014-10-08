@@ -1,5 +1,6 @@
 #This is a kdtree written by A Zaitzeff to be used by the students for problem 2 of NNS
-class Node: pass
+class Node: 
+    pass
  
 def kdtree(points, depth=0):
  
