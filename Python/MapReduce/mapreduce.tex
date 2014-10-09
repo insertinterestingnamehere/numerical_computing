@@ -1,0 +1,203 @@
+%OUTLINE FOR MAPREDUCE
+
+\lab{Applications}{MapReduce}{MapReduce}
+
+\objective{Understand the MapReduce parallel programming model and implement an example}
+
+As more and more people around the world began to get online, internet companies began to accumulate vast amounts of data.
+For example, a search engine may wish to crawl the internet and learn about its link structure or find out what searches are trending.
+For large amounts of data, even straightforward calculation and analysis can be intractable.
+In 2004 Google published a white paper about the MapReduce programming model.
+MapReduce uses a large cluster of off the shelf computers to store and analyze data.
+It allows even inexperienced users to solve certain kinds of problems with thousands of machines.
+
+%What kinds of problems can it solve and what are its limitations?
+
+\section{IPython Parallel}
+
+In this lab we will configure a small cluster on a local area network and use it to run a MapReduce job.
+In order to create a cluster on the LAN, we will use the IPython.parallel architecture.
+This is architecture is quite powerful and abstract.
+However, it also allows us to create a small cluster with little overhead.
+
+\subsection{IPython Parallel Overview}
+
+IPython parallel creates a cluster of at least one Controller and one Engine.
+The IPython engine listens for python commands over a network connection.
+The engine can also listen for and recieve python objects.
+The IPython controller is an interface for working with engines.
+The controller will keep track of each engine and allow the user to send instructions to each.
+Think of the user as the head of a company.
+The controller will be the manager and the engines the workers.
+
+\subsection{Starting the Controller and Engines}
+
+The controller and engines require configuration files to run properly.
+We will use a helper program call ipcluster to create the appropriate files.
+ipcluster allows for various configurations to be created.
+Since we will only be implementing a simple example, we only need to tell the controller where to listen for engines.
+Since a local area network is typically trustworthy and we are only creating temporary controllers, we tell the controller to listen on all interfaces:
+
+\begin{lstlisting}
+ipcontroller --ip=*
+\end{lstlisting}
+
+This will also start the controller process in your terminal window.
+
+This will create two JSON configuration files in {\tt /.ipython/profile_default/security/}.
+In order to create a network cluster the first thing we need to do is move {\tt ipcontroller-engine.json} to the same directory on a another computer on the network.
+After the file is in the correct location, we may start as many engines as there are processors on the machine.
+This is done with the {\tt ipengine} command.
+Running {\tt ipengine} will start an engine process in the terminal window.
+Upon starting an engine on a remote machine, you will see some messages on the controller terminal stating which machine is now connected to the cluster.
+
+\subsection{Using IPython parallel}
+
+Once we have configured a controller and engines, we can use the IPython interface to execute commands.
+A Client object is needed to interfacing with the cluster.
+To verify that your controller and engines are configured correctly, create a Client as follows:
+
+\begin{lstlisting}
+from IPython.parallel import Client
+c = Client()
+\end{lstlisting}
+
+The Client object has an ids attribute which identifies the id of the engines that are connected to the controller.
+Verify the engines are connected as follows:
+
+\begin{lstlisting}
+c.ids
+\end{lstlistng}
+
+Now that we have the engines connected to the controller, we need to make a {\tt DirectView} object of the engines.
+This object will send and recieve messages to the engines.
+There are other types of {\tt View} objects, but in this section we are only concerned with {\tt DirectView}.
+The object is created by choosing engines from the ids in the client.
+
+\begin{lstlisting}
+dview = c[:]
+\end{lstlisting}
+
+The {\tt DirectView} object as an {\tt apply} method that executes code on the engines and a {\tt get} method that retrieves the results.
+The {\tt apply} method accepts a function and its arguments.
+For example
+
+\begin{lstlisting}
+def multipy(x,y):
+	return x*y
+
+res = dview.apply(multiply, 2, 3)
+\end{lstlisting}
+
+This code runs the {\tt multiply} method with {\tt 2} and {\tt 3} as arguments and returns the output as a {\tt AsyncResult} object.
+We use the {\tt get} method to retrieve the output from {\tt res} and store it in a list we'll call {\tt result}
+
+\begin{lstlisting}
+result = res.get()
+\end{lstlisting}
+
+Finally, it is important to realize that even though Local Area Networks usually have fast connections, communication can easily turn into a bottleneck for your problem.
+Try to minimize communication between nodes.
+
+\begin{problem}
+You can define a function in IPython and use the Client to apply it to engines available to the controller.
+This allows you to write code to be run on any number of machines in one place.
+Write a function that will multiply two random 1000x1000 matrices and return the trace of the product.
+Note that creating the random on the client and sending them across the network is intractable.
+You may want to use the {\tt ready} method with your {\tt AsyncResult} object to see the status of your engines.
+If you have a way of monitoring cpu usage on your engines, observe it as the code runs.  You should see a spike when the calculation begins.
+\end{problem}
+
+\section{MapReduce}
+
+The MapReduce paradigm on a network cluster consists of two parts.
+The ``Map'' step breaks the problem into several parts and gives a part to each worker. 
+The ``Reduce'' step waits for the results from each mapper and consolidates them.
+It is sometimes useful to have each mapper further divide the problem into smaller parts and reduce their results, creating a tree structure.
+
+\subsection{The Mapper}
+
+The mapper step prepares the inputs to the worker and has the worker solve their subproblems.
+For example, we may wish to analyze a large file.
+In the mapper step we would split the file into a piece for each worker and then have each worker analyze their part.
+Python has a built in {\tt map} function that we will use in our exercises.
+This function accepts a function and a sequence of inputs as arguments.
+It returns a list of the function applied to each element of the sequence.
+
+For example, we may add 1 to a list of numbers
+
+\begin{lstlisting}
+my_map = lambda x: x+1
+map(my_map, range(10))
+\end{lstlisting} 
+
+In this case, map returns the list of numbers with 1 added to each element.
+
+\subsection{The Reducer}
+
+The reducer step consolidates the result of the individual workers in the mapper step.
+For example, suppose we wish to count the number of links to a group of wikipedia articles from within wikipedia.
+The mapper step would break wikipedia into sections and assign the workers to count the links in their section to each article.
+The reducer step would then take the results and consolidate each count to each article.
+Python has a built in {\tt reduce} function that we will use.
+This function accepts a function with two arguments and sequence of values.
+It returns the function applied to the sequence cumulatively.
+
+For example, we will multipy all the numbers from our previous example.
+\begin{lstlisting}
+my_reduce = lambda x,y: x*y
+reduce(my_reduce, map(my_map, range(10)))
+\end{lstlisting}
+
+This case will return the product of the numbers in {\tt range(10)} after adding 1 to them.
+
+\begin{problem}
+Write a function that will return the NxN matrix that is the sum of the outer product of vectors of length N with themselves.
+This function must use the python {\tt map} and {\tt reduce} functions.
+\end{problem}
+
+\begin{problem}
+We will implement mapreduce on our network cluster to count the words in a corpus of documents.
+Download the text data from the ACME website.
+Choose one engine on the cluster as a reducer, and let the rest of the engines be mappers.
+Write a function that allocates text files to mappers until all text files have been processed.
+Once the mappers are finished, the reducer should consolidate their results to get a final word count for the whole corpus.
+Each mapper should return the word counts of the text files given them.
+The reducer should reduce the results of the mappers.
+Use the python {\tt map} and {\tt reduce} functions for your mapper and reducer step.
+\end{problem}
+ 
+
+
+%1.  Introduction
+%	a. Who invented it and why?
+%	b. What sorts of problems can it solve?
+%	c. What sorts of problems shouldn't it solve?
+
+%2. Using ipython parallel
+%	a. Ipython parallel architecture
+%		i. controller
+%		ii. engine
+
+%	b. Configuring an ipython cluster on a LAN
+%		i. which files
+%		ii. configuring the files
+%
+%	c. Some basic ipython parallel commands
+%		i. Exercise to verify 
+%3. MapReduce
+%	a. Overview
+%		i.  Mappers
+%		ii.  Reducers
+%	b. Python map
+%		i. Exercise
+%	c. Python reduce
+%		i. Exercise
+	
+	d. python MapReduce on network cluster
+		i. ipython parallel commands for MapReduce
+		ii. Word Count application
+
+	e. Examples of other applications?
+
+
