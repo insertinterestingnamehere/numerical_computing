@@ -24,8 +24,7 @@ All of this information is included in a text file in the root domain of a websi
 The file is always titled \texttt{robots.txt} and defines considerate behaviors for web crawlers.
 Each robots file has a set of rules that label parts of a website as disallowed.
 Parts of a website that are not disallowed are implied to allow access by web crawlers.
-If a website doesn't have a \texttt{robots.txt} file then you should check
-You crawler should retrieve this file first before making any other requests to the website.
+Your crawler should retrieve this file first before making any other requests to the website.
 Many websites will limit crawlers to parts of the sites that will not place a large load on the 
 website's server.
 It is your duty to honor the rules in \texttt{robots.txt} if they exist.
@@ -59,10 +58,10 @@ scrapy startproject <project name>
 \end{lstlisting}
 This will create several files. \li{scrapy.cfg} is a configuration file. 
 It will create folder called \li{<project name>} that contains files \li{items.py}, \li{pipelines.py}, \li{settings.py}, and a directory called \li{spiders}. 
-We will use all this files.
+We will use all these files.
 
 A \li{scrapy} project is broken into parts. 
-The \li{spiders} directory contain the ``spiders'' that will parse and follow link on the web, depending on what you dictate them.
+The \li{spiders} directory contain the ``spiders'' that will parse and follow links on the web, depending on what you dictate them.
 In the \li{items.py} file, which can be broken up into multiple files, there are definitions of the data items that your spiders will produce. 
 These items are then passed to functions in \li{pipelines.py}, which carry out what you want to be done with the items (i.e. save them in a SQL database or CSV file or further process them).
 
@@ -111,13 +110,13 @@ class ExampleSpider(Spider):
         items = [] #initialize as an empty list
         for hit in hits:
             item = ExampleItem()
-			#fields are accessed like a python dictionary
+            #fields are accessed like a python dictionary
             item['title'] = hit.xpath('a/text()').extract()
             item['link'] = hit.xpath('a/@href').extract()
             item['desc'] = hit.xpath('text()').extract()
             items.append(item)#add each item as they are parsed
 
-		filename = response.url.split("/")[-2]
+        filename = response.url.split("/")[-2]
         open(filename, 'wb').write(response.body)
         return items
 
@@ -131,7 +130,7 @@ There are many methods in \li{Selector}, we will focus on three.
 
 The \li{xpath(expression)} method returns a list of selectors, each of them representing HTML nodes by the expression given as the argument. 
 This involves knowing a little HTML. 
-HTML has elements whose name is enclosed in <>. 
+HTML has elements whose name is enclosed in \li{<>}. 
 In the code above \li{xpath('//tr/td')} selects  all the \li{td}'s within a \li{tr} node ( the '//' in our expression specifies all matches in the document, even outside of the current scope). 
 For every \li{Selector} in the resulting list we apply \li{expression('a/text()')} to obtain the text inside of every \li{a} (hyperlink tag) and \li{xpath('a/@href')} to get the data from the \li{href} attribute from the \li{a} tag (in HTML the link that the hyperlink points to). 
 
@@ -140,34 +139,34 @@ The \li{extract()} method simply returns the string of the data selected by the 
 For example, if we were to apply our parser to the following piece of HTML:
 \begin{lstlisting}[language=HTML]
 <div class="content" style="">
-	<table>
-		<tr>
-			<th> not a hit </th>
-			<th> not a hit </th>
-		</tr>
-		<tr>
-			<th
-			<td id="first" class="link">
-				This is the start of the desc text
-				<a href="http://www.example.org/this/is/our/link.html"> This is our link text</a>
-				This is the end of the desc text
-			</td>
-		
-			<th id="second">
-				This is another hit but without an -a- tag
-			</td>
-		</tr>
-		<tr>
-			<td id="third" class="link">
-				<a href="http://www.example.org/another/link.html"> This is our link text</a>
-			</td>
-			<td id="fourth">
-				one last hit
-			</td>
-	</table>
+    <table>
+        <tr>
+            <th> not a hit </th>
+            <th> not a hit </th>
+        </tr>
+        <tr>
+            <th
+            <td id="first" class="link">
+                This is the start of the desc text
+                <a href="http://www.example.org/this/is/our/link.html"> This is our link text</a>
+                This is the end of the desc text
+            </td>
+        
+            <th id="second">
+                This is another hit but without an -a- tag
+            </td>
+        </tr>
+        <tr>
+            <td id="third" class="link">
+                <a href="http://www.example.org/another/link.html"> This is our link text</a>
+            </td>
+            <td id="fourth">
+                one last hit
+            </td>
+    </table>
 </div>
 \end{lstlisting}
-\li{hits} would be populated with four Selectors ( the <div> tag is completely ignored), each will produce an item in our \li{items} list. 
+\li{hits} would be populated with four Selectors ( the \li{<div>} tag is completely ignored), each will produce an item in our \li{items} list. 
 The first will have \li{item.title="This is our link text"}, \li{item.link="http://this/is/our/link.html"}, and \li{item.desc} would be the entire text between \li{<th>} and \li{</th>}. 
 The second item will have \li{item.title} and \li{item.desc} empty.
 
@@ -226,7 +225,7 @@ class SportsSpider(CrawlSpider):
    ]
    rules = (
         Rule(SgmlLinkExtractor(allow=(r'^http://mysports.com/statistics/teams/*stats\.html$',),deny=('sort',)),
-		callback='parse_page',follow=True),
+        callback='parse_page',follow=True),
     )
 
    def parse_page(self, response):
@@ -297,31 +296,31 @@ The following code puts the items that have non-null attributes into a database.
 \begin{lstlisting}
 import sqlite3 as sql
 class SportscrapePipeline(object):
-	
-	def open_spider(self,spider):
-		self.db = sql.connect("test1")
-		self.cur = self.db.cursor()
-		self.cur.execute('DROP TABLE IF EXISTS vals')
-		self.cur.execute('CREATE TABLE vals (name TEXT, numbers TEXT);')
-		self.statement = "INSERT INTO vals VALUES(?, ?);"
-		return
+    
+    def open_spider(self, spider):
+        self.db = sql.connect("test1")
+        self.cur = self.db.cursor()
+        self.cur.execute('DROP TABLE IF EXISTS vals')
+        self.cur.execute('CREATE TABLE vals (name TEXT, numbers TEXT);')
+        self.statement = "INSERT INTO vals VALUES(?, ?);"
+        return
 
-	def close_spider(self, spider):
-		self.db.commit() #save changes made in the transaction
-		self.db.close()
-		return
+    def close_spider(self, spider):
+        self.db.commit() #save changes made in the transaction
+        self.db.close()
+        return
 
-	def process_item(self, item, spider):
-		#data=(item['names'][0],item['numbers'][0])
-		if item['names'] and item['numbers']:
-			data=(item['names'][0],item['numbers'][0])
-			self.cur.execute(self.statement, data)
-		elif item['names'] and  not item['numbers']:
-			data=(item['names'][0],"null")
-			self.cur.execute(self.statement, data)
-		elif not item['names'] and item['numbers']:
-			data=("null",item['numbers'][0])
-			self.cur.execute(self.statement, data)
+    def process_item(self, item, spider):
+        #data=(item['names'][0],item['numbers'][0])
+        if item['names'] and item['numbers']:
+            data=(item['names'][0],item['numbers'][0])
+            self.cur.execute(self.statement, data)
+        elif item['names'] and  not item['numbers']:
+            data=(item['names'][0],"null")
+            self.cur.execute(self.statement, data)
+        elif not item['names'] and item['numbers']:
+            data=("null",item['numbers'][0])
+            self.cur.execute(self.statement, data)
 \end{lstlisting}
 
 \subsection*{Activating your Pipeline}
@@ -335,6 +334,6 @@ The \li{300} is a precedence operator that takes effect if you have multiple pip
 You can string together multiple pipelines together and they will run in series from low to high.
 
 \begin{problem}
-Modify your last spider from the last problem to use a pipeline to store the data in a sql database.
+Modify your last spider from the last problem to use a pipeline to store the data in a SQL database.
 \end{problem}
 
