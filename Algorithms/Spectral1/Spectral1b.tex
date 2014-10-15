@@ -13,26 +13,29 @@ To determine appropriate constants $a_n$, we will minimize the residual function
 \[
 R(x,u_N) = Lu_N - f.
 \]
-(Note that $R(x,u) = Lu - f = 0$ for the solution $u(x)$. ) 
-Our aproach up to this point is often called the method of mean weighted residuals. 
-Different approaches to minimizing $R(x,u_N)$ result in different methods. 
-The pseudospectral or collocation method is obtained by forcing the residual function $R(x,u_N)$ to equal zero at $N+1$ points. 
-When done correctly, the pseudospectral method converges rapidly. 
+(Note that $R(x,u) = Lu - f = 0$ for the true solution $u(x)$.) 
+This general strategy is often called the method of mean weighted residuals. The method of mean weighted residuals is a general framework that describes many other, more specific methods. These more specific methods come from differing approaches to minimizing the residual $R(x,u_N)$.
+
+
+\section*{The Pseudospectral Method}
+The pseudospectral or collocation method is obtained from the method of mean weighted residuals by forcing the residual function $R(x,u_N)$ to equal zero at $N+1$ points in the domain of the problem (for us $[-1,1]$), called collocation points. 
+When done correctly, the pseudospectral method gives high accuracy and converges rapidly. 
 
 We will let the basis functions $\phi_i$ be the Chebychev polynomials, and the collocation points will be the Gauss-Lobatto points. 
 Specifically, the collocation points are $x_i = \cos(\pi i /N),$ $ i = 0, \ldots, N$.
 
 
 The appropriate solution $u_N$ may be represented with two equivalent forms. 
-First the $N+1$ unknown values $\{u_N(x_i)\}_{i=0}^N$, and second the $N+1$ series coefficients $\{a_i\}_{i=0}^N$. 
+First, $u_N$ can be described with the first $N+1$ coefficients  $\{a_i\}_{i=0}^N$ of its expansion in the Chebychev polynomials. 
+Since $u_N$ is a polynomial of order $N$, it may be uniquely described by its values at the collocation points, that is, the unknown values  $\{u_N(x_i)\}_{i=0}^N$.
 
 These equivalent forms satisfy
 \begin{align}
-	LU &= F \label{spectral1b:grid_point}
+	MA = F \label{spectral1b:chebychev_expansion}
 \end{align}
-and 
+and
 \begin{align}
-	MA = F
+	LU &= F \label{spectral1b:grid_point}
 \end{align}
 where 
 \begin{align*}
@@ -40,27 +43,30 @@ where
 	A_i &= a_i,\\
 	F_i &= f(x_i),\\
 	L_{ij} &= \left.(LC_j(x))\right|_{x=x_i},\\
-	H_{ij} &= \left.(L\phi_j(x))\right|_{x=x_i}.
+	M_{ij} &= \left.(L\phi_j(x))\right|_{x=x_i}. 
 \end{align*}
 
-
-\[\phi_N(x) = \sum_{j=0}^N \phi_N(x_j)C_j(x),\]
-where each of the basis functions $C_j$ are cardinal functions, defined to be the polynomials of least degree satisfying
+The functions $C_j$ above are the cardinal functions, defined to be the polynomials of least degree satisfying
 \begin{equation*}
 C_j(x_i) = \begin{cases} 1 & i=j \\ 0 & i \not = j.
    \end{cases}
 \end{equation*}
+Thus, $\phi_N$ can also be expanded in the basis of the cardinal functions: 
+\begin{align*}
+	\phi_N(x) &= \sum_{j=0}^N \phi_N(x_j)C_j(x).
+\end{align*}
 
-
-
-When $L = d/dx$, the corresponding matrix (to \ref{spectral1b:grid_point}) is given by 
-\[L_{ij} = \frac{dC_j}{dx}(x_i) = 
+When $L = d/dx$, the matrix corresponding to equation \ref{spectral1b:grid_point} is given by 
+\begin{align*}
+L_{ij} &= \frac{dC_j}{dx}(x_i) = 
 \begin{cases} (1+2N^2)/6 & i=j=0, \\ -(1+2N^2)/6 & i=j=N, \\
 -x_j/[2(1-x_j^2)] & i=j, \, 0<j<N, \\ 
 (-1)^{i+j}\alpha_i/[\alpha_j(x_i-x_j)] & i \not = j.
    \end{cases}
-\]
-This matrix is often called the differentiation matrix, and can be used to piece together the matrix $L$ for more complicated differential operators. 
+\end{align*}
+where $\alpha_0 = \alpha_N = 2,$ and $\alpha_j = 1$ otherwise. 
+
+This matrix is often called the differentiation matrix ($D$), and can be used to piece together the matrix $L$ for more complicated differential operators. 
 A stable, vectorized function to build the differentiation matrix is given below. 
 
 
@@ -89,9 +95,125 @@ def cheb(N):
 
 \end{lstlisting}
 
-% We assume that the solution $u(x)$ has an expansion in terms of the Chebychev polynomials, so that 
-% \[u(x) = \sum_{n=0}^{\infty}a_n \phi_n(x).\]
-%  (We remark that the Chebychev polynomials $\phi_n(x)$ form a basis for $L^2[-1,1]$.) 
+
+
+\section*{Using the Differentiation Matrix}
+
+
+\begin{problem}
+Use the differentiation matrix to numerically approximate the derivative of $u(x) = e^{x}\cos(6x)$ on a grid of Chebychev points for several values of $N:$ $N=6, 8, 10.$  (Use the linear system $D U \approx U'$.)
+Then use barycentric interpolation to approximate $u'$ on the grid \li{np.linspace(-1,1,100)}.
+
+Graphically compare your approximation to the exact derivative. Note that this convergence would not be occurring if the collocation points were equally spaced. 
+\end{problem}
+
+To approximate $u''(x)$ on the grid $\{x_i\}$, we use 
+\[U'' \approx D^2 U.\]
+Thus, solving the bvp
+\begin{align*}
+u'' &= f(x), \\
+u(-1) &= 0, \\
+u(1) &= 0,
+\end{align*}
+on the grid $\{x_i\}$ amounts to solving the system 
+\[D^2 U = F,\]
+where $F = [f(x_0),\ldots, f(x_N)]^T$.
+Since we have Dirichlet boundary conditions of $0$, we can satisfy the boundary condition by forcing $U[0] = U[N] = 0$.
+(We say there are Dirichlet boundary conditions when both boundary conditions are constant values for $u$).
+This allows us to ignore the first and last equations in the system, giving us the new system 
+\[\tilde{D}^2 \tilde{U} = \tilde{F},\]
+where $\tilde{D} = D[1:N,1:N]$, $\tilde{U} = U[1:N]$, and $\tilde{F} = F[1:N]$.
+% Some modifications are necessary to account for nonzero Dirichlet boundary conditions.
+
+\begin{problem}
+Use the pseudospectral method to solve the boundary value problem 
+\begin{align*}
+u'' &= e^{2x}, \\
+u(-1) &= 0, \\
+u(1) &= 0
+\end{align*}
+Compare your numerical solution with the exact solution, 
+\[
+u(x) = \frac{- \cosh(2) - \sinh(2)x + e^{2x}}{4}.
+\]
+\end{problem}
+
+% \begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{nonzeroDirichlet.pdf}
+% \caption{The solution of $u'' + u' = e^{3x}$, subject to the boundary conditions 
+% $u(-1) = 2$, $u(1) = -1$.}
+% \label{fig:nonzeroDirichlet}
+% \end{figure}
+
+\begin{problem}
+Use the pseudospectral method to solve the boundary value problem 
+\begin{align*}
+u'' + u' &= e^{3x}, \\
+u(-1) &= 2, \\
+u(1) &= -1.
+\end{align*}
+Check that your numerical solution is converging.
+How many subintervals are required to find the solution correct to three decimal places?
+See Figure \ref{fig:nonzeroDirichlet}.
+	
+% Hint: Reduce the problem to one with zero Dirichlet conditions by letting $u = U+G$, where $G$ is a (simple) function satisfying the boundary conditions.
+\end{problem}
+
+
+
+
+
+\section*{The Brachistochrone Problem}
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{comment}
+\section*{The Method of Weighted Residuals}
+We may write our differential/integral equation in operator notation as 
+\[(Lu)(x) = f(x), \quad x \in \Omega\]
+where $u$ belongs to some infinite-dimensional function space $V.$
+We seek for an approximation $u_N$ to the solution $u$.
+Our approximation $u_N$ will come from a finite-dimensional function space $S_N$ called the trial space.
+Here we use $N$ to denote the dimension of $S_N \subset V$. 
+The space $S_N$ can be described by a basis $\{\phi_1(x), \ldots, \phi_N(x)\}$.
+Then an approximation $u_N \in S_N$ has the form 
+\[u_N = \sum_{j=1}^N \gamma_j \phi_j\]
+
+We can then define an operator $\mathcal{R}$ on the trial space $S_N$ by 
+\[\mathcal{R}u_N(x) = Lu_N(x) - f(x)\] 
+$\mathcal{R}u_N$ is called the residual or the error of the trial function $u_N$.
+Note that the residual of the true solution $u$ is zero.
+The method of weighted residuals is a family of methods that determine the coefficients $\gamma_j$ of the approximate solution $u_N$ by forcing the residual $\mathcal{R}u_N$ to be zero in some weighted average over $\Omega$.
+In other words, given some collection of weight/test functions $\{w_i\}_{i=1}^M$, we require that 
+\begin{align}
+\int_{\Omega}\mathcal{R}u_N(x) w_i(x)\, dx &= 0, \quad \text{ for } i = 1, \ldots M
+\label{eqn:Spectral1_weightedaverage}
+\end{align}
+
+After doing the integration described by (\ref{eqn:Spectral1_weightedaverage}), we obtain a system of algebraic equations that may be used to determine the coefficients $\gamma_i$.
+Different choices of the trial space $S_N$ and the weight/test functions $w_i(x)$ result in different methods. 
+
+We obtain the pseudospectral method (or collocation method) by choosing a collection of points $\{x_i\}_{i=1}^M$ in our space $\Omega$ called collocation points.
+The weight functions $w_i(x)$ are then given by $w_i(x) = \delta(x-x_i); $ that is, $w_i$ is the Dirac delta function centered at $x_i$.
+Then the equations \ref{eqn:Spectral1_weightedaverage} are given by 
+\begin{align*}
+	\int_{\Omega} \mathcal{R}u_N w_i(x) \, dx &= 0,\\
+	\int_{\Omega} \mathcal{R}u_N \delta(x-x_i) \, dx &= 0, \\
+	\mathcal{R}u_N(x_i) &= 0 \quad \text{ for } i = 1, \ldots, M
+\end{align*}
+Thus the pseudospectral method requires the residual of the approximate solution to be exactly zero at the collocation points.
+Alternatively, the approximate solution satisfies the differential equation exactly at the collocation points. 
+\end{comment}
 
 
 
