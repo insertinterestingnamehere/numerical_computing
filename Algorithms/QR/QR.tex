@@ -1,4 +1,4 @@
-\lab{Algorithms}{Modified Gram-Schmidt (QR)}{QR decomposition}
+\lab{Algorithms}{QR Decomposition}{QR decomposition}
 \label{lab:QRdecomp}
 \objective{Use the Gram-Schmidt algorithm and orthonormal transformations to perform the QR decomposition.}
 
@@ -12,7 +12,10 @@ with orthonormal columns and $R$ is a nonsingular $n \times n$ upper
 triangular matrix.
 \end{theorem}
 
-\section*{Computing the QR Decomposition}
+In this lab we will only discuss real matrices. 
+All of these results can be extended to the complex numbers by replacing ``orthogonal matrix'' with ``unitary matrix,'' ``transpose'' with ``hermitian conjugate,'' and ``symmetric matrix'' with ``hermitian matrix.''
+
+\section*{Modified Gram-Schmidt}
 Let $A$ be an $m \times n$ matrix of rank $n$.
 There are many methods for computing the QR decomposition.
 First we will discuss the algorithm that computes $Q$ by applying Gram-Schmidt to the columns of $A$.
@@ -30,60 +33,53 @@ where
 \]
 and $\p_0 = 0$. 
 
-In the QR factorization of $A$, the matrix $Q$ has columns $\{\q_i\}_{i=1}^n$. The matrix $R$ is then the upper triangular matrix with entries $r_{jk}$ where $r_{kk} = \|\x_k-\p_{k-1}\|$ and $r_{j k} = \langle \q_j, \x_k\rangle$ when $j < k$. See [TODO: ref textbook] for a proof that $QR=A$ and $R$ is nonsingular.
+In the QR factorization of $A$, the matrix $Q$ has columns $\{\q_i\}_{i=1}^n$. 
+The matrix $R$ is then the upper triangular matrix with entries $r_{jk}$ where $r_{kk} = \|\x_k-\p_{k-1}\|$ and $r_{j k} = \langle \q_j, \x_k\rangle$ when $j < k$. 
+See [TODO: ref textbook] for a proof that $QR=A$ and $R$ is nonsingular.
 
 
-When implemented with a computer, the Gram-Schmidt algorithm may produce a matrix $Q$ that is not even close to orthonormal due to rounding errors. We now introduce the modified Gram-Schmidt algorithm, which consistently produces matrices $Q$ that are ``very close'' to orthonormal.
+When implemented with a computer, the Gram-Schmidt algorithm may produce a matrix $Q$ with columns that are not even close to orthonormal due to rounding errors. 
+We now introduce the modified Gram-Schmidt algorithm, which consistently produces matrices $Q$ whose columns are ``very close'' to orthonormal.
 
-In the modified Gram-Schmidt algorithm, $\q_1$ is the normalization of $\x_1$ as before. We then make each of the vectors $\x_2, \ldots, \x_n$ orthogonal to $\q_1$ by defining
+In the modified Gram-Schmidt algorithm, $\q_1$ is the normalization of $\x_1$ as before. 
+We then make each of the vectors $\x_2, \ldots, \x_n$ orthogonal to $\q_1$ by defining
 \[
 \x_k := \x_k - \langle \q_1,\x_{k} \rangle \q_1,\quad k=2,\ldots,n.
 \]
-(Compare this to the usual Gram-Schmidt algorithm, where we only made $\x_2$ orthogonal to $\q_1$.) Next we define $\q_2 = \frac{\x_2}{\|\x_2\|}.$ Once again we make $\x_3, \ldots, \x_n$ orthogonal to $\q_2$ by defining
+(Compare this to the usual Gram-Schmidt algorithm, where we only made $\x_2$ orthogonal to $\q_1$.) 
+Next we define $\q_2 = \frac{\x_2}{\|\x_2\|}.$ Once again we make $\x_3, \ldots, \x_n$ orthogonal to $\q_2$ by defining
 \[
 \x_k := \x_k - \langle \q_2,\x_{k} \rangle \q_2,\quad k=3,\ldots,n.
 \]
-(Each of these new vectors is a linear combination of vectors orthogonal to $\q_1$, and hence is orthogonal to $\q_1$ as well.) We continue this process until we have an orthonormal set $q_1, \ldots, q_k$. To summarize, the modified Gram-Schmidt algorithm is as follows.
+(Each of these new vectors is a linear combination of vectors orthogonal to $\q_1$, and hence is orthogonal to $\q_1$ as well.) 
+We continue this process until we have an orthonormal set $q_1, \ldots, q_k$. 
+The entire modified Gram-Schmidt algorithm is described in Algorithm \ref{Alg:gram_schmidt}.
 
 %TODO: proofread this, explain notation, and make the LU decomposition alg. like this
 \begin{algorithm}
-\caption{Modified Gram-Schmidt}
-\label{Alg:MGS}
 \begin{algorithmic}[1]
 \Procedure{Modified Gram-Schmidt}{$A$}
 \State $m, n \gets \text{shape} \left( A \right)$
 \State $Q \gets \text{copy} \left( A \right)$
-\State $Q \gets \text{zeros}((n,n))$
+\State $R \gets \text{zeros}((n,n))$
 \For{$0 \leq i < n$}
     \State $R_{i,i} \gets \norm{Q_{:,i}}$
     \State $Q_{:,i} \gets Q_{:,i}/R_{i,i}$
     \For{$i+1 \leq j < n$}
-        \State $R_{i,j} \gets Q_{:,j}Q_{:,i}$
+        \State $R_{i,j} \gets Q_{:,j}^\mathsf{T}Q_{:,i}$
         \State $Q_{:,j} \gets Q_{:,j}-R_{i,j}Q_{:,i}$
 	\EndFor
 \EndFor
 \State \pseudoli{return} $Q, R$
 \EndProcedure
 \end{algorithmic}
+\caption{The modified Gram-Schmidt. This algorithm returns orthogonal $Q$ and upper triangular $R$ such that $A = QR$.}
+\label{Alg:gram_schmidt}
 \end{algorithm}
 
 
-\begin{problem}
-\label{prob:QR}
-Write your own implementation of the QR decomposition. Write a function \li{QR} that accepts as input a square matrix $A$ of full rank, and computes the QR decomposition, returning the matrices $Q$ and $R$ (which should be the same shape as $A$). Be sure to use the numerically stable Modified Gram-Schmidt algorithm. Also assume there are no zeros on the main diagonal.
-
-You can test that you have the right decomposition by verifying that $QR=A$ and $Q^T Q = I$. While this is true most of the time, it may not always be true due to roundoff.
-\end{problem}
-
-\begin{problem}
-The QR decomposition gives a really nice way to calculate the magnitude of the determinant of a square matrix of full rank. Write a function \li{QRDet} that accepts a square matrix of full rank as input, and returns the magnitude of the determinant of that matrix. Use your QR decomposition to perform this
-calculation.
-
-You may check your work by comparing your results to those produced by \li{scipy.linalg.det}. 
-\end{problem}
-
 %TODO: put this section after the next? What algorithm does SciPy use?
-\section*{QR Decomposition in SciPy}
+\section*{QR decomposition in SciPy}
 The linear algebra library in SciPy calculates the QR decomposition using a software package called LAPACK (Linear Algebra PACKage), which is incredibly efficient.
 Here is an example of using SciPy to compute the QR decomposition of a matrix.
 
@@ -99,7 +95,10 @@ array([[ True, False, False],
        [ True,  True, False],
        [ True,  True, False]], dtype=bool)
 \end{lstlisting}
- Note that \li{Q.dot(R)} does not equal \li{A} exactly because of rounding errors. However, we can check that the entries of \li{Q.dot(R)} are ``close'' to the entries of \li{A} with the NumPy method \li{np.allclose()}. This method checks that the elements of two arrays differ by less than a given tolerance, a tolerance specified by two keyword arguments \li{rtol} and \li{atol} that default to $10^{-5}$ and $10^{-8}$ respectively.
+ Note that \li{Q.dot(R)} does not equal \li{A} exactly because of rounding errors. 
+ However, we can check that the entries of \li{Q.dot(R)} are ``close'' to the entries of \li{A} with the NumPy method \li{np.allclose()}. 
+ This method checks that the elements of two arrays differ by less than a given tolerance, a tolerance specified by two keyword arguments \li{rtol} and \li{atol} that default to $10^{-5}$ and $10^{-8}$ respectively. 
+ You can read the documentation to learn how the tolerance is computed from these numbers.
 \begin{lstlisting}
 >>> np.allclose(Q.dot(R), A) 
 True
@@ -111,22 +110,57 @@ True
 \end{lstlisting}
 
 
-\section*{Orthonormal transformations}
-Another way to compute the QR decomposition of a matrix is with a series of orthonormal transformation. Like the Modified Gram-Schmidt algorithm, orthonormal transformations are numerically stable, meaning that they are less susceptible to rounding errors.\footnote{In lab [TODO: ref] we will define the \emph{condition number} of a matrix, which tells us about the numerical stability of the corresponding operator. Small condition numbers mean the operator is more stable. In fact, orthonormal matrices have the smallest possible condition number, which is 1.}
+\begin{problem}
+\label{prob:QR}
+Write a function that accepts as input a $m \times n$ matrix of rank $n$ and computes its QR decomposition, returning the matrices $Q$ and $R$. 
+Your function should use Algorithm \ref{Alg:gram_schmidt}. 
+Hint: Read about the function \li{np.inner()}.
+Another hint: Check that your function works by using \li{np.allclose()}.
+\end{problem}
 
-%TODO: revise this section
-\section*{Householder reflections}
-A Householder reflection is a linear transformation $P: \mathbb{R}^n \rightarrow \mathbb{R}^n$ that reflects a vector $x$ about a hyperplane.
-See figure \ref{fig:Householder_reflector}.
-Recall that a hyperplane can be defined by a unit vector $v$ which is orthogonal to the hyperplane. 
-As shown in figure \ref{fig:Householder_reflector}, $x - \langle v,x \rangle v$ is the projection of $x$ onto the hyperplane orthogonal to $v$.
-However, to reflect \emph{across} the hyperplane, we must move twice as far; that is, $Px = x - 2\langle v,x \rangle v$.
-This can be written $Px = x - 2v(v^\mathsf{H} x)$, so $P$ has matrix representation $P = I - 2v v^\mathsf{H}$.
-Note that $P^\mathsf{H} P = I$; thus $P$ is orthonormal.
+\begin{problem}
+Write a function that accepts a square matrix $A$ of full rank and returns $\abs{\det(A)}$. 
+Use the QR decomposition of $A$ to perform this calculation.
+Hint: What is the determinant of an orthonormal matrix?
+\end{problem}
 
+\section*{Householder triangularization}
+Another way to compute the QR decomposition of a matrix is with a series of orthonormal transformation. 
+Like the Modified Gram-Schmidt algorithm, orthonormal transformations are numerically stable, meaning that they are less susceptible to rounding errors.
+
+\subsection*{Householder transformations}
+The \emph{hyperplane} in $\mathbb{R}^n$ with normal vector $\mathbf{v}$ is the set $\{ \x \in \mathbb{R}^n \mid \langle \x, \mathbf{v} \rangle = 0 \}$. 
+Equivalently, the hyperplane defined by $\mathbf{v}$ is just the orthogonal complement $\mathbf{v}^{\perp}$. 
+See Figure \ref{fig:Householder_reflector}.
+
+A \emph{Householder transformation} of $\mathbb{R}^n$ is a linear transformation that reflects about a hyperplane. 
+If a hyperplane $H$ has normal vector $\mathbf{v}$, let $\mathbf{u} = \mathbf{v}/\|\mathbf{v}\|$. 
+Then the Householder transformation that reflects about $H$ corresponds to the matrix $H_{\mathbf{u}} = I - 2 \mathbf{u}\mathbf{u}^T$. 
+You can check that $(I - 2 \mathbf{u}\mathbf{u}^T)^T(I - 2 \mathbf{u}\mathbf{u}^T)=I$, so Householder transformations are orthogonal.
+
+%\newcommand{\ipt}[2]{\ensuremath{\left\langle #1,#2 \right\rangle}}
 \begin{figure}
-\includegraphics[width= \textwidth]{fig1}
-\caption{Householder reflector}
+\begin{center}
+\begin{tikzpicture}
+%\draw[-, thick](0,-1.5)--(0,3); %x-axis
+%\draw[-,thick](-1,0)--(4,0); %y-axis
+%\node[draw, thick, minimum height=4.5cm, minimum width=5cm]()at(1.5,.75){};
+\draw[-,dashed, gray](-2,-1.333)--(3, 2); % hyperplane
+\draw[->, gray, >=stealth,ultra thick](0,0)--(.8,-1.2); % v
+\draw[->, >=stealth, thick](0,0)--(2.815, .777); % H x
+\draw[->, >=stealth, thick](0,0)--(1.8,2.3); % x
+\node[draw=none](v)at(.65,-.6){$\v$};
+\node[draw=none](x)at(.75,1.5){$\x$};
+\node[draw=none](Hx)at(3, .5){$H_{\v}\x$};
+\node[draw=none](H)at(-1.5,-.6){$H$};
+%\node[draw=none](bullet)at(2.31, 1.53){\textbullet};
+%\node[draw=none](vandx)at(4.0,1.5){$\x -
+%\left \langle \dfrac{\v}{\|\v\|}, \x \right \rangle \dfrac{\v}{\|\v\|}$};
+\end{tikzpicture}
+\end{center}
+\caption{This is a picture of a Householder transformation. 
+The normal vector $\mathbf{v}$ defines the hyperplane $H$. 
+The Householder transformation $H_{\mathbf{v}}$ of $\mathbf{x}$ is just the reflection of $\mathbf{x}$ across $H$.}
 \label{fig:Householder_reflector}
 \end{figure}
 
@@ -140,7 +174,8 @@ If $A$ is square, then $A = Q^TR$ is the QR decomposition.
 
 Let's demonstrate the idea behind Householder triangularization on a $4 \times 3$ matrix $A$.
 Let $e_1, \ldots, e_4$ be the standard basis of $\mathbb{R}^4$.
-First we find an orthonormal transformation $Q_1$ that maps the first column of A into the span of $e_1$. This is diagrammed below, where and $*$ represents an arbitrary entry.
+First we find an orthonormal transformation $Q_1$ that maps the first column of A into the span of $e_1$. 
+This is diagrammed below, where $*$ represents an arbitrary entry.
 
 \def\mc#1{\multicolumn{1}{c|}{#1}}
 \def\lc#1{\multicolumn{1}{|c}{#1}}
@@ -161,7 +196,8 @@ First we find an orthonormal transformation $Q_1$ that maps the first column of 
 \end{pmatrix}
 \end{equation*}
 Let $A_2 = Q_1A$ be the matrix on the right above.
-Now find an orthonormal transformation $Q_2$ that fixes $e_1$ and maps the second column of $A_2$ into the span of $e_1$ and $e_2$. Notice that since $Q_2$ fixes $e_1$, the top row of $A_2$ will be fixed by $Q_2$, and only entries in the boxed submatrix will change.
+Now find an orthonormal transformation $Q_2$ that fixes $e_1$ and maps the second column of $A_2$ into the span of $e_1$ and $e_2$. 
+Notice that since $Q_2$ fixes $e_1$, the top row of $A_2$ will be fixed by $Q_2$, and only entries in the boxed submatrix will change.
 
 %\def\mc#1{\multicolumn{1}{c|}{#1}}
 %\begin{equation*}
@@ -182,7 +218,9 @@ Now find an orthonormal transformation $Q_2$ that fixes $e_1$ and maps the secon
 %\end{pmatrix}
 %\end{equation*}
 
-Let $A_3 = Q_2Q_1A$ be the matrix on the right above. Finally, find an orthonormal transformation $Q_3$ that fixes $e_1$ and $e_2$ and maps the third column of $A_3$ into the span of $e_1$, $e_2$, and $e_3$. The diagram below summarizes this process, where boxed entries indicate those affected by the operation just performed.
+Let $A_3 = Q_2Q_1A$ be the matrix on the right above. 
+Finally, find an orthonormal transformation $Q_3$ that fixes $e_1$ and $e_2$ and maps the third column of $A_3$ into the span of $e_1$, $e_2$, and $e_3$. 
+The diagram below summarizes this process, where boxed entries indicate those affected by the operation just performed.
 
 \begin{equation*}
 Q_3 Q_2 Q_1
@@ -228,15 +266,21 @@ T & X' \\
 \]
 Here, $T$ is a $(k-1) \times (k-1)$ upper triangular matrix. 
 Let $\x$ be the $k^{th}$ column of $A_k$. 
-Write $\x = \x' + \x''$ where $\x'$ is in the span of $e_1, \ldots, e_{k-1}$. So $\x''$ looks like $k-1$ zeros followed by the first column of $X''$. 
+Write $\x = \x' + \x''$ where $\x'$ is in the span of $e_1, \ldots, e_{k-1}$. 
+So $\x''$ looks like $k-1$ zeros followed by the first column of $X''$. 
 The idea is to reflect $\x''$ about a hyperplane into the span of $e_k$. 
 It turns out that there are two choices that will work (see Figure \ref{fig:two reflectors}). 
 These hyperplanes have normal vectors $\x'' + \| \x'' \|e_k$ and $\x'' - \| \x'' \|e_k$.
-In fact, the more numerically stable transformation is to reflect about the hyperplane with normal vector $\mathbf{v}_k = \x'' + sign(x_k) \| \x'' \|e_k$, where $x_k$ is the $k^{th}$ entry of $\x''$ (or the top left entry of $X''$). 
+In fact, the more numerically stable transformation is to reflect about the hyperplane with normal vector $\mathbf{v}_k = \x'' +\sign(x_k) \| \x'' \|e_k$, where $x_k$ is the $k^{th}$ entry of $\x''$ (or the top left entry of $X''$). 
 (You can check that $\mathbf{v}_k$ is orthonormal to $e_1, \ldots, e_{k-1}$, so the plane orthonormal to $\mathbf{v}_k$ contains $e_1, \ldots, e_{k-1}$, and reflecting about it fixes $e_1, \ldots, e_{k-1}$.)
 Thus, $Q_k$ is the Householder transformation $H_{\mathbf{v}_k}$.
 
-The final question is to find an efficient algorithm for computing $Q = Q_nQ_{n-1} \ldots Q_1$ and $R = Q_nQ_{n-1} \ldots Q_1A$. The idea is to start with $R=A$ and $Q = I$. Then we compute $Q_1$ and modify $R$ to be $Q_1A$ and $Q$ to be $Q_1$. Next we compute $Q_2$ and modify $R$ to be $Q_2Q_1A$ and $Q$ to be $Q_2Q_1$, and so forth. As we have already discussed, $Q_k$ fixes the first $k-1$ rows and columns of any matrix it acts on. In fact, if $\x'' = (0, \ldots, 0, x_k, x_{k+1}, \ldots, x_n)$ as above, then $\mathbf{v}_k = (0, \ldots, 0, v_{k_0}, x_{k+1}, \ldots, x_n)$ where $v_{k_0} = x_k + sign(x_k) \| \x'' \|$. If $\mathbf{u}_k$ is the normalization of $(v_{k_0}, x_{k+1}, \ldots, x_n) \in \mathbb{R}^{n-(k-1)}$, then
+The final question is to find an efficient algorithm for computing $Q = Q_nQ_{n-1} \ldots Q_1$ and $R = Q_nQ_{n-1} \ldots Q_1A$. 
+The idea is to start with $R=A$ and $Q = I$. Then we compute $Q_1$ and modify $R$ to be $Q_1A$ and $Q$ to be $Q_1$. 
+Next we compute $Q_2$ and modify $R$ to be $Q_2Q_1A$ and $Q$ to be $Q_2Q_1$, and so forth. 
+As we have already discussed, $Q_k$ fixes the first $k-1$ rows and columns of any matrix it acts on. 
+In fact, if $\x'' = (0, \ldots, 0, x_k, x_{k+1}, \ldots, x_n)$ as above, then $\mathbf{v}_k = (0, \ldots, 0, v_{k_0}, x_{k+1}, \ldots, x_n)$ where $v_{k_0} = x_k + \sign(x_k) \| \x'' \|$. 
+If $\mathbf{u}_k$ is the normalization of $(v_{k_0}, x_{k+1}, \ldots, x_n) \in \mathbb{R}^{n-(k-1)}$, then
 \[
 Q_k = I-\frac{2\x''(\x'')^T}{\|\x''\|^2} =  \begin{pmatrix}
 I & 0 \\
@@ -272,7 +316,8 @@ A\\
 (I-2\mathbf{u}_k\mathbf{u}_k^T)B
 \end{pmatrix},
 \]
-so to update $\prod Q_i$, we need only modify the bottom rows. These also change via matrix multiplication by $I-2\mathbf{u}_k\mathbf{u}_k^T$.
+so to update $\prod Q_i$, we need only modify the bottom rows. 
+These also change via matrix multiplication by $I-2\mathbf{u}_k\mathbf{u}_k^T$.
 
 These arguments produce Algorithm \ref{Alg:Householder}.
 
@@ -317,14 +362,37 @@ These arguments produce Algorithm \ref{Alg:Householder}.
 %So $\frac{u}{\norm{u}}$ is a proper choice of $v$ that will project $x$ into the span of $e_1$.
 
 \begin{figure}
-\includegraphics[width= \textwidth]{fig2}
-\caption{two reflectors}
+\begin{tikzpicture}
+
+\draw[-, dashed, gray](-3,-1)--(3,1);
+\draw[-, dashed, gray](-.8,2.4)--(.6,-1.8);
+\draw[-, gray, thick](-4,0)--(4,0);
+\draw[->, thick, >=stealth'](0,0)--(2,1.6);
+\draw[<->, thick, >=stealth'](-2.6,0)--(2.6,0);
+\draw[->, gray,  ultra thick, >=stealth](0,0)--(1.5,.5);
+\draw[->, gray, ultra thick, >=stealth](0,0)--(-.5,1.5);
+
+\node[draw=none, node distance=3.5cm]
+	(dummy)at(2.5,.2){};
+\node[draw=none, node distance=.5cm](Hvx)
+	[below of=dummy]{$H_{\v_1}\x$};
+\node[draw=none, node distance=2cm](x)
+	[above left of=Hvx]{$\x$};
+\node[draw=none](v1)[left of=x]{$\v_1$};
+\node[draw=none, node distance=.55cm](v2)[below of=x]{$\v_2$};
+\node[draw=none, node distance=4cm](hvx2)[left of=dummy]{$H_{\v_2}\x$};
+
+\end{tikzpicture}
+\caption{If we want to reflect $\x$ about a hyperplane into the span of $e_1$, there are two hyperplanes that will work. 
+The two choices are defined by the normal vectors $\v_1$ and $\v_2$. 
+Reflecting about the hyperplane defined by $\v_i$ produces  $H_{\v_i}\x$.}
 \label{fig:two reflectors}
 \end{figure}
 
 %TODO: explain notation, fix algorithm
 \begin{algorithm}
-\caption{Householder triangularization. This algorithm returns orthonormal $Q$ and upper triangular $R$ satisfying $A = QR$}
+\caption{Householder triangularization. 
+This algorithm returns orthonormal $Q$ and upper triangular $R$ satisfying $A = QR$.}
 \label{Alg:Householder}
 \begin{algorithmic}[1]
 \Procedure{Householder}{$A$}
@@ -335,8 +403,8 @@ These arguments produce Algorithm \ref{Alg:Householder}.
     \State $u_k \gets \text{copy} \left( R_{k:,k} \right)$
     \State $u_{k_0} \gets u_{k_0} + \text{sign} \left( u_{k_0} \right) \norm{u_k}$
     \State $u_k \gets u_k / \norm{u_k}$
-    \State $R_{k:,k:} \gets R_{k:,k:} - 2 u_k \left( u_k^\mathsf{H} R_{k:,k:} \right)$
-    \State $Q_{k:} \gets Q_{k:} - 2 u_k \left( u_k^\mathsf{H} Q_{k:} \right)$
+    \State $R_{k:,k:} \gets R_{k:,k:} - 2 u_k \left( u_k^\mathsf{T} R_{k:,k:} \right)$
+    \State $Q_{k:} \gets Q_{k:} - 2 u_k \left( u_k^\mathsf{T} Q_{k:} \right)$
 \EndFor
 \State \pseudoli{return} $Q^\mathsf{H}, R$
 \EndProcedure
@@ -346,15 +414,9 @@ These arguments produce Algorithm \ref{Alg:Householder}.
 
 \begin{problem}
 \label{prob:HouseholderQR}
-Write a function \li{householder} that accepts an array $A$ as input, and performs
-the algorithm described above to compute the QR decomposition of $A$. Return the
-matrices $Q$ and $R$.
-
-It is simple to check that your code works: multiply the two output matrices
-of your function, and check that the result matches the original input matrix.
-
-Another important thing to notice is that an outer product is needed to compute $v_k \left( v_k^\mathsf{H} A[k:,k:] \right)$, not an inner product.
-Make sure this is accounted for when you write the code to run this algorithm. You can either make the vectors $v_k$ column vectors (two dimensional with a single column) instead of just one-dimensional arrays, or you can use the built in function \li{np.outer} in the appropriate location.
+Write a function that accepts as input a $m \times n$ matrix of rank $n$ and computes its QR decomposition, returning the matrices $Q$ and $R$. 
+Your function should use Algorithm \ref{Alg:Householder}. 
+Hint: Read about the function \li{np.outer()}.
 \end{problem}
 
 \begin{comment}
@@ -419,7 +481,7 @@ Householder QR factorization is more numerically stable than Gram-Schmidt or eve
 However, MGS is still useful for some types of iterative methods because it finds the orthonormal basis one vector at a time instead of all at once (for an example see Lab \ref{lab:EigSolve}).
 \end{comment}
 
-\subsection*{Upper Hessenberg Form}
+\section*{Upper Hessenberg form}
 An upper Hessenberg matrix is a square matrix with zeros below the first subdiagonal.
 Every  $n \times n$ matrix $A$ can be written $A = Q^THQ$ where $Q$ is orthonormal and $H$ is an upper Hessenberg matrix, called the Hessenberg form of $A$.
 
@@ -476,15 +538,14 @@ Q_3 Q_2 Q_1 A Q_1^T Q_2 ^T Q_3^T =
 \end{pmatrix}.
 \end{equation*}
 
-When $A$ is Hermitian, its upper Hessenberg form is a tridiagonal matrix. 
-This is because the $Q_i$'s zero out everything below the first subdiagonal of $A$ and the $Q_i^T$'s zero out everything above the first superdiagonal.
-Thus, the Hessenberg form of a Hermitian matrix is especially useful, since as we saw in Lab \ref{lab:complexity}, tridiagonal matrices make computations fast.
-
-The pseudocode for computing the Hessenberg form of a matrix is shown in Algorithm \ref{Alg:Hessenberg}.
+The pseudocode for computing the Hessenberg form of a matrix with Householder transformations is shown in Algorithm \ref{Alg:Hessenberg}.
+Although the Hessenberg form exists for any square matrix, this algorithm only works for full-rank square matrices.
 Notice that this algorithm is very similar to Algorithm \ref{Alg:Householder}.
 
+
 \begin{algorithm}
-\caption{Reduction to Hessenberg Form}
+\caption{Reduction to Hessenberg form for a nonsingular matrix. 
+This algorithm returns orthogonal $Q$ and upper Hessenberg $H$ such that $A = Q^THQ$.}
 \label{Alg:Hessenberg}
 \begin{algorithmic}[1]
 \Procedure{Hessenberg}{$A$}
@@ -495,24 +556,28 @@ Notice that this algorithm is very similar to Algorithm \ref{Alg:Householder}.
     \State $u_k \gets H_{k+1:, k}$
     \State $u_{k_0} \gets u_{k_0} + \text{sign}(u_{k_0}) \norm{u_k}$
     \State $u_k \gets u_k/\norm{u_k}$
-    \State $H_{k+1:,k:} \gets H_{k+1:,k:} - 2u_k(u_k^\mathsf{H} H_{k+1:,k:})$
-    \State $H_{:,k+1:} \gets H_{:,k+1:} - 2(H_{:,k+1:} u_k) u_k^\mathsf{H}$
-    \State $Q_{k+1:} \gets Q_{k+1:} - 2u_k(u_k^\mathsf{H} Q_{k+1:})$
+    \State $H_{k+1:,k:} \gets H_{k+1:,k:} - 2u_k(u_k^\mathsf{T} H_{k+1:,k:})$
+    \State $H_{:,k+1:} \gets H_{:,k+1:} - 2(H_{:,k+1:} u_k) u_k^\mathsf{T}$
+    \State $Q_{k+1:} \gets Q_{k+1:} - 2u_k(u_k^\mathsf{T} Q_{k+1:})$
 \EndFor
 \State \pseudoli{return} $Q, H$
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
+When $A$ is symmetric, its upper Hessenberg form is a tridiagonal matrix. 
+This is because the $Q_i$'s zero out everything below the first subdiagonal of $A$ and the $Q_i^T$'s zero out everything above the first superdiagonal.
+Thus, the Hessenberg form of a symmetric matrix is especially useful, since as we saw in Lab \ref{lab:complexity}, tridiagonal matrices make computations fast.
+
+
+
+
+%TODO: This doesn't work if $A$ is singular
 \begin{problem}
 \label{prob:hessenberg}
-Write a function \li{hessenberg} that computes the Hessenberg form of a real-valued
-input matrix $A$. The function should return $Q$ and $H$ satisfying $A = Q^THQ$,
-where $Q$ is orthonormal and $H$ has zeros below the first subdiagonal.
-
-The code for this algorithm will be fairly similar to the code for the QR factorization using Householder reflections.
-This factorization technique will be used later on in Lab \ref{lab:EigSolve}.
-Notice what happens when you compute the Hessenberg factorization of a Hermitian matrix.
+Write a function that accepts as input a nonsingular square matrix $A$ and computes its Hessenberg form, returning orthogonal $Q$ and upper Hessenberg $H$ satisfying $A = Q^THQ$. 
+Your function should use Algorithm \ref{Alg:hessenberg}. 
+What happens when you compute the Hessenberg factorization of a symmetric matrix?
 \end{problem}
 
 %Sources: http://www.cs.unc.edu/~krishnas/eigen/node5.html
