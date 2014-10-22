@@ -1,71 +1,77 @@
-import bjDump
-import bjHelp
+import bjCommon
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import rand
 import time
 
+
+#Problem 1
 def lcg(n,a=1103515245,c=12345,mod=2**31-1,seed=4329):
+    """
+    Return an array of random numbers using the parameter specified
+    """
     X = np.zeros(n)
     X[0] = (a*seed + c)%mod
     for i in range(1,n) :
         X[i] = (a*X[i-1] + c)%mod
     return X/(mod-1)
 
+#Problem 2
 def between(n,x1,x2,a=1103515245,c=12345,mod=2**31-1,seed=4329):
+    """
+    Scale n to be between x1 and x2
+    """
     return (lcg(n,a,c,mod,seed)*(x2-x1)+x1).astype(int)
 
-def prob4():
+def problem3():
+    """
+    Graph the randoms from our lcg and also from scipy.rand
+    """
+    
+    plt.subplot(211)
     size = 512
-    rands = between(size**2,0,255,a=10,c=10,mod=2**30)
+    rands = between(size**2,0,255,a=11035,c=1004,mod=2**15)
     rands = rands.reshape((size,size))
     plt.imshow(rands)
     plt.show()
-
-def prob5():
-    N = 10000
-    bins = {}
-    for i in range(0,N) :
-        binNum = toBin(lcg(5,seed=rand(1)).argsort())
-        if(bins.has_key(binNum)) : 
-            bins[binNum]+= 1
-        else:
-            bins[binNum] = 1
-
-    spbins = {}
-    for i in range(0,N) :
-        binNum = toBin(rand(5).argsort())
-        if(spbins.has_key(binNum)) : 
-            spbins[binNum]+= 1
-        else:
-            spbins[binNum] = 1
-    plt.bar(np.arange(0,120),bins.values())
+	plt.close()
+    
+    plt.subplot(212)
+    plt.imshow(rand(512,512)*255)
     plt.show()
-    plt.bar(np.arange(0,120),spbins.values(),color='r')
-    plt.show()
+	plt.close()
 
+#Problem 4
+def getSweepsEasy(games,n):
+    """
+    Return an n x games x 52 Array that represents the shuffles for <games> for
+    the first n shuffles
+    """
+    #mine returns an np.array just we can use array slicing
+    return np.array([bjCommon.Suffle(games,2521,13,2**16,seed) for seed in xrange(n)])
 
-def findSeedMatch(decks,cards):
-   return np.where((decks[:,0:len(cards),0:3]==[ bjHelp.convertToNum(row) for row in cards]).all(axis=1).all(axis=1))[0][0]
+#Problem 5
+def crackBlackJack(sweeps,cardTuples):
+    """
+    Return the sweeps whose first three cards from the nth game match the nth
+    3-tuple in cardTuples
+    
+    For example, if cardTuples is a 2 x 3 list of tuples crackBlackJack should 
+    return the sweeps in "sweeps" whose first 3 cards in the first game match
+    cardTyples[0] and whose first 3 cards in the second game match cardTuples[1]
+    """
+    for game in range(len(cardTuples)):
+        hits = bjCommon.findSeedMatch(sweeps,game,cardTuples[game])
+        sweeps = sweeps[hits]
+    return bjCommon.convertToName(sweeps)
 
-def getSweepsEasy(games,n=65536):
-    sweeps=np.zeros((n,games,52))
-    for i in xrange(n):
-        sweeps[i,:]=bjHelp.Suffle(games,2521,13,2**16,i)
-    return sweeps
-
-
-def crackEasy(cards,games):
-    sweeps = getSweeps(games)
-    hit = findSeedMatch(sweeps,cards)
-    return np.array( [bjHelp.convertToName(row) for row in sweeps[hit]] )
-
-def getSweepsHard(games,time,approx=60):
+#Problem 6
+def getSweepsHard(games,time,approx=120):
+    """
+    Return an n x games x 52 Array that represents the shuffles for <games> for
+    the n possible seeds from the 2*approx second interval (above and below time)
+    """
+    #Create a list of seeds based on the time interval
     seeds = np.arange(time-approx,time+approx)
-    sweeps=np.array([ bjHelp.Suffle(games,25214903917, 11,2**48,seed) for seed in seeds ])
-    return sweeps
+    return np.array([bjCommon.Suffle(games,25214903917, 11,2**48,seed) for seed in seeds])
 
-def crackHard(cards,games,time=(int)(time.time())):
-    sweeps = getSweepsHard(games,time)
-    hit = findSeedMatch(sweeps,cards)
-    return np.array( [bjHelp.convertToName(row) for row in sweeps[hit]] )
