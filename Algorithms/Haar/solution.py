@@ -53,28 +53,31 @@ def getDetail(m):
 	long, and so either the first or last element should be omitted.
 '''
 
-def dwt(f, lo, hi):
+def dwt(X, L, H, n):
     '''
     Compute the discrete wavelet transform of f with respect to 
     the wavelet filters lo and hi.
     Inputs:
-        f -- numpy array corresponding to the signal
-        lo -- numpy array giving the lo-pass filter
-        hi -- numpy array giving the hi-pass filter
+        X -- numpy array corresponding to the signal
+        L -- numpy array giving the lo-pass filter
+        H -- numpy array giving the hi-pass filter
+        n -- integer, giving what level of decomposition
     Returns:
         list of the form [A, D1, D2, ..., Dn] where each entry
         is a numpy array. These are the approximation frame (A)
         and the detail coefficients.
     '''
-    ans = []
-    frame = f
-    while len(frame) >= len(lo):
-        detail = fftconvolve(frame, hi, mode='full')[1:][::2]
-        frame = fftconvolve(frame, lo, mode='full')[1:][::2]
-        ans.append(detail)
-    ans.append(frame)
-    ans.reverse()
-    return ans
+    coeffs = []
+    A = X
+    i=0
+    while i < n:
+        D = fftconvolve(A,H)[1::2]
+        A = fftconvolve(A,L)[1::2]
+        coeffs.append(D)
+        i += 1
+    coeffs.append(A)
+    coeffs.reverse()
+    return coeffs
 
 def idwt(t, lo, hi):
     '''

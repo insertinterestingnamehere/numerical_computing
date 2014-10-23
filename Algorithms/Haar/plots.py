@@ -5,8 +5,59 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pywt
 import scipy.misc
+import solution
 
 lena = scipy.misc.lena()
+
+def dwt1D_example():
+    '''
+    Create a plot of the discrete wavelet transform of a one-dimensional signal.
+    '''
+    
+    end = 4*np.pi
+    dom = np.linspace(0,end,1000)
+    noisysin = np.sin(dom) + np.random.randn(1000)*.1
+    L = np.ones(2)/np.sqrt(2)
+    H = np.array([-1,1])/np.sqrt(2)
+    coeffs = solution.dwt(noisysin,L,H,4)
+
+    ax = plt.subplot(611)
+    ax.plot(dom, noisysin)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel('$X$    ', rotation='horizontal')
+    
+    ax = plt.subplot(612)
+    ax.plot(np.linspace(0,end,len(coeffs[0])), coeffs[0])
+    ax.set_xticks([])
+    ax.set_yticks([]) 
+    ax.set_ylabel('$A_4$    ', rotation='horizontal')
+    
+    ax = plt.subplot(613)
+    ax.plot(np.linspace(0,end,len(coeffs[1])), coeffs[1])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel('$D_4$    ', rotation='horizontal')
+    
+    ax = plt.subplot(614)
+    ax.plot(np.linspace(0,end,len(coeffs[2])), coeffs[2])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel('$D_3$    ', rotation='horizontal')
+    
+    ax = plt.subplot(615)
+    ax.plot(np.linspace(0,end,len(coeffs[3])), coeffs[3])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel('$D_2$    ', rotation='horizontal')
+    
+    ax = plt.subplot(616)
+    ax.plot(np.linspace(0,end,len(coeffs[4])), coeffs[4])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel('$D_1$    ', rotation='horizontal')
+    plt.savefig('dwt1D.pdf')
+    plt.clf()
 
 def dwt2():
     lw = pywt.wavedec2(lena, 'db4', level=1)
@@ -68,5 +119,5 @@ def denoise():
 
 
 if __name__ == "__main__":
-    dwt2()
-    denoise()
+    dwt1D_example()
+
