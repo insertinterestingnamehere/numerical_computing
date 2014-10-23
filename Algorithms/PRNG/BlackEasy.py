@@ -11,7 +11,7 @@ def PlayBlackJack(numberOfRounds=1):
     breaker=[]
     wins=sp.array([0,0])
     seed=random.randrange(10000000)
-    allDecks = Suffle(numberOfRounds,2521,13,2**16,seed)
+    allDecks = shuffle(numberOfRounds,2521,13,2**16,seed)
     for x in range(numberOfRounds):
         PlayDeck= convertToName(allDecks[x]).tolist()
         dealerHand=[]

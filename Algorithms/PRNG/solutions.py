@@ -48,7 +48,7 @@ def getSweepsEasy(games,n):
     the first n shuffles
     """
     #mine returns an np.array just we can use array slicing
-    return np.array([bjCommon.Suffle(games,2521,13,2**16,seed) for seed in xrange(n)])
+    return np.array([bjCommon.shuffle(games,2521,13,2**16,seed) for seed in xrange(n)])
 
 #Problem 5
 def crackBlackJack(sweeps,cardTuples):
@@ -73,5 +73,5 @@ def getSweepsHard(games,time,approx=120):
     """
     #Create a list of seeds based on the time interval
     seeds = np.arange(time-approx,time+approx)
-    return np.array([bjCommon.Suffle(games,25214903917, 11,2**48,seed) for seed in seeds])
+    return np.array([bjCommon.shuffle(games,25214903917, 11,2**48,seed) for seed in seeds])
 

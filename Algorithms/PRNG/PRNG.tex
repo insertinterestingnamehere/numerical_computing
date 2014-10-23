@@ -9,7 +9,7 @@ In real life, we roll dice, take balls out of a bag, or spin a wheel.
 Computers are, by nature, deterministic, meaning that they do exactly what they are told.
 Because of this, random number generation on a computer can be difficult.
 We can have a device measure a random process and use the data to generate random numbers, 
-But such sampling is often too slow and too expensive for practical use.
+but such sampling is often too slow and too expensive for practical use.
 Pseudorandom number generators (PRNGs) are a common solution to this problem.
 The numbers are not truly random, but they are based on a complex formula that makes them look ``random."
 For convenient use, these generators must also run quickly.
@@ -48,7 +48,7 @@ Let the arguments be the size of the array and the two integers.
 Let $a$, $c$, $m$, and $seed$ continue to be optional arguments.
 \end{problem}
 
-This algorithm is used as the default random number generator in Java, and C++ and is still used in a wide variety of situations.
+This algorithm is used as the default random number generator in Java and C++, and is still used in a wide variety of situations.
 The length over which your random number generator repeats is called the period.
 The period is at most $m$, but it may be shorter based on the values of $a$ and $c$.
 
@@ -68,7 +68,7 @@ Resize your output to be $512 \times 512$ (you will need $512^2$ random numbers 
 \begin{problem}
 For what values of $a$, $c$, and $m$ does your LCG have a visible pattern?
 
-Look at the bitmap for the output of \li{np.random.rand(512,512)}.
+Look at the bitmap for the output of \li{np.random.rand(512, 512)}.
 Can you see any patterns?
 \end{problem}
 
@@ -113,7 +113,7 @@ The Mersenne twister PRNG does a series of bitwise operations to generate random
 The Random class in python uses the Mersenne twister algorithm. 
 
 \begin{problem}
-Look at the bitmap for the of output of \li{np.random.rand(512,512)}.
+Look at the bitmap for the of output of \li{np.random.rand(512, 512)}.
 Can you see any patterns?
 \end{problem}
 
@@ -124,7 +124,7 @@ This test involves taking an arbitrarily large collection of sequences of five c
 In a good PRNG, the 120 orderings should occur with equal probability.
 
 To simplify this process, instead of considering a specific sequence of five consecutive random numbers, consider the argsort of this sequence.
-For example: instead of considering how often the sequence $[103,75,4,57,9]$, or any permutation thereof, shows up, consider argsort([103,75,4,57,9])=[2,4,3,1,0]$ (Remember, argsort gives index of increasing values in the array).
+For example: instead of considering how often the sequence $[103, 75, 4, 57, 9]$, or any permutation thereof, shows up, consider argsort([103, 75, 4, 57, 9])=[2, 4, 3, 1, 0]$ (Remember, argsort gives index of increasing values in the array).
 In this sense, we can now look at the frequency with which the permutations of 0, 1, 2, 3, and 4 show up under argsort.
 
 It is convenient to use the $plt.bar()$ command under $matplotlib$ to generate a Histogram of the number of times each permutation shows up in the collection of sequences.
@@ -168,44 +168,47 @@ Often, as strange as it may seem, online gambling sites will post their shufflin
 Often the time in milliseconds from midnight is used as the seed value.
 
 John von Neumann said, ``Anyone who considers arithmetical methods of producing random digits is, of course, in a state of sin."
-As seen in the last lab, weak PRNGs are periodic and are predictable once a few outputs are known.
-This lab will have you break Blackjack based on a weak PRNG.
+As seen in the first part of this lab, weak PRNGs are periodic and are predictable once a few outputs are known.
+Now we will have you break Blackjack based on a weak PRNG.
 
 \section*{Cracking Blackjack}
 For these next problems you will need three files that are provided with this lab: BlackHard.py, BlackEasy.py, and bjCommon.py.
 BlackHard.py and BlackEasy.py are programs that run games of Blackjack that use an LCG to shuffle the cards.
-They generate 52 random numbers and then use the argsort of those numbers as the ordering of the cards.
+They generate 52 random numbers and then use the natural ordering of those numbers as the ordering of the cards.
 The parameters for BlackEasy.py are $a=2521$, $c=13$, $m=2^{16}$.
 For BlackHard.py they are $a=25214903917$, $c=11$, $m=2^{48}$.
 
 \begin{warn}
-Both BlackEasy.py and BlackHard.py use functions that are incompatible with ipython. They need to run \li{python <<filename>><<numberofgames>>} in command line.
+Both BlackEasy.py and BlackHard.py use functions that are incompatible with ipython.
+To run them, use \li{python <<filename>><<numberofgames>>} in the command line.
 \end{warn}
 
 BlackEasy.py uses a seed randomly generated between 0 and 10000000.
 The seed for BlackHard.py is based on the time, using \li{ (int)(time.time())}, which is the number of seconds from the start of the epoch cast as an integer.
+(This can be found in the time package).
 Both programs will make a list of length \li{<<numberofgames>>}, where each element in the list is a shuffling of the deck.
 During each round, the program will choose the next deck in your list generated.
 Cards are popped off the deck one at a time: first one to the player, second one to the dealer, third one to the player, and one last one to the dealer. 
 
-Initially three cards are visible (the last of the dealer's is face down) so our algorithms will deal with these first three cards, and the ordering (player,dealer,player) will be very important. 
+Initially three cards are visible (the last of the dealer's is face down) so our algorithms will deal with these first three cards, and the ordering (player, dealer, player) will be very important. 
 After the first four cards are down the next cards are popped off in the order that they appear. 
 
 bjCommon.py contains several functions to help you with the game's mechanics.
 Cards have a string representation ( '6diamond' for 6 of diamonds, 'Kclub' for king of clubs, 'Aheart' for ace of hearts, and so on) and a number representation that determines their natural ordering. 
 bjCommon.py has functions for generating the list of cards and converting arrays to and from the string and integer representation of cards. 
-Particularly useful is the function \li{Suffle}, which when given the number of games, $g$, the LCG parameters, and a seed value, returns the first $g$ decks (or games) in integer representation as $g$ arrays of 52 integers.
+Particularly useful is the function \li{shuffle}, which when given the number of games, $g$, the LCG parameters, and a seed value, returns the first $g$ decks (or games) in integer representation as $g$ arrays of 52 integers.
 
-Your goal will be to do a sweep of seed values and cross check the decks produced by \li{Suffle} against the first three cards from several games, then be able to determine the order of cards for future rounds.
+Your goal will be to do a sweep of seed values and cross check the decks produced by \li{shuffle} against the first three cards from several games, then be able to determine the order of cards for future rounds.
 
 
 \begin{problem}\label{sweeps}
 
 Create a function, \li{getSweepsEasy(games,n)}, which has as its parameters the number of games you selected to play in BlackEasy.py and a seed value.
 The function needs to return an array of size $n\times games \times 52$, representing all possible seed values 0 through $n$ in the first dimension, the different shufflings that occur based on the number of games played in the second dimension, and the ordering of the 52 cards for each shuffle in the third dimension.
-[Be sure to look at \li{bjCommon.Suffle} to help get the needed results]
+(Be sure to look at \li{bjCommon.shuffle} to help get the needed results)
 
-What seed value $n$ would you use to make sure to cover all possible shufflings? [Look at the parameters of the LCG in BlackEasy.py]
+What seed value $n$ would you use to make sure to cover all possible shufflings?
+(Look at the parameters of the LCG in BlackEasy.py]).
 
 \end{problem}
 
@@ -216,8 +219,8 @@ It takes as parameters sweeps, game, and cardNames3; sweeps is the output from p
 
 \begin{problem}
 
-Create a function \li{crackBlackJack(sweeps,cardTuples)} to crack the shuffling algorithm of BlackEasy.py.
-The parameter sweeps represents the output from the previous problem.
+Create a function \li{crackBlackJack(sweeps, cardTuples)} to crack the shuffling algorithm of BlackEasy.py.
+The parameter sweeps represents the output from problem \ref{sweeps}.
 The parameter cardTuples is a list of 3-tuples from the 1st, 2nd, etc. rounds played.
 It should return a subset of shuffles from sweeps whose shuffles match in each round to each 3-tuple in cardTuples.
 
@@ -232,7 +235,7 @@ This can be done using the \li{time.time()} function shortly after initializing 
 
 \begin{problem}
 
-Create a function, \li{getSweepsHard(games,time,approx=120)}, which returns all possible shuffles for a range of seed values.
+Create a function, \li{getSweepsHard(games, time, approx=120)}, which returns all possible shuffles for a range of seed values.
 The parameter games is how many rounds you want to play (corresponding to different shuffles of a given seed value).
 The time parameter is the approximate time you started the round of BlackHard.py.
 The approx parameter will give a range of seed values (120 seconds before and after the approximate time you initiated the game).
