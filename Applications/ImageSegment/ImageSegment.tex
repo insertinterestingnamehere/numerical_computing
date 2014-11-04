@@ -279,7 +279,7 @@ In many applications the Laplacian matrix is sparse, so by taking advantage of t
 \begin{problem}
 \leavevmode
 \begin{enumerate}
-\item Write a function that accepts an adjacency matrix as an argument and returns the Laplacian matrix and its second smallest eigenvalue.
+\item Write a function that accepts a symmetric adjacency matrix as an argument and returns the second smallest eigenvalue of the Laplacian matrix.
 Use the \li{scipy.linalg} package to compute the eigenvalue.
 
 \item Here is a function that creates a random symmetric matrix of Boolean values with sparsity determined by the input \li{c}.
@@ -351,24 +351,102 @@ where
 	\item $|I(i) - I(j)|$ is the difference in brightness of pixels $i$ and $j$.
 \end{itemize}
 
-Notice that $W$ will be sparse as long as $r$ is small. Figure [TODO!] shows what the adjacency matrix looks like for a $4x4$ image when $r=1.2$.
+Notice that $W$ will be sparse as long as $r$ is small. Figure \ref{fig:adjacency} shows what the adjacency matrix looks like for a $4x4$ image when $r=1.2$.
+
+\begin{figure}
+\begin{tikzpicture}[dot/.style={circle,fill=black,minimum 
+	size=4pt,inner sep=0pt,outer sep=-1pt}, >=stealth]
+
+%image
+\draw[step=1,thick](0,0)grid(4,4);
+%numbers 1-16
+\foreach \x in {1,2,3,4}
+	\foreach \y in {4}
+		\node[draw=none, anchor=south west]at(\x-.5, \y-.5){\x};
+\foreach \x [evaluate=\x as \r using int(\x+4)]in {1,2,3,4}
+	\foreach \y in {3}
+		\node[draw=none, anchor=south west]at(\x-.5, \y-.5){\r};
+\foreach \x [evaluate=\x as \r using int(\x+8)] in {1,2,3,4}
+	\foreach \y in {2}
+		\node[draw=none, anchor=south west]at(\x-.5, \y-.5){\r};
+\foreach \x [evaluate=\x as \r using int(\x+12)] in {1,2,3,4}
+	\foreach \y in {1}
+		\node[draw=none, anchor=south west]at(\x-.5, \y-.5){\r};
+
+\node[draw=none](image)at(2, -.5){$image$};
+\node[draw=none](flattened)at(6.75,-2.5){\textit{flattened image}};
+\node[draw=none](adjacency)at(12,-2.5){\textit{adjacency matrix}};
+%dots within grid
+\foreach \x in {1,2,3,4}
+	\foreach \y in {1,2,3,4}
+		\node[draw, dot]at(\x-.5,\y-.5){};
+
+%color fill
+\foreach \x/\y in {2/4, 1/3, 2/3, 3/3, 2/2} {\node[draw, minimum 
+	size=1cm, fill=green!30!black, fill opacity=.25]at(\x-.5,\y-.5){};}
+
+%circle in image
+\node[draw, circle, minimum size=2.3cm,thick](circle)at(1.5,2.5){};
+
+%flattened image
+\draw[step=.5, thick](6.4999,-2)grid(7,6);
+\foreach \x in {6.5}
+	\foreach \y [evaluate=\y as \r using int(\y*2)] in {1,...,16}
+		\node[draw=none]at(\x+.25,-\y*.5-2.25+8.5){\y};
+
+\draw[->,thick](4.2, 2)--(6.3,2);
+
+%adjancey matrix
+\draw[step=.5](7.9999,-2)grid(16,6);
+\draw[step=2,thick](7.999,-2)grid(16,6);
+
+%outside labels
+\foreach \x in {1,5,9,13} {\node[draw=none]at(\x*.5+7.75,6.2){\x};}
+\foreach \y in {1,5,9,13}{\node[draw=none]at(16.2,\y*-.5+6.25){\y};}
+
+%shading of boxes
+\foreach \x/\y in {8.5/6, 9/6, 8.5/5.5, 9/5.5, 9.5/5.5,9/5,9.5/5,10/5, 
+	9.5/4.5, 10/4.5, 10.5/6, 11/5.5,11.5/5, 12/4.5, 12.5/4, 
+	13.5/3, 14/2.5, 14.5/2, 15/1.5, 15.5/1,16/.5, 10.5/4, 11/4, 11/3, 
+	11.5/3,12/3, 11.5/2.5,12/2.5, 12.5/2, 13/2, 12.5/1.5, 13/1.5,
+	13.5/1.5,13/1,13.5/1,14/1, 13.5/.5,14/.5, 14.5/0,15/0,14.5/-.5,
+	15/-.5,15.5/-.5, 15/-1, 15.5/-1, 16/-1, 15.5/-1.5, 16/-1.5, 8.5/4,
+	9.5/3,10/2.5,10.5/2,11/1.5,11.5/1,12/.5, 12.5/0, 13/-.5, 13.5/-1, 14/-1.5} 
+	{\node[draw, minimum size=.5cm, fill=black, fill opacity=.25]
+	at(\x-.25,\y-.25){};}
+
+%green shaded boxes
+\foreach \x/\y in {9/3.5,11/3.5, 11.5/3.5, 10.5/3.5, 13/3.5} {\node
+	[draw, minimum size=.5cm, fill=green!30!black, fill opacity=.25]
+	at(\x-.25,\y-.25){};}
+
+\node[draw=none]at(8.75,3.25){2};
+\node[draw=none]at(10.25,3.25){5};
+\node[draw=none]at(10.75,3.25){6};
+\node[draw=none]at(11.25,3.25){7};
+\node[draw=none]at(12.75,3.25){10};
+
+\end{tikzpicture}
+\caption{The grid at left represents a $4\times4$ image, which has 16 pixels. Thus the adjacency matrix at right is $16 \times 16$. We have not calculated the weights in the adjacency matrix, but we have shaded the nonzero entries. For example, the $6^{th}$ row corresponds to the $6^{th}$ pixel. Within that row, entries are nonzero if they correspond to pixels that are at most 1.2 away from pixel 6.}
+\label{fig:adjacency}
+\end{figure}
 
 %add figure.
-%caption: The grid at left represents a $4\times4$ image, which has 16 pixels. Thus the adjacency matrix at right is $16 \times 16$. We have not calculated the weights in the adjacency matrix, but we have shaded the nonzero entries. For example, the $6^{th}$ row corresponds to the $6^{th}$ pixel. Within that row, entries are nonzero if they correspond to pixels that are at most 1.2 away from pixel 6.
+%caption: 
 
 \subsection*{Computing the adjacency matrix}
 Let us write a function that accepts an image \li{img} and constants \li{radius}, \li{sigma_I}, and \li{sigma_d}. The function will return the adjacency matrix defined in (\ref{eq:adjacency}) and the diagonal of the corresponding degree matrix. The input \li{img} should be a 2-D array of brightness values. Here is the function definition, which includes some default values for the constants.
 \begin{lstlisting}
-1. def adjacency(img, radius=5.0, sigma_I = .02, sigma_d = 3.0):
+1. def adjacency(img, radius=5.0, sigma_I = .15, sigma_d = 1.7):
 \end{lstlisting}
 
-Later, our function will iterate through the rows of the adjacency matrix, initializing one row at a time. Each row corresponds to a pixel of the original image. Thus, we begin by flattening the image (see Figure [TODO!]). We also store the dimensions of \li{img} for later.
+Later, our function will iterate through the rows of the adjacency matrix, initializing one row at a time. Each row corresponds to a pixel of the original image. Thus, we begin by flattening the image (see Figure \ref{fig:adjacency}). We also store the dimensions of \li{img} for later.
 \begin{lstlisting}
 2.     flat_img = img.flatten()
 3.     height, width = img.shape
 \end{lstlisting}
 
-Next we want to initialize the adjacency and degree matrices. As can be seen in Figure [TODO!], the adjacency matrix should be sparse, so we initialize it as a sparse matrix \li{W}. The sparse matrix type \li{lil_matrix} is optimized for building a matrix one entry at a time, which is what we will do. On the other hand, we only need to compute the diagonal of the degree matrix, so we initialize this diagonal as a regular NumPy array \li{D}.
+Next we want to initialize the adjacency and degree matrices. As can be seen in Figure \ref{fig:adjacency}, the adjacency matrix should be sparse, so we initialize it as a sparse matrix \li{W}. The sparse matrix type \li{lil_matrix} is optimized for building a matrix one entry at a time, which is what we will do. On the other hand, we only need to compute the diagonal of the degree matrix, so we initialize this diagonal as a regular NumPy array \li{D}.
 \begin{lstlisting}
 4.     W = spar.lil_matrix((flat_img.size, flat_img.size), dtype=float)
 5.     D = np.zeros((1, flat_img.size))
@@ -420,9 +498,9 @@ Test your function on the image \li{dream.png} (which is currently a 2-D array o
 \subsection*{Minimizing the 'cut'}
 
 As was mentioned before, we are trying to minimize the `cut', or the total weight of the edges we remove to create segments. 
-Let $Q$ be the Laplacian of the adjacency matrix defined in \ref{eq:adjacency} and let $D$ be the degree matrix.
-Shi and Malik proved that we can minimize the `cut' by finding the second smallest eigenvalue of $D^{-1/2}QD^{-1/2}$.
-Because both $D$ and $Q$ will be symmetric matrices, all eigenvalues of $D^{-1/2}QD^{-1/2}$ will be real, and so it makes sense to ask for the second smallest one.
+Let $L$ be the Laplacian of the adjacency matrix defined in \ref{eq:adjacency} and let $D$ be the degree matrix.
+Shi and Malik proved that we can minimize the `cut' by finding the second smallest eigenvalue of $D^{-1/2}LD^{-1/2}$.
+Because both $D$ and $L$ will be symmetric matrices, all eigenvalues of $D^{-1/2}LD^{-1/2}$ will be real, and so it makes sense to ask for the second smallest one.
 
 The eigenvector associated to the second smallest eigenvalue will have $N^2$ entries, some positive and some negative. 
 We can reshape this vector to be an $N \times N$ mask defining two segments, segments that correspond to the positive and negative values of the eigenvector.
@@ -444,33 +522,50 @@ Next we create sparse matrices corresponding to $D$ and $D^{-1/2}$ in Shi and Ma
 4.     D_matrix = spar.spdiags(D, 0, D.shape[1], D.shape[1], format = 'csc')
 5.     Dsq_matrix = # create a sparse matrix with diagonal Dsq
 \end{lstlisting}
-Now it is simple to compute $D^{-1/2}QD^{-1/2}$. We call this matrix \li{P}.
+Now it is simple to compute $D^{-1/2}LD^{-1/2}$. We call this matrix \li{P}.
 \begin{lstlisting}
-6.     P = # compute D^{-1/2}*Q*D^{-1/2} as in Shi and Malik's algorithm
+6.     L = # compute the Laplacian
+7.     P = # compute D^{-1/2}*L*D^{-1/2} as in Shi and Malik's algorithm
 \end{lstlisting}
 According to Shi and Malik, we need the eigenvector corresponding to the second smallest eigenvalue of \li{P}. We compute this with the \li{eigs()} method of the \li{scipy.sparse.linalg} module. We set the parameter \li{which='SR'} in the function call in order to compute the eigenvalues with Smallest Real part and their corresponding eigenvectors. The parameter \li{k} in the function call can be used to specify how many eigenvalues the method computes.
 \begin{lstlisting}
-7.     e = # compute the two smallest eigenvalues of P and their eigenvectors
-8.     eigvec = # eigenvector of the second smallest eigenvalue
+8.     e = # compute the two smallest eigenvalues of P and their eigenvectors
+9.     eigvec = # eigenvector of the second smallest eigenvalue
 \end{lstlisting}
 
 Next we create a mask that is \li{True} wherever \li{eigvec} is positive and reshape it to be the size of \li{img}. 
 \begin{lstlisting}
-9.     mask = # create mask
+10.    mask = # create mask
 \end{lstlisting}
 Once we have a mask of True-False values, we multiply it by the image entrywise. This zeros out the pixels in the matrix corresponding to the \li{False} entries in the mask and leaves the pixels corresponding to \li{True} entries unaffected. We can negate the mask using the tilde operator, which lets us compute the other segment of the image. Finally we return the two segments.
 \begin{lstlisting}
-10.    pos = # compute positive segment
-11.    neg = # compute negative segment
-12.    return pos, neg
+11.    pos = # compute positive segment
+12.    neg = # compute negative segment
+13.    return pos, neg
 \end{lstlisting}
 
 
 
-\begin{problem} Finish writing the function \li{adjacency} described in this section by (a) adding comments and (b) filling in the missing lines. 
-You should be able to fill in these lines with exactly the space indicated.
+\begin{problem} Finish writing the function \li{segment} described in this section by (a) adding comments and (b) filling in the missing lines. 
+You should be able to fill in these lines with exactly the space indicated. Test your function on the image \li{dream.png}. Your segments should look like the segments in Figure \ref{fig:dream_solution} (the original image is on the left). Here are some hints:
 
-Test your function on the image \li{dream.png}. Your segments should look like the segments in Figure \ref{fig:dream_solution} (the original image is on the left).
+\begin{enumerate}
+\item Note that in Line 6, you should NOT use your solution to Problem \ref{prob:laplacian}, because in this problem we are working with sparse matrices, and you have already computed the degree matrix.
+
+\item Also, in Line 7, multiply sparse matrices \li{A} and \li{B} with \li{A.dot(B)}.
+\item Here is some code that will plot the segments \li{neg} and \li{pos} as well as the original \li{img}.
+\begin{lstlisting}
+plt.subplot(131)
+plt.imshow(neg)
+plt.subplot(132)
+plt.imshow(pos)
+plt.subplot(133)
+plt.imshow(img_color)
+plt.show()
+\end{lstlisting}
+
+\end{enumerate}
+
 \end{problem}
 
 \begin{figure}

@@ -16,11 +16,22 @@ def getNeighbors(index, radius, height, width):
         distances -- a flat array giving the respective distances from these 
                      pixels to the center pixel.
     '''
+    # Find appropriate row, column in unflattened image for flattened index
     row, col = index/width, index%width
+
+    # Cast radius to an int (so we can use arange)
     r = int(radius)
+    
+    # Make a square grid of side length 2*r centered at index
+    # (This is the sup-norm)
     x = np.arange(max(col - r, 0), min(col + r+1, width))
     y = np.arange(max(row - r, 0), min(row + r+1, height))
     X, Y = np.meshgrid(x, y)
+    
+    # Narrows down the desired indices using Euclidean norm
+    # (i.e. cutting off corners of square to make circle)
     R = np.sqrt(((X-np.float(col))**2+(Y-np.float(row))**2))
     mask = (R<radius)
+    
+    # Return the indices of flattened array and corresponding distances
     return (X[mask] + Y[mask]*width, R[mask])
