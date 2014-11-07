@@ -343,8 +343,97 @@ Note that the covariance matrix is symmetric.
 Indeed, from equation \ref{eq:cov}, we can see that it is positive semi-definite and has nice spectral properties.
 Observe from that same equation that the spectral decomposition of the covariance matrix is closely related to the singular value decomposition of $X$.
 It turns out that the covariance matrix and its spectral properties contain much information about relationships, patterns, and structure in the data. 
-Several statistical techniques in data compression, dimensionality reduction, and similarity querying rely on discovering and exploiting this structure,
+Several statistical techniques in data compression, dimensionality reduction, and information retrieval rely on discovering and exploiting this structure,
 and hence the covariance matrix and the singular value decomposition play an important role in data analysis. 
+
+\section*{Latent Semantic Indexing}
+We now have the tools to build a simple, yet effective, system for indexing and retrieving documents according to their semantic content.
+The method that we will implement is called \emph{Latent Semantic Indexing}, or LSI.
+
+Suppose we have a collection of documents, which we call a \emph{corpus}, and we wish to find the particular documents
+that are most closely related to a given sequence of search terms. 
+This problem arises when searching a database of newspaper articles, an email inbox, a scientific journal, and in many more settings. 
+When our corpus consists of many documents, it becomes infeasible to read, or even skim, each document on our own. 
+We need to utilize our mathematical and computational skills to facilitate the process.
+To begin, we create a numerical representation of our corpus. 
+A common approach, known as the \emph{vector space model}, is as follows. 
+First, specify a list $v$ of words of interest (this could just be all the unique words found in the corpus).
+Let $m$ be the length of the list $v$. Then we can represent a given document by a $m$-dimensional vector 
+\[
+d = \begin{bmatrix}
+d_1 & d_2 & \cdots & d_m
+\end{bmatrix}^T,
+\]
+where $d_i \in \mathbb{R}$ gives the contribution of the $i$-th term in the list $v$ to the document. 
+For our purposes in this lab, we define $d_i$ to be the number of times term $i$ occurs in the document.
+The following code snippet shows how to compute the vector representation of a document given a list of words.
+We use a particular data structure \li{Counter}, which counts the number of occurrences of each unique element in a list.
+\begin{lstlisting}
+>>> from collections import Counter
+>>> # initialize the word list and the document
+>>> v = ["the", "great", "live", "math", "things", "do", "me", "you"]
+>>> doc = "If you cannot do great things do small things in a great way"
+>>> # split the document into a list of words, make counter
+>>> count = Counter(doc.split())
+>>> # create the vector representation
+>>> d = np.array([count[w] for w in v])
+>>> print d
+[0 2 0 0 2 2 0 1]
+\end{lstlisting}
+If our corpus consists of $n$ documents, then we can represent the entire corpus by a $m \times n$ matrix
+$D$ whose columns are just the vector representations of the documents. 
+In most real-world applications, $m$ and $n$ are very large (in the several thousands, or more). 
+Thankfully, the matrix $D$ will often be very sparse, since each particular document contains only a small subset
+of the entire list of words.
+Thus, we can use the sparse libraries in SciPy to efficiently store and compute with this matrix.
+
+We now use the singular value decomposition to reduce the dimensionality of the matrix representation of our
+corpus in a way that optimally decouples the semantic content of the documents. 
+More precisely, we specify the number $t$ of greatest singular values we wish to retain, and calculate the truncated SVD of the matrix $D$,
+yielding a rank-$t$ approximation
+\[
+D_t = U_t\Sigma_tV_t^T,
+\]
+where $U_t$ and $V_t$ are orthogonal matrices of size $m \times t$ and $n \times t$, respectively, and $\Sigma_t$
+is a $t \times t$ diagonal matrix containing the $t$ largest singular values of $D$. 
+A typical value for $t$ is in the low hundreds.
+We can compute this in Python as follows:
+\begin{lstlisting}
+>>> from scipy.sparse import linalg as la
+>>> # assume D is a sparse matrix
+>>> t = 100
+>>> U, Sig, VT = la.svds(D, k=t)
+\end{lstlisting}
+Although $U_t$ and $V_t$ are not sparse, they are much more feasible to compute with given that $t \ll m$. 
+Observe that the $i$-th column of $V_t^T$ is $\Sigma_t^{-1}U_t^Td_i$, a transformed version of the $i$-th document vector.
+It turns out that the matrix $\Sigma_t^{-1}U_t^T$ defines a projection from $\mathbb{R}^m$ onto a $t$-dimensional subspace
+in such a way that the projections of semantically similar documents have high correlation in the subspace, and
+semantically differing documents will have low correlation. 
+Thus, if $q$ is the vector representation of a query, we can find the document in the corpus with the closest semantical
+content to $q$ by projecting $q$ down to the $t$-dimensional subspace, calculating its correlation with each of the 
+projected document vectors in the corpus, and then selecting the document with the highest such correlation.
+\begin{comment}
+The discussion above is still lacking, and doesn't quite hit the nail on the head. 
+But I don't want it to become to wordy and bloated, so I'll leave it as is for now.
+\end{comment}
+\begin{lstlisting}
+>>> # assume that docs is a list of the original documents
+>>> # assume that q is the vector representation of a query
+>>> # first, project q to the subspace
+>>> q = (1/S)*(U.T.dot(q))
+>>> # now calculate correlation of q with each column of VT
+>>> q -= q.mean()           # shift by mean
+>>> VT -= VT.mean(axis=0)
+>>> q /= norm(q)            # normalize
+>>> VT /= norm(VT, axis=0)
+>>> coefs = VT.T.dot(q)
+>>> # select the index of the highest correlation
+>>> ind = np.argmax(coefs)
+>>> print docs[ind]
+\end{lstlisting}
+\begin{problem}
+Do LSI and stuff.
+\end{problem}
 
 As a final note, the concepts of variance, standard deviation, correlation, and covariance apply to a much broader class of objects
 known as \emph{random variables}, which are central to statistics and probability theory. These topics will be
