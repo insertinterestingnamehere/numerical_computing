@@ -1,21 +1,66 @@
-\lab{Application}{Principal Component Analysis with Facial Recognition}{Principal Component Analysis with Facial Recognition}
+\lab{Application}{Facial Recognition using Eigenfaces}{Facial Recognition using Eigenfaces}
 \label{lab:FacialRecognition}
 
-\objective{In this lab we will build a facial recongition system as an introduction to principal component analysis }
+\objective{In this lab we use the singular value decomposition to build a facial recognition system.}
 
-With the ubiquity of survallience in recent years, law enforcement has had increasing success in identifying criminals using facial recognition systems.
-Facial Recognition Systems allow computers to identify faces to people in its database of faces.
+Suppose we have a large database containing images of human faces together with identification information for each face.
+Given an unidentified facial image, we would like to find a matching face in the database, thereby identifying the person in the image.
+Such a task is known as \emph{facial recognition}.
+This task may come up, for example, in law enforcement, when attempting to identify unknown persons in surveillance footage.
+As humans, it is generally easy to compare two face images and determine whether the faces belong to the same person.
+However, it becomes impractical for humans to visually compare one face image with several thousand other face images in a database.
+Hence, we need a computational technique that automates the process of facial recognition.
+One particularly simple and effective technique is known as \emph{eigenfaces}, which we now explore.
 
-The general problem in facial recognition is that while a there may be thousands of pictures in an image of a face, only a few features actually identify a face.
-There are many ways to reduce the space, including extracting specific features of the face, such as nose, ears, and eyes, and analyzing the relative position and size of these.
-In this lab we will use the techniques of principal composistion analysis by calculating the eigenfaces of the faces in the database and then comparing new faces by their coordinates in the basis of the eigenfaces.
+\section*{Eigenfaces}
+The method of eigenfaces provides a mathematical and computational technique for efficiently storing and querying a database of face images.
+As the name suggests, this method involves eigenvalues and eigenvectors of matrices related to the collection of face images at hand.
+At its core, the method of eigenfaces maps each face image to a low-dimensional representation in a way that highlights the distinguishing
+characteristics of the face while suppressing the irrelevant and unnecessary details.
+In this light, eigenfaces can be viewed as a means of dimensionality reduction.
+Let's get into the nuts and bolts of how this works.
+
+Suppose we have a collection of $k$ face images represented as vectors $f_1, f_2, \ldots, f_k$ of length $l$.
+(A digital image is normally represented by a $m \times n$ array of pixel values, but we can represented as a vector in $\mathbb{R}^{mn}$ by simply concatenating the rows of the array.)
+Define the \emph{mean face} $\mu$ to be the average of each face vector:
+\[
+\mu = \frac{1}{k}\sum_{i=1}^k f_i.
+\]
+For each $i = 1,\ldots, k$, define $\bar{f}_i := f_i - \mu$.
+These mean-shifted face vector $\bar{f}_i$ represents how the $i$-th face deviates from the average, and thus captures more directly the unique and distinguishing features of the face.
+Now form the $l \times K$ matrix $A$ whose columns are given by the mean-shifted face vectors, i.e.
+\[
+A = \begin{bmatrix}
+\bar{f}_1 & \bar{f}_2 & \cdots & \bar{f}_k
+\end{bmatrix}.
+\]
+
+Thus far, we have obtained the mean face vector $\mu$ and a representation of our collection of face images via the matrix $A$.
+With just this matrix and the mean vector, how might we go about searching our collection of face images for the closest match to a new face image $g$?
+A straightforward approach is to subtract the mean face vector from $g$, obtaining $\bar{g} = g-\mu$, and then compute the Euclidean distance from
+$\bar{g}$ to each mean-shifted face vector $\bar{f}_i$, i.e. compute the Euclidean distance between $\bar{g}$ and each column of $A$. 
+Having done so, we can then choose the index $i$ where this distance $\|\bar{g}-\bar{f}_i\|_2$ is smallest, and return the $i$-th face image as the best match.
+Although this approach is quite sensible, there are a few issues. 
+Firstly, as the number of face images in our database grows large, both storing the full matrix $A$ and computing $\|\bar{g}-\bar{f}_i\|_2$ for all $i$
+become increasingly difficult from a computational standpoint.
+Secondly -- and this is the more important point -- calculating the Euclidean distance between two face images in the standard basis may not be the best measure
+of how similar the two faces are (and empirical evidence supports this).
+For example, if we have two images of the same face but with different backgrounds, the Euclidean distance between the face vectors may be very large, 
+since in the standard basis, every pixel is weighted equally.
+Given these issues, it is natural to ask ourselves whether there exists a low-dimensional subspace with a basis in which we can represent our
+face images with minimal error and where the Euclidean distance is a more robust measure of face similarity.
+
+Fortunately, we can produce just such a basis using the singular value decomposition of $A$. 
+We first compute the decomposition $A = U\Sigma V^*$, and then \emph{truncate} the decomposition by discarding all but the largest $m$ singular values 
+(and the corresponding columns of $U$ and $V$), obtaining the truncated matrices $\hat{U}, \hat{\Sigma}, \hat{V}$.
+The columns of $\hat{U}$ are vectors in $\mathbb{R}^l$, and form an orthogonal basis in which the face vectors $f_i$ can be well-approximated.  
 
 \section*{Preparing the data}
 
 Through the course of this lab we will be building a class called \li{FacialRec} to handle everything in the facial recognition system.
 In the \li{specs.py} file included with this lab there is an outline of this class along with some helper functions to help us test our system.
 
-To populate our database, we will need some images of faces. 
+To populate our database, we will need some images of faces.
 There are many databases available online, many of which would work with our project.
 However, the algorithm which we will use is not completely robust, it requires the images to have similar lighting conditions and head positions.
 Tilted head, dark lighting, wearing glasses, and different hairstyles can disrupt the algorithm.
@@ -23,7 +68,7 @@ Therefore, we need a database that contains images with consistent lighting and 
 Also, to make the programming easier, we would like the images to be of the same file type and size.
 The University of Essex has such a database at http://cswww.essex.ac.uk/mv/allfaces/index.html, (as well as other databases with varied head positions and lighting conditions) which we will use.
 
-The function \li{getImages} included in the specifications file loads all the JPG files from a directory into a 3 dimensional array. 
+The function \li{getImages} included in the specifications file loads all the JPG files from a directory into a 3 dimensional array.
 The first dimension specifices the image while the other two give the grayscale image in a 2D array.
 We can also use the function \li{showImage} to display the 2D grayscale images.
 This will be useful for testing the database.
@@ -38,7 +83,7 @@ Then use \li{showImage} to show the first image.
 Now that we have images, we need to calculate a few things before we can compute the eigenfaces from the covariance matrix.
 We have already reduced the images to grayscale images in \li{getImages} to make computations easier.
 Now we need the mean face of all the faces in the database. The mean face is a 2D array of each pixel average across the database.
-Next we need to zero out the images using the mean face. 
+Next we need to zero out the images using the mean face.
 We will substract the mean face from each face in the database, giving the the difference faces.
 Then we flatten the each 2D image into a one dimensional vector so that we have each image described in single vector space.
 
@@ -145,7 +190,7 @@ Implement the functions \li{projectToImageFaceSpace} and \li{rebuildFromEigenfac
 
 \section*{Creating the Facial Recognition System}
 
-The facial recognition database is almost done. 
+The facial recognition database is almost done.
 Given a face to seach for, we only have to project it into the eigenface basis and then perform a nearest neighbor seach for the closest image.
 
 \begin{problem}
@@ -167,9 +212,9 @@ Verification
 
 Your facial recognition database should be working now.
 Try it on some exact images that are in the database, some faces that are in the database but that aren't exact copies, and faces that aren't in the database at all.
-(Pick a random image from the full set, it probably won't be in the database. 
+(Pick a random image from the full set, it probably won't be in the database.
  All images that are a multiple of \li{fileStep} are in the database.
  Indicies close to these are probably of the same person but a different picture.
  As you do all of these take note of the distance between the match and the image.
  Chose a reasonable limiting distance to designate a match or false match and add whether this condition is satisfied as a boolean.
-\end{problem}
+\end{problem} 
