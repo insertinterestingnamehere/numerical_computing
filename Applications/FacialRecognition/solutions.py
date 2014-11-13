@@ -264,7 +264,7 @@ class FacialRec:
         
         dist = la.norm(matchCoefs - imageCoefs)
         
-        return match,dist
+        return match, dist
     
     
 ####################################
