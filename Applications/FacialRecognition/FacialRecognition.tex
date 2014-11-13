@@ -39,7 +39,8 @@ Define the \emph{mean face} $\mu$ to be the average of each face vector:
 Download the \li{faces94} face image database found at \url{http://cswww.essex.ac.uk/mv/allfaces/faces94.html} and extract the files.
 You should now have a directory named ``faces94", which contains multiple face images each of a large collection of individuals.
 We will construct a database of face images by selecting exactly one face image for each person in the directory.
-Execute the following code to construct the collection of faces:
+Execute the following code to construct the collection of faces (you may need to change the variable \li{path} to point to the location
+of the \li{faces94} directory on your machine):
 \begin{lstlisting}
 >>> import numpy as np
 >>> from os import walk
@@ -48,8 +49,9 @@ Execute the following code to construct the collection of faces:
 >>> w = 200
 >>> h = 180
 >>> # traverse the directory, get one image per subdirectory
->>> >>> faces = []
->>> for (dirpath, dirnames, filenames) in walk("./faces94"):
+>>> path = "./faces94"
+>>> faces = []
+>>> for (dirpath, dirnames, filenames) in walk(path):
 >>>     for f in filenames:
 >>>         if f[-3:]=="jpg": # only get jpg images
 >>>             # load image, convert to grayscale, flatten into vector
@@ -155,7 +157,7 @@ to a positive singular value) an \emph{eigenface}.
 \begin{subfigure}[b]{0.3\textwidth}
 \includegraphics[width=\textwidth]{eigenface2.png}
 \end{subfigure}
-\caption{First three eigenfaces of University of Essex male data}
+\caption{The top three eigenfaces.}
 \label{facialRecognition:eigenfaces}
 \end{figure}
 \begin{problem}
@@ -192,10 +194,10 @@ Hence the matrix $\hat{A}$ defined by
 contains as its columns the coordinate vectors of the face images in the top $n$ eigenfaces basis.
 Note that $\hat{A}$ is an $n \times k$ matrix, and is therefore much smaller than the original $l \times k$ matrix $A$.
 \begin{problem}
-\ref{prob:top_n}
+\label{prob:top_n}
 The columns of the matrix \li{U} that you computed in problem \ref{prob:svd} are already ordered according to descending singular values.
-Thus, the first $n$ columns of $\li{U}$ give the top $n$ eigenfaces.
-Write a function that takes as input \li{U}, \li{A}, and an integer $n$, and returns the matrices $U_n$ and $\hat{A}_n$ as described above.
+Thus, the first $n$ columns of \li{U} give the top $n$ eigenfaces.
+Write a function \li{nEigenfaces} that takes as input \li{U}, \li{A}, and an integer $n$, and returns the matrices $U_n$ and $\hat{A}_n$ as described above.
 \end{problem}
 \begin{figure}
 \begin{subfigure}[b]{0.3\textwidth}
@@ -204,11 +206,11 @@ Write a function that takes as input \li{U}, \li{A}, and an integer $n$, and ret
 \end{subfigure}
 \begin{subfigure}[b]{0.3\textwidth}
 \includegraphics[width=\textwidth]{rebuiltHalf.png}
-\caption{Half of the eigenfaces.}
+\caption{1/2 of the eigenfaces.}
 \end{subfigure}
 \begin{subfigure}[b]{0.3\textwidth}
 \includegraphics[width=\textwidth]{rebuiltFourth.png}
-\caption{Fourth of the eigenfaces.}
+\caption{1/4 of the eigenfaces.}
 \end{subfigure}
 \caption{Image rebuilt with varying number of eigenfaces}
 \label{facialRecognition:rebuiltImage}
@@ -234,7 +236,7 @@ Doing so yields the low-dimensional representation $\hat{g}$, given by
 \]
 We then return the matching face image $f_{i^*}$, where
 \[
-i^* = \text{argmax}_i \|\hat{f}_i - \hat{g}\|_2.
+i^* = \text{argmin}_i \|\hat{f}_i - \hat{g}\|_2.
 \]
 \begin{problem}
 \label{prob:nearest}
@@ -253,7 +255,7 @@ Use the following code to build an array of additional images from the dataset:
 >>> # let's gather some random images from the directory, and try to recognize them!
 >>> n_tests = 10
 >>> test_files = []
->>> for (dirpath, dirnames, filenames) in walk("./faces94"):
+>>> for (dirpath, dirnames, filenames) in walk(path):
 >>>     for f in filenames:
 >>>         if f[-3:]=="jpg": # only get jpg images
 >>>             test_files.append(dirpath+"/"+f)
