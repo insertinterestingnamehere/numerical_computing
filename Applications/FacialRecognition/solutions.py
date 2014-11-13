@@ -1,3 +1,99 @@
+##################################
+#  Solutions to Current Version  #
+##################################
+import numpy as np
+from scipy.linalg import norm, svd
+from os import walk
+from scipy.ndimage import imread
+from matplotlib import pyplot as plt
+import matplotlib.cm as cm 
+from random import sample
+
+# convenience function for plotting flattened grayscale images of width 200, height 180
+def show(im, w=200, h=180):
+    plt.imshow(im.reshape((w,h)), cmap=cm.Greys_r)
+    plt.show()
+def show2(im1, im2, w=200, h=180):
+    plt.subplot(121)
+    plt.imshow(im1.reshape((w,h)), cmap=cm.Greys_r)
+    plt.subplot(122)
+    plt.imshow(im2.reshape((w,h)), cmap=cm.Greys_r)
+    plt.show()
+
+def getFaces(path="./faces94"):
+    # these are the dimensions of the images
+    w = 200
+    h = 180
+    
+    # traverse the directory, get one image per subdirectory
+    faces = []
+    for (dirpath, dirnames, filenames) in walk(path):
+        for f in filenames:
+            if f[-3:]=="jpg": # only get jpg images
+                # load image, convert to grayscale, flatten into vector
+                face = imread(dirpath+"/"+f).mean(axis=2).ravel() 
+                faces.append(face)
+                break
+                
+    # put all the face vectors column-wise into a matrix
+    F = np.array(faces).T
+    return F
+
+F = getFaces()
+
+# we now calculate and plot the mean face
+mu = F.mean(axis=1)
+show(mu)
+
+# shift each face by the mean, show an example of a mean-shifted face
+A = F - mu.reshape((len(mu), 1))
+show(A[:,0])
+
+# calculate svd of A
+U,Sig,Vh = svd(A, full_matrices=False)
+
+# show one of the eigenfaces
+show(U[:,10])
+
+def nEigenfaces(U, A, n):
+    """
+    Return U_n and Ahat_n as described in lab.
+    """
+    Un = U[:,:n]
+    return Un, Un.T.dot(A)
+
+# project the face vectors onto an eigenface subspace, plot one of them
+n_faces = 38
+Un, Ahat = nEigenfaces(U,A,n_faces)
+
+def findNearest(M, query):
+    """
+    Return the index of the column of M that is closest to g wrt Euclidean distance.
+    """
+    m = M.shape[0]
+    return np.argmin(np.linalg.norm(M-query.reshape((m,1)), axis=0))
+    
+# let's gather some random images from the directory, and try to recognize them!
+n_tests = 10
+test_files = []
+for (dirpath, dirnames, filenames) in walk("./faces94"):
+    for f in filenames:
+        if f[-3:]=="jpg": # only get jpg images
+            test_files.append(dirpath+"/"+f)
+test_files = sample(test_files, n_tests)
+test_images = np.array([imread(f).mean(axis=2).ravel() for f in test_files]).T
+
+# here is the recognition part
+for i in xrange(n_tests):
+    ghat = U[:,:n_faces].T.dot(test_images[:,i]-mu)
+    ind = findNearest(Ahat, ghat)
+    show2(test_images[:,i], F[:,ind])
+
+
+##################################
+#    Solutions to Old Version    #
+##################################
+
 import re #For regular expressions
 
 import numpy as np
@@ -264,7 +360,7 @@ class FacialRec:
         
         dist = la.norm(matchCoefs - imageCoefs)
         
-        return match,dist
+        return match, dist
     
     
 ####################################
