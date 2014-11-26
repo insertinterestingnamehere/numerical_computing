@@ -1,32 +1,37 @@
-from scipy import *
-#from pylab import *
+import numpy as np
 import matplotlib.pylab as plt
 from scipy import linalg as la
 
-def PCA(dat,center=False,percentage=0.8):
-    M=dat[:,0].size
-    N=dat[0,:].size
+def PCA(dat, center=False, percentage=0.8):
+    M = dat[:,0].size
+    N = dat[0,:].size
     if center:
-	    mu = mean(dat,0)
-	    dat -= mu
+        mu = np.mean(dat,0)
+        dat -= mu
 
-    U,L,Vh = la.svd(dat,full_matrices=False)
+    U, L, Vh = la.svd(dat, full_matrices=False)
     
     V = (Vh.T).conjugate()
-    SIGMA = diag(L)
-    X = dot(U,SIGMA)
+    SIGMA = np.diag(L)
+    X = U.dot(SIGMA)
     Lam = L**2
 
-    csum = [sum(Lam[:i+1])/sum(Lam) for i in range(N)]
+    sLam = Lam.sum()
+    csum = [Lam[:i+1].sum()/sLam for i in xrange(N)]
 
-    normalized_eigenvalues = Lam/sum(Lam)
-    n_components = array([x < percentage for x in csum]).tolist().index(False)
-
-    return normalized_eigenvalues,V[:,0:n_components],SIGMA[0:n_components,0:n_components],X[:,0:n_components]
+    normalized_eigenvalues = Lam/sLam
+    for i, x in np.ndenumerate(csum):
+        if not x < percentage :
+            n_components = i[0]
+            break
+        
+    return normalized_eigenvalues, 
+            V[:,0:n_components],
+            SIGMA[0:n_components,0:n_components],
+            X[:,0:n_components]
 
 def scree(normalized_eigenvalues):
-    plt.plot(normalized_eigenvalues,'b-',normalized_eigenvalues,'bo')
+    plt.plot(normalized_eigenvalues, 'b-', normalized_eigenvalues, 'bo')
     plt.xlabel("Principal Components")
     plt.ylabel("Percentage of Variance")
     plt.show()
-    return
