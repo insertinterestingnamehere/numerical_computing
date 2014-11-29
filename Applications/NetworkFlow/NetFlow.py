@@ -1,5 +1,4 @@
 import numpy as np
-from numpy import *
 from scipy import optimize
 
 A = np.array([[-1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
