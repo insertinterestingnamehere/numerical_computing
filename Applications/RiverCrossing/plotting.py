@@ -30,11 +30,11 @@ def yp(x,eps):
 
 
 
-def r_plot():
+def current_plot():
 	x0 = np.linspace(-1,1,8)
 	r0_ = r(x0)
 	x1 = np.linspace(-1,1,100)
-	r_, y_ = r(x1), y(x1,-.7)
+	r_, y_ = r(x1), z1/2.*(x1-(-1.)) #y(x1,-.7)
 	plt.quiver( x0, np.zeros(x0.shape), np.zeros(x0.shape),  r0_, pivot='tail', color='b', scale_units='xy',scale=1.)
 	plt.axis([-1.1,1.1,0. -.05,z1 +.05])
 	
@@ -50,11 +50,12 @@ def r_plot():
 	plt.plot(x1,y_,'-g',linewidth=2.)
 	plt.plot(-1,0,'*g',markersize=10.)
 	plt.plot(1,z1,'*g',markersize=10.)
-	plt.savefig('rivercurrent.pdf')
-	plt.show()
+	# plt.savefig('rivercurrent.pdf')
+	# plt.show()
+	plt.clf()
 
 
-def heuristic_trajectory():
+def time_functional():
 	# The integrand of the functional that gives the time required to cross
 	# the river on a given trajectory.
 	def L(x,eps):
@@ -73,7 +74,7 @@ def heuristic_trajectory():
 	return eps, min_time  
 
 
-def rivercurrent():
+def trajectory():
 	N = 200  
 	D, x = cheb(N)  
 	eps = 0.  
@@ -91,10 +92,10 @@ def rivercurrent():
 	# Use the straight line trajectory as an initial guess.
 	# Another option would be to use the shortest-time trajectory found
 	# in heuristic_tractory() as an initial guess.
-	eps, time = heuristic_trajectory()
+	eps, time = time_functional()
 	sol = root(g,y(x,eps))
 	# sol =  root(g,z1/2.*(x-(-1.))) 
-	print sol.success
+	# print sol.success
 	z = sol.x
 	poly = BarycentricInterpolator(x,D.dot(z))
 	num_func = lambda inpt: poly.__call__(inpt)
@@ -104,22 +105,58 @@ def rivercurrent():
 		a_, yp_ = a(x), num_func(x)
 		return a_*(1 + a_**2.*yp_**2.)**(1./2) - a_**2.*r(x)*yp_
 	
-	print "The shortest time is approximately "
-	print integrate.quad(L,-1,1,epsabs=1e-10,epsrel=1e-10)[0], time
+	# print "The shortest time is approximately "
+	# print integrate.quad(L,-1,1,epsabs=1e-10,epsrel=1e-10)[0]
 	
-	x0 = np.linspace(-1,1,200)
-	y0 = y(x0,eps)
-	plt.plot(x0,y0,'-g',linewidth=2.)
-	plt.plot(x,z,'-k',linewidth=2.)	
-	plt.axis([-1,1,0.-.05,z1 + .05])
+	# x0 = np.linspace(-1,1,200)
+	# y0 = y(x0,eps)
+	# plt.plot(x0,y0,'-g',linewidth=2.,label='Initial guess')
+	# plt.plot(x,z,'-b',linewidth=2.,label="Numerical solution")	
+	# ax = np.linspace(0-.05,z1+.05,200)
+	# plt.plot(-np.ones(ax.shape),ax,'-k',linewidth=2.5)
+	# plt.plot(np.ones(ax.shape),ax,'-k',linewidth=2.5)
+	# plt.plot(-1,0,'*b',markersize=10.)
+	# plt.plot(1,z1,'*b',markersize=10.)
+	# plt.xlabel('$x$',fontsize=18)
+	# plt.ylabel('$y$',fontsize=18)
+	# plt.legend(loc='best')
+	# plt.axis([-1.1,1.1,0. -.05,z1 +.05])
+	# # plt.savefig("minimum_time_rivercrossing.pdf")
+	# plt.show()
+	# plt.clf()
+	return x, z, N
+
+def angle():
+	x,z, N = trajectory()
+	num = int(N/20)
+	D, _ = cheb(N)  
+	yp = D.dot(z)
+	r_ = r(x)
+	
+	theta = np.arctan(yp)
+	plt.plot(x,theta,'-k',linewidth=2.)
+	plt.xlabel('$x$',fontsize=18)
+	plt.ylabel(r'$\theta$',fontsize=18)
+	plt.yticks([0, np.pi/6, np.pi/3.,np.pi/2.],
+	           ['$0$', r'$\frac{\pi}{6}$', r'$\frac{\pi}{3}$', r'$\frac{\pi}{2}$'])
+	plt.savefig('trajectory_angle.pdf')
 	plt.show()
-	return 
+	plt.clf()
+	
+	# Checking that the angle is correct.
+	# print 0., np.min(theta), np.max(theta), np.pi/2.
+	# xdist, ydist = np.cos(theta), np.sin(theta)
+	# plt.quiver( x[::num], z[::num], xdist[::num],  ydist[::num], 
+	# 			pivot='tail', color='b', scale_units='xy',scale=3., angles='xy')
+	# plt.plot(x,z,'-k',linewidth=2.)
+	# plt.axis([-1.1,1.1,0. -.5,z1 +1.])
+	# plt.show()
 
 if __name__=="__main__":
-	r_plot()	
-	# heuristic_trajectory()
-	# rivercurrent()
-	
+	# current_plot()	
+	# time_functional()
+	# trajectory()
+	angle()
 
 
 

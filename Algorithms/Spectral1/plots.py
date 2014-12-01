@@ -1,4 +1,5 @@
 import matplotlib
+from mpl_toolkits.mplot3d import axes3d
 # matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 import numpy as np
@@ -111,11 +112,11 @@ def nonzeroDirichlet():
 
 def nonlinear_minimal_area_surface_of_revolution():
 	l_bc, r_bc = 1., 7.
-	N = 120
+	N = 80
 	D, x = cheb_vectorized(N)
 	M = np.dot(D, D)
-	xx = np.linspace(-1, 1, 50)
 	guess = 1. + (x--1.)*((r_bc - l_bc)/2.)
+	N2 = 50
 	
 	def pseudospectral_ode(y):
 		out = np.zeros(y.shape)
@@ -126,7 +127,6 @@ def nonlinear_minimal_area_surface_of_revolution():
 	
 	u = root(pseudospectral_ode,guess,method='lm',tol=1e-9)
 	num_sol = BarycentricInterpolator(x,u.x)
-	uu = num_sol.__call__(xx)
 	
 	# Up to this point we have found the numerical solution 
 	# using the pseudospectral method. In the code that follows
@@ -134,21 +134,19 @@ def nonlinear_minimal_area_surface_of_revolution():
 	# and graph the results
 	
 	def f(x):
-		out = np.array([ x[1]*np.cosh((-1.+x[0])/x[1])-l_bc, 
+		return np.array([ x[1]*np.cosh((-1.+x[0])/x[1])-l_bc, 
 						 x[1]*np.cosh((1.+x[0])/x[1])-r_bc])
-		return out
 	
 	
 	parameters = root(f,np.array([1.,1.]),method='lm',tol=1e-9)
 	A, B = parameters.x[0], parameters.x[1]
-	
 	def analytic_solution(x):
 		out = B*np.cosh((x + A)/B)
 		return out
 	
 	
-	
-	
+	xx = np.linspace(-1, 1, N2)
+	uu = num_sol.__call__(xx)
 	# print "Max error is ", np.max(np.abs(uu - analytic_solution(xx)))
 	plt.plot(x,guess,'-b')
 	plt.plot(xx, uu, '-r')						# Numerical solution via 
@@ -158,11 +156,29 @@ def nonlinear_minimal_area_surface_of_revolution():
 	# plt.show()
 	plt.clf()
 	
+	theta = np.linspace(0,2*np.pi,N2)	
+	X,Theta = np.meshgrid(xx,theta,indexing='ij')
+	print "\nxx = \n", xx
+	print "\nuu = \n", uu
+	F = uu[:,np.newaxis] +np.zeros(uu.shape)
+	print "\nX = \n", X
+	print "\nTheta = \n", Theta
+	print "\nF = \n", F
+	Y = F*np.cos(Theta)
+	Z = F*np.sin(Theta)
+	
+	fig = plt.figure()
+	ax = fig.add_subplot(111, projection='3d')
+	# X, Y, Z = axes3d.get_test_data(0.05)
+	ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
+	print ax.azim, ax.elev
+	ax.azim=-65; ax.elev = 0
+	# ax.view_init(elev=-60, azim=30)
+	# plt.savefig('minimal_surface.pdf')
+	plt.show()
 	
 	
-
-
-
+	
 
 if __name__ == "__main__":
 	# deriv_matrix_exercise1()
