@@ -133,24 +133,28 @@ def angle():
 	yp = D.dot(z)
 	r_ = r(x)
 	
-	theta = np.arctan(yp)
-	plt.plot(x,theta,'-k',linewidth=2.)
+	theta1 = np.arctan(yp) # This is incorrect
+	theta2 = (1-r_**2.)**(-1)*(-r_*yp + np.sqrt( (r_*yp)**2. + (1-r_**2)*(1. + yp**2.)))
+	theta2 = np.arccos(1./theta2)
+	# plt.plot(x,theta1,'-g',linewidth=2.)
+	plt.plot(x,theta2,'-b',linewidth=2.)
 	plt.xlabel('$x$',fontsize=18)
 	plt.ylabel(r'$\theta$',fontsize=18)
 	plt.yticks([0, np.pi/6, np.pi/3.,np.pi/2.],
 	           ['$0$', r'$\frac{\pi}{6}$', r'$\frac{\pi}{3}$', r'$\frac{\pi}{2}$'])
-	plt.savefig('trajectory_angle.pdf')
+	# plt.savefig('trajectory_angle.pdf')
 	plt.show()
 	plt.clf()
 	
+	theta = theta1
 	# Checking that the angle is correct.
-	# print 0., np.min(theta), np.max(theta), np.pi/2.
-	# xdist, ydist = np.cos(theta), np.sin(theta)
-	# plt.quiver( x[::num], z[::num], xdist[::num],  ydist[::num], 
-	# 			pivot='tail', color='b', scale_units='xy',scale=3., angles='xy')
+	print 0., np.min(theta), np.max(theta), np.pi/2.
+	xdist, ydist = np.cos(theta), np.sin(theta)
+	plt.quiver( x[::num], z[::num], xdist[::num],  ydist[::num], 
+				pivot='tail', color='b', scale_units='xy',scale=3., angles='xy')
 	# plt.plot(x,z,'-k',linewidth=2.)
-	# plt.axis([-1.1,1.1,0. -.5,z1 +1.])
-	# plt.show()
+	plt.axis([-1.1,1.1,0. -.5,z1 +1.])
+	plt.show()
 
 if __name__=="__main__":
 	# current_plot()	
