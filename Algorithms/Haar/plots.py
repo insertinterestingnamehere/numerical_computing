@@ -2,12 +2,12 @@ import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 from matplotlib import pyplot as plt
+from scipy.misc import imread
 import numpy as np
 import pywt
 import scipy.misc
 import solution
 
-lena = scipy.misc.lena()
 
 def dwt1D_example():
     '''
@@ -60,21 +60,13 @@ def dwt1D_example():
     plt.clf()
 
 def dwt2():
-    lw = pywt.wavedec2(lena, 'db4', level=1)
-    plt.subplot(221)
-    plt.imshow(lw[0], cmap=plt.cm.Greys_r)
-    plt.axis('off')
-    plt.subplot(222)
-    plt.imshow(np.abs(lw[1][0]), cmap=plt.cm.Greys_r, interpolation='none') 
-    plt.axis('off')
-    plt.subplot(223)
-    plt.imshow(np.abs(lw[1][1]), cmap=plt.cm.Greys_r, interpolation='none')
-    plt.axis('off')
-    plt.subplot(224)
-    plt.imshow(np.abs(lw[1][2]), cmap=plt.cm.Greys_r, interpolation='none')
-    plt.axis('off')
-    plt.savefig('dwt2.pdf')
-    plt.clf()
+    mandrill = imread("baboon.png")
+    mandrill = mandrill.mean(axis=-1)
+    lw = pywt.wavedec2(mandrill, 'db4',mode='per', level=2)
+    plt.imsave("mandrill1.png",lw[0], cmap=plt.cm.Greys_r)
+    plt.imsave("mandrill2.png",np.abs(lw[1][0]), cmap=plt.cm.Greys_r) 
+    plt.imsave("mandrill3.png",np.abs(lw[1][1]), cmap=plt.cm.Greys_r)
+    plt.imsave("mandrill4.png",np.abs(lw[1][2]), cmap=plt.cm.Greys_r)
     
 
 def hardThresh(coeffs, tau):
@@ -119,5 +111,5 @@ def denoise():
 
 
 if __name__ == "__main__":
-    dwt1D_example()
+    dwt2()
 
