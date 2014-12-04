@@ -1,6 +1,6 @@
 from __future__ import division
 import matplotlib
-# matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 
 import numpy as np
@@ -342,7 +342,7 @@ def plotVs():
     cdict = genDict(Rho)
     plt.imshow(Rho,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
     plt.colorbar(label="Relative Voltage")
-    plt.savefig("./co2V.png")
+    plt.savefig("co2V.pdf")
     plt.clf()
 
 if __name__ == "__main__":
