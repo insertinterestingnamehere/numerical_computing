@@ -96,7 +96,6 @@ def Exercise1():
     # plt.show()
     print "Order of the Approximation is about ", ( (np.log(MaxError[0]) - 
             np.log(MaxError[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) )
-    return 
 
 
 def ExercisePoisson():
@@ -170,7 +169,7 @@ def ExercisePoisson():
     plt.legend(loc='best')
     print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
         np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
-    plt.savefig('./Poisson_Error.png')
+    plt.savefig('./Poisson_Error.pdf')
     plt.show()
 
 def plotRhos():
@@ -215,7 +214,7 @@ def plotRhos():
     Rho = rhoSum(X,Y,water)
     plt.imshow(Rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(Rho)))
     plt.colorbar(label="Relative Charge Density")
-    plt.savefig("./waterRho.png")
+    plt.savefig("./waterRho.pdf")
     plt.clf()
     
     co2 = ((-1,0,-2),
@@ -224,7 +223,7 @@ def plotRhos():
     Rho = rhoSum(X,Y,co2)
     plt.imshow(Rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(Rho)))
     plt.colorbar(label="Relative Charge Density")
-    plt.savefig("./co2Rho.png")
+    plt.savefig("./co2Rho.pdf")
     plt.clf()
 
 
@@ -332,7 +331,7 @@ def plotVs():
     
     plt.imshow(Rho,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
     plt.colorbar(label="Relative Voltage")
-    plt.savefig("./waterV.png")
+    plt.savefig("./waterV.pdf")
     plt.clf()
     
     co2 = ((-1,0,-2),
