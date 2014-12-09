@@ -7,6 +7,7 @@
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+from scipy import linalg as la
 
 def plotNewOld(new, old):
     ''' 
@@ -42,7 +43,7 @@ def plotNewOld(new, old):
     plt.show()
 
 
-def dilation(pts, stretch):
+def dilate(pts, stretch):
     '''
     Apply a dilation to an array of points. You should
     implement the dilation as a matrix multiplication. Use np.diag to create
@@ -58,7 +59,7 @@ def dilation(pts, stretch):
     return np.dot(np.diag(stretch), pts)
 
 
-def rotation(pts, angle):
+def rotate(pts, angle):
     '''
     Apply a rotation to an array of points. Inside of the function you will need to 
     create the appropriate rotation matrix, and then perform the requisite matrix 
@@ -96,7 +97,7 @@ def shear(pts, c, direction):
     return np.dot(shear_mat,pts)
 
 
-def reflection(pts, axis):
+def reflect(pts, axis):
     '''
     Apply a reflection to an array of points. You will need to use this array to create 
     the appropriate reflection matrix, and then perform matrix multiplication.
@@ -115,7 +116,7 @@ def reflection(pts, axis):
     return np.dot(ref,pts)
 
 
-def translation(pts, shift):
+def translate(pts, shift):
     '''
     Apply a translation to an array of points. To perform the translation, you simply 
     need to add the shift array to the pts array, but before doing this, use the 
@@ -129,7 +130,7 @@ def translation(pts, shift):
     return pts + shift.reshape((2,1))
 
 
-def trajectory(t,w,v):
+def trajectory(t,w,v,s):
     '''
     Calculate the trajectory of an object rotating about a movign point. 
     Hint: you will use a composition of rotation and translation in this problem. 
@@ -138,13 +139,14 @@ def trajectory(t,w,v):
     Inputs:
         t -- time (in seconds)
         w -- angular velocity of object (radians/seconds)
-        v -- direction speed of center of rotation (meters/second)
+        v -- direction of the center of rotation
+        s -- speed of center of rotation (meters/second)
     Returns:
         the position of the rotating object at time t.
     '''
     angle = t*w
     p = np.array([[0],[1]])
-    shift = t*v*0.5*np.array([math.sqrt(2),math.sqrt(2)])
+    shift = ((s*t)/la.norm(v))*v
     return translation(rotation(p, angle), shift)
 
 
@@ -153,36 +155,11 @@ def plotTrajectory():
     Plot the trajectory of the rotating particle as calculated in the trajectory
     function. 
     '''
+    v = np.array([1, 1])
     times = np.arange(0,10,.1)
     pos = np.zeros((2,len(times)))
     for i in range(len(times)):
-        pos[:,i] = trajectory(times[i],np.pi,3).flatten()
-    plt.scatter(pos[0], pos[1])
+        pos[:,i] = trajectory(times[i],np.pi,v,3).flatten()
+    plt.plot(pos[0], pos[1])
     plt.show()
     
-'''
-The following code will be used to test your solutions. This should be the only code
-in this script that actually runs. DO NOT ALTER! To make sure you pass-off, run this
-file from command line by typing:   python solutions.py
-You should see a series of plots pop up, reflecting the various affine transformations
-that you implemented.
-'''
-
-x, y = np.load('horse.npy')
-pts = np.array([x,y])
-
-stretch = np.array([1.5,2])
-plotNewOld(dilation(pts,stretch), pts)
-
-angle = np.pi/3.0
-plotNewOld(rotation(pts,angle), pts)
-
-plotNewOld(shear(pts,0.8,1), pts)
-
-axis = np.array([1,math.sqrt(3)])
-plotNewOld(reflection(pts,axis), pts)
-
-shift = np.array([1,-2])
-plotNewOld(translation(pts, shift), pts)
-
-plotTrajectory()

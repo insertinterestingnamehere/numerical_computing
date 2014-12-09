@@ -1,14 +1,11 @@
-import numpy as np
-
-def rowswap(A, i, j):
-	#swaps two rows
-	#modifies A in place
+def type_I(A, i, j):
+	# Swap two rows
 	A[i], A[j] = np.copy(A[j]), np.copy(A[i])
 
-def cmult(A, i, const):
-	#multiplies row j of A by const in place
+def type_II(A, i, const):
+	# Multiply row j of A by const
 	A[i] *= const
 
-def cmultadd(A, i, j, const):
-	#adds a constant times row j to row i
+def type_III(A, i, j, const):
+	# Add a constant times row j to row i
 	A[i] += const*A[j]

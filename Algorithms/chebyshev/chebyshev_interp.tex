@@ -36,6 +36,7 @@ In Complex Analysis these points are known as the roots of unity.}
 
 \begin{problem}
 Write a function that, given the endpoints $a$ and $b$ of an interval and the order of the desired interpolating polynomial returns the $k+1$ Chebyshev nodes on the interval $[ a, b ]$.
+Return them ordered from smallest to largest.
 \end{problem}
 
 \section*{Chebyshev Polynomials}
@@ -102,22 +103,33 @@ In practice this means we can compute an array of samples of a function at the C
 This is very helpful since the discrete cosine transform is a close relative of the discrete Fourier transform.
 \li{scipy.fftpack} and \li{pyfftw} both include discrete cosine transforms as \li{scipy.fftpack.dct} and \li{pyfftw.interfaces.scipy_fftpack.dct} respectively.
 The discrete cosine transform is defined a little differently than the coefficients we need here.
-To get the coefficients, follow these steps:
+There are several different versions of the discrete cosine transform.
+Using the inverse discrete cosine transform of type 1 on an array $y$ of length $N$ will give us an array $x$ of values such that
+\[y_k = z_0 + 2 \sum_{n=1}^{N-2} z_n \cos\left(\frac{\pi k n}{N-1}\right) + \left(-1\right)^k z_{N-1}\]
+where $z = \frac{x}{2 \left(N - 1\right)}$.
+To obtain the Chebyshev coefficients, we desire to find the vector $a$ of coefficients $a_n$ such that
+\[y_k = \sum_{n=0}^{N-1} a_n \cos\left(\frac{\pi k n}{N-1}\right)\]
+This means that, given the vector $x$, we can obtain $a$ by dividing all the terms of $x$ by $N-1$, and then dividing the first and last entries of $x$ by 2.
+This means that we can obtain the coefficients of the Chebyshev interpolant using the following steps:
 
 \begin{itemize}
 
 \item Sample the function you desire to approximate at the Chebyshev nodes.
+Make sure you use the sampled values in the order that corresponds to the chebyshev nodes when sorted in \emph{descending} order and not ascending order.
 
-\item Compute the discrete cosine transform of the data.
-Use the option \li{type=1} to tell either scipy or pyfftw the version of the discrete cosine transform you want to use. (this one is the closest to the version we want).
+\item Compute the inverse discrete cosine transform of the data.
+Use the option \li{type=1} to tell either scipy or pyfftw the version of the discrete cosine transform you want to use.
 
 \item Divide all the coefficients by $\left( N - 1 \right)$ where $N$ is the number of nodes used.
 
 \item Divide the first and last coefficient by $2$.
 
-\item Multiply all the odd indices by $-1$.
-
 \end{itemize}
+
+\begin{warn}
+Often it is customary in computation to use values in ascending order.
+When you compute the Chebyshev coefficients for the interpolatng polynomial through a set of points you will need the samples from the points sorted in descending order, not ascending order.
+\end{warn}
 
 \begin{problem}
 Write a function that, given the samples for a function at the chebyshev nodes for a funciton on an interval computes the coefficients for the Chebyshev representation of the interpolating polynomial through the samples at the Chebyshev nodes.

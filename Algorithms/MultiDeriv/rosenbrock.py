@@ -1,10 +1,15 @@
 # Code obtained from http://matplotlib.1069221.n5.nabble.com/How-to-shift-colormap-td18451.html
 #Modified and used to shift color map on Rosenbrock function
 
-import math, copy
+import matplotlib
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+matplotlib.rcParams['savefig.bbox'] = 'standard'
+
+import math
+import copy
 import numpy
 from matplotlib import pyplot, colors, cm
-import scipy as sp
+import scipy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 def cmap_powerlaw_adjust(cmap, a):
@@ -48,14 +53,14 @@ def cmap_center_point_adjust(cmap, range, center):
         abs(center - range[0]) / abs(range[1] - range[0]))
 
 
-if __name__ == '__main__':
-    def rosenbrock(x, y):
+def rosenbrock():
+    def f(x, y):
         return (1.0-x)**2 + 100*(y-x**2)**2
-    
-    a = sp.arange(-1.8, 1.8,.01)
-    b = sp.arange(-1,2.5,.01)
-    A, B = sp.meshgrid(a,b)
-    Z = rosenbrock(A, B)
+
+    a = np.arange(-1.8, 1.8,.01)
+    b = np.arange(-1,2.5,.01)
+    A, B = np.meshgrid(a,b)
+    Z = f(A, B)
 
     plotkwargs = {'rstride': 8,
                 'cstride': 8,
@@ -66,5 +71,10 @@ if __name__ == '__main__':
     cmap = cm.jet
     plt = ax.plot_surface(A, B, Z, cmap=cmap, **plotkwargs)
     plt.set_cmap(cmap_center_adjust(cmap, .25))
+    ax.view_init(elev=48, azim=-125)
+    pyplot.savefig('Rosenbrock.pdf')
 
-    pyplot.show()
+
+if __name__ == '__main__':
+    rosenbrock()
+    

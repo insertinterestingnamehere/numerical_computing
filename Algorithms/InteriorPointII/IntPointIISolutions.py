@@ -24,6 +24,7 @@ def stepSize(x, y):
     else:
         return 1
 
+
 def startingPoint(G, c, A, b, guess):
     """
     Obtain an appropriate initial point for solving the QP
@@ -62,6 +63,7 @@ def startingPoint(G, c, A, b, guess):
     l0 = np.maximum(1, np.abs(l0+dl))
 
     return x0, y0, l0
+
 
 def qInteriorPoint(G, c, A, b, guess, niter=20, verbose=False):
     '''
@@ -136,6 +138,7 @@ def qInteriorPoint(G, c, A, b, guess, niter=20, verbose=False):
             print '{0:f} {1:f}'.format(.5*(x* G.dot(x)).sum() + (x*c).sum(), mu)
     return x
 
+
 def laplacian(n):
     """
     Construct the discrete Dirichlet energy matrix H for an n x n grid.
@@ -152,39 +155,6 @@ def laplacian(n):
     diags = np.array([-n+2, -1, 0, 1, n-2])
     return spar.spdiags(data, diags, (n-2)**2, (n-2)**2).todense()
 
-def tent(n):
-    """
-    Find the tent shape of an n x n grid using the tent pole configuration given in the lab.
-    Plot the tent.
-    """
-    #create lower bound for the tent surface
-    L = np.zeros((n,n))
-    L[n/2-1:n/2+1,n/2-1:n/2+1] = .5
-    m = [n/6-1, n/6, int(5*(n/6.))-1, int(5*(n/6.))]
-    mask1, mask2 = np.meshgrid(m, m)
-    L[mask1, mask2] = .3
-    
-    #solve the quadratic program:
-    # min c^T x + .5 x^T Hx
-    # st x >= L
-    c = -1.*np.ones(n**2)/((n-1)**2)
-    H = laplacian(n)
-    A = np.eye(n**2)
-    
-    #initial guess
-    x = np.ones((n,n))
-    x = x.ravel()
-    y = np.ones(n**2)
-    l = np.ones(n**2)
-    z = qInteriorPoint(H, c, A, L.ravel(), (x,y,l), niter=10, verbose=False).reshape((n,n))
-    
-    #plot solution surface
-    dom = np.arange(n)
-    X, Y = np.meshgrid(dom, dom)
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111, projection='3d')
-    ax1.plot_surface(X, Y, z,  rstride=1, cstride=1, color='r')
-    plt.show()
     
 def portfolio():
     # Markowitz portfolio optimization
