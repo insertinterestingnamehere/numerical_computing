@@ -17,49 +17,58 @@ def imgAdj(img, radius, sigmaI, sigmaX):
             if (row < radius) and (col < radius):
                 for k in xrange(row + radius):
                     for l in xrange(col + radius):
+                        pass
             
             #top left
             elif (row < radius) and (col > width - radius):
                 #subMat = img(1:i+r,j-r:width)
                 for k in xrange(row + radius):
                     for l in xrange(col - radius, width):
+                        pass
                                     
             #bottom right	
             elif (row > height - radius) and (col < radius):
                 #subMat = img(i-r:height,1:j+r);
                 for k in xrange(row - radius, height):
                     for l in xrange(col + radius):
+                        pass
 
             #bottom left
             elif (row > height - radius) and (col > width - radius):
                 #subMat = img(i-r:height,j-r:width);
                 for k in xrange(row - radius, height):
                     for l in xrange(col - radius, width):
+                        pass
 
             #top middle
             elif (row < radius):# and (col > radius and col < width-radius):
                 for k in xrange(row + radius):
                     for l in xrange(col - radius, col + radius):
+                        pass
   
             #middle left
             elif (col < radius):
                 for k in xrange(row - radius, row + radius):
                     for l in xrange(col + radius):
+                        pass
 
             #middle right
             elif (col > height - radius):
                 for k in xrange(row - radius, row + radius):
                     for l in xrange(col - radius, width):
+                        pass
                     
             #bottom middle
             elif (row > height - radius):
                 for k in xrange(row - radius, height):
                     for l in xrange(col + radius):
+                        pass
             
             else: # (row > radius and row < height-radius) and (col > radius and col < width-radius):
                 #subMat = img(i-r:i+r,j-r:j+r);
                 for k in xrange(row - radius, row + radius):
                     for l in xrange(col - radius, col + radius):
+                        pass
 
     W = W.tocsc()    
     return W

@@ -8,6 +8,7 @@ import scipy.sparse as spar
 from scipy import linalg as la
 from scipy.sparse import linalg as sparla
 import matplotlib.pyplot as plt
+from getNeighbors import getNeighbors
 
 def laplacian(A):
     '''

@@ -1,4 +1,4 @@
-import scipy as sp
+import numpy as np
 import random
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import datasets
@@ -14,8 +14,8 @@ def gen_digits_sets():
     target = digits.target
     N = len(target)
 
-    inds = random.sample(sp.arange(0,N),N)
-    n_train = int(sp.floor(0.8*N))
+    inds = random.sample(np.arange(0,N),N)
+    n_train = int(np.floor(0.8*N))
     trainingdata = data[inds[0:n_train],:]
     trainingtarget = target[inds[0:n_train]]
     testdata = data[inds[n_train:]]
@@ -54,8 +54,8 @@ def gen_face_sets():
 
 
     N = len(target)
-    inds = random.sample(sp.arange(0,N),N)
-    n_train = int(sp.floor(0.8*N))
+    inds = random.sample(np.arange(0,N),N)
+    n_train = int(np.floor(0.8*N))
     trainingdata = data[inds[0:n_train],:]
     trainingtarget = target[inds[0:n_train]]
     testdata = data[inds[n_train:]]

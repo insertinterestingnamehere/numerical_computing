@@ -107,8 +107,7 @@ def math_animation(Data,time_steps,view,interval_length):
 	# frames must be a generator, an iterable, or a number of frames
 	# Draws a new frame every interval milliseconds.
 	
-	plt.show()
-	return 
+	plt.show() 
 
 
 # Solving u_t = nu u_{xx}, t \in [0,T], x \in [-L, L]
@@ -132,8 +131,7 @@ def plot3d():
 	surf = ax.plot_surface(tv, xv, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
 	    								linewidth=0, antialiased=False)
 	ax.set_xlabel('Y'); ax.set_ylabel('X'); ax.set_zlabel('Z')
-	plt.show()
-	return 
+	plt.show() 
 
 
 def animate_heat1d():
@@ -146,7 +144,6 @@ def animate_heat1d():
 	time_steps, view = Data[1].shape[0], [-.1, 1.1,-1.1, 1.1]
 	interval=40
 	math_animation(Data,time_steps,view,interval)
-	return 
 
 
 def plot_error():
@@ -183,14 +180,10 @@ def plot_error():
 		h, MaxError = np.log(h)/np.log(10),np.log(MaxError)/np.log(10)
 		print '\n'*2, "Approximate order of accuracy = ", (MaxError[-1]-MaxError[0])/(h[-1]-h[0])
 		plt.savefig("MaximumError.pdf")
-		# plt.show()
-		return 
+		# plt.show() 
 	
 	
 	graph(X,U,List,h)
-	
-	return
-
 
 
 if __name__=="__main__":

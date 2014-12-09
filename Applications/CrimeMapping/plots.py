@@ -73,6 +73,8 @@ def baltimore_kde(data):
     plt.xlim([0, X.shape[1]])
     plt.savefig('kdeavoid.pdf')
 
-data = np.load('homicides.npy')
-baltimore_gmm(data)
-baltimore_kde(data)
+
+if __name__ == "__main__":
+    data = np.load('homicides.npy')
+    baltimore_gmm(data)
+    baltimore_kde(data)

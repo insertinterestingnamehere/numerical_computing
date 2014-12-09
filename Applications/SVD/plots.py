@@ -11,11 +11,11 @@ def svals(img):
     plt.savefig('hubble_svals.pdf')
 
 def lowrank(img, rankvals):
-	U, s, Vt = svd(img)
-	
-	for n in rankvals:
-		u1, s1, vt1 = U[:,0:n], np.diag(s[0:n]), Vt[0:n,:]
-		plt.imsave("rank{}.png".format(n), u1.dot(s1).dot(vt1))
+    U, s, Vt = svd(img)
+    
+    for n in rankvals:
+        u1, s1, vt1 = U[:,0:n], np.diag(s[0:n]), Vt[0:n,:]
+        plt.imsave("rank{}.png".format(n), u1.dot(s1).dot(vt1))
 
 
 if __name__ == "__main__":
