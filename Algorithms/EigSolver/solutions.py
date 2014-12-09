@@ -105,6 +105,23 @@ def eig(A, normal = False, iter = 100):
 			Q = sp.dot(Q,Qi)
 		v = sp.diag(A)
 		return v,Q
+		
+		
+def markov(transitions, initial_state, niter):
+    '''
+    You must write this method.
+    Given a transition matrix, calculate the state after a number of 
+    iterations using Markov chains, and the unique stable fixed point.
+    Inputs:
+        transitions -- a transition matrix (all positive values)
+        initial_state -- vector of the initial state
+        niter -- number of iterations
+    Returns:
+        cur_state -- the current state
+        stable_fixed_point -- the stable fixed point of the matrix
+    '''
+    pass
+
 
 
 def markov_freethrow():
