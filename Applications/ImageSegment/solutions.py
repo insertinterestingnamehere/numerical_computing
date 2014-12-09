@@ -54,21 +54,20 @@ def adjacency(img, radius=5.0, sigmaI = .02, sigmaX = 3.0):
     # Now you do the rest. You need to initialize the elements of W.
     # Remember, since W is sparse, only initialize elements that are nonzero.
 
-    for row in xrange(height):
-        for col in xrange(width):
-            # Calculate the index of the pixel at (row, col) relative to the
-            # flattened array nodes. Hint: row*width + col
-            rowcol = row * width + col
-            
-            # find the indices and distancess of the pixels that are within 
-            # distance r of the current pixel by calling getNeighbors
-            nbrs = getNeighbors(row, col, radius, height, width)
-            
-            # calculate the weights corresponding to each pixel and the current
-            # pixel. This may be done in a vectorized fashion.
-            weights = np.exp(-np.abs(nodes[nbrs[0]] - nodes[rowcol])/sigmaI - nbrs[1]/sigmaX)
-            W[rowcol, nbrs[0]] = weights
-            D[0,rowcol] = weights.sum()
+    # Iterate through the pixels in the image
+    # For each pixel, initialize the entries of the corresponding row in the adjacency matrix
+    # Sum these entries to get the corresponding entry in the degree matrix
+    for pixel in xrange(nodes.size):
+    
+        # find the indices and distancess of the pixels that are within 
+        # distance r of the current pixel by calling getNeighbors
+        nbrs = getNeighbors(pixel, radius, height, width)
+        
+        # calculate the weights corresponding to each pixel and the current
+        # pixel. This may be done in a vectorized fashion.
+        weights = np.exp(-np.abs(nodes[nbrs[0]] - nodes[pixel])/sigmaI - nbrs[1]/sigmaX)
+        W[pixel, nbrs[0]] = weights
+        D[0,pixel] = weights.sum()
    
     # Convert W into csc format using the command below.
     # this format is better for computations, while the lil format is better for
@@ -76,15 +75,15 @@ def adjacency(img, radius=5.0, sigmaI = .02, sigmaX = 3.0):
     W = W.tocsc()
     return W, D
 
-def getNeighbors(row, col, radius, height, width):
+def getNeighbors(index, radius, height, width):
     '''
-    Calculate the indices and corresponding distances of pixels within radius
-    of the pixel at (row,col), where the pixels are in a (height, width) shaped
+    Calculate the indices and distances of pixels within radius
+    of the pixel at index, where the pixels are in a (height, width) shaped
     array. The returned indices are with respect to the flattened version of the
     array. This is a helper function for adjacency.
     Inputs:
-        row, col -- denotes the row and column number of the pixel we are 
-                    centered at.
+        index -- denotes the index in the flattened array of the pixel we are 
+                looking at
         radius -- radius of the circular region centered at pixel (row, col)
         height, width -- the height and width of the original image, in pixels
     Returns:
@@ -93,6 +92,7 @@ def getNeighbors(row, col, radius, height, width):
         distances -- a flat array giving the respective distances from these 
                      pixels to the center pixel.
     '''
+    row, col = index/width, index%width
     r = int(radius)
     x = np.arange(max(col - r, 0), min(col + r+1, width))
     y = np.arange(max(row - r, 0), min(row + r+1, height))
