@@ -1,8 +1,6 @@
-import scipy as sp
-import pickle
+import numpy as np
 import kalman
 import matplotlib.pyplot as plt
-from scipy import linalg as la
 
 ### Part 1 ###
 # Consider a projectile object starting from (0,0) with initial velocity (300,600) m/s.
@@ -10,13 +8,13 @@ from scipy import linalg as la
 # Suppose Q = 0.1*I, and R = 500*I, and delta t = 0.1.
 # Evolve the system forward 1200 steps and keep the states and observations.
 
-Fk = sp.array([[1.,0.,.1,0.],[0.,1.,0.,.1],[0.,0.,1.,0.],[0.,0.,0.,1.]])
-Q = sp.eye(4)*.1
-U = sp.array([0.,0.,0.,-.98])
-H = sp.array([[1.,0.,0.,0.],[0.,1.,0.,0.]])
-R = sp.eye(2)*500
+Fk = np.array([[1.,0.,.1,0.],[0.,1.,0.,.1],[0.,0.,1.,0.],[0.,0.,0.,1.]])
+Q = np.eye(4)*.1
+U = np.array([0.,0.,0.,-.98])
+H = np.array([[1.,0.,0.,0.],[0.,1.,0.,0.]])
+R = np.eye(2)*500
 
-x_initial = sp.array([0.,0.,300.,600.])
+x_initial = np.array([0.,0.,300.,600.])
 
 states, observations = kalman.generation(Fk,Q,U,H,R,x_initial,1250)
 
@@ -25,7 +23,7 @@ states, observations = kalman.generation(Fk,Q,U,H,R,x_initial,1250)
 # Plot these observations as red points and the entire projectile path as a blue curve.
 
 plt.plot(observations[0,200:800],observations[1,200:800],'r.')
-temp = sp.array([x > -50 for x in states[1,:]])
+temp = np.array([x > -50 for x in states[1,:]])
 plt.plot(states[0,temp],states[1,temp],'b')
 
 ### Part 3 ###
@@ -34,8 +32,8 @@ plt.plot(states[0,temp],states[1,temp],'b')
 # Estimate the position of the projectile given this initial state estimate, using P = 10^6 * Q.
 # Add to the plot the estimated path of the projectile as a green curve.
 
-vel = sp.array([sp.mean(sp.diff(observations[0,200:210])/.1),sp.mean(sp.diff(observations[1,200:210])/.1)])
-x_est_initial = sp.concatenate([observations[:,200],vel])
+vel = np.array([np.mean(np.diff(observations[0,200:210])/.1),np.mean(np.diff(observations[1,200:210])/.1)])
+x_est_initial = np.concatenate([observations[:,200],vel])
 
 estimation = kalman.kalmanFilter(Fk,Q,U,H,R,x_est_initial,Q*(10**6),observations[:,200:800])
 
@@ -46,7 +44,7 @@ plt.plot(estimation[0,:],estimation[1,:],'g')
 # projectile's point of impact. Plot this with a yellow curve.
 
 prediction = kalman.predict(Fk,U,estimation[:,599],500)
-temp = sp.array([x > -50 for x in prediction[1,:]])
+temp = np.array([x > -50 for x in prediction[1,:]])
 plt.plot(prediction[0,temp],prediction[1,temp],'y')
 
 ### Part 4 ###
@@ -54,7 +52,6 @@ plt.plot(prediction[0,temp],prediction[1,temp],'y')
 # projectile's point of origin. Plot this with a cyan curve, and display the results.
 
 rewound = kalman.rewind(Fk,U,estimation[:,50],300)
-temp = sp.array([x > -50 for x in rewound[1,:]])
+temp = np.array([x > -50 for x in rewound[1,:]])
 plt.plot(rewound[0,temp],rewound[1,temp],'c')
 plt.ylim([0,20000])
-plt.show()
