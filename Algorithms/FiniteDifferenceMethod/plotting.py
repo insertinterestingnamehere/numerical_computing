@@ -27,7 +27,7 @@ def example():
 		F[N-2] = func(a+(N-1)*h)-beta*(epsilon-h/2.)*h**(-2.)
 		for j in xrange(1,N-2): 
 			F[j] = func(a + (j+1)*h)
-			
+		
 		# Here we define the arrays that will go on the diagonals of A
 		data = np.empty((3,N-1))
 		data[0,:] = -2.*epsilon*np.ones((1,N-1)) # main diagonal
@@ -50,7 +50,7 @@ def example():
 	num_approx = 5 # Number of Approximations
 	N = 20*np.array([2**j for j in range(num_approx)])
 	h, max_error = (1.-0)/N[:-1], np.ones(num_approx-1)
-
+	
 	mesh_best, num_sol_best = bvp(lambda x:-1, epsilon=.5, alpha=1, beta=3, N=N[-1])
 	for j in range(len(N)-1): 
 		mesh, num_sol = bvp(lambda x:-1, epsilon=.5, alpha=1, beta=3, N=N[j])
@@ -67,9 +67,9 @@ def example():
 
 def Exercise1():
 	def bvp(epsilon, subintervals):
-		# X,Y = general_secondorder_ode_fd(func=lambda x:0.,a1=lambda x:epsilon,
-		# 								  a2=lambda x: x,a3=lambda x:-x,
-		# 								  a=0.,b=1., alpha=0.,beta=np.exp(1.),N=subintervals)
+		X,Y = general_secondorder_ode_fd(func=lambda x:0.,a1=lambda x:epsilon,
+										  a2=lambda x: x,a3=lambda x:-x,
+										  a=0.,b=1., alpha=0.,beta=np.exp(1.),N=subintervals)
 		
 		# for figure2.pdf
 		# X,Y = general_secondorder_ode_fd(func=lambda x:-1.,a1=lambda x:epsilon,
@@ -77,9 +77,9 @@ def Exercise1():
 		# 								a=0.,b=1., alpha=1.,beta=3.,N=subintervals)
 		
 		# for figure3.pdf
-		X,Y = general_secondorder_ode_fd(func=lambda x:np.cos(x),a1=lambda x:epsilon,
-										  a2=lambda x: 0.,a3=lambda x:-4.*(np.pi-x**2.),
-										  a=0.,b=np.pi/2., alpha=0.,beta=1.,N=subintervals)
+		# X,Y = general_secondorder_ode_fd(func=lambda x:np.cos(x),a1=lambda x:epsilon,
+		# 								  a2=lambda x: 0.,a3=lambda x:-4.*(np.pi-x**2.),
+		# 								  a=0.,b=np.pi/2., alpha=0.,beta=1.,N=subintervals)
 		return X,Y
 	
 	
