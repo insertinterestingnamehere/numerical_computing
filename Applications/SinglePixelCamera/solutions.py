@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Problem1
 
@@ -20,8 +21,10 @@ def SPC2(F, C):
 
 
 def Prob2(omega, psi, r=3):
-    c = np.array([r*np.sin(psi)*np.cos(omega), r*np.sin(psi)*np.sin(omega), r*np.cos(psi)])
-    return c
+    t = r*math.sin(psi)
+    return np.array([t*math.cos(omega), 
+                    t*math.sin(omega),
+                    r*math.cos(psi)])
 
 # Problem3
 
@@ -70,16 +73,11 @@ def SPC(F, C, omega, psi, r=3):
     c = Prob2(omega, psi, r=3)
     P = Transform(c)
     Q = Project(P, F, f=.5)
-    e = Visible(F, c, r=1)
     l = len(F)
     A = np.empty(l)
     for i in xrange(l):
-        v1 = Q[i, 1]-Q[i, 0]
-        v2 = Q[i, 2]-Q[i, 0]
-        A[i] = .5*np.abs(v1[0]*v2[1]-v1[1]*v2[0])
-    centers = np.mean(F[:, :-1, :], axis=-1)
-    M = e*A
-    b = np.empty(3)
-    total = np.sum(M)
-    b = np.dot(M, C)/total
-    return b
+        v1 = Q[i,1] - Q[i,0]
+        v2 = Q[i,2] - Q[i,0]
+        A[i] = .5*abs(v1[0]*v2[1]-v1[1]*v2[0])
+    M = Visible(F, c, r=1)*A
+    return M.dot(C)/M.sum()

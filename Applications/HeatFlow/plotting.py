@@ -4,9 +4,6 @@ import numpy as np
 from solution import heatexplicit, math_animation, heat_Crank_Nicolson
 
 
-def examplecode():
-	pass
-
 
 def Exercise1():
 	x_subintervals, t_subintervals = 6,10
@@ -33,8 +30,7 @@ def Exercise1():
 	time_steps = Data[1].shape[0]
 	interval_length=50
 	view = [-.1, 1.1,-.1, .5]
-	math_animation(Data,time_steps,view,interval_length)
-	return 
+	math_animation(Data,time_steps,view,interval_length) 
 
 
 def Exercise2():
@@ -61,7 +57,6 @@ def Exercise2():
 	time_steps = Data[1].shape[0]
 	interval_length=30
 	math_animation(Data,time_steps,view,interval_length)
-	return
 
 
 def Exercise3():
@@ -88,7 +83,6 @@ def Exercise3():
 		plt.savefig("MaximumError.pdf")
 		plt.show()
 		plt.clf()
-		return
 	
 	
 	# # This Graph is found in the lab
@@ -128,7 +122,6 @@ def Exercise3():
 	# time_steps = Data[1].shape[0]
 	# interval_length=5
 	# math_animation(Data,time_steps,view,interval_length)
-	return
 
 
 

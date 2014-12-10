@@ -78,6 +78,11 @@ def combo():
     fig = plotOldNew(pts, p, "General Affine")
     fig.savefig("combo.pdf")
     plt.close(fig.number)
+    
+def trajectory():
+    f = solutions.plotTrajectory()
+    plt.savefig('soln3.pdf')
+    plt.clf()
 
 
 if __name__ == "__main__":
@@ -87,3 +92,4 @@ if __name__ == "__main__":
     reflect()
     translate()
     combo()
+    trajectory()

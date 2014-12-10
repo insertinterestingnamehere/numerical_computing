@@ -2,6 +2,8 @@
 
 #Builds the NetworkX graph
 import networkx as nx
+
+
 def buildBaconX(n):
     f = open('movieData.txt', 'r')
     G=nx.Graph()

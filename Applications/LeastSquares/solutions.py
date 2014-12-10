@@ -3,7 +3,10 @@ Solutions file for Volume 1, Lab 14
 Least Squares fitting
 '''
 
-# include all necessary imports
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import linalg as la
+from math import sqrt
 
 def fitLine():
     '''
