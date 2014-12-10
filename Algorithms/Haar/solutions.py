@@ -1,3 +1,4 @@
+# Solutions to older version of the Wavelet lab, now defunct
 import numpy as np
 import scipy as sp
 from scipy.signal import fftconvolve
