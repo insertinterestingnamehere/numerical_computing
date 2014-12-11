@@ -1,18 +1,6 @@
-\lab{Algorithms}{Poisson's equation}{Poisson's equation}
-\label{lab:finitedifference2}
-
- % The basic idea behind finite difference methods is to replace a 
- % differential operator, defined on some space of continuous functions, with a 
- % difference operator defined on a finite vector space (i.e., a space of grid functions).
- % 
- % To do this, we replace derivative terms in the differential equation with 
- % appropriate difference expressions. 
- % 
- % \begin{align*}
- % 	u_{xx}(t,x) &\approx \frac{(u(t,x+h)- 2u(t,x) + u(t,x-h))}{h^2},\\
- % 	u_x(t,x) & \approx \frac{u(t,x+h)-u(t,x-h)}{2h}.
- % \end{align*}
-% Recall that the heat equation is given by $u_t = u_{xx} + f(x,t,u)$. 
+\lab{Applications}{Poisson's equation}{Poisson's equation}
+\label{lab:poisson2d}
+ 
 Suppose that we want to describe the distribution of heat throughout a region $\Omega$.
 Let $g(x)$ represent the temperature on the boundary of $\Omega$ ($\partial \Omega$), and let $h(x)$ represent the initial heat distribution at time $t = 0$.
 If we let $f(x,t)$ represent any heat sources/sinks in $\Omega$, then the flow of heat can be described by the boundary value problem (BVP)
@@ -36,164 +24,6 @@ This last partial differential equation, $\triangle u = -f$, is called Poisson's
 This equation is satisfied by the steady-state solutions of many other evolutionary processes.
 Poisson's equation is often used in electrostatics, image processing, surface reconstruction, computational fluid dynamics, and other areas. 
 
-\section*{Poisson's equation in one dimension}
-The 1D Poisson equation is given by 
-\begin{align}
-	\begin{split}
-u'' &= f(x), \quad a \leq x \leq b,\\
-	u(a) &= \alpha,\quad u(b) = \beta,
-	\end{split} \label{eqn:1d_poisson}
-\end{align}
-where $f$ is continuous.
-We will develop a finite difference method for solving this BVP. 
-
-The basic idea behind most numerical methods for differential equations is to approximate the exact solution $u(x)$ at some finite collection of points in the 
-domain of the problem.
-Instead of analytically solving an infinite-dimensional problem, we look for a simple finite collection of algebraic equations that approximate the original problem.
-
-Note that this equation can easily be solved by integrating twice and using the boundary conditions to determine the constants of integration.
-Solving this \eqref{eqn:1d_poisson} is equivalent to solving the equation $\triangle u = f,$ where $\triangle = \frac{d^2}{dx^2}$ is a differential operator defined on the infinite-dimensional space of functions $u:[a,b] \to \mathbb{R}$ that are twice continuously differentiable and satisfy the boundary conditions $u(a) = \alpha$, $u(b) = \beta$.
-The finite difference method replaces infinite-dimensional differential operators with finite-dimensional difference operators.
-
-We consider an approximate solution $\{U_i\}_{i=-1}^N$ on an evenly spaced grid of $N$ subintervals, $a = x_{-1}, x_0, \ldots, x_{N-1} = b$ with $h = x_{i+1}-x_i$ for each $i$.
-Recalling that $\frac{d^2}{dx^2}u(x) = \frac{1}{h^2}\left(u(x-h) -2u(x) + u(x+h)\right) + \mathcal{O}(h^2),$ we define the finite difference operator $D$ by  $DU_i = \frac{1}{h^2}\left(U_{i-1} -2U_i + U_{i+1}\right)$.
-We may discretize \eqref{eqn:1d_poisson} using the equations 
-\begin{align*}
-	\frac{1}{h^2} (U_{i+1}- 2U_i + U_{i-1})  &= f(x_i), \quad i = 0, \ldots, N-2,
-\end{align*}
-along with boundary conditions $U_{-1} = \alpha,$ $U_{N-1} = \beta$.
-This gives $N+1$ equations and $N+1$ unknowns, and can be written in matrix form as 
-\[ \frac{1}{h^2} \begin{bmatrix}h^2 & 0 &0&\hdots &0 \\ 1 &-2 & 1 &\hdots &0\\ \vdots &  & \ddots & &\vdots \\
-0 & \hdots & 1 & -2 & 1 \\ 0 & \hdots & & 0 & h^2
-\end{bmatrix} \cdot \begin{bmatrix}U_{-1}\\U_0\\ \vdots \\U_{N-2} \\U_{N-1}\end{bmatrix} = \begin{bmatrix}f(x_{-1})\\f(x_0)\\ \vdots \\ f(x_{N-2}) \\ f(x_{N-1}) \end{bmatrix}\]
-We can further modify the system to obtain an $(N-1)\times (N-1)$ tridiagonal matrix on the left: 
-\[\frac{1}{h^2} \begin{bmatrix}-2 & 1 &0 & \hdots &0\\ 1 &-2 & 1 &\hdots &0\\ \vdots &  & \ddots & &\vdots \\ 0 & \hdots & 1 & -2 & 1 \\
-0 & \hdots & 0 & 1 & -2 
-\end{bmatrix} \cdot \begin{bmatrix}U_0\\U_1\\ \vdots \\U_{N-3}\\U_{N-2}\end{bmatrix} = \begin{bmatrix}f(x_0) -\alpha/h^2 \\f(x_1)\\ \vdots \\ f(x_{N-3})\\ f(x_{N-2})-\beta/h^2 \end{bmatrix}\]
-
-The following code uses this finite difference method to solve the BVP
-\begin{align*}
-u'' &= -3 \sin{x}, \quad 0 \leq x \leq 2,\\
-	u(0) &= -2,\quad u(2) = 1
-\end{align*}
-
-\begin{lstlisting}
-import numpy as np
-from scipy.sparse import spdiags
-from scipy.sparse.linalg import spsolve
-
-def bvp(func, a, b, alpha, beta, N):
-    """ Solving u'' = f(x), x in [a, b],
-    u(a) = alpha, u(b) = beta
-    N = number of subintervals """
-    
-    # We use the finite difference method to construct a system 
-    # of algebraic equations described by the matrix equation 
-    # AU = F
-    
-    # The length of each subinterval
-    h = (b - a) / N
-    
-    # Initialize and define the vector F on the right.
-    F = np.empty(N - 1)
-    F[0] = func(a + 1. * h) - alpha * h**(-2.)
-    F[N-2] = func(a + (N-1) * h) - beta * h**(-2.)
-    for j in xrange(1,  N-2): 
-        F[j] = func(a + (j+1) * h)
-
-    # Here we define the arrays that will go on the diagonals of A.
-    data = np.empty((3, N-1))
-    # main diagonal
-    data[0,:] = -2. * np.ones((1, N-1))
-    # off-diagonals
-    data[1,:], data[2,:] = np.ones((1, N-1)), np.ones((1, N-1))
-    # Next we specify on which diagonals they will be placed
-    diags = np.array([0, -1, 1])
-    
-    A = h**(-2.) * spdiags(data, diags, N-1, N-1).asformat('csr')
-    
-    # We create and return the numerical approximation
-    U = np.empty(N + 1)
-    U[1:-1] = spsolve(A, F)
-    U[0], U[-1] = alpha, beta
-    return np.linspace(a, b, N+1), U
-
-x, y = bvp(lambda x:(-3. * np.sin(x)), a=0., b=2., alpha=-2., beta=1, N=30)
-\end{lstlisting}
-
-\begin{comment}
-
-How do we know if a numerical approximation is reasonable?
-One way to determine this is to compute solutions for various step sizes $h$ and see if the solutions are converging to something.
-To be more specific, suppose our finite difference method is $\mathcal{O}(h^p)$ accurate.
-This means that the error $E(h) \approx Ch^p$ for some constant $C$ as $h \to 0$ (i.e., for $h>0$ small enough).
- 
-So compute the approximation $y_k$ for each stepsize $h_k$, $h_1 > h_2> \ldots>h_m$.
-We will think of $y_m$ as the true solution.
-Then the error of the approximation for 
-stepsize $h_k, k < m,$ is 
-\begin{align*}
-	E(h_k) &= \max( \abs{ y_k - y_m}) \approx C h_k^p ,\\
-	\log(E(h_k)) &= \log(C) + p \log(h_k).
-\end{align*}
-Thus on a log-log plot of $E(h)$ vs. $h,$ these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. 
-
-The following code generates the log-log plot in \ref{figure1}, and demonstrates second-order convergence for this finite difference approximation. 
-\begin{lstlisting}
-import matplotlib.pyplot as plt
-a, b = 0., 1.
-num_approx = 10 # Number of Approximations
-N = np.array([5*2**j for j in range(num_approx)])
-h, max_error = (b-a)/N[:-1], np.ones(num_approx-1)
-
-mesh_best, num_sol_best = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[-1])
-for j in range(len(N)-1): 
-    mesh, num_sol = bvp(lambda x:-3.*np.sin(x), a, b, alpha=-2., beta=1, N=N[j])
-    max_error[j] = np.max(np.abs( num_sol- num_sol_best[::2**(num_approx-j-1)] ) )
-plt.loglog(h,max_error,'.-r',label="$E(h)$")
-plt.loglog(h,h**(2.),'-k',label="$h^{\, 2}$")
-plt.xlabel("$h$")
-plt.legend(loc='best')
-plt.show()
-print "The order of the finite difference approximation is about ", ( (np.log(max_error[0]) - 
-    np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
-\end{lstlisting}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=12cm]{example_convergence.pdf}
-\caption{TODO}
-\end{figure}
-
-\end{comment}
-
-\begin{problem}
-Extend the given finite difference code to the case of a general second order linear BVP with Dirichlet conditions:
-\begin{align*}
-	&{ } a_1(x)y'' +a_2(x)y'+ a_3(x) y = f(x), \quad x \in (a,b),\\
-	&{ } y(a) = \alpha, \quad y(b) = \beta.
-\end{align*}
-Use your code to solve the singularly perturbed BVP
-\begin{align}
-	\begin{split}
-	&{ } \epsilon y''(x)-y'= -1, \quad x \in (0,1), \\
-	&{ } y(0) = 1, \quad y(1) = 3,
-	\end{split} \label{eqn:singular_perturbed_BVP}
-\end{align}
-with $\epsilon = 1/10$.
-How many subintervals are needed to obtain 4 digits of accuracy?
-
-Hint: consider using a centered, forward, or backward differencing scheme to approximate $u'$.
-
-% If $\alpha = 1$,  $\beta = 3$, and $f(x) = -1$, there is an exact solution: 
-% \[y(x) = \alpha + x+ (\beta - \alpha -1)\frac{e^{x/\epsilon -1}}{e^{1/\epsilon -1}}\]
-\end{problem}
-
-\begin{figure}
-\includegraphics[width=\textwidth]{figure2.pdf}
-\caption{The solution to \eqref{eqn:singular_perturbed_BVP}.
-The solution gets steeper near $x = 1$ as $\epsilon $ gets small.}
-\end{figure}
 
 \section*{Poisson's equation in two dimensions}
 
@@ -329,7 +159,6 @@ This decomposition reduces the time required for solving consecutive time steps.
 \end{comment}
 
 \section*{Poisson's Equation and Conservative Forces}
-<<<<<<< HEAD
 In physics Poisson's equation is used to describe the scalar potential of a conservative force (we'll explain what each of these terms mean).
 A conservative force $\bold{F}(\bold{r})$ is a vector function that obeys any of three equivalent conditions
 \begin{enumerate}
