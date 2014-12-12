@@ -15,8 +15,8 @@ def dwt1D_example():
     '''
     
     end = 4*np.pi
-    dom = np.linspace(0,end,1000)
-    noisysin = np.sin(dom) + np.random.randn(1000)*.1
+    dom = np.linspace(0,end,1024)
+    noisysin = np.sin(dom) + np.random.randn(1024)*.1
     L = np.ones(2)/np.sqrt(2)
     H = np.array([-1,1])/np.sqrt(2)
     coeffs = solution.dwt(noisysin,L,H,4)
@@ -111,5 +111,5 @@ def denoise():
 
 
 if __name__ == "__main__":
-    dwt2()
+    dwt1D_example()
 
