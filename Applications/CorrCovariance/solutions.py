@@ -78,3 +78,7 @@ def reportCorr():
     plt.scatter(data[:,min_col], data[:,-1])
     plt.show()
     plt.clf()
+
+def covariance():
+    data = np.genfromtxt('mortality.txt', skip_header=17, usecols=range(1,17))
+    return np.cov(data, rowvar=0)
