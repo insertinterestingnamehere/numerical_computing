@@ -1,89 +1,183 @@
 \lab{Givens rotations and Least squares}{Givens rotations and Least squares}
-\objective{Use orthogonal transformations to perform QR decomposition.}
+\objective{Use Givens rotations to find the QR decomposition and use least squares to fit curves to data.}
 \label{lab:givens}
 
-In a previous lab, we discussed how to form the QR decomposition of a matrix using a series of householder reflectors.
-The general approach was to apply a series of orthogonal transformations to a given matrix to transform it into upper triangular form.
-This same approach can be applied using rotations instead of reflections.
+In Lab \ref{lab:QRdecomp}, we found the QR decomposition of a matrix using Householder transformations, applying a series of these transformations to a matrix until it was in upper triangular form.
+We can use the same strategy to compute the QR decomposition with rotations instead of reflections.
 
-The matrix $\begin{pmatrix}\ cos \theta & - \sin \theta \\ \sin \theta & \cos \theta \end{pmatrix}$ rotates a vector counterclockwise by $\theta$.
-Given a vector $x = \begin{pmatrix} a \\ b \end{pmatrix}$, we can rotate $x$ into the span of $e_1$ by choosing the correct $\theta$.
-This zeros out the entry containing $b$.
-We could do this by finding the angle between $\begin{pmatrix} a \\ b \end{pmatrix}$ and the axis containing $b$ then rotating the vector by the negative of that angle.
-In order to avoid computations involving $\sin$ and $\arcsin$ at each iteration we can just solve for $\sin \theta $ and $\cos \theta$ using the pythagorean theorem instead of explicitly computing $\theta$.
-Such an approach gives us the result that $\cos \theta = \frac{a}{\sqrt{a^2 + b^2}}$ and $\sin \theta = \frac{- b}{\sqrt{a^2 + b^2}}$.
-The transformed image of $\begin{pmatrix} a \\ b \end{pmatrix}$ is then $\begin{pmatrix} \sqrt{a^2 + b^2} \\ 0 \end{pmatrix}$.
+\section*{Givens rotations}
 
-The application of such a rotation to any two rows of a matrix $A$ is an orthonormal transform.
-Such a transformation can be represented in matrix form, where $c = \cos \theta$ and $s = \sin \theta$, like this:
+Let us begin with Givens rotations in $\mathbb{R}^2$. 
+An arbitrary vector $\x = (a, b)^T$ can be rotated into the span of $e_1$ via an orthogonal transformation. 
+In fact, the matrix $T_{\theta} = \begin{pmatrix}\cos \theta & - \sin \theta \\ \sin \theta & \cos \theta \end{pmatrix}$ rotates a vector counterclockwise by $\theta$.
+Thus, if $\theta$ is the clockwise-angle between $\x$ and $e_1$, the vector $T_{-\theta}\x$ will be in the span of $e_1$.
+We can find $\sin \theta$ and $\cos \theta$ with the formulas $\sin = \frac{\text{opp}}{\text{hyp}}$ and $\cos = \frac{\text{adj}}{\text{hyp}}$, so $\sin \theta = \frac{b}{\sqrt{a^2+b^2}}$ and $\cos \theta =  \frac{a}{\sqrt{a^2+b^2}}$ (see Figure\ref{fig:angle}).
+Then 
+\[
+T_{-\theta}\x = \begin{pmatrix}\cos \theta &  \sin \theta \\ -\sin \theta & \cos \theta \end{pmatrix} \begin{pmatrix} a \\ b \end{pmatrix} = \begin{pmatrix}\frac{a}{\sqrt{a^2+b^2}} & \frac{b}{\sqrt{a^2+b^2}} \\ -\frac{b}{\sqrt{a^2+b^2}} & \frac{a}{\sqrt{a^2+b^2}} \end{pmatrix}\begin{pmatrix} a \\ b \end{pmatrix} = \begin{pmatrix} \sqrt{a^2+b^2} \\ 0 \end{pmatrix}.
+\]
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\draw[-, thick](-.5,0)--(3,0);
+\draw[-, thick](0,-.5)--(0,1.5);
+\draw[->, thick, >=stealth'](0,0)--(2.5,1);
+\draw[-,thick](2.5,-.2)--(2.5,.2);
+\draw[-, thick](-.2,1)--(.2,1);
+\node[draw=none](point_b)at(2.5,-.4){$a$};
+\node[draw=none](point_a)at(-.4,1){$b$};
+\draw[-, thick] (.5,.2)arc [start angle=60, 
+	end angle=-20, radius=4.5pt];
+\node[draw=none](theta)at(.8, .15){$\theta$};
+\end{tikzpicture}
+\caption{Rotating clockwise by $\theta$ will send the vector $(a,b)^T$ to the span of $e_1$.}
+\label{fig:angle}
+\end{center}
+\end{figure}
+
+
+
+The matrix $T_{\theta}$ above is an example of a $2 \times 2$ Givens rotation matrix. 
+In general, the Givens matrix $G(i,j,\theta)$ represents the orthonormal transformation that rotates the 2-dimensional span of $e_i$ and $e_j$ by $\theta$ radians. 
+The matrix for this transformation is
 \begin{equation*}
-\begin{pmatrix}
+G(i,j,\theta) = \begin{pmatrix}
 I & 0 & 0 & 0 & 0 \\
 0 & c & 0 & -s & 0 \\
 0 & 0 & I & 0 & 0 \\
 0 & s & 0 & c & 0 \\
 0 & 0 & 0 & 0 & I
-\end{pmatrix}
+\end{pmatrix}.
 \end{equation*}
-In actual computation, we \emph{do not} actually form such a large matrix at each step.
-Instead we apply the transformation to the two rows we want to change and then leave the rest of the matrix unchanged.
-Proceeding in this manner we can zero out each entry of any matrix below its main diagonal, resulting in a QR factorization.
-For an example, consider some matrix $A$.
-Let $G \left( i, j, k \right)$ denote the Givens rotation that will zero out $A \left[ j, k \right]$ by rotation with row $i$ of $A$.
-We can zero out the entries below the main diagonal of A as follows:
+This matrix is in block form with $I$ representing the identity matrix, $c=\cos \theta$, and $s=\sin \theta$. 
+The $c$'s appear on the $i^{th}$ and $j^{th}$ diagonal entries. 
 
+As before, we can choose $\theta$ so that $G(i,j,\theta)$ rotates a given vector so that its $e_j$-component is 0. 
+Such a transformation will only affect the $i^{th}$ and $j^{th}$ entries of any vector it acts on (and thus the $i^{th}$ and $j^{th}$ rows of any matrix it acts on). 
+
+
+
+This flexibility makes Givens rotations ideal for some problems.
+For example, Givens rotations can be used to solve linear systems defined by sparse matrices by modifying only small parts of the array.
+Also, Givens rotations can be used to solve systems of equations in parallel.
+
+The advantages of Givens rotations are that they orthonormal and hence numerically stable (like Householder reflections), and they affect only a small part of the array (like Gaussian elimination).
+The disadvantage is that they require a greater number of floating point operations than Householder reflections.
+% Accuracy and Stability of Numerical Algorithms, Nicholas J. Higham
+In practice, the Givens algorithm is slower than the Householder algorithm, even when it is modified to decrease the number of floating point operations. 
+% Fast Plane Rotations With Dynamic Scaling, Anda and Park, SIAM, 1994
+However, since Givens rotations can be parallelized, they can be much faster than the Householder algorithm when multiple processors are used.
+% Givens and Householder Reductions for Linear Least Squares on a Cluster of Workstations, Omer Egecioglu and Ashok Srinivasan
+
+
+
+
+\subsection*{Givens triangularization}
+We can apply Givens rotations to a matrix until it is in upper triangular form, producing a factorization $A = QR$ where $Q$ is a composition of Givens rotations and $R$ is upper triangular.
+Similar to the Householder triangularization, when $A$ is square, this decomposition will be the QR decomposition of $A$.
+
+The idea is to iterate through the subdiagonal entries of $A$ in the order depicted by Figure \ref{fig:givens}. 
+We zero out the $ij^{th}$ entry with a rotation in the plane spanned by $e_{i-1}$ and $e_i$. 
+This rotation is just multiplication by the Givens matrix $G(i-1,i,\theta)$, which can be computed as in the example at the start of the previous section. 
+We just set $a=a_{i-1,j}$ and $b=a_{i,j}$, so $c = \cos \theta = a/\sqrt{a^2+b^2}$ and $s = -b/\sqrt{a^2+b^2}$.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[xscale=.7, yscale=.7]
+\draw[->, gray, thick](0,0)--(0,5.5);
+\draw[->, gray, thick](1,0)--(1,4.5);
+\draw[->, gray, thick](2,0)--(2,3.5);
+\draw[->, gray, thick](3,0)--(3,2.5);
+\draw[->, gray, thick](4,0)--(4,1.5);
+\node[draw=none] at(0,-1){\large 1};
+\node[draw=none] at(1,-1){\large 2};
+\node[draw=none] at(2,-1){\large 3};
+\node[draw=none] at(3,-1){\large 4};
+\node[draw=none] at(4,-1){\large 5};
+
+\draw[-, ultra thick] (0,6)--(4,2);
+
+\draw[-, thick](-1,-.5)--(-1,6.5);
+\draw[-, thick](-1, -.5)--(-.5,-.5);
+\draw[-, thick](-1,6.5)--(-.5,6.5);
+
+\draw[-, thick](5,-.5)--(5,6.5);
+\draw[-, thick](5,-.5)--(4.5,-.5);
+\draw[-, thick](5,6.5)--(4.5,6.5);
+
+%\draw[-, thick](-.5,0)--(3,0);
+%\draw[-, thick](0,-.5)--(0,1.5);
+%\draw[->, thick, >=stealth'](0,0)--(2.5,1);
+%\draw[-,thick](2.5,-.2)--(2.5,.2);
+%\draw[-, thick](-.2,1)--(.2,1);
+%\node[draw=none](point_b)at(2.5,-.4){$a$};
+%\node[draw=none](point_a)at(-.4,1){$b$};
+%\draw[-, thick] (.5,.2)arc [start angle=60, 
+%	end angle=-20, radius=4.5pt];
+%\node[draw=none](theta)at(.8, .15){$\theta$};
+\end{tikzpicture}
+\caption{This figure illustrates the order in which to zero out subdiagonal entries in the Givens triangularization algorithm. 
+The heavy black line is the main diagonal of the matrix. 
+Entries should be zeroed out from bottom to top in each column, beginning with the leftmost column.}
+\label{fig:givens}
+\end{center}
+\end{figure}
+
+
+For example, on a $2 \times 3$ matrix we may perform the following operations:
+
+\def\mc#1{\multicolumn{1}{c|}{#1}}
+\def\lc#1{\multicolumn{1}{|c}{#1}}
 \[
 \begin{array}{ccccccc}
 \begin{pmatrix}
-*&*&*\\
-*&*&*\\
-*&*&*
+*&*\\
+*&*\\
+*&*
 \end{pmatrix}
 &
-\underrightarrow{G(1,2,0)}
+\underrightarrow{G(2,3,\theta_1)}
 &\begin{pmatrix}
-*&*&*\\
-*&*&*\\
-0&*&*
+&*&*&\\ \cline{2-3}
+&\lc{*}&\mc{*}&\\
+&\lc{0}&\mc{*}& \\ \cline{2-3}
 \end{pmatrix}
 &
-\underrightarrow{G(0,1,0)}
-&\begin{pmatrix}
-*&*&*\\
-0&*&*\\
-0&*&*
+\underrightarrow{G(1,2,\theta_2)}
+& \begin{pmatrix} \cline{2-3}
+&\lc{*}&\mc{*}&\\
+&\lc{0}&\mc{*}&\\ \cline{2-3}
+&0&*&
 \end{pmatrix}
 &
-\underrightarrow{G(1,2,1)}
+\underrightarrow{G(2,3,\theta_3)}
 &\begin{pmatrix}
-*&*&*\\
-0&*&*\\
-0&0&*
+*&*&\\ \cline{2-2}
+\mc{0}&\mc{*}&\\
+\mc{0}&\mc{0}&\\ \cline{2-2}
 \end{pmatrix}
 \end{array}
 \]
+At each stage, the boxed entries are those modified by the previous transformation. 
+The final transformation $G(2,3,\theta_3)$ operates on the bottom two rows, but since the first two entries are zero, they are unaffected. 
+Assuming that at the $ij^{th}$ stage of the algorithm, $a_{ij}$ is nonzero, Algorithm \ref{Alg:givens} computes the Givens triangularization of a matrix..
 
-Here is an outline for the algorithm.
-Let $A$ be the array passed to the function.
-
-\begin{comment}
 
 \begin{algorithm}
 \begin{algorithmic}[1]
+\caption{Givens Triangularization. Return an orthogonal matrix $Q$ and an upper triangular matrix $R$ satisfying $A = QR$.}
+\label{Alg:givens}
 \Procedure{Givens Triangularization}{$A$}
 \State $R \gets \text{copy}(A)$
 \State $Q \gets I_A$
-\State $G \gets \text(empty)(2,2)$
-\For{each column}
-    \For{each row below the main diagonal}
-        \If{leading element is not zero}
-            \State Compute $c$ and $s$ using the entry in the current row and column and the entry immediately above it
-            \State Use $c$ and $s$ to construct the matrix $G$
-            \State Get a slice of $R$ of the current row and the row above it that includes the columns from the current column onward.
-                Multiply it in place by $G$ to zero out the leading nonzero entry of the current row.
-            \State Get a slice of $Q$ of the current row and the row above it and apply $G$ to it as well.
-                (Strictly speaking, you do not need to operate over these entire rows, but the slicing needed to avoid the extra computation is a little more involved, so we will not include that here.)
-        \EndIf
+\State $G \gets \text{empty}((2,2))$
+\For{$0\leq j < n$}
+    \For{$ m \geq i > j$}
+      \State $a, b \gets R_{i-1,j}, R_{i,j}$
+      \State $G \gets [[a, b],[-b,a]]/\sqrt{a^2+b^2}$
+      \State $R_{i-1:i+1, j:} = GR_{i-1:i+1, j:}$
+      \State $Q_{i-1:i+1,:} = GQ_{i-1:i+1,:}$
     \EndFor
 \EndFor
 \State \pseudoli{return} $Q^T, R$
@@ -91,8 +185,23 @@ Let $A$ be the array passed to the function.
 \end{algorithmic}
 \end{algorithm}
 
+Notice that in Algorithm \ref{Alg:givens}, we \emph{do not} actually create the matrices $G(i,j,\theta)$ and multiply them by the original matrix.
+Instead we modify only those entries of the matrix that are affected by the transformation. As an additional way to save memory, it is possible to modify this algorithm so that $Q$ and $R$ are stored in the original matrix $A$.
+\begin{comment}
+An interesting side-note is that each Givens rotation can be represented as a single floating point number, so, when operating in place, $Q$ can be stored entirely in the lower triangular portion of the array on which we are operating by storing each rotation in the entry that it zeroes out.
+A similar approach would to store Householder reflectors in the columns they zero out.
+In either case, we can represent the QR decomposition of an array using only the memory that was originally used to store the array itself.
+This is similar to the approach  for computing the LU decomposition entirely in place.
+These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed.
 \end{comment}
 
+
+
+
+
+
+
+\begin{comment}
 \begin{itemize}[$\bullet$]
 
 \item Make $R$ a copy of $A$ and $Q$ an identity array of the appropriate size.
@@ -129,61 +238,45 @@ Let $A$ be the array passed to the function.
 \item Return $Q^T$ and $R$.
 
 \end{itemize}
+\end{comment}
 
-This version of the algorithm is not the most well-optimized way to use Givens rotations, but it is good for illustrative purposes.
-
-Because Givens rotations only operate on two specific rows at a time, they give us a variety of ways to iterate over an array we are processing.
-For example, using Givens rotations you could, starting at the bottom of each column and continuing up until you reach the main diagonal, zero out each entry by applying a Givens rotation to each row and the row immediately above it.
-Alternatively, within each column, you could could zero out the first entry of each row below the main diagonal by rotating it with the row corresponding to the main diagonal.
-Yet another way to do it would be to start at the bottom left corner of the matrix and then zero out each entry from left to right along each diagonal.
-This flexibility is what makes the use of Givens rotations ideal for some problems.
-When working with sparse matrices, Givens rotations allow for the solution of linear systems through a series of orthonormal operations that operate only on small parts of the array.
-The fact that Givens rotations operate only on small portions of the array also lends well to parallel solutions to systems of equations (or least squares problems).
-They allow for the sort of flexibility we had when using Gaussian elimination while still maintaining the favorable stability that comes with using orthonormal transformations.
-
-While Givens rotations do allow for greater flexibility, they also require a greater number of floating point operations than Householder reflections.
-In general, the operation count for computing the QR factorization for an $m \times n$ matrix is $3 n^2 \left( m - \frac{n}{3} \right)$.
-% Accuracy and Stability of Numerical Algorithms, Nicholas J. Higham
-There are modified versions of the Givens QR algorithm that use ``fast Givens rotations" which decrease the number of multiplications and square roots needed for the application of each Givens rotation.
-% Fast Plane Rotations With Dynamic Scaling, Anda and Park, SIAM, 1994
-It allows for the use of Givens rotations while requiring roughly the same number of floating point operations used by the Householder QR algorithm.
-In practice, these methods are still not quite as fast as the Householder algorithm.
-In spite of the need for more floating point operations, Givens rotations are still well suited for parallelization and can be much faster than the Householder algorithm when multiple processors are used.
-% Givens and Householder Reductions for Linear Least Squares on a Cluster of Workstations, Omer Egecioglu and Ashok Srinivasan
 
 \begin{problem}
 \label{prob:Givens}
-Write a function called \li{givens} that uses Givens rotations to compute the $QR$ decomposition of
-a matrix $A$.
-By performing successive Givens rotations, triangularize $A$ to find $R$.
-Apply the rotations to an identity matrix as you go, then take the transpose to invert it and find $Q$.
-Return $Q$ and $R$.
+Write a function that computes the Givens triangularization of a matrix, using Algorithm \ref{Alg:givens}. 
+Assume that at the $ij^{th}$ stage of the algorithm, $a_{ij}$ will be nonzero.
 \end{problem}
 
-We will now illustrate one example of how to use Givens rotations to change only specific parts of the array.
 
 \begin{problem}
 \label{prob:givens_hessenberg}
-Write a modified version of your solution to Problem \ref{prob:Givens}, call it \li{givens2} that computes the 
-QR decomposition of an upper Hessenberg matrix.
-Instead of starting at the bottom of each column and working up, just run down the first subdiagonal from left to right.
-When operating on $Q$, you do not need to operate on the full length of each row.
-It is sufficient to perform the matrix multiplication on the portion of the array \li{Q[j:j+2,:j+2]} where \li{j} is the current column.
-
-Note: You can zero out the portion below the first subdiagonal of a matrix like this:
+Modify your solution to Problem \ref{prob:Givens} to compute the Givens triangularization of an upper Hessenberg matrix, making the following changes:
+\begin{enumerate}
+\item Iterate through the first subdiagonal from left to right. (These are the only entries that need to be zeroed out.)
+\item Line 10 of Algorithm \ref{Alg:givens} updates $Q$ with the current Givens rotation $G$. Decrease the number of entries of $Q$ that are modified in this line. Do this by replacing $Q_{i-1:i+1, :}$ with $Q_{i-1:i+1, :k_i}$ where $k_i$ is some appropriately chosen number (dependent on $i$) such that $Q_{i-1:i+1, k_i:}=0$.
+\end{enumerate}
+Hint: Here is how to generate a random upper Hessenberg matrix on which to test your function.
+The idea is to generate a random matrix and then zero out all entries below the first subdiagonal.
 \begin{lstlisting}
 import numpy as np
 import scipy.linalg as la
-from numpy.random import rand
-A = rand(500, 500)
+from math import sqrt
+A = np.random.rand(500, 500)
+
+# We do not need to modify the first row of A
+# la.triu(A[1:]) zeros out all entries below the diagonal of A[1:]
 A[1:] = la.triu(A[1:])
+
+# A is now upper Hessenberg
 \end{lstlisting}
 
-Notice how $Q$ in the QR decomposition of an upper Hessenberg matrix is also upper Hessenberg.
+\begin{comment}
 What is the computational order of  complexity for this problem?
 Approximately for what $m$ is your implementation as fast as the general QR decomposition built in to \li{scipy.linalg} for computing the QR decomposition of an upper Hessenberg matrix?
+\end{comment}
 \end{problem}
 
+\begin{comment}
 \begin{problem}
 \label{prob:givens_hessenberg_modified}
 You may have noticed that matrix multiplication by $Q$ is generally a $\mathcal{O} \left( n^3 \right)$ algorithm, while the application of these individual Givens rotations is a $\mathcal{O} \left( n^2 \right)$ algorithm.
@@ -201,41 +294,90 @@ For timing purposes, make a random upper Hessenberg matrix, compute its QR decom
 
 Note: the functions you just wrote can be used to perform right multiplication as well since $B Q = \left(Q^T B^T \right)^T$ and $B Q^T = \left( Q B^T \right)^T$.
 \end{problem}
+\end{comment}
 
-An interesting side-note is that each Givens rotation can be represented as a single floating point number, so, when operating in place, $Q$ can be stored entirely in the lower triangular portion of the array on which we are operating by storing each rotation in the entry that it zeroes out.
-A similar approach would to store Householder reflectors in the columns they zero out.
-In either case, we can represent the QR decomposition of an array using only the memory that was originally used to store the array itself.
-This is similar to the approach  for computing the LU decomposition entirely in place.
-These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed.
+
 
 \section*{Least Squares}
 
-We are now changing the subject to talk about line fitting.
+A linear system $A\x=\b$ is \emph{overdetermined} if it has no solutions. 
+In this situation, the \emph{least squares solution} is a vector $\widehat{\x}$ hat is ``closest'' to a solution. 
+By definition, $\widehat{\x}$ is the vector such that $A\widehat{\x}$ will equal the projection of $\b$ onto the range of $A$. 
+We can compute $\widehat{\x}$ by solving the \emph{Normal Equation} $A^HA\widehat{\x} = A^H\b$ (see [TODO: ref textbook] for a derivation of the Normal Equation).
 
-It is well known that the displacement of a spring is proportional
-to the force acting upon it, that is, $F = k x$.  The proportionality
-constant $k$ is called Hooke's spring constant.  Consider a laboratory
-experiment where different loads are placed on a spring and the displacement
-is measured and recorded in the table below:
-\vspace{5mm}\\
-\begin{center}
-\begin{tabular}{|c|c|}
-	\hline
-x & F \\
-(cm) & (dyne)\\
-\hline
-1.04  & 3.11 \\
-2.03  &  6.01\\
-2.95  &  9.07\\
-3.92  &  11.99\\
-5.06  &  15.02\\
-6.00  &  17.91\\
-7.07  &  21.12\\
-\hline
+%TODO: update this section, esp the homework problem, once we know how QR is being taught
+\subsection*{Solving the normal equation}
+If $A$ is full rank, we can use its QR decomposition to solve the normal equation. 
+In many applications, $A$ is usually full rank, including when least squares is used to fit curves to data.
+
+It can be shown that if $A=QR$ is the QR decomposition of $A$, then $\widehat{\x}$ solves the normal equation if and only if $R\widehat{\x} = Q^T \b$ ([TODO: ref hw problem in textbook]). 
+Since $R$ is upper triangular, we can solve this equation quickly with back substitution. 
+
+%TODO: This problem might need a hint. It is harder to code than it looks.
+\begin{problem}
+Write a function that accepts a matrix $A$ and a vector $b$ and returns the least squares solution to $Ax=b$.
+Use the QR decomposition as outlined above.
+Your function should use SciPy's functions for QR decomposition and for solving triangular systems, which are \li{la.qr()} and \li{la.solve_triangular()}, respectively.
+\end{problem}
+
+\subsection*{Using least squares to fit curves to data}
+The least squares solution can be used to find the curve of a chosen type that best fits a set of points. 
+
+\subsubsection*{Example 1: Fitting a line}
+For example, suppose we wish to fit a general line $y=mx+b$ to the data set $\{(x_k, y_k)\}_{k=1}^n$. 
+When we plug the constants $(x_k, y_k)$ into the equation $y=mx+b$, we get a system of linear equations in the unknowns $m$ and $b$. 
+This system corresponds to the matrix equation
+\[
+\begin{pmatrix}
+x_1 & 1\\
+x_2 & 1\\
+x_3 & 1\\
+\vdots & \vdots\\
+x_n & 1
+\end{pmatrix}
+\begin{pmatrix}
+m\\
+b
+\end{pmatrix}=
+\begin{pmatrix}
+y_1\\
+y_2\\
+y_3\\
+\vdots\\
+y_n
+\end{pmatrix}.
+\]
+Because this system has two unknowns, it is guaranteed a solution if it has two or fewer equations. 
+In applications, there will usually be more than two data points, and these will probably not lie in a straight line, due to measurement error. 
+Then the system will be overdetermined. 
+The least squares solution to this equation will be a slope $\widehat{m}$ and $y$-intercept $\widehat{b}$ that produce a line $y = \widehat{m}x+\widehat{b}$ which best fits our data points.
+
+
+
+%DO: spring constant as an example of this
+% circle fit
+% mention in this situation A will usually be full rank.
+%todo: least squares and invertibiility.
+
+
+
+
+
+
+
+Let us do an example with some actual data. Imagine we place different loads on a spring and measure the displacement, recording our results in the table below.
+%TODO: get data points that are not so close to an actual line
+\begin{table}
+\begin{tabular}{c|c|c|c|c|c|c|c}
+displacement (cm)& 1.04  &2.03  &2.95  &3.92  &5.06  &6.00  &7.07  \\ \hline
+load (dyne) & 3.11&  6.01&  9.07&  11.99 &  15.02&  17.91&  21.12\\
 \end{tabular}
-\end{center}
-\vspace{5mm}
-To find the spring constant $k$, we simply need to solve the following linear system
+\end{table}
+
+Hooke's law from physics says that the displacement $x$ should be proportional to the load $F$, or $F = kx$ for some constant $k$.
+The equation $F=kx$ describes a line with slope $k$ and $F$-intercept 0.
+So the setup is similar to the setup for the general line we discussed above, except we already know $b=0$
+When we plug our seven data points $(x,F)$ pairs into the equation $F=kx$, we get seven linear equations in $k$, corresponding to the matrix equation
 \[
 \begin{pmatrix}
 1.04\\
@@ -257,31 +399,21 @@ To find the spring constant $k$, we simply need to solve the following linear sy
 21.12\\
 \end{pmatrix}.
 \]
-However, there is no solution to this system because it is overdetermined.
-Instead, we seek the ``best'' $k$ that fits the data.
-Least squares allows us to find that ``best'' solution.
-We can find the least squares solution by computing the following in Python:
+We expect such a linear system to be overdetermined, and in fact it is: the equation is $1.04k = 3.11$ which implies $k=2.99$, but the second equation is $2.03k = 6.01$ which implies $k=2.96$.
+
+We can't solve this system, but its least squares solution is a ``best'' choice for $k$.
+We can find the least squares solution with the SciPy function \li{linalg.lstlsq()}. 
+This function returns a tuple of several values, the first of which is the least squares solution.
 \begin{lstlisting}
->>> import numpy as np
->>> from scipy import linalg as la
 >>> A = np.vstack([1.04,2.03,2.95,3.92,5.06,6.00,7.07])
 >>> b = np.vstack([3.11,6.01,9.07,11.99,15.02,17.91,21.12])
->>> k = np.dot(np.dot(la.inv(np.dot(A.T,A)),A.T),b)
+>>> k = la.lstsq(A, b)[0]
 >>> k
 array([[ 2.99568294]])
 \end{lstlisting}
-Hence, we find the spring constant to be $k = 2.9957$.
-Note that \li{scipy.linalg} provides a built-in function for solving
-least-squares problems.
-We plot the data against the best fit as follows:
-\begin{figure}[h!]
-\label{fig1}
-\begin{center}
-\includegraphics[width=\textwidth]{line_lstsq}
-\caption{The graph of the spring data together with its linear fit}
-\label{Fig:SpringFit}
-\end{center}
-\end{figure}
+Hence, to two decimal places, $k = 3.00$.
+We plot the data against the best-fit line with the following code, whose output is in Figure \ref{fig:spring_fit}
+
 
 \begin{lstlisting}
 >>> from matplotlib import pyplot as plt
@@ -290,49 +422,215 @@ We plot the data against the best fit as follows:
 >>> plt.plot(A,b,'*',x0,y0)
 >>> plt.show()
 \end{lstlisting}
-See Figure \ref{Fig:SpringFit} to see how well the line fits the data.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{line_lstsq}
+\caption{The graph of the spring data together with its linear fit.}
+\label{fig:spring_fit}
+\end{figure}
+
+%TODO: find more interesting data and make a sample plot
+\begin{problem}
+Load the \li{linepts} array from the file \texttt{data.npz}. The following code stores this array as \li{linepts}.
+\begin{lstlisting}
+linepts = np.load('data.npz')['linepts']
+\end{lstlisting}
+The \li{linepts} array has two columns corresponding to the $x$ and $y$ coordinates of some data points.
+\begin{enumerate}
+\item Use least squares to fit the line $y=mx+b$ to the data.
+\item Plot the data and your line on the same graph.
+\end{enumerate}
+\end{problem}
 
 
-\section*{General Line Fitting}
 
-Suppose that we wish to fit a general line, that is $y=m x+b$, to the data set
-$\{(x_k,y_k)\}^n_{k=1}$.  Assume that the line does not cross through the origin,
-as in the previous example.  Then we seek both a slope and a $y$-intercept.
-In this case, we set up the following linear system $A x = b$, or more precisely
+
+
+
+%
+%\section*{General Line Fitting}
+%
+%Suppose that we wish to fit a general line, that is $y=m x+b$, to the data set
+%$\{(x_k,y_k)\}^n_{k=1}$.  Assume that the line does not cross through the origin,
+%as in the previous example.  Then we seek both a slope and a $y$-intercept.
+%In this case, we set up the following linear system $A x = b$, or more precisely
+%\[
+%\begin{pmatrix}
+%x_1 & 1\\
+%x_2 & 1\\
+%x_3 & 1\\
+%\vdots & \vdots\\
+%x_n & 1
+%\end{pmatrix}
+%\begin{pmatrix}
+%m\\
+%b
+%\end{pmatrix}=
+%\begin{pmatrix}
+%y_1\\
+%y_2\\
+%y_3\\
+%\vdots\\
+%y_n
+%\end{pmatrix}.
+%\]
+%Note that $A$ has rank $2$ as long as not all of the $x_k$ values are the same.
+%Hence, the least squares solution
+%is given by
+%$$
+%\widehat{x} = (A^HA)^{-1}A^Hb.
+%$$
+%In what sense does this solution give us the best fit line for the data? Recall that since $A$ is injective,
+%the matrix $A(A^HA)^{-1}A^H$ is an orthogonal projector onto the range of $A$, which means that
+%$A(A^HA)^{-1}A^Hb = A\widehat{x}$ is the closest vector (with respect to the 2-norm) to $b$ that lies in the
+%range of $A$. That is, $\widehat{x}$ minimizes the error between $Ax$ and $b$, where the error is given
+%by the distance between these vectors, $\|b-Ax\|_2$. Another way to say this is that $\widehat{x}$ gives the
+%values $m$ and $b$ for which the sum of the squares of the distances from each data point $y_k$ to the value
+%$y = mx_k + b$ is as small as possible.
+
+
+\subsubsection*{Example 2: Fitting a circle}
+Now suppose we wish to fit a general circle to a data set $\{(x_k, y_k)\}_{k=1}^n$. Recall that the equation of a circle with radius $r$ and center $(c_1,c_2)$ is
+\begin{equation}
+\label{circle}
+(x-c_1)^2 + (y-c_2)^2 = r^2.
+\end{equation}
+What happens when we plug a data point into this equation? Suppose $(x_k, y_k)=(1,2)$.
+\footnote{You don't have to plug in a point for this derivation, but it helps us remember which symbols are constants and which are variables.} Then
+\begin{equation*}\label{equ:example}
+5 = 2c_1+4c_2+(r^2-c_1^2-c_2^2).
+\end{equation*}
+To find $c_1$, $c_2$, and $r$ with least squares, we need \emph{linear} equations. 
+Then Equation \ref{equ:example} above is not linear because of the $r^2$, $c_1^2$, and $c_2^2$ terms. 
+We can do a trick to make this equation linear: create a new variable $c_3$ defined by $c_3 = r^2-c_1^2-c_2^2$. 
+Then Equation \ref{equ:example} becomes
 \[
+5=2c_1+4c_2+c_3,
+\]
+which \emph{is} linear in $c_1$, $c_2$, and $c_3$. Since $r^2 = c_3+c_1^2+c_2^2$, after solving for the new variable $c_3$ we can also find $r$.
+
+For a general data point $(x_k, y_k)$, we get the linear equation
+\[
+2c_1x_k+2c_2y_k+c_3=x_k^2+y_k^2.
+\]
+Thus, we can find the best-fit circle from the least squares solution to the matrix equation
+
+\begin{equation}\label{equ:circle_fit}
 \begin{pmatrix}
-x_1 & 1\\
-x_2 & 1\\
-x_3 & 1\\
-\vdots & \vdots\\
-x_n & 1
+2 x_1 & 2 y_1 & 1\\
+2 x_2 & 2 y_2 & 1\\
+\vdots & \vdots & \vdots \\
+2 x_n & 2 y_n & 1
 \end{pmatrix}
 \begin{pmatrix}
-m\\
-b
+c_1\\
+c_2\\
+c_3
 \end{pmatrix}=
 \begin{pmatrix}
-y_1\\
-y_2\\
-y_3\\
+x_1^2 + y_1^2\\
+x_2^2 + y_2^2\\
 \vdots\\
-y_n
+x_n^2 + y_n^2
 \end{pmatrix}.
+\end{equation}
+If the least squares solution is $\widehat{c_1}, \widehat{c_2}$, $\widehat{c_3}$, then the best-fit circle is
+\[
+(x-\widehat{c_1})^2 + (y-\widehat{c_2})^2 = \widehat{c_3}+\widehat{c_1}^2+\widehat{c_2}^2.
 \]
-Note that $A$ has rank $2$ as long as not all of the $x_k$ values are the same.
-Hence, the least squares solution
-is given by
-$$
-\widehat{x} = (A^HA)^{-1}A^Hb.
-$$
-In what sense does this solution give us the best fit line for the data? Recall that since $A$ is injective,
-the matrix $A(A^HA)^{-1}A^H$ is an orthogonal projector onto the range of $A$, which means that
-$A(A^HA)^{-1}A^Hb = A\widehat{x}$ is the closest vector (with respect to the 2-norm) to $b$ that lies in the
-range of $A$. That is, $\widehat{x}$ minimizes the error between $Ax$ and $b$, where the error is given
-by the distance between these vectors, $\|b-Ax\|_2$. Another way to say this is that $\widehat{x}$ gives the
-values $m$ and $b$ for which the sum of the squares of the distances from each data point $y_k$ to the value
-$y = mx_k + b$ is as small as possible.
 
+
+Let us use least squares to find the circle that best fits the following nine points:
+%TODO: get data points that are not so close to an actual circle
+\begin{table}
+\begin{tabular}{c||c|c|c|c|c|c|c|c|c}
+$x$& 134  &104 &34  &-36  &-66  &-36  &34 &104 &  134  \\ \hline
+$y$& 76&  146&  176&  146 &  76&  5& -24 & 5 & 76\\
+\end{tabular}
+\end{table}
+
+
+We enter them into Python as a $9\times 2$ array.
+\begin{lstlisting}
+>>> P = np.array([[134,76],[104,146],[34,176],[-36,146],
+                  [-66,76],[-36,5],[34,-24],[104,5],[134,76]])
+\end{lstlisting}
+
+We compute $A$ and $b$ according to Equation \ref{equ:circle_fit}.
+\begin{lstlisting}
+>>> A = np.hstack((2*P, np.ones((9,1))))
+>>> b = (P**2).sum(axis=1)
+\end{lstlisting}
+
+Then we use SciPy to find the least squares solution.
+\begin{lstlisting}
+>>> c1, c2, c3 = la.lstsq(A, b)[0]
+\end{lstlisting}
+
+We can solve for $r$ using the relation $r^2 = c_3+c_1^2+c_2^2$.
+\begin{lstlisting}
+>>> r = sqrt(c1**2 + c2**2 + c3)
+\end{lstlisting}
+
+A good way to plot a circle is to use polar coordinates. 
+Using the same variables as before, the equation for a general circle is $x=r\cos(\theta)+c_1$ and $y=r\sin(\theta)+c_2$. 
+With the following code we plot the data points and our best-fit circle using polar coordinates. 
+The resulting image is Figure \ref{fig:circle}.
+\begin{lstlisting}
+# In the polar equations for a circle, theta goes from 0 to 2*pi.
+>>> theta = np.linspace(0,2*np.pi,200)
+>>> plt.plot(r*np.cos(theta)+c1,r*np.sin(theta)+c2,'-',P[:,0],P[:,1],'*')
+>>> plt.show()
+\end{lstlisting}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{circle.pdf}
+\caption{The graph of the some data and its best-fit circle.}
+\label{fig:circle}
+\end{figure}
+
+\begin{comment}
+\begin{problem}
+Write a function \li{fitCircle} that does the following.
+Load the \texttt{circlepts} array from \texttt{data.npz}.
+This consists of two columns corresponding to the $x$ and $y$ values of a given
+data set.  Use least squares to find the center and radius of the circle that best
+fits the data.  Then plot the data points and the circle on the same graph.
+The function should return nothing.
+\end{problem}
+\end{comment}
+
+%TODO: figure out how to plot this problem
+\begin{problem}
+\leavevmode
+\begin{enumerate}
+\item Load the \texttt{ellipsepts} array from \texttt{data.npz}. This array has two columns corresponding to the $x$ and $y$ coordinates of some data points.
+\item Use least squares to fit an ellipse to the data. 
+The general equation for an ellipse is
+\[
+ax^2 + bx + cxy + dy + ey^2 = 1.
+\]
+You should get  $0.087$, $-0.141$,  $0.159$, $-0.316$, $0.366$ for $a, b, c, d,$ and $e$ respectively.
+%\item Plot the data and your line on the same graph.
+\end{enumerate}
+\end{problem}
+
+%TODO: keep this?
+\begin{comment}
+In these Least Squares problems, we have found best fit lines and ellipses relative to the 2-norm.
+It is possible to generalize the idea of best fit curves relative to other norms.
+See Figure \ref{Fig:ellipse} for an illustration of this.
+
+\begin{figure}[h]
+\label{ellipsefit}
+\centering
+\includegraphics[width=\textwidth]{ellipsefit.pdf}
+\caption{Fitting an ellipse using different norms.}
+\label{Fig:ellipse}
+\end{figure} 
+\end{comment}
+
+\begin{comment}
 \section*{Loading Data from .npz Files}
 For Least Squares problems as well as in many other contexts, loading data is often a necessary step before
 proceeding with further analysis. Here we briefly review another data format in Python and the commands used
@@ -357,147 +655,4 @@ array([ 10.,  10.,  10.,  10.,  10.,  10.,  10.,  10.,  10.,  10.])
 
 You will need to apply this technique in the next problem.
 
-\begin{problem}
-Write a function \li{fitLine} that takes no arguments and executes the following.
-Load the \texttt{linepts} array from \texttt{data.npz}.
-This consists of two columns corresponding to the $x$ and $y$ values of a given data set.
-Use least squares to find the slope and $y$-intercept that best fits the data.
-Then plot the data points and the line on the same graph.
-The function should not return anything.
-\end{problem}
-
-\section*{Fitting data to a circle}
-
-Recall that the equation of a circle, with radius $r$ centered at $(c_1,c_2)$, is given by
-\begin{equation}
-\label{circle}
-(x-c_1)^2 + (y-c_2)^2 = r^2.
-\end{equation}
-Suppose we are given a set of data points closely forming a circle $\{(x_i,y_i)\}^n_{i=1}$.
-The ``best'' fit is found via least squares by expanding \eqref{circle} to get
-\[
-2 c_1 x + 2 c_2 y + c_3 = x^2 + y^2,
-\]
-where $c_3 = r^2 - c_1^2 - c_2^2$.  Then we can write the linear system $A x = b$ as
-\[
-\begin{pmatrix}
-2 x_1 & 2 y_1 & 1\\
-2 x_2 & 2 y_2 & 1\\
-\vdots & \vdots & \vdots \\
-2 x_n & 2 y_n & 1
-\end{pmatrix}
-\begin{pmatrix}
-c_1\\
-c_2\\
-c_3
-\end{pmatrix}=
-\begin{pmatrix}
-x_1^2 + y_1^2\\
-x_2^2 + y_2^2\\
-\vdots\\
-x_n^2 + y_n^2
-\end{pmatrix},
-\]
-where the matrix $A$ and the vector $b$ are obtained by the given data and the unknown
-$x$ contains the information about the center and radius of the circle and is obtained
-by finding the least squares solution.
-
-\section*{Example}
-
-In this section, we fit the following points to a circle:
-\begin{align*}
-&(134,76),(104,146),(34,176),(-36,146),\\
-&(-66,76),(-36,5),(34,-24),(104,5),(134,76)
-\end{align*}
-
-We enter them into Python as a $9\times 2$ array:
-\begin{lstlisting}
->>> P = np.array([[134,76],[104,146],[34,176],[-36,146],
-                  [-66,76],[-36,5],[34,-24],[104,5],[134,76]])
-\end{lstlisting}
-We compute $A$ and $b$ by entering the following:
-\begin{lstlisting}
->>> A = A =np.hstack((2*P, np.ones((9,1))))
->>> b = (P**2).sum(axis=1)
-\end{lstlisting}
-Hence, we get the least squares solution
-\begin{lstlisting}
->>> x = np.dot(np.dot(la.inv(np.dot(A.T,A)),A.T),b)
-\end{lstlisting}
-Then we find $c_1$, $c_2$, and $r$ by:
-\begin{lstlisting}
->>> from math import sqrt
->>> c1, c2, c3 = x
->>> r = sqrt(c1**2 + c2**2 + c3)
-\end{lstlisting}
-We plot this by executing
-\begin{lstlisting}
->>> theta = np.linspace(0,2*np.pi,200)
->>> plt.plot(r*np.cos(theta)+c1,r*np.sin(theta)+c2,'-',P[:,0],P[:,1],'*')
->>> plt.show()
-\end{lstlisting}
-
-
-\begin{problem}
-Write a function \li{fitCircle} that does the following.
-Load the \texttt{circlepts} array from \texttt{data.npz}.
-This consists of two columns corresponding to the $x$ and $y$ values of a given
-data set.  Use least squares to find the center and radius of the circle that best
-fits the data.  Then plot the data points and the circle on the same graph.
-The function should return nothing.
-\end{problem}
-
-\begin{problem}
-The general equation for an ellipse is:
-\[
-ax^2 + bx + cxy + dy + ey^2 = 1
-\]
-
-Write a function \li{fitEllipse} that uses least squares to fit data to an ellipse.
-The function should take a $n\times 2$ array as input, where the first column gives the $x$-coordinates
-and the second column gives the $y$-coordinates. Find the least squares solution for $a, b, c, d,$ and $e$,
-and return the solution.
-You can test out your function on the \texttt{ellipsepts} array from \texttt{data.npz}. You should get  $0.087$, $-0.141$,  $0.159$, $-0.316$, $0.366$ for $a, b, c, d,$ and $e$ respectively.
-\end{problem}
-
-In these Least Squares problems, we have found best fit lines and ellipses relative to the 2-norm.
-It is possible to generalize the idea of best fit curves relative to other norms.
-See Figure \ref{Fig:ellipse} for an illustration of this.
-
-\begin{figure}[h]
-\label{ellipsefit}
-\centering
-\includegraphics[width=\textwidth]{ellipsefit.pdf}
-\caption{Fitting an ellipse using different norms.}
-\label{Fig:ellipse}
-\end{figure} 
-
-COPIED FROM PREVIOUS LAB
-
-\section*{Solving Least Squares Problems}
-The QR decomposition can only be used to solve the linear least squares problem if $A$ is full rank. If $A$ is less than full rank, then we have to calculate the least squares solution more creatively.
-
-%MATLAB's least squares backslash operator is based off the QR decomposition.
-%SciPy uses the SVD to solve least squares problems because, although it is slower, the algorithm is more numerically stable.
-
-
-For large or ill-conditioned problems, the QR decomposition provides a nice method for computing least squares solutions of over-determined matrices.
-Consider the least squares problem $Ax=b$. We can approximate the solution with $\widehat x = (A^T A)^{-1}A^T b$.
-Alternatively, we write the linear system as
-\[ Q R x = b. \]
-We then multiply both sides by $Q^T$, yielding
-\[ R x = Q^T b. \]
-Then $\widehat x = R^{-1} Q^T b$.
-
-However, we can avoid calculating the inverse of $R$ (inverting a matrix is \emph{very expensive} computationally).
-Since $R$ is a triangular matrix, we have a triangular system that we can solve much more efficiently.
-SciPy includes a solver for triangular systems, \li{linalg.solve_triangular()}.
-We approximate $x$ by solving the triangular system $Rx = Q^T b$.
-
-\begin{problem}
-Write a function \li{LeastSquares} that will accept a linear system (a matrix $A$ and a vector $b$) and solve the least squares problem.
-Your function should rely on the SciPy's QR decomposition and triangular system solver.  Assume that $A$ is full rank.
-You may test your function against the output of SciPy's least squares function, \li{linalg.lstsq()}.
-\end{problem}
-
-
+\end{comment}
