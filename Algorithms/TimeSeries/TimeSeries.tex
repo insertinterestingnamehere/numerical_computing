@@ -1,0 +1,176 @@
+\lab{Algorithms}{ARMA Models}{ARMA Models}
+\label{lab:arma}
+\objective{Fit and forecast ARMA models.}
+
+An $\text{ARMA}(p,q)$ model is a covariance-stationary discrete stochastic
+process $\{z_t\}$ that satisfies
+\begin{align}
+    \label{eq:arma:def}
+    z_t - \mu = \left(\sum_{i=1}^p \phi_{i}(z_{t - i} - \mu)\right) + a_t +
+    \left(\sum_{j=1}^{q} \theta_{j}a_{t-j} \right)
+\end{align}
+where $\mu = E[z_t]$ and $a_t$ are identically Gaussian distributed with
+variance $\sigma_a^2$. We note that the assumption that $\{z_t\}$ is
+covariance-stationary is eqivalent to the condition that the roots of the
+polynomial in $B$ 
+\begin{align}
+    \label{eq:arma:characteristic}
+    \phi(B) = 1 - \sum_{i=1}^p\phi_iB^i 
+\end{align} 
+lie without the unit circle.
+
+The first sum on the right hand side of \ref{eq:arma:def} is interpreted as an
+``autoregression'' since it is a linear combination of previously observed
+values of $z_t$. The second sum is interpreted as a ``moving average'' of the
+current and previous error terms; though formally similar to an average, note
+that the $\theta_j$ need not be positive nor sum to one. We say that an
+$\text{ARMA}(p,q)$ model is an ``autoregressive moving-average model of order
+p, q''.
+
+\section*{Likelihood via Kalman Filter}
+
+In a general $\text{ARMA}(p,q)$ model, the likelihood is a function of the
+unobserved error terms $a_t$ and is not trivial to compute. Simple
+approximations can be made, but these may be inaccurate under certain
+circumstances. Explicit derivations of the likelihood are possible, but
+tedious. However, when the $\text{ARMA}$ model is placed in state-space, the
+Kalman filter affords a straightforward, recursive way to compute the
+likelihood.
+
+We demonstrate a state-space representation of an $\text{ARMA}(p,q)$ model. If
+$r = \max(p, q+1)$, we write
+\begin{align}
+    F &= \begin{bmatrix}
+        \phi_1 & \phi_2 & \cdots & \phi_{r-1} & \phi_r\\
+        1 & 0 & \cdots & 0 & 0\\
+        0 & 1 & \cdots & 0 & 0\\
+        \vdots & \vdots & \cdots & \vdots & \vdots\\
+        0 & 0 & \cdots & 1 & 0
+    \end{bmatrix}\\
+    H &= \begin{bmatrix}
+        1 & \theta_1 & \theta_2 & \cdots & \theta_{r-1}
+    \end{bmatrix}\\
+    Q &= \begin{bmatrix}
+        \sigma_a^2 & 0 & \cdots & 0\\
+        0 & 0 & \cdots & 0\\
+        \vdots & \vdots & \cdots & \vdots\\
+        0 & 0 & \cdots & 0
+    \end{bmatrix}\\
+    w_t &\sim \text{MVN}(0, Q)
+\end{align}
+where $\phi_i = \theta_j = 0$ for $i > p, j > q$. Then the linear stochastic
+dynamical system 
+\begin{align}
+    x_{t+1} = Fx_t + w_t\\
+    z_t = Hx_t + \mu
+\end{align}
+describes the same process as the original $\text{ARMA}$ model.
+
+Let $\Theta = \{\phi_i, \theta_j, \mu, \sigma_a^2\}$ be the set of paramters
+for an $\text{ARMA}(p,q)$ model. Using the chain rule, we can factorize the
+likelihood as
+\begin{align}
+    \label{eq:arma:factorized}
+    p(z_t | \Theta) = \prod_{k=1}^{n} p(z_k | z_{k-1}, \ldots, z_{1}, \Theta)
+\end{align}
+Since we have assumed that the error terms are Gaussian, each conditional
+distribution in \ref{eq:arma:factorized} is also Gaussian, and is completely
+characterized by its mean and covariance matrix. But these two quantities are
+easily found via the Kalman filter, namely
+\begin{align}
+    \text{mean} & \quad H\hat{x}_{t|t-1} + \mu \\
+    \text{covariance} & \quad HP_{t|t-1}H'
+\end{align}
+where $\hat{x}_{t|t-1}, P_{t|t-1}$ are found during the Predict step. Our
+likelihood becomes
+\begin{align}
+    \label{eq:arma:likelihood}
+    p(z_t | \Theta) = \prod_{k=1}^{n} N(z_k;\; H\hat{x}_{t|t-1} + \mu,\;
+    HP_{t|t-1}H')
+\end{align}
+
+\begin{problem}
+    \label{prob:arma:likelihood}
+    Write a function that computes the log-likelihood of an $\text{ARMA}(p,q)$
+    model, given a time series $z_t$. You may reuse your Kalman filter code
+    from Lab \ref{lab:kalman}.
+\end{problem}
+
+\section*{Identification and Fitting}
+
+When modeling a data set with an $\text{ARMA}(p,q)$ model, the order of the
+model must be determined as well as the other parameters. The process of
+choosing $p$ and $q$ is called model identification. Different methods have
+been used; for example, Box and Jenkins propose a methodology that involves
+examing the estimated autocorrelation and partial-autocorrelation functions of
+the data. We will choose $p$ and $q$ that minimize the Akaike information
+criterion with a correction (AICc), given by
+\begin{align}
+    2k\left(1 + \frac{k+1}{n-k}\right) - 2 \ell(\Theta)
+\end{align}
+where $n$ is the sample size, $k = p + q + 2$ is the number of parameters in
+the model, and $\ell(\Theta)$ is the maximum likelihood for the model class.
+
+To compute the maximum likelihood for a model class, we need to optimize
+\ref{eq:arma:likelihood} over the space of parameters $\Theta$. We can do so
+using our function from Problem \ref{prob:arma:likelihood} along with some
+optimization routine, such as {\tt scipy.optimize.fmin}.
+
+\begin{problem}
+    \label{prob:arma:mle}
+    Write a function that accepts a time series $\{z_t\}$ and values {\tt
+    max\_p}, {\tt max\_q}, and returns the parameters of the model that
+    minimizes the AICc, given the constrant that $p < \text{{\tt max\_p}}$, $q
+    < \text{{\tt max\_q}}$.
+\end{problem}
+
+
+\begin{comment}
+
+The Box-Jenkins methodology may be too esoteric, in light of straightforward
+alternatives such as the AICc.
+
+\section*{Identification}
+
+If we have a time series $\{z_t\}$ and wish to fit an $ARMA(p,q)$ to it, we
+must first identify the order of the model, that is, what $p$ and $q$ should
+be. We discuss a methodology presented by Box and Jenkins that depends on the
+autocorrelations and partial-autocorrelations of the data. Alternative methods
+exist, such as using the Akaike information criterion with a correction (AICc).
+
+\subsection*{Autocorrelation}
+
+The autocorrelation between between $z_{t}, z_{t+k}$ is defined as the
+normalized covariance between the two random variables, verbosely given as
+\begin{align}
+    \label{eq:arma:autocorrelation}
+    \text{cor}[z_{t}, z_{t+k}] = \frac{E[(z_{t} - E[z_{t}])(z_{t+k} -
+    E[z_{t+k}])]}{\sqrt{E[(z_{t} - E[z_{t}])^2(z_{t+k} - E[z_{t+k}])^2]}}
+\end{align}
+Since the $\{z_t\}$ is assumed to be covariance-stationary,
+\ref{eq:arma:autocorrelation} depends only on the lag $k$, not on $t$. This
+justifies the notation
+\begin{align}
+    \rho_k = \text{cor}[z_{t}, z_{t+k}] \quad \forall t
+\end{align}
+When $\rho_k$ is considered a function of $k$, it is called the autocorrelation
+function. Since $\rho_0 = 1, \rho_{-k} = \rho_k$, we will be interested in the
+cases when $k > 0$. We can estimate $\rho_k$ from sample data as
+\begin{align}
+    \label{eq:arma:autocorrelation_estimate}
+    \hat{\rho}_k = \frac{\sum_{t=1}^{N-k}(z_t - \hat{\mu})(z_{t+k} -
+    \hat{\mu})}{\sum_{t=1}^{N}(z_t - \hat{\mu})^2}
+\end{align}
+where $\hat{\mu}$ is the sample mean. This is one of a number of estimates of
+autocorrelation.
+
+\begin{problem}
+    \label{prob:arma:autocorrelation}
+    Write a function that computes the autocorrelation estimate described in
+    \ref{eq:arma:autocorrelation_estimate}, given a time series and a lag $k$.
+    Plot $\hat{\rho}_k$ for $1 \leq k \leq 20$ for each of the three data sets.
+\end{problem}
+
+\subsection*{Partial-Autocorrelation}
+
+\end{comment}
