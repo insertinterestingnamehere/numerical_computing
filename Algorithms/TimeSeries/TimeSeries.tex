@@ -66,7 +66,7 @@ dynamical system
 \end{align}
 describes the same process as the original $\text{ARMA}$ model.
 
-Let $\Theta = \{\phi_i, \theta_j, \mu, \sigma_a^2\}$ be the set of paramters
+Let $\Theta = \{\phi_i, \theta_j, \mu, \sigma_a^2\}$ be the set of parameters
 for an $\text{ARMA}(p,q)$ model. Using the chain rule, we can factorize the
 likelihood as
 \begin{align}
@@ -75,11 +75,11 @@ likelihood as
 \end{align}
 Since we have assumed that the error terms are Gaussian, each conditional
 distribution in \ref{eq:arma:factorized} is also Gaussian, and is completely
-characterized by its mean and covariance matrix. But these two quantities are
-easily found via the Kalman filter, namely
+characterized by its mean and variance. But these two quantities are easily
+found via the Kalman filter, namely
 \begin{align}
     \text{mean} & \quad H\hat{x}_{t|t-1} + \mu \\
-    \text{covariance} & \quad HP_{t|t-1}H'
+    \text{variance} & \quad HP_{t|t-1}H'
 \end{align}
 where $\hat{x}_{t|t-1}, P_{t|t-1}$ are found during the Predict step. Our
 likelihood becomes
@@ -102,8 +102,8 @@ When modeling a data set with an $\text{ARMA}(p,q)$ model, the order of the
 model must be determined as well as the other parameters. The process of
 choosing $p$ and $q$ is called model identification. Different methods have
 been used; for example, Box and Jenkins propose a methodology that involves
-examing the estimated autocorrelation and partial-autocorrelation functions of
-the data. We will choose $p$ and $q$ that minimize the Akaike information
+examining the estimated autocorrelation and partial-autocorrelation functions
+of the data. We will choose $p$ and $q$ that minimize the Akaike information
 criterion with a correction (AICc), given by
 \begin{align}
     2k\left(1 + \frac{k+1}{n-k}\right) - 2 \ell(\Theta)
@@ -118,17 +118,39 @@ optimization routine, such as {\tt scipy.optimize.fmin}.
 
 \begin{problem}
     \label{prob:arma:mle}
-    Write a function that accepts a time series $\{z_t\}$ and values {\tt
-    max\_p}, {\tt max\_q}, and returns the parameters of the model that
-    minimizes the AICc, given the constrant that $p < \text{{\tt max\_p}}$, $q
-    < \text{{\tt max\_q}}$.
+    Write a function that accepts a time series $\{z_t\}$ and returns the
+    parameters of the model that minimizes the AICc, given the constraint that
+    $p \leq 3$, $q \leq 3$.
+\end{problem}
+
+\begin{problem}
+    Use your solution from Problem \ref{prob:arma:mle} to fit models to the
+    data found in {\tt time\_series\_a.txt}, {\tt time\_series\_b.txt}, {\tt
+    time\_series\_c.txt}. Report the fitted parameters $p, q, \Theta$.
+\end{problem}
+
+\section*{Forecasting}
+The Kalman filter provides a straightforward way to predict future states, by
+giving the mean and variance of the conditional distribution of future
+observations.
+\begin{align}
+    z_{t + k} | z_{1}, \cdots, z_{t} \sim N(z_k;\; H\hat{x}_{t+k|t} + \mu,\;
+    HP_{t+k|t}H')
+\end{align}
+
+\begin{problem}
+    Forecast each data set ahead 20 intervals using the parameters discovered
+    from Problem \ref{prob:arma:mle}, and plot their expected values along with
+    the original data set. Also plot the expected values plus and minus
+    $\sigma_{t+k}$, and plus and minus $2\sigma_{t+k}$ to demonstrate credible
+    intervals. 
 \end{problem}
 
 
 \begin{comment}
 
 The Box-Jenkins methodology may be too esoteric, in light of straightforward
-alternatives such as the AICc.
+alternatives such as the AICc. I have decided to leave this material out.
 
 \section*{Identification}
 
