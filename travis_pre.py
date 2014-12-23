@@ -26,7 +26,7 @@ def find_big_files(fatal=True):
                 data = obj.split()
                 commit, size, name = data[2], int(data[3]), data[4]
                 if (commit, name) not in exceptions and size > MAX_FILESIZE:
-                    violations.add((size, name, commit))
+                    violations.add((size, commit, name))
             except (IndexError, ValueError):
                 continue
     
