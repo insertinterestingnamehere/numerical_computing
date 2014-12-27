@@ -41,14 +41,6 @@ Most core NumPy operations are written exclusively in C, but some of the compone
 Several other packages like pyfftw, pandas, scikit-learn, scikit-image, and astropy use Cython extensively.
 The package Kivy, that is used to write Android and iOS apps in Python, relies heavily on Cython.
 
-Cython has a more complex compilation process than Python and is not usually run interactively.
-Cython code is usually written in a \texttt{.pyx} file.
-Such a file is then compiled to C, and then the C is compiled to machine code.
-The resulting file is a Python extension that can be imported from the Python interpreter.
-Many of the same built in features, data types, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython program.
-Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
-Regardless of what method you use to compile a Cython file, this is more or less how it works.
-
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{compilation.pdf}
@@ -56,6 +48,28 @@ Regardless of what method you use to compile a Cython file, this is more or less
 The path from using a Cython function in a Python file to the actual evaluation is shown in red.}
 \label{cython:compilation}
 \end{figure}
+
+\begin{warn}
+Don't expect Cython to speed up Python code automatically.
+If you run unmodified Python code through the Cython compiler, the result may be somewhat faster, but it may not.
+The benefits from Cython come when you change some portions of your code (like loops and operations that are performed inside loops) so that they are performed in C and no longer need to use generic Python objects.
+\end{warn}
+
+\begin{warn}
+Poorly written code will not perform well, regardless of the language in which it is written.
+It is often easier and more effective to focus on writing good code in Python than it is to try to interface with a different ``faster" language.
+If you need to speed up your code, first profile it to see which parts are slow (IPython's magic function \li{\%prun} can be used for this), then focus on removing unneeded operations from the slow portion of your code.
+Effective use of array operations in NumPy can often make code simpler and faster than it would have been if you had tried to write all the operations yourself in C, Fortran, or any other language.
+Cython should be used when other attempts at optimization and vectorization are insufficient or when you need to use functionality from a C or C++ library that is not available in Python.
+\end{warn}
+
+Cython has a more complex compilation process than Python and is not usually run interactively.
+Cython code is usually written in a \texttt{.pyx} file.
+Such a file is then compiled to C, and then the C is compiled to machine code.
+The resulting file is a Python extension that can be imported from the Python interpreter.
+Many of the same built in features, data types, and functions from Python work in Cython, but keep in mind that too many calls to Python based functions may slow down a Cython program.
+Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
+Regardless of what method you use to compile a Cython file, this is more or less how it works.
 
 There are a variety of ways to import Cython functions and classes into Python.
 The standard way is to make a Python file that builds the C-extension module in a given directory.
