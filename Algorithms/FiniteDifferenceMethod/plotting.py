@@ -103,7 +103,7 @@ def Exercise1():
 	num_approx = 10 # Number of Approximations
 	N = 20*np.array([2**j for j in range(num_approx)])
 	h, max_error = (1.-0)/N[:-1], np.ones(num_approx-1)
-
+	
 	mesh_best, num_sol_best = bvp(eps, subintervals=N[-1])
 	for j in range(len(N)-1): 
 		mesh, num_sol = bvp(eps, subintervals=N[j])
