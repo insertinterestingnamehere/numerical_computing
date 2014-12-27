@@ -281,6 +281,9 @@ Let us compare a \li{sparse} matrix computation with a full matrix computation.
 Note that we can convert any full matrix to a \li{sparse} matrix of any of the types listed in Table \ref{table:smr}.
 
 \begin{lstlisting}
+import numpy as np
+from scipy import sparse
+
 # Create a dense matrix (stored as a full matrix).
 >>> A_full = np.random.rand(600, 600)
 
@@ -422,9 +425,40 @@ the two sub-diagonals above and below the diagonal.
 \end{problem}
 \end{comment}
 
+\subsection*{Manipulating sparse matrices}
+Scipy's \li{sparse} matrices behave a little differently than NumPy arrays.
+You can multiply two sparse matrices elementwise with the \li{multiply()} method of one of the sparse matrices.
+\begin{lstlisting}
+>>> C = sparse.spdiags(np.ones((3,3)), [-1,0,1], 3, 3)
+>>> (A.multiply(C)).todense()
+matrix([[ 2.,  0.,  0.],
+        [ 0.,  3.,  0.],
+        [ 0.,  0.,  4.]])
+\end{lstlisting}
+
+On the other hand, the asterisk \li{*} performs ordinary matrix multiplication. 
+You can also use \li{dot()} method of one of the sparse matrices. 
+However, you should NOT use \li{np.dot()} on sparse matrices because it may return an incorrect answer.
+\begin{lstlisting}
+# One correct way to mutliply sparse matrices
+>>> (A.dot(C)).todense()
+matrix([[ 2.,  2.,  0.],
+        [ 3.,  3.,  3.],
+        [ 0.,  4.,  4.]])
+\end{lstlisting}
+
+Addition and scalar multiplication is implemented as usual.
+\begin{lstlisting}
+>>> (A + 3*C).todense()
+matrix([[ 5.,  3.,  0.],
+        [ 3.,  6.,  3.],
+        [ 0.,  3.,  7.]])
+\end{lstlisting}
 
 
-\section*{Using Sparse Matrices to Reduce Runtimes}
+
+
+\section*{Using sparse matrices to reduce runtimes}
 In addition to spatial complexity, the \li{sparse} module can reduce temporal complexity. 
 Consider the linear system $A x = b$, where $A$ is a $100000\times 100000$ tri-diagonal matrix.
 Storing a full matrix of that size requires 10 billion double-precision floating-point numbers. 
@@ -461,9 +495,6 @@ Let's see how long it takes to solve the system when $A$ and $b$ are filled with
 \end{lstlisting}
 
 This computer solved the system in only 80.8 milliseconds.
-
-Finally, we remark that to multiply sparse matrices, you must use the \li{dot()} function of the NumPy module, i.e., \li{np.dot()}. 
-Unlike NumPy arrays, sparse matrices do not have a \li{dot()} method.
 
 \begin{comment}
 \begin{problem}
