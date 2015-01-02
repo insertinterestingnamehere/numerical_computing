@@ -1,4 +1,4 @@
 from distutils.core import setup
 from Cython.Build import cythonize
 
-setup(name="hello", ext_modules=cythonize('hello.pyx'))
+setup(name="solutions", ext_modules=cythonize('solutions.pyx'))
