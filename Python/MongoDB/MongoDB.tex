@@ -1,0 +1,138 @@
+\lab{Python}{MongoDB}{MongoDB}
+\objective{A very basic, non-comprehensive introduction to MongoDB}
+\label{lab:mongodb}
+
+\section*{NoSQL Databases}
+The most popular databases of the last decade were relational databases.
+As time passed and needs changed, relational databases became impractical for some sets of data.
+Sometimes the relation model is too structured.
+Some data does not have a fixed schema.
+The limits of traditional databases were being hit.
+
+There arose a new family of databases at attempted to solve the problem.
+Instead of designing a new database to meet every need, databases were created for specific scenarios.
+
+Instead of using one model of database
+MongoDB is a database.
+
+Several of the popular databases that MongoDB, Cassandra, Redis, and Neo4j
+
+In this lab, we will focus on MongoDB.
+
+\section*{MongoDB}
+MongoDB is a document database.
+It is best suited for storing data that does not have a fixed schema.
+
+Each MongoDB database is made up of collections of one or more documents.
+These documents are a special type of JSON object called BSON (Binary JSON).
+
+MongoDB has both a commandline interface and Python bindings.
+This lab will use the officiall supported Python bindings, pymongo.
+
+
+\begin{info}
+Make sure you have a MongoDB server running before trying to connect to a database via Python.
+It is best to be running the latest stable version of MongoDB (at least version 2.6).
+\end{info}
+
+You can run a MongoDB server as follows:
+\begin{lstlisting}[language=]
+$ mongod --dbpath ./data/db
+\end{lstlisting}
+
+\begin{lstlisting}
+from pymongo import MongoClient
+
+# Create an instance of a client
+# Connect on the default host and port
+mc = MongoClient()
+\end{lstlisting}
+
+\section*{Creating and Removing Collections and Documents}
+A database stores collections.
+A collection stores documents.
+That is the basic heirarchy of MongoDB.
+Each database can have several collections, each with their own documents.
+
+From the collections, we need to create a database that will hold our collections.
+Then we create a new collection.
+Or rather, we simply create a reference to a new collection.
+The new collection will not actually be created until we add documents to it.
+\begin{lstlisting}
+# Create a new database
+db = mc.db1
+
+# Create a new collection
+col = db.collection1
+\end{lstlisting}
+
+Documents in MongoDB are represented as JSON-like objects.
+MongoDB databases don't adhere to a set schema.
+Each document can have its own fields.
+\begin{lstlisting}
+col.insert({'name': 'Jack', 'age': 23})
+col.insert({'name': 'Jack', 'age': 22, 'student': True, 'classes': ['Math', 'Geography', 'English']})
+x = col.insert({'name': 'Jill', 'age': 24, 'student': False})
+\end{lstlisting}
+We can check to see if the insert was successful by calling \li{x.is_valid(x)}.
+
+Now we can update documents in a collection using the update.
+Note that a simple update acts like a replace.
+\begin{lstlisting}
+col.update({'name': 'Jack'
+\end{lstlisting}
+
+
+
+\section*{Querying for Documents}
+MongoDB uses a \emph{query by example} paradigm for querying.
+This means, when you query, you provide an example that the database uses to match with other documents.
+\begin{lstlisting}
+# Querying methods return a Cursor object which iterates through result set
+r = col.find({'name': 'Jack'})
+\end{lstlisting}
+This query will return all documents in the collection that have the value `Jack' in the `name' field.
+
+
+\subsection*{Query Operators}
+There are several special operators that we can use to define conditions in a query.
+\begin{table}
+\begin{tabular}{|l|l|}
+\hline
+Operator & Description \\
+\hline
+\$lt, \$gt & $<$, $>$ \\
+\$lte & $\leq$, $\geq$ \\
+\$in, \$nin & Match any value in, not in an array, respectively \\
+\hline
+\$or & Logical OR \\
+\$and & Logical AND \\
+\$not & Logical negation \\
+\$nor & Logical NOR (condition fails for all clauses) \\
+\hline
+\$exists & Match documents with specific field \\
+\$type & Match documents with values of a specific type \\
+\hline
+\$all & Match arrays that contain all queried elements \\
+\end{tabular}
+\caption{MongoDB query operators}
+\label{table:queryoperators}
+\end{table}
+These query operators are used as keys and the queries are values.
+\begin{lstlisting}
+f = list(col.find({'age': {'$lt': 24}, 'classes': {'$in': ['Art', 'English']}}))
+\end{lstlisting}
+
+Understand that MongoDB is not a relational database, therefore there is no concept of a join.
+This also means that we cannot define database relationships between documents.
+We can associate two documents by including a field that contains the unique ObjectID of the other document.
+When we request one document, we see it has an ObjectID, and then we run a second query to get the other document.
+Any ``relational'' things must be handled by the developer.
+This means that a document needs to contain all the information needed to find or retrieve it again.
+
+
+
+\begin{problem}
+
+\end{problem}
+
