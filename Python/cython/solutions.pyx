@@ -65,7 +65,7 @@ def cysum5(double[:] X):
     return tot
 
 # The plain Python version should be very slow.
-# The version with only the typed for loop may be even slower.
+# The version with only the typed for loop will be significantly slower.
 # The version with typed arrays should be very fast.
 # The version with typed arrays and compiler directives should be
 #  fairly close to the speed of NumPy's sum function, though NumPy
@@ -160,6 +160,10 @@ def cymatpow(double[:,:] X, int power):
 # with the explicit loops in Python. This problem gives them extra
 # practice porting an algorithm to Cython and also demonstrates just how
 # slow iterating directly over an array really is.
+# This problem also illustrates how, in spite of the fact that loops in
+# Cython are well-optimized, the built in BLAS and LAPACK routines for
+# the various linear algebra operations in numpy are faster than any
+# sort of direct looping-based approach.
 
 
 # Tridiagonal Algorithm Problem
