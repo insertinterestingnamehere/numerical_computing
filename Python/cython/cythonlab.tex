@@ -89,7 +89,7 @@ hello()
 \end{lstlisting}
 For larger projects and pieces of code that need special compilation options, using some sort of setup script is the best option.
 
-This code can be compiled and imported in the IPython notebook all in one step using the Cython magic function.
+This code can be compiled and imported in the IPython Notebook all in one step using the Cython magic function.
 IPython must first import the corresponding functions so that you can use them.
 With older versions of IPython and Cython you can import this magic function by running the command
 \begin{lstlisting}
@@ -118,7 +118,7 @@ This will generate a \li{html} file that you can open with your web browser.
 It will show the lines that use Python in bright yellow and lines that use C in white.
 Lines that use Python have a \li{+} to the left that expands the line of Cython code to show the relevant portion of C code that was generated.
 
-The IPython notebook magic can also show this information below a Cython-compiled cell.
+The IPython Notebook magic can also show this information below a Cython-compiled cell.
 This is done by replacing \li{\%\%cython} with \li{\%\%cython -a}.
 \end{info}
 
@@ -203,79 +203,23 @@ C integers can overflow.
 When you declare the type of a variable in Cython to be some sort of integer, it is declared as a C integer type and can overflow.
 \end{warn} 
 
-\section*{Optimized Array Access}
-It is often useful to iterate over large arrays very quickly.
+You can also declare types for arrays.
+Declaring types for arrays allows some operations involving arrays to be performed \emph{much} faster.
 The \li{__getitem__} method (equivalent to array access using \li{[ ]}) of NumPy arrays is written for Python and requires roughly the same cost as a Python function call.
 There are several ways to avoid this extra cost.
-Cython does include an interface for C arrays, but the interface is not terribly convenient, so we will not discuss it here.
+Cython does include an interface for C arrays and pointers, but the interface is not terribly convenient, so we will not discuss it here.
 Fortunately, Cython includes a C-level interface for Numpy-like array objects.
+Cython's arrays are called typed memoryviews.
 
-A typed NumPy array can be declared like this:
+A typed memoryview can be declared like this:
 \begin{lstlisting}
-cimport numpy
-...
-cdef numpy.ndarray[dtype=double, ndim=2] X = ...
-\end{lstlisting}
-Or, more simply, as
-\begin{lstlisting}
-from numpy cimport ndarray as ar
-...
-cdef ar[double, ndim=2] X = ...
-\end{lstlisting}
-The \li{ndim} argument defaults to one and can be omitted when declaring a one-dimensional array, as in
-\begin{lstlisting}
-from numpy cimport ndarray as ar
-...
-cdef ar[double] X = ...
+cdef double[:,:] X = ...
 \end{lstlisting}
 Declaring arrays in this manner allows us to access individual items in a NumPy array at roughly the same speed we could access items in a C array.
-
-An additional argument, \li{mode}, may be used to specify whether the array is C-contiguous, Fortran-contiguous, full, or strided (\li{c}, \li{fortran}, \li{full}, and \li{strided} respectively).
-An array is said to be C contiguous when neighboring values of the last dimension are closest together in memory.
-Fortran-contiguous arrays store data in the opposite ordering with neighboring values in the first dimension closest together.
-For a 2D array, C-contiguous ordering puts rows in continuous blocks of memory while Fortran-contiguous stores by column.
-The memory layout of an array will determine an optimal way to iterate over that array.
-For example, if an array is C-contiguous it is best to have the fastest varying indices run along its rows rather than its columns.
-The memory layout of an array may be declared like this:
-\begin{lstlisting}
-from numpy cimport ndarray as ar
-...
-#C-contiguous
-cdef ar[double, ndim=2, mode='c'] X = ...
-\end{lstlisting}
-
-Specifying the mode of the array does not add extra speed if the array is already laid out in the desired way, but it will raise an error if the array declared is not arranged correctly.
-Not only do we have all the convenience of using a NumPy array with its various array operations, but we can also access single items in the array more quickly.
 Unfortunately, this fast array access only works when accessing \textit{one item at a time} from the array.
-Generally we can get around the slicing, but if we need to pass around NumPy array slices between the functions in the module, there can be a significant speed loss (these array slices are Python objects).
-Cython has a \li{memoryview} object designed for this.
-Memoryviews support the same fast indexing as the NumPy arrays and slices of memoryviews continue to support the optimized buffer access.
-%% I'll demostrate this in the solutions
-They are useful when you need to pass array slices between functions in your module.
-They also work especially well when used in inline functions, and the corresponding syntax is relatively simple.
-%%will demonstrate benefits of inlining as well
-However, passing a memoryview object to a NumPy function becomes slower as the memoryview has to be converted to a NumPy array.
-%%also shown in solutions
-If you need to use NumPy array functions and pass memoryviews between functions you can define a \li{memoryview} object that views the same data as your array.
-If for some reason you need to convert a memoryview to a NumPy array, you can use the \li{np.asarray} function, but that, as always, comes at a cost.
-The syntax to use when declaring a memoryview object from an array \li{X} is:
-\begin{lstlisting}
-cdef double[:,:] Xview = X
-\end{lstlisting}
-If we know more about the memory layout of \li{X} we can also add that to the type declaration.
-Knowing that \li{X} is C-contiguous (which is normally true for a newly initialized NumPy array) the following works:
-\begin{lstlisting}
-cdef double[:,::1] Xview = X
-\end{lstlisting}
-When the array is Fortran-contiguous we can use the following:
-\begin{lstlisting}
-cdef double[::1,:] Xview = X
-\end{lstlisting}
-
-It is also worth noting that many of the array operations in Cython can also be done using pointers.
-The speed is roughly the same as with the optimized array lookups, but the code is often much less readable.
-Cython does not allow you to dereference a pointer using the \li{*} syntax.
-It requires square brackets \li{[ ]} instead.
+As of this writing, Cython's memoryviews only support accessing and writing to their entries.
+Any mathematical operations involving arrays must be performed by numpy or be run element-by-element in a loop that passes over the array.
+Memoryviews do allow you to pass slices of arrays from one Cython-defined function to another without the cost of a Python operation.
 
 \section*{Compiler Directives}
 There are several compiler directives which may be passed to the Cython compiler to speed up array access.
@@ -314,8 +258,7 @@ If needed, you can make the \li{\%} operator behave like it would in C and turn 
 Type declarations can also be used for function arguments.
 You can declare the types of the inputs for the function to ensure that it receives the right arguments.
 \begin{lstlisting}
-from numpy cimport ndarray as ar
-def myfunction(ar[double] X, int n, double h, items):
+def myfunction(double[:] X, int n, double h, items):
     ...
 \end{lstlisting}
 Notice that the type declarations were not included for all of the arguments.
@@ -331,8 +274,7 @@ Cython functions may be declared using the \li{cpdef} statement.
 These functions are accesible within Cython without the cost of a Python function call, but can still be called from Python.
 The return type for functions declared using \li{cdef} and \li{cpdef} may also be specified, for example:
 \begin{lstlisting}
-from numpy cimport ndarray as ar
-cpdef int myfunction(ar[double] X, int n, double h, items):
+cpdef int myfunction(double[:] X, int n, double h, items):
     ...
 \end{lstlisting}
 
@@ -349,19 +291,18 @@ def pydot(A, B):
 A C-compiled equivalent can be made using the following Cython code
 \begin{lstlisting}
 %%cython
-from numpy cimport ndarray as ar
 cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def cydot(ar[double] A, ar[double] B):
+def cydot(double[:] A, double[:] B):
     cdef double tot=0.
     cdef int i
     for i in xrange(A.shape[0]):
         tot += A[i] * B[i]
     return tot
 \end{lstlisting}
-This function may be timed by evaluating the following cell.
+This function may be timed by evaluating the following cell in the IPython Notebook.
 \begin{lstlisting}
 from numpy.random import rand
 n = 10000000
@@ -403,34 +344,32 @@ To do this same sort of thing in Cython we can compile the following file:
 
 \begin{lstlisting}
 import numpy as np
-from numpy cimport ndarray as ar
 cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef inline cydot(double[:] A, double[:] B, int n):
+cdef double cydot(double[:] A, double[:] B):
     cdef double tot=0.
-    cdef int i
+    cdef int i, n=A.shape[0]
     for i in xrange(n):
         tot += A[i] * B[i]
     return tot
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def cyrowdot(ar[double, ndim=2] A):
-    cdef ar[double, ndim=2] B = np.empty((A.shape[0], A.shape[0]))
-    cdef double[:,:] Aview = A
+def cyrowdot(double[:,:] A):
+    cdef double[:,:] B = np.empty((A.shape[0], A.shape[0]))
     cdef double temp
     cdef int i, j, n=A.shape[0]
     for i in xrange(n):
         for j in xrange(i):
-            temp = cydot(Aview[i], Aview[j], n)
+            temp = cydot(A[i], A[j])
             B[i,j] = temp
-        B[i,i] = cydot(Aview[i], Aview[i], n)
+        B[i,i] = cydot(A[i], A[i])
     for i in xrange(n):
         for j in xrange(i+1, n):
             B[i,j] = B[j,i]
-    return B
+    return np.array(B)
 \end{lstlisting}
 
 This can also be done in NumPy by running \li{A.dot(A.T)}.
@@ -445,7 +384,7 @@ The arrays used for testing were $n\times 3$ where $n$ is shown along the horizo
 \end{figure}
 
 \begin{problem}
-Write a function in Python which takes the sum of a one-dimensional array by iterating over it.
+Write a function in Python that takes the sum of a one-dimensional array by iterating over it.
 
 Write three Cython versions: one using a typed for-loop to iterate over the array, another using a typed for-loop and optimized array access, and another using a typed for-loop, optimized array access, and special compiler directives to further speed up array access.
 
