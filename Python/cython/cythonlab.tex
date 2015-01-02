@@ -41,14 +41,6 @@ Most core NumPy operations are written exclusively in C, but some of the compone
 Several other packages like pyfftw, pandas, scikit-learn, scikit-image, and astropy use Cython extensively.
 The package Kivy, that is used to write Android and iOS apps in Python, relies heavily on Cython.
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{compilation.pdf}
-\caption{A diagram of how Cython compilation and calls to Cython functions work.
-The path from using a Cython function in a Python file to the actual evaluation is shown in red.}
-\label{cython:compilation}
-\end{figure}
-
 \begin{warn}
 Don't expect Cython to speed up Python code automatically.
 If you run unmodified Python code through the Cython compiler, the result may be somewhat faster, but it may not.
@@ -63,6 +55,8 @@ Effective use of array operations in NumPy can often make code simpler and faste
 Cython should be used when other attempts at optimization and vectorization are insufficient or when you need to use functionality from a C or C++ library that is not available in Python.
 \end{warn}
 
+\section*{Compilation}
+
 Cython has a more complex compilation process than Python and is not usually run interactively.
 Cython code is usually written in a \texttt{.pyx} file.
 Such a file is then compiled to C, and then the C is compiled to machine code.
@@ -71,20 +65,47 @@ Many of the same built in features, data types, and functions from Python work i
 Figure \ref{cython:compilation} shows how a Cython file is compiled and how a function call to a Cython module works.
 Regardless of what method you use to compile a Cython file, this is more or less how it works.
 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{compilation.pdf}
+\caption{A diagram of how Cython compilation and calls to Cython functions work.
+The path from using a Cython function in a Python file to the actual evaluation is shown in red.}
+\label{cython:compilation}
+\end{figure}
+
 There are a variety of ways to import Cython functions and classes into Python.
-The standard way is to make a Python file that builds the C-extension module in a given directory.
-If your module needs some special compilation configuration, you will need to do it this way.
-Instructions on how to do this can be found at \url{http://docs.cython.org/src/reference/compilation.html}.
-The Sage and IPython notebooks have seamless integrations with Cython via cell magic extensions.
-In Sage, the cell magic is \li{\%cython}.
-In the IPython notebook, you must first load the extension with \li{\%load_ext cythonmagic} (or \li{\%load_ext Cython} if you are using more recent versions of IPython and Cython).
-Then the first line of any cell containing Cython code should be \li{\%\%cython}.
-More instructions on how to use IPython's Cython magic and other related magic functions can be found in the IPython documentation.
-Cython also comes with a Python module, \li{pyximport}, that will automatically generate, compile, and import most Cython files.
-\begin{lstlisting}
-import pyximport
-pyximport.install()
+For example, consider the following cython file
+\lstinputlisting[style=fromfile, language=Python]{hello.pyx}
+We can compile this module using the following Python script:
+\lstinputlisting[style=fromfile, language=Python]{setup.py}
+This script should be used from the command prompt using the command:
+\begin{lstlisting}[style=ShellInput]
+python setup.py build_ext --inplace
 \end{lstlisting}
+After compiling the module, if the Python interpreter is running from the directory where the module was compiled, in Python the function can now be imported and run like any other Python function.
+\begin{lstlisting}
+from hello import hello
+hello()
+\end{lstlisting}
+For larger projects and pieces of code that need special compilation options, using some sort of setup script is the best option.
+
+This code can be compiled and imported in the IPython notebook all in one step using the Cython magic function.
+IPython must first import the corresponding functions so that you can use them.
+With older versions of IPython and Cython you can import this magic function by running the command
+\begin{lstlisting}
+%load_ext cythonmagic
+\end{lstlisting}
+With newer versions of IPython and Cython, you should use the command
+\begin{lstlisting}
+%load_ext Cython
+\end{lstlisting}
+Once this magic function has been loaded, you compile the the \li{hello} function and import it by running the cell
+\begin{lstlisting}
+%%cython
+def hello():
+    print "Hello from Cython!"
+\end{lstlisting}
+The IPython magic function for Cython is good for compiling and experimenting with short snippets of code.
 
 \section*{Type Declarations}
 One of the easiest ways improve performance in Cython is to declare types on variables.
@@ -165,7 +186,7 @@ Integer types in C are different from Python's integer type.
 Python's integer type works with arbitrarily large integers.
 C integers can overflow.
 When you declare the type of a variable in Cython to be some sort of integer, it is declared as a C integer type and can overflow.
-\end{warn}
+\end{warn} 
 
 \section*{Optimized Array Access}
 It is often useful to iterate over large arrays very quickly.
