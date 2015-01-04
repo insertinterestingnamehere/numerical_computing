@@ -51,16 +51,18 @@ u'(x_0) \\ u'(x_1)\\ \vdots  \\ u'(x_{n-3}) \\ u'(x_{n-2})
 \end{align}
 
 \begin{problem}
-	Use \eqref{finitedifference2:upp} and \eqref{finitedifference2:up} to approximate $\frac{1}{2}u'' - u$ at the grid points.
+	Let $u(x) = \sin((x+\pi)^2-1)$. Use \eqref{finitedifference2:upp} and \eqref{finitedifference2:up} to approximate $\frac{1}{2}u'' - u'$ at the grid points.
+	
+	Compare the "differentiation" matrices above with the differentiation matrix from the pseudospectral method. What stands out? 
 \end{problem}
 
-Suppose that instead of knowing the function $u(x)$, we know that $\frac{1}{2}u'' - u = f$, where the function $f(x)$ is given. 
-How do we solve for $u$ at the grid points?
+Suppose that instead of knowing the function $u(x)$, we know that $\frac{1}{2}u'' - u' = f$, where the function $f(x)$ is given. 
+How would we solve for $u$ at the grid points?
 
 \section{Finite Difference Methods}
 
 Numerical methods for differential equations seek to approximate the exact solution $u(x)$ at some finite collection of points in the domain of the problem.
-Instead of analytically solving the original differential equation, defined over an infinite-dimensional function space, they use a simple finite collection of algebraic equations to approximate the original problem.
+Instead of analytically solving the original differential equation, defined over an infinite-dimensional function space, they use a simpler finite system of algebraic equations to approximate the original problem.
  
 Consider the following differential equation: 
 \begin{align}
@@ -69,10 +71,10 @@ Consider the following differential equation:
 	&{ } u(0) = 1, \quad u(1) = 3.
 	\end{split} \label{eqn:singular_perturbed_BVP}
 \end{align}
-Equation\eqref{eqn:singular_perturbed_BVP} can be written $D u = f,$ where $D = \epsilon \frac{d^2}{dx^2} - \frac{d}{dx}$ is a differential operator defined on the infinite-dimensional space of functions $u:[0,1] \to \mathbb{R}$ that are twice continuously differentiable and satisfy the boundary conditions $u(0) = 1$, $u(1) = 3$.
+Equation \eqref{eqn:singular_perturbed_BVP} can be written $D u = f,$ where $D = \epsilon \frac{d^2}{dx^2} - \frac{d}{dx}$ is a differential operator defined on the infinite-dimensional space of functions that are twice continuously differentiable on $[0,1]$ and satisfy $u(0) = 1$, $u(1) = 3$.
 
-We look for an approximate solution $\{U_i\}_{i=-1}^N$ on an evenly spaced grid of $N$ subintervals, $a = x_{-1}, x_0, \ldots, x_{N-1} = b$ with $h = x_{i+1}-x_i$ for each $i$.
-Our finite difference method will replace the differential operator $D = \epsilon \frac{d^2}{dx^2} - \frac{d}{dx}$, defined on an infinite-dimensional space of functions, with difference operators defined on a finite vector space (i.e., the space of grid functions $\{U_i\}_{i=-1}^N$).
+We look for an approximate solution $\{U_i\}_{i=-1}^{N-1}$ on an evenly spaced grid of $N$ subintervals, $a = x_{-1}, x_0, \ldots, x_{N-1} = b$ with $h = x_{i+1}-x_i$ for each $i$.
+Our finite difference method will replace the differential operator $D = \epsilon \frac{d^2}{dx^2} - \frac{d}{dx}$, defined on an infinite-dimensional space of functions, with difference operators defined on a finite vector space (the space of grid functions $\{U_i\}_{i=-1}^{N-1}$).
 To do this, we replace derivative terms in the differential equation with appropriate difference expressions.
 
 Recalling that 
@@ -81,9 +83,9 @@ Recalling that
 \frac{d}{dx} u(x) &= \frac{u(x+h)-u(x-h)}{2h} + \mathcal{O}(h^2).
 \end{align*}
 we define the finite difference operator $D_h$ by  
-\[
-D_h U_i = \epsilon \frac{1}{h^2}\left(U_{i+1} -2U_i + U_{i-1}\right) - \frac{1}{2h} \left(U_{i+1}-U_{i-1} \right).
-\]
+\begin{align}
+D_h U_i = \epsilon \frac{1}{h^2}\left(U_{i+1} -2U_i + U_{i-1}\right) - \frac{1}{2h} \left(U_{i+1}-U_{i-1} \right). \label{fd_operator}
+\end{align}
 Thus we discretize equation \eqref{eqn:singular_perturbed_BVP} using the equations 
 \begin{align*}
 	\frac{\epsilon}{h^2} (U_{i+1}- 2U_i + U_{i-1}) - \frac{1}{2h} \left(U_{i+1}-U_{i-1} \right)  &= f(x_i), \quad i = 0, \ldots, N-2,
@@ -209,6 +211,8 @@ Use your code to solve the boundary value problem
 \end{align*}
 for $\epsilon = 0.1$.
 \label{prob:finitedifference2:prob2}
+
+(Hint: How should the finite difference operator $D_h$ in \eqref{fd_operator} be modified?) 
 \end{problem}
 
 \begin{figure}
