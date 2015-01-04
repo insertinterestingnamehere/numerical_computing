@@ -135,6 +135,7 @@ def prob4():
 	
 	plt.ylabel('$y$',fontsize=16)
 	plt.xlabel('$x$',fontsize=16)
+	# plt.savefig('figure4.pdf')
 	plt.show()
 	plt.clf()
 	num_approx = 6 # Number of Approximations
@@ -156,11 +157,17 @@ def prob5():
 										  beta=1./(1.+epsilon),N=subintervals)
 		return X,Y
 	
-	eps, subintervals = 0.05, 100
+	eps, subintervals = 0.05, 200
 	X,Y = bvp(eps, subintervals)
 	plt.plot(X,Y,'-k',mfc="None",linewidth=2.0)
+	
+	eps, subintervals = 0.02, 200
+	X,Y = bvp(eps, subintervals)
+	plt.plot(X,Y,'-k',mfc="None",linewidth=2.0)
+	
 	plt.ylabel('$y$',fontsize=16)
 	plt.xlabel('$x$',fontsize=16)
+	# plt.savefig('figure5.pdf')
 	plt.show()
 	plt.clf()
 	num_approx = 6 # Number of Approximations
@@ -246,7 +253,8 @@ def prob3_again():
 # prob4()      # Profile correct; taken from 32 test problems for analysis
 # prob5()
 
-# Check that fd_order2_ode works for problems 3 and 5
+# A check that fd_order2_ode works for problems 3 and 5. 
+# Uses bvp_solver from scikits
 # prob5_again()
 # prob3_again()
 
