@@ -403,7 +403,7 @@ Remember it is more important for code to be readable than to execute quickly.
       
 \section*{More on Cython (Optional)}
 This section has a more complete introduction to Cython. 
-For more details, see \url{http://docs.cython.org/src/tutorial/cython_tutorial.html}.
+For another reference, see \url{http://docs.cython.org/src/tutorial/cython_tutorial.html}.
 
 \subsection*{Compilation}
 
@@ -438,7 +438,7 @@ Load this function with the following command.
 \begin{lstlisting}
 >>> \%load_ext Cython
 \end{lstlisting}
-Now you can define any cython function in the command line by prefacing it with \li{\%\%cython}.
+Now you can define any Cython function in the command line by prefacing it with \li{\%\%cython}.
 \begin{lstlisting}
 >>> \%\%cython
 >>> import numpy as np
@@ -475,28 +475,30 @@ Unlike Python integers, which can be arbitrarily large, Cython integers can over
 
 \subsection*{Arrays in Cython}
 You can also declare types for arrays.
-Declaring types for arrays allows some operations involving arrays to be performed \emph{much} faster.
-The \li{__getitem__} method (equivalent to array access using \li{[ ]}) of NumPy arrays is written for Python and requires roughly the same cost as a Python function call.
-There are several ways to avoid this extra cost.
-Cython does include an interface for C arrays and pointers, but the interface is not terribly convenient, so we will not discuss it here.
-Fortunately, Cython includes a C-level interface for Numpy-like array objects.
-Cython's arrays are called typed memoryviews.
-
-A typed memoryview can be declared like this:
+Doing so produces a \emph{typed memoryview}, or Cython array.
+As with ordinary variables, typed memoryviews can be initialized when they are declared or later.
 \begin{lstlisting}
-cdef double[:,:] X = ...
+# Define a NumPy array
+A = np.linspace(0,1,6)
+
+# Create typed memoryviews on A and B
+cdef double [:] cA = A
+cdef int [:,:] cB
+
+# Initialize cB
+cB = np.array([[1,2],[3,4],[5,6]], dtype=np.dtype("i"))
 \end{lstlisting}
-Declaring arrays in this manner allows us to access individual items in a NumPy array at roughly the same speed we could access items in a C array.
-Unfortunately, this fast array access only works when accessing \textit{one item at a time} from the array.
-As of this writing, Cython's memoryviews only support accessing and writing to their entries.
-Any mathematical operations involving arrays must be performed by numpy or be run element-by-element in a loop that passes over the array.
-Memoryviews do allow you to pass slices of arrays from one Cython-defined function to another without the cost of a Python operation.
+
+Accessing single entries from a memoryview is faster than accessing entries of a NumPy array.
+Also, passing slices of a memoryview to a Cython function is fast.
+However, memoryviews do not support mathematical operations.
+These must be performed on NumPy objects, or by looping through the arrays.
 
 \begin{info}
-Although typed memoryviews cannot be used directly for arithmetic, they can be passed as arguments to most numpy functions.
-Numpy includes functions for all common arithmetic operations, all of which allow the specification of an output array.
-For example, the operation \li{c = a + b} can be performed on typed memoryviews using the expression \li{c = np.add(a, b)} and the operation \li{c[:] = a * b} can be performed as \li{np.multiply(a, b, out=c)}.
-This does require the cost of calling a Python function, as well as all the checks that NumPy runs on all of the arguments passed to its functions, but, when working with large arrays, it can be worth it.
+Memoryviews can be passed as arguments to most NumPy functions.
+Numpy includes functions for all common arithmetic operations.
+For example, you can add typed memoryviews with \li{c = np.add(a, b)}.
+This may or may not be faster than looping through the array.
 \end{info}
 
 \subsection*{Compiler Directives}
@@ -588,8 +590,7 @@ def pyrowdot(A):
     B = np.empty((A.shape[0], A.shape[0]))
     for i in xrange(A.shape[0]):
         for j in xrange(i):
-            temp = pydot(A[i], A[j])
-            B[i,j] = temp
+            B[i,j] = pydot(A[i], A[j])
         B[i,i] = pydot(A[i], A[i])
     for i in xrange(A.shape[0]):
         for j in xrange(i+1, A.shape[0]):
@@ -616,12 +617,10 @@ cdef double cydot(double[:] A, double[:] B):
 
 def cyrowdot(double[:,:] A):
     cdef double[:,:] B = np.empty((A.shape[0], A.shape[0]))
-    cdef double temp
     cdef int i, j, n=A.shape[0]
     for i in xrange(n):
         for j in xrange(i):
-            temp = cydot(A[i], A[j])
-            B[i,j] = temp
+           B[i,j] = cydot(A[i], A[j])
         B[i,i] = cydot(A[i], A[i])
     for i in xrange(n):
         for j in xrange(i+1, n):
