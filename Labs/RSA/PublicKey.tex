@@ -1,0 +1,307 @@
+\lab{Public Key Cryptography}{RSA}
+\objective{Understand the fundamentals of RSA public key cryptography.}
+
+How do you exchange information over unsecure, public channels fo communcations?
+Historically, the answer has been to use some sort of cipher to obscure the meaning of a message.
+Many ciphers use a secret key which was used to encrypt and decrypt any sent messages.
+However, the problem then became how to keep the key secret and known only to the authorized recipients
+If the key was obtained by any attackers, then the whole cipher was compromised.
+
+Public key cryptography provides a way for each person to have their own keys.
+There is no need to transmit any keys.
+There are several public key crypto systems, but one of the most popular is RSA.
+In the RSA system, each person has a public key and a private key.
+The security of the system is founded in the difficulty of factoring large numbers.
+
+To make RSA feasible, we need the following two results.
+\section*{Fast Modular Exponentiation}
+How would we compute $8^{3039} \pmod{38}$?
+We understand that one possible way of computing it would be
+\[
+8*8*8*8*\dots (3034 \text{ more times}) *8 \pmod{38}
+\]
+Calculating $8^8 = 16777216$!
+Multiplying by $8$ each time leads to an enormous number which will finally be modded by $38$.
+This will yield the answer $8^{3039} \equiv 18 \pmod{38}$.
+However, we end up taking the mod of a number that is $2746$ digits!
+Imagine if our exponent was hundreds of digits!
+We could quickly run out of memory.
+
+We can avoid dealing such huge numbers by doing the mod after each multiplication.
+Doing the mod after each multiplication means that the largest number we have to deal with in this problem is 240.
+In general, we wouldn't have to work with anything larger than $37^{2}$.
+However, if we still have large exponent, the loop doing the multiplication would still have to run $3039$ iterations.
+
+\begin{problem}
+Write a function that will naively calculate $b^{e} \pmod{m}$.
+Do not use Python's built-in power function.
+\label{prob:naivepower}
+\end{problem}
+
+We need a faster better way.
+The most common method of modular exponentiation is the \emph{right-to-left binary method}.
+The essence of this method is to use the binary representation of the exponent.
+We can quickly calculate the power up to the nearest power of two of the exponent.
+This we simply calculate the remaining part the naieve way.
+
+Calculating a modular exponent in this way leads to a very desirable $O(\log_2 e)$ runtime performance, where $e$ is the exponent.
+
+\begin{problem}
+Write a function that will perform modular exponentiation using the right-to-left binary method.
+Compare the performance of \ref{prob:naivepower} and your new implementation.
+Note that Python's built-in function, \li{pow()}, performs this type of fast modular exponentiation.
+We expect you to use it instead of your own implementation in the future.
+\label{prob:rlbpower}
+\end{problem}
+
+\section*{Fermat's Little Theorem}
+An integral part of RSA relies on working with large prime numbers.
+Prime numbers are numbers that are only divisible by 1 and the number itself.
+In the RSA algorithms, we need to start with two prime numbers, $p$ and $q$.
+We multiply these numbers to get $n=pq$ which is our modulus.
+However, if $n$ is not that big, we can easily factor it, defeating the whole purpose of RSA.
+The security of RSA largely reduces down to how well we choose starting primes.
+If we pick primes that are too small, we sacrifice security.
+How do we pick large primes?
+We can use sieves to generate primes, but doing so would take lots of time and lots of memory.
+It would be better if we could choose a number and determine if it is prime or not.
+
+Fortunately, mathematics has developed a few tools that can help us out.
+One of the first steps was given by Fermat.
+\begin{theorem}[Fermat's Little Theorem]
+If $p$ is prime, then for a natural number $a$, $a^{p-1} - 1 \equiv 0 \pmod{p}$
+\end{theorem}
+But, to use this we have start with a prime number.
+However, if we have a candidate for $p$ and it satisifies the condition can we say anything about $p$?
+The answer is yes, but we cannot say that $p$ is prime.
+We can only say that $p$ might be prime.
+\begin{example}
+Suppose $p=37$.
+We want to know if $p$ is prime.  We choose $a=8$.
+\[
+8^{36} - 1 \equiv 0 \pmod{37} 
+\]
+We call $8$ the witness number.  Think of as, \emph{$8$ says that $37$ is prime}.
+This is the probabilistic part of Fermat's theorem.
+We try enough witness numbers until we are convinced that our candidate number is prime.
+Trying enough prime numbers, we will eventually be convinced that $37$ is prime, which it is.
+\end{example}
+
+\begin{example}
+Let's check the primality of $1729$.
+We will use $a=145$ as a witness number.
+\[
+145^{1728} \equiv 1 \pmod{1729}
+\]
+It appears that $1729$ is prime.
+Let's try another witness number, $a=583$.
+\[
+583^{1728} \equiv 1 \pmod{1729}
+\]
+Let's try one last witness number, $a=945$.
+\[
+945^{1728} \equiv 742 \not\equiv 1 \pmod{1729}
+\]
+We have a problem.  
+Our candidate is not behaving like we would expect a prime to behave.
+But several witnesses verified that our number was prime.  What happened?
+Our number, $1729$ is not really prime.  Its prime factors are $7$, $13$, and $19$. 
+It is a special number called a Carmichael number.
+Because of these numbers, we have to be careful with Fermat's Little Theorem.
+More stringent primality tests exist, but are beyond the scope of this lab.
+\end{example}
+We have to remember that the Fermat test is really a test for compositeness, not primality.
+
+\begin{problem}
+For any candidate prime number, $n$, all the integers $2 \geq a < n$ can serve as a witness number.
+Each of these possible witness numbers will either prove the compositeness of $n$ or give no information.
+If we randomly choose a witness number, we will select a number in one of these two sets.
+Supposing we chose a good random number generator, we can become convinced to a very high degree that $n$ is likely prime with just a few witness numbers.
+
+Write a function that will return the number of witnesses that prove the compositeness of $n$.
+What is the ratio of these witness numbers to all the numbers $2 \geq a < n$?
+Suppose we were to choose witness numbers at random.  
+How many random witness numbers must we choose to be $99$\% sure that $n$ is prime?
+Remember that each new witness number increases the confidence that $n$ is probably prime.
+\label{prob:prime_confidence}
+\end{problem}
+
+\section*{RSA Algorithm}
+Bob wants to send a secret message to Alice.
+Eve is trying to intercept this message.
+Bob and Alice agree to use RSA to exchange the secret message.
+Bob and Alice need to generate their keys.
+Each generate a pair of keys, a private and a public one.
+Both Bob and Alice need to keep their private keys secret.
+Anyone with Alice's public key can send her a message that only she can decrypt.
+Bob obtains a copy of Alice's pulic key and encrypt his message using it.
+Alice decrypts Bob's message using her private key, and reads the message.
+
+RSA involves generating a private key and a public key.
+
+We begin by finding two large prime numbers.
+By large, we mean several hundred digits.
+
+RSA can be succinctly summarised as the following operations for encryption and decryption respectively
+\[
+c \equiv m^e \pmod{n}
+\]
+\[
+m \equiv c^d \pmod{n}
+\]
+
+\begin{problem}
+Generate a public/private key pair.
+
+We do this by first multiplying the two primes, $p$ and $q$, together to get $n=pq$.
+This will act as the modulus for future operations.
+Next we need to choose an encryption exponent, $e$, such that $1 < e < \phi(n)$ and $\gcd(e, \phi(n)) = 1$.
+Euler's totient function is 
+Then our decryption exponent, $d$, must naturally be an inverse of $e$ mod $\phi(n)$.
+In other words, we need $de \equiv 1 \pmod{\phi(n)}$.
+You will need to write your own function that finds the inverse of $e$ mod $\phi(n)$ using the Extended Euclidean Algorithm.
+We distribute $(e, n)$ as the public key and need to make sure that $(d, n)$ remains private.
+After the keys are created, we have no further need of $p$ or $q$.
+\end{problem}
+
+Before we can encrypt and decrypt a text message, we need to convert it to a number first.
+It is useful to understand the code below.
+\begin{lstlisting}
+# Recipe from itertools module in standard library
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return izip_longest(fillvalue=fillvalue, *args)
+    
+def a2i(msg):
+    '''Convert an ASCII message to an integer.'''
+    # bytearray will give us the ASCII values for each character
+    if not isinstance(msg, bytearray):
+        msg = bytearray(msg)
+    binmsg = []
+    # convert each character to binary
+    for c in msg:
+        binmsg.append(bin(c)[2:].zfill(8))
+    return int(''.join(binmsg), 2)
+
+def i2a(msg):
+    '''Convert an integer to an ASCII message'''
+    # convert to binary first
+    binmsg = bin(msg)[2:]
+    # we need to pad the message so length is divisible by 8
+    binmsg = "0"*(8-(len(binmsg)%8)) + binmsg
+    msg = bytearray()
+    for block in grouper(binmsg, 8):
+        # convert block of 8 bits back to ASCII
+        msg.append(int(''.join(block), 2))
+    return msg
+\end{lstlisting}
+
+\begin{problem}
+Encrypt the message: \emph{Simon sells seashells by the seashore.}
+Let $p=83285677$ and $q=2848968679$.
+Choose $e=65593$.
+Verify your encryption is correct by decrypting the message and checking the result.
+\end{problem}
+
+\begin{warn}
+The security of RSA depends on keeping the private key secret.  
+If an attacker is able to obtain the private key, then the security of the entire algorithm is compromised.
+When sharing keys, be absolutely sure that you are making only the public keys available and securely storing the private keys.
+This is especially important with digital signatures since an attacker with a private key can impersonate the owner of that private key.
+If a private key is compromised, generating a new RSA key is the only remedy.
+\end{warn}
+
+
+\subsection*{Digital Signatures}
+Suppose Alice wants to confirm that Bob was really the sender of a message.
+How would she do this?
+Using the RSA algorithm, you can easily sign a message to verify authenticity.
+This is done by encrypting the message using Alice's public key and then decrypting the result with Bob's private key.
+Order is very important.  
+Switching the two steps will result in the same message, but there are security vulnerablilities doing that way.
+
+Another, more commonly used, method for signing messages is to sign a hash of the message.
+Using a known good hash function, we hash the message (before encrypting), sign the hash, and send it along with the encrypted message.
+The exchange would be as follows for the message \emph{Alice, the password is 123password.}
+Suppose Bob's private and public keys respectively are (11407237936868069647229007915206939, 91340897874775971350115591460548127) and (54323, 91340897874775971350115591460548127).
+Alice's private and public keys respectively are (200302109105861235857586283559067187, 274592902010736258475323322324306807) and (68923, 274592902010736258475323322324306807L).
+First Bob would hash the message.  We will use SHA256 hash algorithm which is considered cryptographically secure.
+The hash of the message (including the period symbol) is: b113b491a7ada55a888cf112005988ce5475d5fc909cafae770a4e08b8b3980c.
+Bob would encrypt the message using Alice's public key and decrypt the hash.
+The result would be 
+
+
+\section{PyCrypto}
+RSA encryption in Python can be accomplished very easily with a library called PyCrypto.
+This library contains many secure hash functions, random number generators, and encryption classes.
+Many programs use PyCrypto for their security needs.
+\begin{warn}
+Make certain that you are using the latest version of PyCrypto.
+Security software is updated often to fix security vulnerablilities and bugs.
+The current version of PyCrypto at the time of writing is version 2.6.1.
+\end{warn}
+
+The RSA module in PyCrypto is located in the PublicKey module.
+Let's try a small example using PyCrypto.
+The library allows us to explicity construct a key, or generate a key automatically.
+\begin{lstlisting}
+>>> from Crypto.PublicKey import RSA
+>>> from Crypto import Random
+>>> keypair = RSA.generate(2048) #generate a 2048-bit RSA key
+>>> publickey = keypair.publickey()
+>>> share_this = publickey.exportkey()
+\end{lstlisting}
+
+The RSA encryption and decryption methods on these keys are textbook approaches.
+However, to increase security, we will want to pad the messages so every message encrypted with a particular will become exactly as large (in bits) as the key itself.
+A commonly used padding algorithm is implemented in PyCrypto in the \li{Crypto.Cipher.PKCS1_OAEP} module.
+\begin{lstlisting}
+>>> from Crypto.Cipher import PKCS1_OAEP as oaep
+
+# generate a new key from the original RSA key.
+# This key can encrypt and decrypt
+>>> paddedkey = oaep.new(keypair)
+>>> encrypted = paddedkey.encrypt('hello world')
+>>> paddedkey.decrypt(encrypted)
+'hello world'
+\end{lstlisting}
+
+To sign the message we use PyCrypto's \li{Crypto.Signature.PKCS1_PSS} module.
+We first need to hash the message using a cryptographically secure hash, such as SHA.
+Just as only private keys can decrypt, only private keys can sign.
+Public keys can decrypt and verify.
+\begin{lstlisting}
+>>> from Crypto.Signautre import PKCS1_PSS as pss
+>>> from Crypto.Hash import SHA
+>>> sigkey = pss.new(keypair)
+>>> mhash = SHA.new("Hello World")
+>>> sigkey.sign
+\end{lstlisting}
+
+
+\begin{problem}[Group Project]
+Split into several groups of at least three individuals.
+Each group member should generate a private and public keypair using PyCrypto.
+Share your public keys with everyone in the group.
+\begin{enumerate}
+\item Encrypt and sign a message for someone in the group and send it to the entire group.
+Attach the sender's name to the encrypted message (a claim that the message came from a particular sender).
+In this exercise we will verify that the actual origin of the message is indeed the claimed origin.
+Each group member should do the following:
+\begin{enumerate}
+\item Decrypt and verify the message addressed for you.
+\item Attempt to decrypt and verify message addressed for someone else in the group.
+\item Report the message and verified signature.
+\end{enumerate}
+
+\item Encrypt and sign a different message for someone in the group and send it, anonymously, to the entire group.
+For example, if Bob encrypts a message and sends it to Alice, he should claim the message came from another individual.
+Each group member should do the following:
+\begin{enumerate}
+\item Decrypt and verify the message address to you.
+\item Report the message and verified signature.
+\end{enumerate}
+\end{enumerate}
+\end{problem}
