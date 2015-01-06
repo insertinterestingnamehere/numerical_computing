@@ -88,10 +88,10 @@ def print_msg(m_encrypted):
 
 def read_msg(m_string):
     d1 = m_string.find('----BEGIN MESSAGE----') + 21
-    d2 = m_string.find('----END MESSAGE----')
+    d2 = m_string.find('----END MESSAGE----', d1)
     
-    d3 = m_string.find('----BEGIN SIGNATURE----') + 23
-    d4 = m_string.find('----END SIGNATURE----')
+    d3 = m_string.find('----BEGIN SIGNATURE----', d2) + 23
+    d4 = m_string.find('----END SIGNATURE----', d3)
     message  = m_string[d1:d2]
     sign = m_string[d3:d4]
     return message.strip(), sign.strip()
