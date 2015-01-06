@@ -80,20 +80,20 @@ characterized by its mean and variance. But these two quantities are easily
 found via the Kalman filter, namely
 \begin{align}
     \text{mean} & \quad H\hat{x}_{t|t-1} + \mu \\
-    \text{variance} & \quad HP_{t|t-1}H'
+    \text{variance} & \quad HP_{t|t-1}H^T
 \end{align}
 where $\hat{x}_{t|t-1}, P_{t|t-1}$ are found during the Predict step. Our
 likelihood becomes
 \begin{align}
     \label{eq:arma:likelihood}
     p(\{z_t\} | \Theta) = \prod_{t=1}^{n} N(z_t;\; H\hat{x}_{t|t-1} + \mu,\;
-    HP_{t|t-1}H')
+    HP_{t|t-1}H^T)
 \end{align}
 We begin the recursion by letting
 \begin{align}
     \hat{x}_{1|0} &= \mathbb{E}(x_1) = 0 \\
     \text{vec}(P_{1|0}) &= \mathbb{E}\left[(x_1 - \mathbb{E}x_1)(x_1 -
-    \mathbb{E}x_1)'\right] = \left[I_{r^2} - (F \otimes F)\right]^{-1} \cdot
+    \mathbb{E}x_1)^T\right] = \left[I_{r^2} - (F \otimes F)\right]^{-1} \cdot
     \text{vec}(Q)
 \end{align}
 where $\text{vec}$ flattens a matrix and $\otimes$ is the Kronecker product
@@ -213,7 +213,12 @@ giving the mean and variance of the conditional distribution of future
 observations.
 \begin{align}
     z_{t + k} | z_{1}, \cdots, z_{t} \sim N(z_k;\; H\hat{x}_{t+k|t} + \mu,\;
-    HP_{t+k|t}H')
+    HP_{t+k|t}H^T)
+\end{align}
+Recall the relations
+\begin{align}
+    \hat{x}_{t+k|t} &= F\hat{x}_{t+k-1|t}\\
+    P_{t+k|t} &= FP_{t+k-1|t}F^T + Q
 \end{align}
 
 \begin{problem}
@@ -227,7 +232,7 @@ and plus and minus $2\sigma_{t+k}$ to demonstrate credible intervals.
 def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
         sigma=1., future_periods=20):
     """
-    Return forecasts for a time series modelled with the given ARMA model.
+    Return forecasts for a time series modeled with the given ARMA model.
     
     Parameters
     ----------
@@ -257,7 +262,7 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
 \vspace{3mm} \noindent
 For example,
 \begin{lstlisting}
->>> arma_forecast(box_a, phis, thetas, mu, sigma, future_periods=4)
+>>> arma_forecast(time_series_a, phis, thetas, mu, sigma, 4)
 (array([ 17.3762,  17.3478,  17.322 ,  17.2986]),
  array([ 0.3125,  0.3294,  0.3427,  0.3533]))
 \end{lstlisting}
