@@ -61,8 +61,8 @@ $r = \max(p, q+1)$, we write
 where $\phi_i = \theta_j = 0$ for $i > p, j > q$. Then the linear stochastic
 dynamical system 
 \begin{align}
-    x_{t+1} = Fx_t + w_t\\
-    z_t = Hx_t + \mu
+    x_{t+1} &= Fx_t + w_t\\
+    z_t &= Hx_t + \mu
 \end{align}
 describes the same process as the original $\text{ARMA}$ model.
 
@@ -89,12 +89,56 @@ likelihood becomes
     p(\{z_t\} | \Theta) = \prod_{t=1}^{n} N(z_t;\; H\hat{x}_{t|t-1} + \mu,\;
     HP_{t|t-1}H')
 \end{align}
+We begin the recursion by letting
+\begin{align}
+    \hat{x}_{1|0} &= \mathbb{E}(x_1) = 0 \\
+    \text{vec}(P_{1|0}) &= \mathbb{E}\left[(x_1 - \mathbb{E}x_1)(x_1 -
+    \mathbb{E}x_1)'\right] = \left[I_{r^2} - (F \otimes F)\right]^{-1} \cdot
+    \text{vec}(Q)
+\end{align}
+where $\text{vec}$ flattens a matrix and $\otimes$ is the Kronecker product
+({\tt numpy.kron}).
 
 \begin{problem}
-    \label{prob:arma:likelihood}
-    Write a function that computes the log-likelihood of an $\text{ARMA}(p,q)$
-    model, given a time series $z_t$. You may reuse your Kalman filter code
-    from Lab \ref{lab:kalman}.
+\label{prob:arma:likelihood}
+Write a function that computes the log-likelihood of an $\text{ARMA}(p,q)$
+model, given a time series $z_t$. You may reuse your Kalman filter code from
+Lab \ref{lab:kalman}.
+
+\begin{lstlisting}
+def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
+        sigma=1.):
+    """
+    Return the log-likelihood of the ARMA model parameters, given the time
+    series.
+
+    Parameters
+    ----------
+    time_series : ndarray of shape (n,1)
+        The time series in question
+    phis : ndarray of shape (p,)
+        The phi parameters
+    thetas : ndarray of shape (q,)
+        The theta parameters
+    mu : float
+        The parameter mu
+    sigma : float
+        The parameter sigma
+
+    Returns
+    -------
+    log_likelihood : float
+        The log-likelihood of the model
+    """
+    pass
+\end{lstlisting}
+
+\vspace{3mm} \noindent
+For example,
+\begin{lstlisting}
+>>> arma_likelihood(time_series_a, phis=array([0.9]), mu=17., sigma=0.4)
+-77.6035
+\end{lstlisting}
 \end{problem}
 
 \section*{Identification and Fitting}
@@ -118,17 +162,49 @@ using our function from Problem \ref{prob:arma:likelihood} along with some
 optimization routine, such as {\tt scipy.optimize.fmin}.
 
 \begin{problem}
-    \label{prob:arma:mle}
-    Write a function that accepts a time series $\{z_t\}$ and returns the
-    parameters of the model that minimizes the AICc, given the constraint that
-    $p \leq 3$, $q \leq 3$.
+\label{prob:arma:mle}
+Write a function that accepts a time series $\{z_t\}$ and returns the
+parameters of the model that minimizes the AICc, given the constraint that $p
+\leq 3$, $q \leq 3$.
+
+\begin{lstlisting}
+def arma_fit(time_series):
+    """
+    Return the ARMA model that minimizes AICc for the given time series,
+    subject to p,q <= 3. 
+
+    Parameters
+    ----------
+    time_series : ndarray of shape (n,1)
+        The time series in question
+
+    Returns
+    -------
+    phis : ndarray of shape (p,)
+        The phi parameters
+    thetas : ndarray of shape (q,)
+        The theta parameters
+    mu : float
+        The parameter mu
+    sigma : float
+        The parameter sigma
+    """
+    pass
+\end{lstlisting}
+
+\vspace{3mm} \noindent
+For example,
+\begin{lstlisting}
+>>> arma_fit(time_series_a)
+(array([ 0.9087]), array([-0.5759]), 17.0652..., 0.3125...)
+\end{lstlisting}
 \end{problem}
 
 \begin{problem}
-    \label{prob:arma:data}
-    Use your solution from Problem \ref{prob:arma:mle} to fit models to the
-    data found in {\tt time\_series\_a.txt}, {\tt time\_series\_b.txt}, {\tt
-    time\_series\_c.txt}. Report the fitted parameters $p, q, \Theta$.
+\label{prob:arma:data}
+Use your solution from Problem \ref{prob:arma:mle} to fit models to the data
+found in {\tt time\_series\_a.txt}, {\tt time\_series\_b.txt}, {\tt
+time\_series\_c.txt}. Report the fitted parameters $p, q, \Theta$.
 \end{problem}
 
 \section*{Forecasting}
@@ -141,12 +217,50 @@ observations.
 \end{align}
 
 \begin{problem}
-    \label{prob:arma:forecast}
-    Forecast each data set ahead 20 intervals using the parameters discovered
-    from Problem \ref{prob:arma:data}, and plot their expected values along with
-    the original data set. Also plot the expected values plus and minus
-    $\sigma_{t+k}$, and plus and minus $2\sigma_{t+k}$ to demonstrate credible
-    intervals. 
+\label{prob:arma:forecast}
+Forecast each data set ahead 20 intervals using the parameters discovered from
+Problem \ref{prob:arma:data}, and plot their expected values along with the
+original data set. Also plot the expected values plus and minus $\sigma_{t+k}$,
+and plus and minus $2\sigma_{t+k}$ to demonstrate credible intervals. 
+
+\begin{lstlisting}
+def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
+        sigma=1., future_periods=20):
+    """
+    Return forecasts for a time series modelled with the given ARMA model.
+    
+    Parameters
+    ----------
+    time_series : ndarray of shape (n,1)
+        The time series in question
+    phis : ndarray of shape (p,)
+        The phi parameters
+    thetas : ndarray of shape (q,)
+        The theta parameters
+    mu : float
+        The parameter mu
+    sigma : float
+        The parameter sigma
+    future_periods : int
+        The number of future periods to return
+
+    Returns
+    -------
+    evls : ndarray of shape (future_periods,)
+        The expected values of z for times n + 1, ..., n + future_periods
+    sigs : ndarray of shape (future_periods,)
+        The deviations of z for times n + 1, ..., n + future_periods
+    """
+    pass
+\end{lstlisting}
+
+\vspace{3mm} \noindent
+For example,
+\begin{lstlisting}
+>>> arma_forecast(box_a, phis, thetas, mu, sigma, future_periods=4)
+(array([ 17.3762,  17.3478,  17.322 ,  17.2986]),
+ array([ 0.3125,  0.3294,  0.3427,  0.3533]))
+\end{lstlisting}
 \end{problem}
 
 
@@ -190,10 +304,10 @@ where $\hat{\mu}$ is the sample mean. This is one of a number of estimates of
 autocorrelation.
 
 \begin{problem}
-    \label{prob:arma:autocorrelation}
-    Write a function that computes the autocorrelation estimate described in
-    \ref{eq:arma:autocorrelation_estimate}, given a time series and a lag $k$.
-    Plot $\hat{\rho}_k$ for $1 \leq k \leq 20$ for each of the three data sets.
+\label{prob:arma:autocorrelation}
+Write a function that computes the autocorrelation estimate described in
+\ref{eq:arma:autocorrelation_estimate}, given a time series and a lag $k$.
+Plot $\hat{\rho}_k$ for $1 \leq k \leq 20$ for each of the three data sets.
 \end{problem}
 
 \subsection*{Partial-Autocorrelation}
