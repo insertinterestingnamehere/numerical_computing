@@ -285,6 +285,31 @@ Public keys can decrypt and verify.
 Split into several groups of at least three individuals.
 Each group member should generate a private and public keypair using PyCrypto.
 Share your public keys with everyone in the group.
+
+You might find it useful to transmit your messages as strings.
+Here are two functions that will read and write specially formatted strings for your messages.
+\begin{lstlisting}
+def print_msg(m_encrypted):
+    #print the encrypted message as a specially formatted string
+    out = ("----BEGIN MESSAGE----",
+           m_encrypted[0],
+           "----END MESSAGE----",
+           "----BEGIN SIGNATURE----",
+           m_encrypted[1],
+           "----END SIGNATURE----")
+    return '\n'.join(out)
+
+def read_msg(m_string):
+    d1 = m_string.find('----BEGIN MESSAGE----') + 21
+    d2 = m_string.find('----END MESSAGE----', d1)
+    
+    d3 = m_string.find('----BEGIN SIGNATURE----', d2) + 23
+    d4 = m_string.find('----END SIGNATURE----', d3)
+    message  = m_string[d1:d2]
+    sign = m_string[d3:d4]
+    return message.strip(), sign.strip()
+\end{lstlisting}
+
 \begin{enumerate}
 \item Encrypt and sign a message for someone in the group and send it to the entire group.
 Attach the sender's name to the encrypted message (a claim that the message came from a particular sender).
