@@ -1,3 +1,4 @@
+# This solution file is out of date. Refer to solutions.py in the same directory.
 import scipy as sp
 from scipy import random as rand
 from scipy import linalg as la
