@@ -315,37 +315,37 @@ Because $L=(E_k \ldots E_2E_1)^{-1} = IE_1^{-1}E_2^{-1}\ldots E_k^{-1}$, we can 
 In fact, in this special situation, each right-multiplication will change only one entry of $L$. 
 We have the following algorithm for the LU decomposition, assuming it exists.
 
-\begin{itemize}
-\item Make a copy, $U$, of $A$.
-\item Make an identity matrix $L$ that is the same shape as $A$.
-\item Iterate through the entries below the diagonal of $U$.
-
-Now for each entry below the main diagonal of $U$ do the following:
-	\begin{itemize}
-	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ located above the current entry.
-	\item Perform the type 3 row operation to set the current entry of $U$ to 0.
-		Do not modify any entries known to be 0.
-	\end{itemize}
-\item Return $L$ and $U$
-\end{itemize}
+%
+%\begin{itemize}
+%\item Make a copy, $U$, of $A$.
+%\item Make an identity matrix $L$ that is the same shape as $A$.
+%\item Iterate through the entries below the diagonal of $U$.
+%
+%Now for each entry below the main diagonal of $U$ do the following:
+%	\begin{itemize}
+%	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ located above the current entry.
+%	\item Perform the type 3 row operation to set the current entry of $U$ to 0.
+%		Do not modify any entries known to be 0.
+%	\end{itemize}
+%\item Return $L$ and $U$
+%\end{itemize}
 
 \begin{algorithm}
 \begin{algorithmic}[1]
 \Procedure{LU Decomposition}{$A$}
+\State $m, n \gets \text{shape} \left( A \right)$ 
 \State $U \gets \text{copy} \left( A \right)$
 \State $L \gets I_n$
-\For{$0 \leq i < n$}
-    \State $R_{i,i} \gets \norm{Q_{:,i}}$
-    \State $Q_{:,i} \gets Q_{:,i}/R_{i,i}$
-    \For{$i+1 \leq j < n$}
-        \State $R_{i,j} \gets Q_{:,j}^\mathsf{T}Q_{:,i}$
-        \State $Q_{:,j} \gets Q_{:,j}-R_{i,j}Q_{:,i}$
+\For{$0 \leq j < n$}
+    \For{$j+1 \leq i < m$}
+    \State $L_{[i,j]} \gets U_{[i, j]}/U_{[j, j]}$
+    \State $U_{[i,j:]} \gets U_{[i,j:]} - L_{[i,j]}U_{[j, j:]}$
 	\EndFor
 \EndFor
-\State \pseudoli{return} $Q, R$
+\State \pseudoli{return} $L, U$
 \EndProcedure
 \end{algorithmic}
-\caption{The modified Gram-Schmidt. This algorithm returns orthogonal $Q$ and upper triangular $R$ such that $A = QR$.}
+\caption{The algorithm for LU decomposition. This algorithm returns lower triangular $L$ and upper triangular $U$ such that $A = LU$.}
 \label{Alg:gram_schmidt}
 \end{algorithm}
 
