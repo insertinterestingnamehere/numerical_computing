@@ -1,132 +1,166 @@
 \lab{Monte-Carlo Integration}{Monte-Carlo Integration}
 \objective{Use Monte-Carlo integration to estimate areas.}
 
-Integration is important in a variety of applications. 
-However, high-dimensional integration is highly inefficient using the standard one-dimensional methods. 
-Accordingly, we are forced to pursue a different method. 
-The method of choice in high dimensional settings is known as Monte-Carlo Integration, and is based upon random sampling. 
-This technique is applied in a large variety of fields, such as optimization, physics, and finance.
+Some multivariable integrals which are critical in applications are impossible to evaulate symbolically.
+For example, the integral
+\[
+\int_{\Omega} \frac{1}{\sqrt{(2 \pi)^k}} e^{- \frac{\bold{x}^T\bold{x}}{2}}
+\]
+has something to do with a joint normal distribution, which is ubiquitous in statistics.
+However, the integrand does not have a symbolic antiderivative.
+This means we must use numerical methods to evaluate this integral.
 
-Consider the following example: Suppose our goal is to estimate the area of a circle (we select this problem because it has a closed form solution, which we can use to test the method). 
-One method that we could use for empirically finding that area is to throw darts randomly at a square board.
-We then can find the area of the circle by multiplying the square's area by the percentage of darts that fell in the inscribed circle. 
-We can do this using the following code (the resulting figure is shown in Figure \ref{Fig:MCCircle}).
+The standard technique for numerically evaluating multivariable integrals is \emph{Monte-Carlo Integration}.
+Monte-Carlo (MC) integration is radically different from 1-dimensional techniques like Simpson's rule, relying on probability to calculate the integral.
+Although it converges slowly, MC integration is frequently used to evaluate multivariable integrals because the higher-dimensional analogs of methods like Simpson's rule are inefficient. 
 
-\begin{lstlisting}
-import numpy as np
-points = np.random.rand(2, 500).T
-points = 4*(points-.5)
-pointsNorm = np.hypot(points[:,0],points[:,1]) <= 1
-InCircle = points[pointsNorm]
-OutCircle = points[~pointsNorm]
-plt.plot(InCircle[:,0], InCircle[:,1], 'r.')
-plt.plot(OutCircle[:,0], OutCircle[:,1], 'b.')
-
-# Plot the circle
-theta = np.linspace(0, 2*np.pi, 50)
-plt.plot(np.cos(theta), np.sin(theta),'k')
-
-plt.axis('equal')
-plt.axis([-2, 2, -2, 2])
-plt.show()
-
-area = 4.0*InCircle.size/numPoints
-\end{lstlisting}
+\section*{A motivating example}
+Suppose we want to numerically compute the area of a circle of radius 1.
+From analytic methods, we know the answer is $\pi$.
+Empirically, we can estimate this quantity by randomly choosing points in a $2 \times 2$ square.
+The percent of points that land in the inscribed circle, times the area of the square, should approximately equal the area of the circle (see Figure \ref{fig:MCCircle}).
 
 \begin{figure}
-\includegraphics[width=\textwidth]{MC_Circle.pdf}
+\includegraphics[width=.7\textwidth]{MC_Circle.pdf}
 \caption{Finding the area of a circle using random points}
 \label{fig:MCCircle}
 \end{figure}
 
-In this case the area should be $\pi$, and the approximation is pretty good.
-
-One important question is the rate at which our estimate converges. 
-We can test this using a log plot using the following code:
+We do this in NumPy as follows. First generate 500 random points in the square $[0,1] \times [0,1]$.
 \begin{lstlisting}
-numTestPoints = 29
-testPoints = np.around(np.linspace(1000,100000,numTestPoints))
-error = np.zeros(testPoints.size)
-testRuns=100
-area = np.zeros(testRuns)
-
-for i in range(0,numTestPoints):
-	for k in range(0,testRuns):
-		numPoints = testPoints[i]
-		points = np.random.rand(numPoints,2)
-		points = 2*(points-.5)
-		pointsNorm = np.hypot(points[:,0],points[:,1])
-		inCircle = np.count_nonzero(pointsNorm < 1)
-		area[k] = 4.0*inCircle/numPoints
-	error[i] = np.mean(np.absolute(area-sp.pi))
-error.size
-testPoints.size
-
-plt.loglog(testPoints, error)
-estimate = la.lstsq(np.vstack((np.log(testPoints),np.ones(testPoints.size))).T, np.log(error))
-convergenceRate = estimate[0][0]
+>>> numPoints = 500
+>>> points = np.random.rand(2, numPoints)
 \end{lstlisting}
+We rescale and shift these points to be uniformly distributed in $[-1,1]\times[-1,1]$.
+\begin{lstlisting}
+>>> points = points*2-1
+\end{lstlisting}
+Next we compute the number of points in the unit circle.
+The function \li{np.hypot(a, b)} returns the norm of the vector $(a, b)$.
+\begin{lstlisting}
+>>> # Create a mask of points in the circle
+>>> circleMask = np.hypot(points[0,:], points[1,:]) <= 1
+>>> # Count how many there are
+>>> numInCircle = np.count_nonzero(circleMask)
+\end{lstlisting}
+Finally, we approximate the area.
+\begin{lstlisting}
+>>> # Area is approximately (area of the square)*(num points in circle)/(total num points)
+>>> 4.*numInCircle/numPoints
+3.024
+\end{lstlisting}
+This differs from $\pi$ by about 0.117.
 
-Note that we estimate the convergence rate using Least Squares, as in Lab \ref{Stats1}. 
-The rate should be something like $-.5$. 
-This means that the estimate of the error improves as $1/\sqrt{N}$, meaning that to improve our error estimate by 10 times (one digit) we must sample 100 times more points. 
-This is not a very desirable convergence rate. 
-However, this rate is independent of the number of dimensions (a property not shared by one-dimensional integration techniques), and is therefore desirable for high-dimensional problems.
 
-The problem of calculating the area of a circle above can actually be reformulated as the following integration problem:
+
+
+
+
+We analyze the error of the MC method by repeating this experiment for many values of \li{numPoints} and plotting the errors.
+The result is the blue line in Figure \ref{fig:mc_error}.
+The error appears to be proportional to $1/\sqrt{N}$ where $N=$\li{numPoints} (the green line in Figure \ref{fig:mc_error}).
+This means that to divide the error by10, we must sample \emph{100 times} more points.
+
+\begin{figure}
+\includegraphics[width=.7\textwidth]{mc_error.pdf}
+\caption{The Monte-Carlo integration method was used to compute the area of a circle of radius 1. 
+The blue line plots the average error in 100 runs of the MC method on $N$ sample points, where $N$ appears on the horizontal axis.
+The green line is a plot of $1/\sqrt{N}$. }
+\label{fig:mc_error}
+\end{figure}
+
+This is a slow convergence rate, but it is independent of the number of dimensions of the problem. 
+This dimension independence is what makes the MC method useful for multivariable integrals.
+
+\section*{Monte-Carlo Integration}
+
+You can calculate the area of the unit circle with the following integration problem:
 \[
-\mbox{Estimate }A = \int_{[-1,1]\times[-1,1]} f(x,y) dA
+\mbox{Area of unit circle } = \int_{[-1,1]\times[-1,1]} f(x,y) dA
 \]
 where
+\begin{equation}\label{equ:mc_func}
+f(x,y) = \begin{cases} 1 &\mbox{ if $x$,$y$ is in the unit circle} \\ 0 &\mbox{ otherwise.} \end{cases}
+\end{equation}
+
+We can use a random-points method as above to approximate any integral.
+Suppose we with to evaluate
 \[
-f(x,y) = \begin{cases} 1 &\mbox{ if $x$,$y$ is in the unit circle} \\ 0 &\mbox{ otherwise} \end{cases}
+\int_\Omega f(x) dV.
+\]
+We can approximate this integral using the formula
+\begin{equation}\label{equ:mc_eq}
+\int_\Omega f(x) dV \approx V(\Omega) \frac{1}{N} \sum_{i=1}^N f(x_i),
+\end{equation}
+where $x_i$ are uniformly distributed random vectors in $\Omega$ and $V(\Omega)$ is the volume of $\Omega$.
+This is the formula for Monte-Carlo Integration. 
+
+
+In our example, $\Omega$ was the box $[-1,1] \times [-1,1]$ and $f$ was the function defined in \eqref{equ:mc_func}.
+Then $\sum_{i=1}^N f(x_i)$ is the number of points in the unit circle, $N$ is the total number of points, and \eqref{equ:mc_eq} is the same as the formula we derived previously.
+
+The intuition behind \eqref{equ:mc_eq} is that $\frac{1}{N} \sum_{i=1}^N f(x_i)$ approximates the average value of $f$ on $\Omega$.
+We multiply this (approximate) average value by the volume of $\Omega$ to get the (approximate) integral of $f$ on $\Omega$.
+
+As an 1-dimensional example consider the integral 
+\[
+\int_0^1 x dx \approx (1-0)\frac{1}{N} \sum_{i=1}^N x_i=\frac{1}{N} \sum_{i=1}^N x_i.
 \]
 
-Using a similar method we can actually solve any integration problem. 
-Suppose that we desire to solve the integral
-\[
-\int_\Omega f(x) dV
-\]
-
-Where $\Omega$ is a region and $x \in \Omega$ is a vector. 
-We can approximate the integral using the formula
-\[
-\int_\Omega f(x) dV \approx V(\Omega) \frac{1}{N} \sum_{i=1}^N f(x_i)
-\]
-
-Where $x_i$ are uniformly distributed random vectors in $\Omega$, and $V$ gives the volume of a region. 
-This formula exactly describes how to perform Monte Carlo Integration. 
-Now the intuition behind this formula is that $\frac{1}{N} \sum_{i=1}^N f(x_i)$ is the average value that $f$ obtains over $\Omega$ then we multiply that average value by the volume of $\Omega$ to get the integral.
-
-As an 1-d example take the integral 
-\[
-\int_0^1 x dx \approx (1-0)\frac{1}{N} \sum_{i=1}^N x_i=\frac{1}{N} \sum_{i=1}^N x_i
-\]
-
-It is easy to see that the answer to the exact integral on the left-hand-side is $1/2$. 
-In the approximation on the right-hand-side, the volume of the domain in $1$ and then $x_i$ is draws from a uniform distribution between zero to one. 
-The average of $N$ draws will quickly converge to $1/2$. 
+The integral on the left-hand-side is $1/2$. 
+In the approximation on the right-hand-side, $x_i$ is drawn from a uniform distribution on $[0,1]$. 
+The average of $N$ such draws will converge to $1/2$. 
 
 \begin{problem}
 \label{prob:mc}
-Write code implementing Monte Carlo Integration on a box of arbitrary number of dimensions for an arbitrary input function. 
-Require the user to input the function and the bounds of the box. 
-You may require that the user input the number of dimensions. 
-Allow the user to input the number of points to use as well.
+Implement Monte-Carlo integration with the following function.
+\begin{lstlisting}
+def mc_int(f, mins, maxs, numPoints=500):
+    '''Use Monte-Carlo integration to approximate the integral of f
+    on the box defined by mins and maxs.
+    
+    INPUTS:
+    f         - A function handle. Should accept a 1-D NumPy array as input.
+    mins      - A 1-D NumPy array of the minimum bounds on integration.
+    maxs      - A 1-D NumPy array of the maximum bounds on integration.
+    numPoints - An integer specifying the number of points to sample in 
+                the Monte-Carlo method. Defaults to 500.
+                
+    EXAMPLES:
+    >>> f = lambda x: np.hypot(x[0], x[1]) <= 1
+    >>> # Integral over the square [-1,1] x [-1,1] should be pi
+    >>> mc_int(f, np.array([-1,-1]), np.array([1,1]))
+    3.3199999999999998
+    '''
+\end{lstlisting}
+
+Hints:
+\begin{enumerate}
+\item To create a random array of points on which to evaluate \li{f}, first create a random array of points in $[0,1] \times \ldots \times [0,1]$.
+Then multiply this array by the appropriate vector to stretch it the right amount in each direction.
+Finally, add the appropriate vector to shift the points to the right location.
+\item You can evaluate \li{f} on an array of points in one line using \li{np.apply_along_axis()}.
+\end{enumerate}
 \end{problem}
 
 \begin{problem}
 \label{prob:mc_test}
-Test your solution to Problem \ref{prob:mc}, and the convergence of the method, on the function:
+The exact value of the integral of
 \[
 f(w,x,y,z) = sin(x) y^5 -y^3 + zw + yz^3
 \]
-Over the unit square of dimension 4 (with bounds from -1 to 1). 
-This integral should converge to zero. Graph the error for N= 10,100,1000,10000.
+on $[-1,1]x[-1,1]x[-1,1]x[-1,1]$ is 0.
+\begin{enumerate}
+\item Run the function \li{mc_int()} you wrote in Problem \ref{prob:mc} on $f$ 10 sample points.
+Do this 100 times and take the average. What is the error?
+\item Repeat part (1) of this problem with 100, 1000, and 10000 sample points. 
+Plot the errors of your estimates.
+\end{enumerate}
 \end{problem}
 
 One application of Monte Carlo integration is integrating probability density that do not have a closed form solutions.
 
+\begin{comment}
 \begin{problem}
 The standard normal distribution is an important object of study in probability and statistic.
 It is defined by the density function $\frac{1}{\sqrt{2 \pi}} e^{- \frac{x^2}{2}}$.
@@ -145,6 +179,7 @@ N.cdf(1)
 \end{lstlisting}
 \end{problem}
 
+
 \begin{problem}
 The joint normal distribution is an important object of study in probability and statistic. 
 If $\bold{x} \in \mathbb{R}^k$ and the $x_i$ are independent from each other with mean $0$, variance $1$. 
@@ -159,26 +194,25 @@ where $\Omega$ is the box you are integrating over.
 Have you function take in the bounds and the number of dimensions and output the value of the integral.
 
 \end{problem}
+\end{comment}
 
-We note that we must use caution in using Monte Carlo integration when we don't know if the integral actually converges to a finite value. 
-For example the following integral does not converge(is not finite):
+\section*{A caution}
+You can run into trouble if you try to use MC integration on an integral that does not converge.
+For example, we may attempt to evaluate
 \[
 \int_0^1 \frac{1}{x}
 \]
-
-We can attempt Monte Carlo Integration on such an integrand using the following code:
+with MC integragtion using the following code.
 \begin{lstlisting}
-k = 5000
-np.mean(1/np.random.rand(k,1))
+>>> k = 5000
+>>> np.mean(1/np.random.rand(k,1))
+21.237332864358656
 \end{lstlisting}
 
-We will get a finite value in return, so we could assume (incorrectly) that this integral has a finite value.
-However, by experimenting with larger values of $k$ you will notice that the integral does not converge to a specific value, which is because the actual integral does not converge. 
-Therefore it is often important to understand some of the properties of the integrand analytically prior to using this type of integration.
+Since this code returns a finite value, so we could assume that this integral has a finite value.
+In fact, the integral is infinite.
+We could discover this emprically by using larger and larger values of $k$, and noting that MC integration returns larger and larger values.
 
-Another important key to successful Monte Carlo integration are that the random numbers be uniformly distributed. 
-If they are not, our answer will not converge to a correct answer. 
-This is one of the reason that good pseudo-random number generators are so important.
 
 \begin{comment}
 \begin{problem}
