@@ -224,14 +224,25 @@ Switching the two steps will result in the same message, but there are security 
 
 Another, more commonly used, method for signing messages is to sign a hash of the message.
 Using a known good hash function, we hash the message (before encrypting), sign the hash, and send it along with the encrypted message.
-The exchange would be as follows for the message \emph{Alice, the password is 123password.}
-Suppose Bob's private and public keys respectively are (11407237936868069647229007915206939, 91340897874775971350115591460548127) and (54323, 91340897874775971350115591460548127).
-Alice's private and public keys respectively are (200302109105861235857586283559067187, 274592902010736258475323322324306807) and (68923, 274592902010736258475323322324306807L).
-First Bob would hash the message.  We will use SHA256 hash algorithm which is considered cryptographically secure.
-The hash of the message (including the period symbol) is: b113b491a7ada55a888cf112005988ce5475d5fc909cafae770a4e08b8b3980c.
-Bob would encrypt the message using Alice's public key and decrypt the hash.
-The result would be 
+The exchange would be as follows for the message \emph{Hi Alice! Bob.}
+Suppose Bob's private and public keys respectively are $(d, n) = (127890504297793865743357757627627807059, 618783157710153965827030630189807545377)$ and $(e, n)=(65323, 618783157710153965827030630189807545377)$.
+Alice's private and public keys respectively are $(d,n)=(16630354644972796093082980345041785609, 58576444815385640869376382633234713033)$ and $(e,n)=(54905, 58576444815385640869376382633234713033)$.
+First Bob would hash the message.  We will use MD5, but in practice we should a hash algorithm which is considered cryptographically secure.
+The hash of the message (including the period symbol) in hexidecimal is: \verb|\x02\xd2\x0b\xe2\x00Vnd:\xbdY\x8c\x1d\x08/M|.
+Bob would encrypt the message using Alice's public key obtaining: $1243069665756046897997663464501811921$.
+Bob can then sign the hash of the message which results in: $378011416081119417777777120819271568111$.
+To sign the hash of the message, he decrypts the hash with his private key (calculates $m^{d} \mod n$).
 
+When Alice recieves Bob's message and signature she can decrypt the message using her private key.
+Alice decrypts the message: $1468662431139370234409485782180398$ which translates to \emph{Hi Alice! Bob.}
+She can then verify that the message came from Bob by encrypting the signature with Bob's public key.
+This yeilds: $3749079344037002869620996734462734157$.
+Now she must hash the message that she decrypted (she would need to know that Bob used MD5 for the signature hash).
+She compares the hash of the message she decrypted with the hash she obtained by encrypting Bob's purported signature.
+If the two hashes are equal, she can be reasonably certain that the message she decrypted indeed came from Bob (since we assume that only Bob has his private key).
+She verifies the hashes and they are equal.
+If the hashes differed, then Alice would know that either the message was signed with someone else's private key, or the message itself was tampered with after it was signed.
+In either event, Alice can choose to ignore the message because she can verify its authenticity.
 
 \section{PyCrypto}
 RSA encryption in Python can be accomplished very easily with a library called PyCrypto.
@@ -330,3 +341,12 @@ Each group member should do the following:
 \end{enumerate}
 \end{enumerate}
 \end{problem}
+
+The security of RSA relies on the assumption that certain mathematical operations are not easily done.
+Breaking RSA reduces down to being able to factor the modulus into its two primes.  This is hard to do for large moduli.
+There is no proof of security.  RSA can be broken depending on the laziness of the keyholder, or the cleverness of the attacker.
+To keep ahead of advances in computing speed, the RSA key size is increased beyond the capability of existing hardware.
+However, larger keys mean that messages will take longer to encrypt and decrypt.
+There are a new family of methods that rely on elliptic curves.
+These methods can acheive the same security of RSA using smaller key sizes.
+For example a $224$ bit elliptic curve key gives comparable security to a $2048$ bit RSA key.
