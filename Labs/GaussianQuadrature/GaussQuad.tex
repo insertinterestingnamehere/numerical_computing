@@ -40,7 +40,7 @@ G(x) &= \frac{b - a}{2} \int f(\frac{b - a}{2} x + \frac{b + a}{2})dx \\
 
 Verify that evaluating $G(1) - G(-1) = \int_1^4 f(x)dx$.
 
-Write a function that will accept a function $f$ and an interval $[a,b]$ and returns a function $g$ on $[-1,1]$ that has the same integral (scaled by a constant) as $f$.
+Write a function that will accept a function $f$ and an interval $[a,b]$ and return a function $g$ on $[-1,1]$ that has the same integral (scaled by a constant) as $f$.
 Use it to plot $f$ on $[1, 4]$ and $\frac{\left(b - a\right)}{2}g$ on $[-1,1]$. Note that the functions will not look the same plotted, since they are defined over intervals with different lengths but they integrate to the same value.
 \end{problem}
 
@@ -109,7 +109,8 @@ integral = (b - a)/2 * np.inner(weights, g(points))
 
 \begin{problem}
 
-Write a function that accepts an array of points, an array of weights, and limits of integration and returns the integral.
+Write a function that accepts a function f, an array of points, an array of weights, and limits of integration and returns the integral.
+Don't forget to adjust the interval as in the above example.
 
 \end{problem}
 
@@ -125,48 +126,46 @@ Using a good eigenvalue solver gives the Golub-Welsch algorithm a complexity of 
 There is some interesting theory required to understand this algorithm.
 We only provide a brief sketch here and point the reader to the paper at \url{http://gubner.ece.wisc.edu/gaussquad.pdf} for further details.
 We mentioned that the choice of the weight function corresponds to a class of orthogonal polyomials.
-An important fact about orthogonal polynomials is that any set of orthogonal polynomials $\{p_i\}_{i=1}^N$ satisfies a three term recurrence relation
+An important fact about orthogonal polynomials is that any set of orthogonal polynomials $\{u_i\}_{k=1}^{N}$ satisfies a three term recurrence relation
 \[
-p_i(x) = (a_ix + b_i)p_{i-1}(x) - c_ip_{i-2}(x)
+u_{i}(x) = (\gamma_{i-1}x-\alpha_i)u_{i-1}(x) - \beta_iu_{i-2}(x)
 \]
-where $p_{-1}(x) = 0$ and $p_0(x) = 1$.
-The coefficients $\{a_i, b_i, c_i\}$ have been calculated for several classes of orthogonal polynomials, and may be determined for an arbitrary class using the procedure found in ``Calculation of Gauss Quadrature Rules'' by Golub and Welsch.
+where $u_{-1}(x) = 0$ and $u_0(x) = 1$.
+The coefficients $\{\gamma_k, \alpha_i, \beta_i\}$ have been calculated for several classes of orthogonal polynomials, and may be determined for an arbitrary class using the procedure found in ``Calculation of Gauss Quadrature Rules'' by Golub and Welsch.
 Using these coefficients we may create a tri-diagonal matrix
 
 \[
 J = \begin{bmatrix}
 
-\alpha_1 & \beta_1 & 0 & 0 & ... & 0 \\
-\beta_1 & \alpha_2 & \beta_2 & 0 & ... & 0 \\
-0 & \beta_2 & \alpha_3 & \beta_3 & ... & 0 \\
+a_1 & b_1 & 0 & 0 & ... & 0 \\
+b_1 & a_2 & b_2 & 0 & ... & 0 \\
+0 & b_2 & a_3 & b_3 & ... & 0 \\
 \vdots & & & & & \vdots \\
 \vdots & & & & & \vdots \\
-0 & ... & & & & \beta_{N-1} \\
-0 & ... & & & \beta_{N-1} & \alpha_N
+0 & ... & & & & b_{N-1} \\
+0 & ... & & & b_{N-1} & b_N
 
 \end{bmatrix}
 \]
 
-Where $\alpha_i = \frac{-b_i}{a_i}$ and $\beta_i = (\frac{c_{i+1}}{a_ia_{i+1}})^{\frac{1}{2}}$.
+Where $a_i = \frac{-\beta_i}{\alpha_i}$ and $b_i = (\frac{\gamma_{i+1}}{\alpha_i \alpha_{i+1}})^{\frac{1}{2}}$.
 This matrix is called the Jacobi matrix.
 Derivation of the Jacobi matrix can also be found in the Golub-Welsch paper.
 The eigenvalues of this matrix give us the points $x_i$ and the length of $\left[a, b\right]$ times the squares of the first entries of the corresponding eigenvectors gives the weights.
 
 \begin{problem}
-Write a function that will accept three arrays representing the coefficients $\{a_i, b_i, c_i\}$ from the recurrence relation above.
-Return the Jacobi matrix.
+Write a function that will accept three arrays representing the coefficients $\{\gamma_i, \alpha_i, \beta_i\}$ from the recurrence relation above and return the Jacobi matrix.
 \end{problem}
 
 \begin{problem}
 The coefficients of the Legendre polynomials (which correspond to the weight function $W(x) = 1$ on $[-1,1]$ are given by
 \begin{align*}
-a_i &= \frac{2i - 1}{i} \\
-b_i &= 0 \\
-c_i &= \frac{i-1}{i}
+\gamma_i &= \frac{2i - 1}{i} \\
+\alpha_i &= 0 \\
+\beta_i &= \frac{i-1}{i}
 \end{align*}
 
-Using the Jacobi matrix function you just wrote, find the points $x_i$ and weights $w_i$ that correspond to this weight function.
-Do they match the ones given in the first part of this lab?
+Write a function that accepts an integer $n$ representing the number of points to use in the quadrature. Calculate $\gamma, \alpha$, and $\beta$ as above, find the Jacobi matrix, then use it to find the points $x_i$ and weights $w_i$ that correspond to this weight function. When $n=5$, do they match the ones given in the first part of this lab?
 
 \end{problem}
 
@@ -184,12 +183,12 @@ This is the approach used by the function \li{scipy.integrate.quad}.
 
 \begin{problem}
 The standard normal distribution is an important object of study in probability and statistic.
-It is defined by the density function $\frac{1}{\sqrt{2 \pi}} e^{- \frac{x^2}{2}}$.
+It is defined by the density function $\frac{1}{\sqrt{2 \pi}} e^{-x^2/2}$.
 (Here we are assuming a mean of $0$ and a variance of $1$).
 This is a function that can not be integrated symbollically.
 We can use quadrature integration to estimate the probability that a normally distributed random variable will take a value below a given point.
 The probability that the random variable we are considering is less than (or equal to) a given value $x$ is
-\[\int_{-\infty}^x \frac{1}{\sqrt{2 \pi}} e^{- \frac{t^2}{2}} dt\]
+\[\int_{-\infty}^x \frac{1}{\sqrt{2 \pi}} e^{-t^2/2}} dt\]
 This function is essentially zero for values of $x$ that lie reasonably far from the mean, so we can estimate this probability by integrating from $-5$ to $x$ instead.
 
 Use \li{scipy.integrate.quad} to write a function to estimate the probability that this normally distributed random variable will take a value less than a given number $x$ that lies relatively close to the mean.
