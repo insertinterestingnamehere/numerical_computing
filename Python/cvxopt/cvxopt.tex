@@ -369,8 +369,8 @@ Thus $G, h, A$, and $b$ are optional. The formulation that we will use is
  &Ax = b,
 \end{align*}
 where $Q$ is a positive semidefinite symmetric matrix.
-In this formulation, we require again that $A$ have full row rank, and that the block matrix
-$[P \quad G \quad A]^T$ have full column rank.
+In this formulation, we require again that $A$ has full row rank, and that the block matrix
+$[P \quad G \quad A]^T$ has full column rank.
 
 As an example, let us minimize the quadratic function
 \[
@@ -387,10 +387,9 @@ Note that there are no constraints, so we only need to initialize the matrix $Q$
 >>> print sol['primal objective']
 -1.25
 \end{lstlisting}
-Building the matrix $Q$ from the function $f$ is straightforward. The coefficients for each squared term are doubled and then placed on the main diagonal of $Q$ (so the term $2x^2$ yields $4$ in the upper left entry of
+Building the matrix $Q$ from the function $f$ is straightforward. The coefficients for each squared term are doubled (because in the formulation we use we are minimizing $1/2$ of the $x^2$ term) and then placed on the main diagonal of $Q$ (so the term $2x^2$ yields $4$ in the upper left entry of
 $Q$, and the term $y^2$ yields $2$ in the lower right entry).
-The coefficient of each mixed term appears twice according to the row and column corresponding to the two
-variables in the mixed term (so the term $2xy$ yields a $2$ placed in the first row, second column and in
+The coefficient of each mixed term appears twice in the matrix (and hence does not need to be doubled), corresponding to the row and column of the two variables in the mixed term (so the term $2xy$ yields a $2$ placed in the first row, second column, and a $2$ in
 the second row, first column). 
 
 \begin{problem}
@@ -436,7 +435,7 @@ We seek to find the best possible allocation, subject to forest-wide restriction
 
 The file \li{ForestData.npy} contains data for a fictional national forest (you can also find the data
 in Table \ref{tab:forest}). There are 7 areas of analysis and 3 prescriptions for each of them. 
-The first column is the area of analysis $i$. The second column is size of the analysis area (in thousands of acres), denoted $s_i$. The third column is a prescription number denoted $j$. The forth column is net present value (NPV) per acre of all uses in area $i$ under prescription $j$, denoted $p_{i,j}$. The fifth column is protected timber yield (in board feet per acre) in area $i$ under prescription $j$, denoted $t_{i,j}$. The sixth column is protected grazing capability (in animal unit months per acre) for area $i$ under prescription $j$, denoted
+The first column is the area of analysis, denoted $i$. The second column is the size of the analysis area (in thousands of acres), denoted $s_i$. The third column is a prescription number, denoted $j$. The forth column is the net present value (NPV) per acre of all uses in area $i$ under prescription $j$, and is denoted $p_{i,j}$. The fifth column is protected timber yield (in board-feet per acre) in area $i$ under prescription $j$, denoted $t_{i,j}$. The sixth column is protected grazing capability (in animal-unit months per acre) for area $i$ under prescription $j$, denoted
 $g_{i,j}$. The seventh and last column is the wilderness index rating (0 to 100) for area $i$ under prescription $j$, denoted $w_{i,j}$. Let $x_{i,j}$ be the amount of land in area $i$ allocated to prescription $j$.
 
 \begin{table}[h]
@@ -473,15 +472,15 @@ $i$ &$s_i$&$j$& $p_{i,j}$ & $t_{i,j}$&$g_{i,j}$&$w_{i,j}$ \\\hline
 \label{tab:forest}
 \end{table}
 
-Under this notation, and allocation is just a vector consisting of the $x_{i,j}$'s. For this particular
+Under this notation, an allocation is just a vector consisting of the $x_{i,j}$'s. For this particular
 example, the allocation vector is of size $7\cdot 3 = 21$. 
 Our goal is to find the allocation vector that maximizes net present value, while producing at least 40 million
-board feet of timber, at least 5 thousand animal unit months of grazing, and keeping the average wilderness index at least 70.
+board-feet of timber, at least 5 thousand animal-unit months of grazing, and keeping the average wilderness index at least 70.
 
-Of course, the allocation vector is also constrained to be nonnegative, and all the land must be allocated 
+Of course, the allocation vector is also constrained to be nonnegative, and all of the land must be allocated 
 precisely. 
 
-Note that since acres are in thousands we also divide out 1000 from the constraints of timber and animals months of grazing. We can summarize our problem as follows:
+Note that since acres are in thousands, we divide the constraints of timber and animal months of grazing by 1000. We can summarize our problem as follows:
 \begin{align*}
 \text{maximize } &\sum\limits_{i=1}^7 \sum\limits_{j=1}^3 p_{i,j}x_{i,j} \\
 \text{subject to } &\sum\limits_{j=1}^3 x_{i,j} = s_i  \text{ for } i=1,..,7 \\
@@ -492,5 +491,5 @@ Note that since acres are in thousands we also divide out 1000 from the constrai
 \end{align*}
 
 \begin{problem}
-Solve the above problem. Output the value of each $x_{i,j}$ and the maximum total net present value (return the primal objective multiplied by -1000).
+Solve the problem above. Output the value of each $x_{i,j}$ and the maximum total net present value (the primal objective of the appropriately minimized linear function multiplied by -1000).
 \end{problem} 
