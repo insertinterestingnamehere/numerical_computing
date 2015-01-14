@@ -35,7 +35,7 @@ The corresponding \emph{dual program} for the above linear program has the form
 \end{align*}
 CVXOPT provides functions to solve both the original (\emph{primal}) linear program and its dual program.
 
-Consider the following example.
+Consider the following example:
 \begin{align*}
 \text{minimize}\qquad &-4x_1-5x_2 \\
 \text{subject to}\qquad &x_1+2x_2 \leq 3 \\
@@ -77,7 +77,7 @@ By adding a slack variable $s$, we can write our constraints as
 \[
 Gx + s = h,
 \]
-which matches the form discussed above. In the case of this particular example, we ignore the extra constraints
+which matches the form discussed above. In the case of this particular example, we ignore the extra constraint
 \[
 Ax = b,
 \]
@@ -85,7 +85,7 @@ since we were given no equality constraints.
 
 Now we proceed to solve the problem using CVXOPT.
 We need to initialize the arrays $c$, $G$, and $h$, and then pass them to the appropriate function.
-CVXOPT uses its own data type for arrays and matrices, and while similar to the NumPy array, it
+CVXOPT uses its own data type for an array or matrix, and while similar to the NumPy array, it
 does have a few differences, especially when it comes to initialization.
 Below, we initialize CVXOPT matrices for $c$, $G$, and $h$.
 
@@ -113,7 +113,7 @@ and then simply convert them to the CVXOPT matrix data type:
 Use whichever method is most convenient. Note that we made sure the entries in the matrices are floats.
 
 Having initialized the necessary objects, we are now ready to solve the problem.
-We will use the function \li{solvers.lp}, and we simply need to pass $c$, $G$, and $h$ as arguments.
+We will use the CVXOPT function \li{solvers.lp}, and we simply need to pass in $c$, $G$, and $h$ as arguments.
 \begin{lstlisting}
 >>> from cvxopt import solvers
 >>> sol = solvers.lp(c, G, h)
@@ -131,20 +131,20 @@ Optimal solution found.
 -8.99999981141
 \end{lstlisting}
 The function \li{solvers.lp} returns a dictionary containing useful information.
-For the time being, we will focus just on the values of $x$ and the primal objective value (i.e. the minimum value achieved by
+For the time being, we will only focus on the values of $x$ and the primal objective value (i.e. the minimum value achieved by
 the objective function).
 \begin{problem}
-Solve the following convex optimization problem
+Solve the following convex optimization problem:
 \begin{align*}
-\text{minimize } &2x_1+x_2+3x_3 \\
-\text{subject to } &x_1+2x_2 \geq 3 \\
+\text{minimize}\qquad &2x_1+x_2+3x_3 \\
+\text{subject to}\qquad &x_1+2x_2 \geq 3 \\
 	        &2x_1+x_2+3x_3 \geq 10 \\
 		&x_1 \geq 0 \\
 		&x_2 \geq 0 \\
 		&x_3 \geq 0
 \end{align*}
-Report the values of $x$ and the primal objective function that you obtain.
-Remember to make the necessary adjustments so that all inequality constraints $\leq$ rather than $\geq$.
+Report the values for $x$ and the primal objective value that you obtain.
+Remember to make the necessary adjustments so that all inequality constraints are $\leq$ rather than $\geq$.
 \end{problem}
 
 \section*{The Transportation Problem}
@@ -153,7 +153,7 @@ Consider the following transportation problem:
 A piano company needs to transport thirteen pianos from their three  supply centers (denoted by 1, 2, 3) to two demand centers (4, 5).
 Transporting a piano from a supply center to a demand center incurs a cost, listed in Table \ref{tab:cost}.
 The company wants to minimize shipping costs for the pianos while meeting the demand.
-How many pianos should each supply center send each demand center?
+How many pianos should each supply center send to each demand center?
 
 \begin{table}[h]
 \centering
@@ -194,11 +194,11 @@ Supply Center & Demand Center & Cost of transportation & Number of pianos\\
 3 & 4 & 8 & t\\
 3 & 5 & 9 & u\\
 \end{tabular}
-\caption{Cost of transporting one piano from supply center to demand center}
+\caption{Cost of transporting one piano from a supply center to a demand center}
 \label{tab:cost}
 \end{table}
 
-The variables $p,q,r,s,t,$ and $u$ must be nonnegative and satisfy the following three supply and two demand constraints:
+The variables $p,q,r,s,t,$ and $u$ must be nonnegative and satisfy the following three supply constraints and two demand constraints:
 \begin{align*}
 p + q  &= 7\\
 r + s  &= 2\\
@@ -212,8 +212,8 @@ The objective function is the number of pianos shipped from each location multip
 4p + 7q + 6r + 8s + 8t + 9u.
 \]
 
-There a several ways to solve this linear program. We want our answers to be integers, and this added constraint turns out to be an NP-hard problem
-in general. There is a whole field devoted to dealing with integer constraints, called integer linear programming, which is beyond the scope of this lab.
+There a several ways to solve this linear program. We want our answers to be integers, and this added constraint in general turns out to be an NP-hard problem.
+There is a whole field devoted to dealing with integer constraints, called \emph{integer linear programming}, which is beyond the scope of this lab.
 Fortunately, we can treat this particular problem as a standard linear program and still obtain integer solutions.
 
 Here, $G$ and $h$ constrain the variables to be non-negative.
@@ -256,7 +256,9 @@ the remaining equality constraints define a new matrix $A$ with linearly indepen
 
 Rather than fuss about which equality
 constraints to convert into inequality constraints, let us simply convert all of the equality constraints.
-This is done as follows. Suppose we have the equality constraint
+This is done as follows:
+
+ Suppose we have the equality constraint
 \[
 x + 2y - 3z = 4.
 \]
@@ -358,14 +360,9 @@ Compare your answer to the dual value cvxopt returned.
 
 \section*{Quadratic Programming}
 
-Quadratic programming is similar to linear programming except that the objective function is quadratic rather
-than linear. However, the constraints, if there are any, are still of the same form.
+Quadratic programming is similar to linear programming, one exception being that the objective function is quadratic rather than linear.
+The constraints, if there are any, are still of the same form.
 Thus $G, h, A$, and $b$ are optional. The formulation that we will use is
-\begin{lstlisting}[mathescape]
-minimize $\frac{1}{2}x^TQx + p^Tx$
-subject to $Gx\leq h$
-	        $Ax = b$.
-\end{lstlisting}
 \begin{align*}
 \text{minimize}\qquad &\frac{1}{2}x^TQx + p^Tx \\
 \text{subject to}\qquad &Gx \leq h\\
