@@ -1,6 +1,6 @@
 \newcommand{\of}{\texttt{.o}~}
 
-\lab{Python}{Interfacing With Other Programming Languages Using Cython}{Interfacing With Other Programming Languages Using Cython}
+\lab{Interfacing With Other Programming Languages Using Cython}{Interfacing With Other Programming Languages Using Cython}
 \label{lab:cythonwrap}
 
 \objective{Learn to interface with object files using Cython. This lab should be worked through on a machine that has already been configured to build Cython extensions using gcc or MinGW.}
@@ -35,43 +35,44 @@ If you do not give your compiler proper instructions for linking, it will raise 
 The compiler must also be able to find the necessary header files for compiling the source code.
 This can be done by including the proper directories in the system path or by passing the paths to the proper directories as arguments to the compiler at compile time.
 
-Object files can statically linked or dynamically linked.
+Object files can be statically or dynamically linked.
 When statically linked, the entire object file becomes part of the final program.
-Dynamic linking, on the other hand, is just a reference to the object file.
-At runtime, the operating system will take care of loading any needed dynamically linked libraries.
-The dynamically linked programs depend on the presence of the appropriate object files on the target system in order to work.
-Since the statically linked libraries are part of the program itself, there is no need to load any libraries
+On the other hand, dynamic linking is just a reference to the object file.
+The operating system will load any needed dynamically linked libraries at runtime.
+Dynamically linked programs depend on the presence of the appropriate object files on the target system.
+Since statically linked libraries are part of the program itself, there is no need to load any libraries at runtime.
 
-In our instructions here we will use the GNU C Compiler (gcc) to demonstrate how Python can be made to interface with other languages.
-Other compilers can be used, but, particularly on Windows based computers, a significant amount of configuration may be needed to get everything to work properly.
-Python's distutils package is designed to avoid some of the difficulty that comes when interfacing with interfacing with different compilers, and we will show some very basic examples of how it is used here.
-The simplest way to learn to interface with other languages is to work through simple examples.
+These instructions will use the GNU C Compiler (gcc) to demonstrate how Python can interface with other languages.
+Other compilers can be used, but some configuration may be necessary..
+Python's distutils package is designed to avoid some of the difficulty that comes when interfacing with different compilers, and we will show some basic examples of how it is used here.
+The best way to learn to interface with other languages is to work through simple examples.
 \begin{info}
-The examples in this lab are intended to provide simple templates that you can use later to wrap C and Fortran functions.
-It will be good to read through and think about how each file works, but it will not be critical for you to understand every detail of how this works at this point.
+The examples in this lab are intended to provide simple templates that can be used later to wrap C and Fortran functions.
+It will be good to read through and think about how each file works, but it will not be critical to understand every detail at this point.
 \end{info}
 
 \begin{warn}
-When passing arrays as pointers to C, C++, and Fortran functions, you must be \emph{absolutely sure} that the array you are passing to the function is contiguous.
+When passing arrays as pointers to C, C++, and Fortran functions, be \emph{absolutely sure} that the array being passed is contiguous.
 This means that the entries of the array are stored in \emph{adjacent} entries in memory.
 Passing one of these functions a strided array will result in out of bounds memory accesses and could crash your computer.
 When working with two dimensional arrays, C and C++ expect rows to be stored in contiguous blocks of memory.
 Fortran expects columns to be stored in contiguous blocks of memory.
 
-You will also need to pass the size of the array as a separate parameter to avoid out of bounds memory accesses.
+To avoid out of bounds memory accesses, be sure to pass in the size of the array as a separate parameter.
 \end{warn}
 
 \section*{Wrapping a C Function}
-Consider the following C function to compute the solution to a tridiagonal system.
-it works by taking pointers to four arrays.
-Array \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
-Array \li{b} and \li{x} have length \li{n} and represent the main diagonal of the banded matrix and the right hand side of the system of equations.
-\li{c} and \li{x} are modified in place to compute the solution the the system.
-\li{c} is used to store temporary values and \li{x} is transformed into the solution to the system.
+The following C function computes the solution to a tridiagonal system.
+It requires pointers to four arrays.
+Arrays \li{a} and \li{c} have length \li{n-1} and represent the first subdiagonal and first superdiagonal of a banded matrix with bandwidth 3.
+Arrays \li{b} and \li{x} have length \li{n} and represent the main diagonal of the banded matrix and the right hand side of the system of equations.
+\li{c} and \li{x} are modified in place to compute the solution of the system.
+\li{c} is used to store temporary values and \li{x} is transformed into the solution of the system.
 
 \lstinputlisting[style=fromfile, language=C, name=ctridiag.c]{./ctridiag/ctridiag.c}
 
-This file can be compiled to a \li{.o} file so that this function can be called by other programs by running the following command in a terminal:
+This file can be compiled to a \li{.o} file so that \texttt{ctridiag} can be called by other programs. 
+To do this, we run the following command in a terminal:
 \begin{lstlisting}[style=ShellInput]
 gcc -fPIC -c ctridiag.c -o ctridiag.o
 \end{lstlisting}
@@ -81,8 +82,8 @@ Those that are familiar with C may have noticed that we did not include a \li{ma
 The \texttt{-c} flag is what prevents this from causing errors with the compiler.
 The \texttt{-fPIC} option is required when building code for a shared object.
 
-Once we have run this command the file has been compiled to a \of file, but it still is not accessible in Python.
-Python, though it relies on C internally, needs some special interfaces to interact with \of files like this.
+Once we have run this command the file has been compiled to a \of file, but the functions in the \of file cannot be used directly as python functions.
+Although Python relies on C internally, it needs some special interfaces to interact with these \of files.
 A general approach for accessing these external functions from Python is to define in some way what inputs each function takes.
 We will show how this is done with Cython.
 Since a Cython file compiles to a C file which is then compiled to a callable extension for Python, it can be used to interface with C code and other object files.
@@ -91,35 +92,38 @@ We will use the following approach:
 \item Write a C header that specifies what the function is named and how it is called.
 \item Write a Cython file that imports the header to its C file and defines a Python wrapper for C function to import.
 \item Compile the Cython file to C code.
-\item Compile the Cython file to a Python extension, giving it access to the the object file we are accessing and giving the compiler access to the proper header files.
+\item Compile the Cython file to a Python extension, giving it access to the object file we are accessing and giving the compiler access to the proper header files.
 \end{enumerate}
 
 An approach similar to this will work for some other types of \of files compiled from other languages as well.
 
-The header file that defines how to interface with the C function is very simple:
+The header file that defines how to interface with the C function is very simple. 
+This file will tell Cython how to interact with the object file once it has been loaded.
 
 \lstinputlisting[style=fromfile, language=C, name=ctridiag.h]{./ctridiag/ctridiag.h}
 
-We can now use this header file to tell Cython how to interact with the object file once it has been loaded.
-Here is a simple Cython file that defines a Python wrapper for the C function contained in the object file:
+
+The following Cython file defines a Python wrapper for the C function contained in the object file:
 
 \lstinputlisting[style=fromfile, language=Python, name=cython_ctridiag.pyx]{./ctridiag/cython_ctridiag.pyx}
 
 \begin{info}
-This is a good example of the reason header files are used.
+This is a good example of why header files are used.
 A C header file tells the C compiler how to interface with compiled C functions that it will link to later in compilation.
 The compiler then allows for the use of the given function throughout the C file as if it had already been defined.
-The Cython \li{cdef extern} declaration shown in this cython file is used in the same way for the Cython compiler.
-Essentially what it does is it tells the Cython compiler, "When the C file generated from this .pyx file is compiled it will be linked against a C library that contains a C function that acts like this:..."
+
+The Cython \li{cdef extern} declaration is used in the same way for the Cython compiler.
+It essentially tells the Cython compiler, "When the C file generated from this .pyx file is compiled it will be linked against a C library that contains a C function that acts like this: ..."
 Describing the C function this way to the Cython compiler allows it to check for undefined references and improper function use before building the C file.
-It is possible to define Cython headers much the same way we define C headers.
+
+It is possible to define Cython headers in much the same way as C headers.
 These headers use the .pxd file extension and can be imported via the \li{cimport} statement in Cython.
 .pxd files are called Cython declaration files.
 When you use a \li{cimport} statement to import basic C functions or to interface with NumPy arrays and NumPy datatypes, you are really importing Cython declaration files that contain the proper signatures so that the Cython compiler can know how these functions are meant to behave.
 Several different tools for automatically generating Cython declaration files from C and C++ headers are available online.
 \end{info}
 
-Now that we have the needed source files written, we can build the Python extension.
+Now that the necessary source files are written, we can build the Python extension.
 On Windows, using the compiler MinGW (a version of gcc for windows), the compilation can be performed by running the following setup file.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_windows64.py]{./ctridiag/ctridiag_setup_windows64.py}
@@ -129,13 +133,12 @@ The following file works on Linux and Macintosh machines using gcc.
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_linux.py]{./ctridiag/ctridiag_setup_linux.py}
 
 The distutils module in Python is designed to allow the compilation of Python extensions on different platforms with a single setup file.
-The following setup file uses distutils to compile the Cython file.
-It should run on Windows, Linux, or Macintosh based computers.
-This is a more standard way to build this sort of Cython extension.
+The following setup file uses distutils to compile the Cython file, and may be run on Windows, Linux, or Macintosh-based computers.
+This is a more standard way to build a Cython extension.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_setup_distutils.py]{./ctridiag/ctridiag_setup_distutils.py}
 
-This setup file can be called via command line using the following command:
+This setup file can be called via the command line with the following command:
 \begin{lstlisting}[style=ShellInput]
 python ctridiag_setup_distutils.py build_ext --inplace
 \end{lstlisting}
@@ -168,7 +171,7 @@ Here is the file:
 
 To compile \li{ftridiag.f90} to an object file you can run the following command in your command line:
 \begin{lstlisting}[style=ShellInput]
-gfortran -fPIC -c ftridiag.f90 -o ftridiag.o"
+gfortran -fPIC -c ftridiag.f90 -o ftridiag.o
 \end{lstlisting}
 As before, if you are working on a Linux or Macintosh based machine you will probably need to include the \texttt{-fPIC} flag as well.
 
@@ -196,7 +199,7 @@ Here is a file for the next problem:
 
 \begin{problem}
 The Fortran subroutine \li{fssor} included with this lab uses a technique called Successive Over Relaxation to solve Laplace's equation on a rectangular domain discretized as a grid of equally spaced points.
-It solves the same problem as problem involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
+It solves the same problem as the one involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
 It takes the following inputs:
 \begin{itemize}
 \item $U$ is expected to be a pointer to a Fortran ordered array of double precision numbers.
@@ -246,70 +249,6 @@ The above C code is another implementation of the Successive Over Relaxation alg
 Wrap it so that it is callable from Python as well.
 Produce the same plot as in the previous problem using the C version of this algorithm.
 Notice that info is still passed as a pointer because the function needs to be able to modify it.
-\end{problem}
-
-\section*{Interfacing with C++}
-Cython can also be used to wrap C++ functions and classes.
-It can compile entire modules to C++ instead of C if we specify C++ as the language in the setup file.
-Here we will focus primarily on wrapping C++ classes since wrapping a C++ function is roughly the same as wrapping a function from C or Fortran.
-Cython also supports wrapping templated classes and functions.
-Many other C++ features like operator overloading and the \li{new} and \li{del} operators are also supported when using C++.
-
-The process for exposing a C++ class to Cython is essentially the same.
-The C++ code must first be compiled to an object file.
-In our Cython file we then declare that we will be importing functions and classes from a C++ file so that the Cython compiler knows how they will behave.
-We then compile our Cython file by first compiling to C++
-
-Included with this lab are three C++ classes.
-The \li{Permutation} class is the primary class we will be wrapping.
-It implements arithmetic for the Cauchy cycle representation of permutations.
-For those not familiar with permutation arithmetic, there are some examples in the file \li{unittest.py}.
-The other two classes are used in the construction of the \li{Permutation} class.
-Because the Permutation class depends on the \li{Node} and \li{Cycle} classes, they must all be compiled together.
-Here is the \li{setup.py} to set up the wrapper for the \li{Permutation} class.
-
-\lstinputlisting[style=fromfile, language=Python, name=pypermutation_setup.py]{./permutations/pypermutation_setup.py}
-
-\begin{warn}
-When wrapping C++ classes, templates, etc. you should always make sure that you specify the language as C++ as we have shown in this setup file.
-\end{warn}
-
-We need to tell the Cython compiler how to interface with the C++ class.
-This can be done in much the same way that we defined the interfaces for C and Fortran functions, but we now need to declare that we are importing a class with several functions that act on it.
-We will include the declarations corresponding to this class in a \li{.pxd} file.
-\li{.pxd} are called \emph{declaration} files.
-Though declarations are, strictly speaking, not ``Cython headers'', they can be used in similar ways.
-Here we will declare the Permutation class and some of its public methods so that we can use them in Cython.
-\lstinputlisting[style=fromfile, language=Python, name=Permutation.pxd]{./permutations/Permutation_incomplete.pxd}
-This \li{.pxd} file can be included in our Cython file with the line \li{from Permutation cimport Permutation}.
-Cython comes with several pre-built declaration files.
-These declaration files are good examples of the proper syntax for wrapping C++ class templates.
-Some of these declaration files allow Cython code to interface with containers and other classes from the C++ standard library like \li{deque}, \li{list}, \li{map}, \li{pair}, \li{queue}, \li{set}, \li{stack}, \li{string}, \li{utility}, and \li{vector}.
-Each of these declaration files can be loaded by using something like
-\begin{lstlisting}
-from libcpp.vector cimport vector
-\end{lstlisting}
-Cython also supports some kinds of automatic conversion from Python data types to standard library containers.
-See the Cython documentation for more information on interfacing with C++ containers.
-
-As we mentioned before, the general approach for wrapping a C++ class is to make a Cython class that wraps a pointer to the C++ class.
-Here is an example of how this is done.
-\lstinputlisting[style=fromfile, language=Python, name=pypermutation.pyx]{./permutations/pypermutation_incomplete.pyx}
-Notice that we included the declaration file for the class.
-
-\begin{problem}
-The Permutation class includes methods to trace an index through the inverse permutation, get the minimum index that is changed by the permutation, and raise the permutation to a power.
-The declarations for these functions are commented out in the \li{pypermutation.pyx} file.
-Uncomment the declarations and add in the code necessary so that these methods are also available in Python.
-These functions are declared in the header \li{Permutation.hpp}, but they are not declared in the declaration file \li{Permutation.pxd}.
-Add the proper declarations to the declaration file.
-
-Note: the argument $z$ that is included in the power function for the Permutation class is a mandatory argument for the exponentiation operator in Cython.
-It tells the computer to compute the power of a number mod another number.
-In this case, raise an error if $z$ is not \li{None}.
-
-Look at the \li{__mul__} method for an example of how to construct and return a new PyPermutation object.
-Keep in mind that the \li{power} method of the \li{Permutation} class in C++ returns a pointer to a new \li{Permutation} object.
 \end{problem}
 
 \let\of\undefined

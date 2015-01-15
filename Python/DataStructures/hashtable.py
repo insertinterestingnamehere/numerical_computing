@@ -1,10 +1,13 @@
 class HashTable(object):
     def __init__(self, size, hashfun, thresh=.75):
+        # Allocating a list of nones
         self.hashtable = [None]*size
         self.size = size
         self.len = 0
         self.thresh = thresh
+        # Hash function (define your function outside of the class, anything that defines a call method is callable)
         self._hash = hashfun
+        # Ascertains that the load attribute is defined.
         self._update_load()
 
     def __len__(self):
