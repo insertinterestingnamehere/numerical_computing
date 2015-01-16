@@ -167,7 +167,7 @@ Q = 0.1*np.eye(4)
 R = 5000*np.eye(2)
 F = np.array([[1,0,.1,0],[0,1,0,.1],[0,0,1,0],[0,0,0,1]])
 x0 = np.array([0,0,300.,600])
-kal = solutions.KalmanFilter(F,Q,H,R,u)
+kal = KalmanFilter(F,Q,H,R,u)
 
 # simulate state sequence and observations
 s,o = kal.evolve(x0,1250)

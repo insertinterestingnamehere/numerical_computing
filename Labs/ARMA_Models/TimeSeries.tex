@@ -1,4 +1,4 @@
-\lab{Algorithms}{ARMA Models}{ARMA Models}
+\lab{ARMA Models}{ARMA Models}
 \label{lab:arma}
 \objective{Fit and forecast ARMA models.}
 
@@ -12,12 +12,12 @@ process $\{z_t\}$ that satisfies
 where $\mu = E[z_t]$ and $a_t$ are identically Gaussian distributed with
 variance $\sigma_a^2$. We note that the assumption that $\{z_t\}$ is
 covariance-stationary is eqivalent to the condition that the roots of the
-polynomial in $B$ 
+polynomial in $B$
 \begin{align}
     \label{eq:arma:characteristic}
-    \phi(B) = 1 - \sum_{i=1}^p\phi_iB^i 
-\end{align} 
-lie without the unit circle.
+    \phi(B) = 1 - \sum_{i=1}^p\phi_iB^i
+\end{align}
+lie outside of the unit circle.
 
 The first sum on the right hand side of \ref{eq:arma:def} is interpreted as an
 ``autoregression'' since it is a linear combination of previously observed
@@ -59,16 +59,24 @@ $r = \max(p, q+1)$, we write
     w_t &\sim \text{MVN}(0, Q)
 \end{align}
 where $\phi_i = \theta_j = 0$ for $i > p, j > q$. Then the linear stochastic
-dynamical system 
+dynamical system
 \begin{align}
     x_{t+1} &= Fx_t + w_t\\
     z_t &= Hx_t + \mu
 \end{align}
 describes the same process as the original $\text{ARMA}$ model.
+Note that the equation for $z_t$ involves a deterministic component, namely $\mu$.
+The Kalman filter theory developed in Lab \ref{lab:kalman}, however, assumed no
+deterministic component for the observations $z_t$. Thus, be sure to subtract off the mean
+$\mu$ from the time series observations $z_t$ when using them in the Predict and Update
+steps.
 
 Let $\Theta = \{\phi_i, \theta_j, \mu, \sigma_a^2\}$ be the set of parameters
-for an $\text{ARMA}(p,q)$ model. Using the chain rule, we can factorize the
-likelihood as
+for an $\text{ARMA}(p,q)$ model. 
+Suppose we have a set of observations $z_1,z_2,\ldots,z_n$, denoted
+collectively by $\{z_t\}$.
+Using the chain rule, we can factorize the
+likelihood of the model under these data as
 \begin{align}
     \label{eq:arma:factorized}
     p(\{z_t\} | \Theta) = \prod_{t=1}^{n} p(z_t | z_{t-1}, \ldots, z_{1},
@@ -102,8 +110,7 @@ where $\text{vec}$ flattens a matrix and $\otimes$ is the Kronecker product
 \begin{problem}
 \label{prob:arma:likelihood}
 Write a function that computes the log-likelihood of an $\text{ARMA}(p,q)$
-model, given a time series $z_t$. You may reuse your Kalman filter code from
-Lab \ref{lab:kalman}.
+model, given a time series $z_t$.
 
 \begin{lstlisting}
 def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
@@ -123,7 +130,7 @@ def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
     mu : float
         The parameter mu
     sigma : float
-        The parameter sigma
+        The standard deviation of the a_t random variables
 
     Returns
     -------
@@ -171,7 +178,7 @@ parameters of the model that minimizes the AICc, given the constraint that $p
 def arma_fit(time_series):
     """
     Return the ARMA model that minimizes AICc for the given time series,
-    subject to p,q <= 3. 
+    subject to p,q <= 3.
 
     Parameters
     ----------
@@ -187,13 +194,31 @@ def arma_fit(time_series):
     mu : float
         The parameter mu
     sigma : float
-        The parameter sigma
+        The standard deviation of the a_t random variables
     """
     pass
 \end{lstlisting}
-
 \vspace{3mm} \noindent
-For example,
+Here's a hint for performing the optimization at each step, using {\tt scipy.optimize.fmin}.
+\begin{lstlisting}
+>>> # assume p, q, time_series are defined
+>>> def f(x): # x contains the phis, thetas, mu, and sigma
+>>>     return -1*arma_likelihood(time_series, phis=x[:p], thetas=x[p:p+q], mu=x[-2],sigma=x[-1])
+>>> # create initial point
+>>> x0 = np.zeros(p+q+2)
+>>> x0[-2] = time_series.mean()
+>>> x0[-1] = time_series.std()
+>>> sol = op.fmin(f,x0,maxiter=10000, maxfun=10000)
+\end{lstlisting}
+\vspace{3mm} \noindent
+The variable \li{sol} is a flat array of length $p+q+2$, whose first $p$ entries give the optimal values
+for the $\phi$ polynomial, the next $q$ entries give the optimal values for the $\theta$ polynomial,
+and the last two entries give the optimal values for $\mu$ and $\sigma_a$, respectively.
+Notice that we defined a wrapper function $f$ to feed into the {\tt scipy.optimize.fmin} routine.
+This wrapper function return \emph{negative} of the log likelihood, since the optimization routine we are
+calling finds the minimum of a function, and we are interested in the maximum of the log likelihood.
+
+Your code should produce the following output (it may take a minute or so to run):
 \begin{lstlisting}
 >>> arma_fit(time_series_a)
 (array([ 0.9087]), array([-0.5759]), 17.0652..., 0.3125...)
@@ -212,7 +237,7 @@ The Kalman filter provides a straightforward way to predict future states, by
 giving the mean and variance of the conditional distribution of future
 observations.
 \begin{align}
-    z_{t + k} | z_{1}, \cdots, z_{t} \sim N(z_k;\; H\hat{x}_{t+k|t} + \mu,\;
+    z_{t + k} | z_{1}, \cdots, z_{t} \sim N(z_{t+k};\; H\hat{x}_{t+k|t} + \mu,\;
     HP_{t+k|t}H^T)
 \end{align}
 Recall the relations
@@ -226,14 +251,21 @@ Recall the relations
 Forecast each data set ahead 20 intervals using the parameters discovered from
 Problem \ref{prob:arma:data}, and plot their expected values along with the
 original data set. Also plot the expected values plus and minus $\sigma_{t+k}$,
-and plus and minus $2\sigma_{t+k}$ to demonstrate credible intervals. 
+and plus and minus $2\sigma_{t+k}$ to demonstrate credible intervals.
 
+Note that we need the values of $\hat{x}_{n|n}$ and $P_{n|n}$ to get started.
+As usual, these estimates can be found using the Predict and Update recursions.
+Initialize $\hat{x}_{1|0}$ and $P_{1|0}$ as before, run the recursions until you
+obtain $\hat{x}_{n|n}$ and $P_{n|n}$, and then calculate the future
+estimates $\hat{x}_{t+k|t}$ and $P_{t+k|t}$. Use these to calculate the expected
+value and standard deviation for forecasted values (given by $H\hat{x}_{t+k|t} + \mu$
+and $\sqrt{HP_{t+k|t}H^T}$, respectively).
 \begin{lstlisting}
 def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
         sigma=1., future_periods=20):
     """
     Return forecasts for a time series modeled with the given ARMA model.
-    
+
     Parameters
     ----------
     time_series : ndarray of shape (n,1)
@@ -245,7 +277,7 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
     mu : float
         The parameter mu
     sigma : float
-        The parameter sigma
+        The standard deviation of the a_t random variables
     future_periods : int
         The number of future periods to return
 
@@ -254,7 +286,7 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
     evls : ndarray of shape (future_periods,)
         The expected values of z for times n + 1, ..., n + future_periods
     sigs : ndarray of shape (future_periods,)
-        The deviations of z for times n + 1, ..., n + future_periods
+        The standard deviations of z for times n + 1, ..., n + future_periods
     """
     pass
 \end{lstlisting}
@@ -266,8 +298,28 @@ For example,
 (array([ 17.3762,  17.3478,  17.322 ,  17.2986]),
  array([ 0.3125,  0.3294,  0.3427,  0.3533]))
 \end{lstlisting}
+
+\vspace{3mm} \noindent
+Your results should match those in Figure \ref{fig:forecasted}.
 \end{problem}
 
+\begin{figure}
+	\centering
+       \begin{subfigure}[b]{0.7\textwidth}
+                \includegraphics[width=\textwidth]{forecasted_a}
+        \end{subfigure}%
+
+        \begin{subfigure}[b]{0.7\textwidth}
+                \includegraphics[width=\textwidth]{forecasted_b}
+        \end{subfigure}
+
+        \begin{subfigure}[b]{0.7\textwidth}
+                \includegraphics[width=\textwidth]{forecasted_c}
+        \end{subfigure}
+    \caption{Three time series along with expected value (green), $\pm \sigma_a$ credible interval (yellow),
+    and $\pm 2\sigma_a$ credible interval (cyan) of twenty forecasted values.}
+	\label{fig:forecasted}
+\end{figure}
 
 \begin{comment}
 
