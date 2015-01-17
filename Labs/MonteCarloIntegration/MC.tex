@@ -2,11 +2,11 @@
 \objective{Use Monte-Carlo integration to estimate areas.}
 
 Some multivariable integrals which are critical in applications are impossible to evaulate symbolically.
-For example, the integral
+For example, the integral of the joint normal distribution
 \[
 \int_{\Omega} \frac{1}{\sqrt{(2 \pi)^k}} e^{- \frac{\bold{x}^T\bold{x}}{2}}
 \]
-has something to do with a joint normal distribution, which is ubiquitous in statistics.
+is ubiquitous in statistics.
 However, the integrand does not have a symbolic antiderivative.
 This means we must use numerical methods to evaluate this integral.
 
@@ -114,23 +114,31 @@ The average of $N$ such draws will converge to $1/2$.
 \begin{problem}
 \label{prob:mc}
 Implement Monte-Carlo integration with the following function.
+Your implementation should run the Monte-Carlo algorithm several times and return the average of those runs.
 \begin{lstlisting}
-def mc_int(f, mins, maxs, numPoints=500):
+def mc_int(f, mins, maxs, numPoints=500, numIters=100):
     '''Use Monte-Carlo integration to approximate the integral of f
     on the box defined by mins and maxs.
     
     INPUTS:
-    f         - A function handle. Should accept a 1-D NumPy array as input.
+    f         - A function handle. Should accept a 1-D NumPy array 
+    	 	as input.
     mins      - A 1-D NumPy array of the minimum bounds on integration.
     maxs      - A 1-D NumPy array of the maximum bounds on integration.
     numPoints - An integer specifying the number of points to sample in 
-                the Monte-Carlo method. Defaults to 500.
+    		the Monte-Carlo method. Defaults to 500.
+    numIters - An integer specifying the number of times to run the 
+    		Monte Carlo algorithm. Defaults to 100.
+		
+    ALGORITHM:
+    Run the Monte-Carlo algorithm `numIters' times and return the average
+    of these runs.
                 
     EXAMPLES:
     >>> f = lambda x: np.hypot(x[0], x[1]) <= 1
     >>> # Integral over the square [-1,1] x [-1,1] should be pi
     >>> mc_int(f, np.array([-1,-1]), np.array([1,1]))
-    3.3199999999999998
+    3.1290400000000007
     '''
 \end{lstlisting}
 
@@ -143,6 +151,7 @@ Finally, add the appropriate vector to shift the points to the right location.
 \end{enumerate}
 \end{problem}
 
+\begin{comment}
 \begin{problem}
 \label{prob:mc_test}
 The exact value of the integral of
@@ -157,8 +166,9 @@ Do this 100 times and take the average. What is the error?
 Plot the errors of your estimates.
 \end{enumerate}
 \end{problem}
+\end{comment}
 
-One application of Monte Carlo integration is integrating probability density that do not have a closed form solutions.
+One application of Monte Carlo integration is integrating probability density functions that do not have closed form solutions.
 
 \begin{comment}
 \begin{problem}
@@ -178,23 +188,39 @@ N = norm()
 N.cdf(1)
 \end{lstlisting}
 \end{problem}
-
+\end{comment}
 
 \begin{problem}
-The joint normal distribution is an important object of study in probability and statistic. 
-If $\bold{x} \in \mathbb{R}^k$ and the $x_i$ are independent from each other with mean $0$, variance $1$. 
-The joint density function is defined by $\frac{1}{\sqrt{(2 \pi)^k}} e^{- \frac{\bold{x}^T\bold{x}}{2}}$.
-This is a function that can not be integrated symbolically.
-We can use Monte Carlo integration to estimate the probability the values are in a certain range.
-The probability that the random vector is in a certain range is
+The joint normal distribution of $N$ independent random variables with mean 0 and variance 1 is
 \[
-\int_{\Omega} \frac{1}{\sqrt{(2 \pi)^k}} e^{- \frac{\bold{x}^T\bold{x}}{2}}
+f(\x) = \frac{1}{\sqrt{(2 \pi)^N}} e^{- \frac{\x^T\x}{2}}.
 \]
-where $\Omega$ is the box you are integrating over.
-Have you function take in the bounds and the number of dimensions and output the value of the integral.
+The integral of $f(\x)$ over a box is the probability that a draw from the distribution will be in the box.
+However, $f(\x)$ does not have a symbolic antiderivative.
+\begin{enumerate}
+\item The integral of this function on $B = [-1,1]\times [-1,1]\times[-1,1] \subset \mathbb{R}^3$ can be computed in SciPy with the following code.
+\begin{lstlisting}
+import scipy.stats as stats
 
+# Define the bounds of the box to integrate over
+mins = np.array([-1, -1, -1])
+maxs = np.array([1, 1, 1])
+
+# Each variable has mean 0 and variance 1
+means = np.zeros(3)
+covs = np.ones(3)
+
+# Compute the integral
+value, inform = stats.mvn.mvnun(mins, maxs, means, covs)
+\end{lstlisting}
+Then \li{value} is the integral of $f(\x)$ on $B$.
+Use SciPy to integrate $f(\x)$ on $\Omega=[-0.5, 0.75]\times[0,1]\times[0, 0.5]\times[0,1] \subset \mathbb{R}^4$.
+
+\item Use the function \li{mc_int()} you wrote in Problem \ref{prob:mc} to integrate $f(\x)$ on $\Omega$ with 10, 100, 1000, and 10,000 sample points. 
+Plot the errors of your estimates.
+\end{enumerate}
 \end{problem}
-\end{comment}
+
 
 \section*{A caution}
 You can run into trouble if you try to use MC integration on an integral that does not converge.
