@@ -14,11 +14,8 @@ One way to have Python interface with C is to write a Cython \emph{wrapper} for 
 The wrapper is a Cython function that calls the C function. 
 This is relatively easy to do because Cython compiles to C.
 From Python, you can call the wrapper, which calls the C function (see Figure TODO).
-%In this lab you will learn how to use Cython to wrap a C function.
+In this lab you will learn how to use Cython to wrap a C function.
 
-
-% Describe .o files and dll's
-% This is mainly just to help them know what is going on.
 \section*{Wrapping with Cython: an overview}
 When you use Cython to wrap a C function, you just write a Cython function that calls the C function.
 To actually do this, we need to understand a little bit more about how C works.
@@ -131,9 +128,17 @@ The following script tests the module \li{cython_cytridiag}.
 
 \lstinputlisting[style=fromfile, language=Python, name=ctridiag_test.py]{./ctridiag/ctridiag_test.py}
 
-%TODO: replace the C function for this problem with one that implements Monte Carlo integration
+\begin{warn}
+When passing arrays as pointers to C or Fortran functions, be \emph{absolutely sure} that the array being passed is contiguous.
+This means that the entries of the array are stored in \emph{adjacent} entries in memory.
+Passing one of these functions a strided array will result in out of bounds memory accesses and could crash your computer.
+For an example of how to check an array is contiguous in a Cython wrapper, see Problem \ref{prob:c_wrap}.
+\end{warn}
+
+
 
 \section*{Another example}
+%TODO: replace the C function for this problem with one that implements Monte Carlo integration
 
 
 The C function \li{cssor()} below implements the Successive Over Relaxation algorithm for solving Laplace's equation, which in two dimensions is
@@ -146,7 +151,7 @@ In the Successive Over Relaxation algorithm, an input array is iteratively modif
 
 The function \li{cssor()} accepts the following inputs.
 \begin{itemize}
-\item $U$ is a pointer to an array of double precision numbers.
+\item $U$ is a pointer to a Fortran-contiguous 2-D array of double precision numbers.
 \item $m$ is an integer storing the number of rows of $U$.
 \item $n$ is an integer storing the number of columns of $U$.
 \item $\omega$ is a double precision floating point value between $1$ and $2$.
@@ -161,32 +166,60 @@ It will set info to $1$ if it did not.
 
 
 
-\begin{problem}
+\begin{problem}\label{prob:c_wrap}
 Wrap \li{cssor()} so it can be called from Python, following these steps.
 \begin{enumerate}
 \item Write a C header for \li{cssor.c}.
-\item Write a Cython wrapper for the function \li{cssor()} as follows.
+\item Write a Cython wrapper \li{cyssor()} for the function \li{cssor()} as follows.
     \begin{enumerate}
-    \item Have your Cython function accept parameters \li{tol} and \li{maxiters} that default to $10e^{-9}$ and 10,000, respectively.
-    What other arguments does the Cython function need to accept?
-    \item ordered arrays
-    \item Make the Cython wrapper raise an error if \li{cssor()} fails to converge---i.e., if \li{cssor()} sets \li{info} to 1.
-    %TODO How?
+    \item Have \li{cyssor()} accept parameters \li{tol} and \li{maxiters} that default to $10e^{-8}$ and 10,000, respectively.
+    What other arguments does \li{cyssor()} need to accept?
+    \item Check that the input \li{U} is a Fortran-contiguous array (this means that the array is stored in a certain way in memory).
+    You can check if \li{U} is Fortran-contiguous with the code \li{U.flags["F_CONTIGUOUS"]}, which returns a Boolean value.
+    If \li{U} is not Fortran-contiguous, raise a ValueError as follows:
+    \begin{lstlisting}
+    raise ValueError('Input array U is not Fortran-contiguous')
+    \end{lstlisting}
+    When raising a ValueError, you may replace the string \li{'Input array U is not Fortran-contiguous'} with any desired text.
+    For more about errors and exceptions in Python, see \url{https://docs.python.org/2/tutorial/errors.html}.
+    \item Raise a ValueError if \li{cssor()} fails to converge---i.e., if \li{cssor()} sets \li{info} to 1.
     \end{enumerate}
+\item Compile \li{cssor.c} to an object file and compile your Cython wrapper to a Python extension. 
+Be aware that you may compile \li{cssor.c} correctly and still receive warnings from the compiler.
 \item Write a test script for your Cython function.
     \begin{enumerate}
-    \item how to test
-    \item make a plot
+    \item You can run the function with the following code.
+    \begin{lstlisting}
+	import numpy as np
+	from cython_fssor import cyssor
+	resolution = 501
+	U = np.zeros((resolution, resolution))
+	X = np.linspace(0, 1, resolution)
+	U[0] = np.sin(2 * np.pi * X)
+	U[-1] = - U[0]
+	cyssor(U, 1.9)
+	\end{lstlisting}
+    \item Have your test script run the code above and plot the modified array \li{U} on the domain $[0,1]\times[0, 1]$. 
+    Note that $U$ is a $501\times 501$ array.
+    Your plot should look like Figure \ref{fig:solution}.
     \end{enumerate}
 \end{enumerate}
+
+%TODO: mayavify this plot.
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{solution.png}
+\caption{Correct output for the test script of Problem \ref{prob:c_wrap}.}
+\label{fig:solution}
+\end{figure}
+
 \end{problem}
 
-\section*{Wrapping a Fortran Function(Optional)}
+\section*{Wrapping a Fortran function (Optional)}
 We can also use Cython to wrap Fortran.
 As an example, we will wrap the Fortran function below, which implements the same algorithm as \li{ctridiag()}.
 
 We have used the C library \li{iso_c_binding} to make the function accept pointers to native C types.
-If we were wrapping a function or subroutine that we did not write ourselves we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it receives to call the original function.
+If we were wrapping a function or subroutine that we did not write ourselves, we would have to define a Fortran function that uses the \li{iso_c_binding} library to accept pointers from C and then uses the values it receives to call the original function.
 \lstinputlisting[style=fromfile, language=Fortran, name=ftridiag.f90]{./ftridiag/ftridiag.f90}
 
 \begin{warn}
@@ -203,86 +236,36 @@ To compile \li{ftridiag.f90} to an object file you can run the following command
 gfortran -fPIC -c ftridiag.f90 -o ftridiag.o
 \end{lstlisting}
 
-\subsection*{Write a Cython wrapper and compile it}
-
-Aside from the small changes in the names used, the modified header file, and the use of gfortran instead of gcc, the rest of the compilation process is entirely the same.
-The test script that verifies that the function works properly is the same except that it will import the function from the module \li{cython_ftridiag} instead.
+\subsection*{Write a Cython wrapper, compile, and test it}
+The Cython wrapper for this function is analogous to \li{cython_ctridiag.pyx}, except that every variable passed to \li{ftridiag} should be a pointer.
+Aside from the use of gfortran instead of gcc, the rest of the compilation and testing process is entirely the same.
 The setup files specific to Windows and Linux, the setup file using distutils, and the test script are included in this lab folder.
 
 \begin{warn}
-When working with higher dimensional arrays Fortran differs from C in that the columns are stored in contiguous blocks of memory instead of the rows.
-The default for NumPy and for C arrays is to have rows stored in contiguous blocks, but this varies, depending on what computation has already been done with the NumPy array.
-This means that, whenever you need to interface with Fortran code that is meant to act on arrays with multiple dimensions, you \emph{must} be very careful about what is a row and what is a column.
-When you pass a Fortran subroutine a pointer to an array it will, by default, assume that the entries of the array are arranged in Fortran order.
-Many Fortran routines have options that allow you to specify whether to act on an array or its transpose, but you should still be very careful about this.
+Fortran differs from C in that the columns of arrays are stored in contiguous blocks of memory instead of the rows.
+The default for NumPy and for C arrays is to have rows stored in contiguous blocks, but in NumPy this varies.
+You should make sure any code passing arrays between Fortran, C, and NumPy addresses this discrepancy.
+Though by default Fortran assumes arrays are arranged in Fortran-order, for many routines you can specify whether to act on an array or its transpose.
 \end{warn}
 
 \begin{info}
-It may seem unusual that we have already provided a Fortran function that has been modified so that it is callable from C.
-Though this is not pure Fortran, it is not necessarily an uncommon scenario.
+The function \li{ftridiag()} may seem unusual because it is a Fortran function that is callable from C.
+In fact, this is not an uncommon scenario.
 Many larger Fortran libraries (for example, LAPACK) provide C wrappers for all their functions.
-When wrapping a Fortran library, a C wrapper may already be available for use.
 \end{info}
 
-Here is a file for the next problem:
+\subsection*{Another example}
+
+Here is a Fortran implementation of the Successive Over Relaxation algorithm for solving Laplace's equation.
+This function is the Fortran equivalent of \li{cssor.c}.
+Its parameters are the same, with the exception that all parameters are \emph{points} to the values they reference.
+
 \lstinputlisting[style=fromfile, language=Fortran, name=fssor.f90]{./fssor/fssor.f90}
 
 \begin{problem}
-The Fortran subroutine \li{fssor} included with this lab uses a technique called Successive Over Relaxation to solve Laplace's equation on a rectangular domain discretized as a grid of equally spaced points.
-It solves the same problem as the one involving Laplace's equation in Lab \ref{lab:NumPyArrays}.
-It takes the following inputs:
-\begin{itemize}
-\item $U$ is expected to be a pointer to a Fortran ordered array of double precision numbers.
-\item $m$ is a pointer to an integer storing the number of rows of $U$.
-\item $n$ is a pointer to an integer storing the number of columns of $U$.
-\item $\omega$ is a pointer to a double precision floating point value storing some parameter between $1$ and $2$.
-The closer this value is to $2$, the faster the algorithm will converge, but if it is too close the algorithm may not converge at all.
-For this lab just use $1.9$.
-\item tol is a pointer to a floating point number storing a tolerance used to determine when the algorithm should terminate.
-\item maxiters is a pointer to an integer storing the maximum allowable number of iterations.
-\item info is a pointer to an integer.
-This subroutine will set info to $0$ if it converged to a solution within the given tolerance.
-It will set info to $1$ if it did not.
-\end{itemize}
-
-Write a corresponding C header \li{fssor.h}, Cython wrapper \li{cython_fssor.pyx}, and Cython setup file (using distutils) \li{fssor_setup_distutils.py} to wrap this subroutine for use in Python.
-Call the wrapper function in your Cython file \li{cyssor}.
-
-Fortran works with Fortran ordered arrays, but this algorithm does not need any particular orientation of axes.
-Have your Cython wrapper swap the length of the axes when calling \li{fssor} if the array is C ordered.
-If it is Fortran ordered, pass the lengths as they are.
-Have the wrapper raise an error if the array $U$ is neither Fortran ordered nor C ordered.
-Also have it raise an error if the algorithm failed to converge to within the desired tolerances (i.e. if the function sets info to 1).
-Use keyword arguments to pass \li{fssor} a default tolerance of $10e^{-9}$ and a default maximum number of iterations to 10000.
-
-Here is how you should be able to call this function:
-\begin{lstlisting}
-import numpy as np
-from cython_fssor import cyssor
-resolution = 501
-U = np.zeros((resolution, resolution))
-X = np.linspace(0, 1, resolution)
-U[0] = np.sin(2 * np.pi * X)
-U[-1] = - U[0]
-cyssor(U, 1.9)
-\end{lstlisting}
-
-Generate a 3D plot of $U$ after it has been modified by the function \li{cyssor}.
-Use equally spaced points between 0 and 1 as your $x$ and $y$ values.
+Imitate Problem \ref{prob:c_wrap} to wrap \li{fssor()} with Cython.
 \end{problem}
 
-
-
-
-\begin{warn}
-When passing arrays as pointers to C, C++, and Fortran functions, be \emph{absolutely sure} that the array being passed is contiguous.
-This means that the entries of the array are stored in \emph{adjacent} entries in memory.
-Passing one of these functions a strided array will result in out of bounds memory accesses and could crash your computer.
-When working with two dimensional arrays, C and C++ expect rows to be stored in contiguous blocks of memory.
-Fortran expects columns to be stored in contiguous blocks of memory.
-
-To avoid out of bounds memory accesses, be sure to pass in the size of the array as a separate parameter.
-\end{warn}
 
 \section*{Appendix: compiling C extensions for Python}
 If you know more about compilers, you may find it enlightening to manually compile a C extension for Python.
