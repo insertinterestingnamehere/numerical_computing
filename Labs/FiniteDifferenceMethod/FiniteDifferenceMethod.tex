@@ -143,7 +143,14 @@ plt.show()
 \end{lstlisting}
 \end{comment}
 
+
 \section*{A heuristic test for convergence}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=12cm]{example_convergence.pdf}
+\caption{Demonstration of second order convergence for the finite difference approximation \eqref{fd_operator} of the BVP given in \eqref{eqn:singular_perturbed_BVP}.} \label{fig:finitedifference2}
+\end{figure}
+
 The finite differences used above are second order approximations of the first and second derivatives of a function.  It seems reasonable to expect that the numerical solution would converge at a rate of about $\mathcal{O}(h^2)$. How can we check that a numerical approximation is reasonable?
 
 % One way to determine this is to compute solutions for various step sizes $h$ and see if the solutions are converging to something.
@@ -158,15 +165,17 @@ stepsize $h_k, k < m,$ is
 	E(h_k) &= \max( \abs{ y_k - y_m}) \approx C h_k^p ,\\
 	\log(E(h_k)) &= \log(C) + p \log(h_k).
 \end{align*}
-Thus on a log-log plot of $E(h)$ vs. $h$, these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. 
+Thus on a log-log plot of $E(h)$ vs. $h$, these values should be on a straight line with slope $p$ when $h$ is small enough to start getting convergence. We should note that demonstrating second-order convergence does NOT imply that the numerical approximation is converging to the correct solution. 
 
-The following code generates the log-log plot in Figure \ref{fig:finitedifference2}, and demonstrates second-order convergence for our finite difference approximation. 
+The following code generates the log-log plot in Figure \ref{fig:finitedifference2}, and demonstrates second-order convergence for our finite difference approximation of \eqref{eqn:singular_perturbed_BVP}.
 \begin{lstlisting}
 num_approx = 10 # Number of Approximations
 N = 5*np.array([2**j for j in range(num_approx)])
 h, max_error = (1.-0)/N[:-1], np.ones(num_approx-1)
 
 # Best numerical solution, used to approximate the true solution.
+# bvp returns the grid, and the grid function, approximating the solution
+# with N subintervals of equal length.
 mesh_best, num_sol_best = bvp(lambda x:-1, epsilon=.1, alpha=1, beta=3, N=N[-1])
 for j in range(len(N)-1): 
     mesh, num_sol = bvp(lambda x:-1, epsilon=.1, alpha=1, beta=3, N=N[j])
@@ -180,11 +189,11 @@ print "The order of the finite difference approximation is about ", ( (np.log(ma
     np.log(max_error[-1]) )/( np.log(h[0]) - np.log(h[-1]) ) ), "."
 \end{lstlisting}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=12cm]{example_convergence.pdf}
-\caption{Demonstration of second order convergence for the finite difference approximation.} \label{fig:finitedifference2}
-\end{figure}
+
+
+
+
+
 
 \begin{problem}
 Solve the singularly perturbed BVP \eqref{eqn:singular_perturbed_BVP} with $\epsilon = 1/10$, $f(x) = -1$.
@@ -212,9 +221,25 @@ Use your code to solve the boundary value problem
 \end{align*}
 for $\epsilon = 0.1$.
 \label{prob:finitedifference2:prob3}
-
 (Hint: How should the finite difference operator $D_h$ in \eqref{fd_operator} be modified?) 
+
+The next few problems will help you troubleshoot your finite difference code. 
 \end{problem}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm]{figure2.pdf}
+\caption{The solution to Problem \ref{prob:finitedifference2:prob2}.
+The solution gets steeper near $x = 1$ as $\epsilon $ gets small.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm]{figure3.pdf}
+\caption{The solution to Problem \ref{prob:finitedifference2:prob3}.
+% The solution gets steeper near $x = 1$ as $\epsilon $ gets small.
+}
+\end{figure}
 
 \begin{problem}
 Numerically solve the boundary value problem
@@ -236,31 +261,17 @@ for $\epsilon = 0.05, 0.02$.
 \label{prob:finitedifference2:prob5}
 \end{problem}
 
-\begin{figure}
+\begin{figure}[h]
 \centering
-\includegraphics[width=12cm]{figure2.pdf}
-\caption{The solution to Problem \ref{prob:finitedifference2:prob2}.
-The solution gets steeper near $x = 1$ as $\epsilon $ gets small.}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=12cm]{figure3.pdf}
-\caption{The solution to Problem \ref{prob:finitedifference2:prob3}.
-% The solution gets steeper near $x = 1$ as $\epsilon $ gets small.
-}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=12cm]{figure4.pdf}
+\includegraphics[width=11cm]{figure4.pdf}
 \caption{The solution to Problem \ref{prob:finitedifference2:prob4}.
 }
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=12cm]{figure5.pdf}
+\includegraphics[width=11cm]{figure5.pdf}
 \caption{The solution to Problem \ref{prob:finitedifference2:prob5}.
 }
 \end{figure}
+

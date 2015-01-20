@@ -121,10 +121,11 @@ def prob4():
 										  a=-1.,b=1., alpha=-2.,beta=0.,N=subintervals)
 		return X,Y
 	
-	eps, subintervals = 0.1, 400
+	eps, subintervals = 0.1, 20
 	X,Y = bvp(eps, subintervals)
 	plt.plot(X,Y,'-k',mfc="None",linewidth=2.0)
 	
+	import sys; sys.exit()
 	eps, subintervals = 0.01, 400
 	X,Y = bvp(eps, subintervals)
 	plt.plot(X,Y,'-k',mfc="None",linewidth=2.0)
@@ -170,6 +171,8 @@ def prob5():
 	# plt.savefig('figure5.pdf')
 	plt.show()
 	plt.clf()
+	# import sys; sys.exit()
+	
 	num_approx = 6 # Number of Approximations
 	N = 2560*np.array([2**j for j in range(num_approx)])
 	approx_order(num_approx,N,bvp,eps)
@@ -250,7 +253,7 @@ def prob3_again():
 # prob1()
 # prob2()
 # prob3()
-# prob4()      # Profile correct; taken from 32 test problems for analysis
+prob4()      # Profile correct; taken from 32 test problems for analysis
 # prob5()
 
 # A check that fd_order2_ode works for problems 3 and 5. 

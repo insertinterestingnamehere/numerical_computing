@@ -1,11 +1,41 @@
 \lab{Solitons}{Solitons}
 \label{lab:pseudospectral2}
 
-\objective{We study traveling wave solutions of the Korteweg-de Vries (KdV) equation.  We will numerically solve this time-dependent PDE by using a pseudospectral discretization in space and a Runge-Kutta integration scheme in time.  }
+\objective{We study traveling wave solutions of the Korteweg-de Vries (KdV) equation. This time-dependent PDE can be numerically solved by using a pseudospectral discretization in space and a Runge-Kutta integration scheme in time.  }
+
+\section{A Pseudospectral method for periodic functions}
+Let $f$ be a periodic function on $[0,2\pi]$. Let $x_1,\ldots,x_N$ be $N$ evenly spaced grid points on $[0,2\pi].$ Since $f$ is periodic on $[0,2\pi]$, we can ignore the grid point $x_0 = 0$. We will further assume that $N$ is even; similar formulas can be derived for $N$ odd. Let $h = 2\pi/N$; then $\{x_1,\ldots,x_N\} = \{h,2h,\ldots,2\pi-h,2\pi\}$.  
+
+The discrete Fourier transform (DFT) of $f$ is 
+\[
+\hat{f}(k) = h \sum_{j=1}^N e^{-ikx_j}f(x_j).
+\]
+The inverse DFT is then given by
+\begin{align}
+f(x_j) = \frac{1}{2\pi}\sum_{k=-N/2+1}^{N/2}e^{ikx_j}\hat{f}(k), \quad j = 1,\ldots, N. \label{inverse_dft1}
+\end{align}
+
+\begin{align}
+f(x_j) = \frac{1}{2\pi}\sum_{k=-N/2}^{N/2}\!\!{}^{'} e^{ikx_j}\hat{f}(k), \quad j = 1,\ldots, N. \label{inverse_dft2}
+\end{align}
+The inverse DFT can then be used to define a natural interpolant (sometimes called a band-limited interpolant) by evaluating (\ref{inverse_dft2}) at any $x$ rather than $x_j$:
+\begin{align}
+p(x) = \frac{1}{2\pi}\sum_{k=-N/2+1}^{N/2} e^{ikx}\hat{f}(k). \label{interpolant}
+\end{align}
+
+
+The interpolant for $f'$ is then given by 
+\[
+p'(x) = ik \frac{1}{2\pi}\sum_{k=-N/2}^{N/2} e^{ikx}\hat{f}(k).
+\]
+
+
+
+\section{The KdV equation}
 
 There are canonical model equations for various types of phenomena.  Long, small amplitude waves moving in one direction can generally be described by the  Korteweg-de Vries (KdV) equation. The KdV equation is given by 
-\[  \frac{\partial u }{\partial t} + u \frac{\partial u}{\partial x} + \frac{\partial^3 u}{\partial x^3} = 0
-.\]
+\[  \frac{\partial u }{\partial t} + u \frac{\partial u}{\partial x} + \frac{\partial^3 u}{\partial x^3} = 0.
+\]
 
 The KdV equation possesses traveling wave solutions called solitary waves. These traveling waves have the form 
 \[ u(x,t) = 3\alpha^2 \sech^2(\alpha(x-x_0)/2 - \alpha^3 t).
