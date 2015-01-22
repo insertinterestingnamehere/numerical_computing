@@ -309,13 +309,16 @@ class naiveBayes(object):
 \end{problem}
 
 \begin{problem}
-Load in the data from {\tt spambase.data}. This is a text file containing a comma-delimited
-numerical array with 49 columns and several thousand rows, each row representing an email. 
-The first 48 columns for a particular row give the word-count vector for the email, while the
-final column has a zero or one (indicating a legitimate or spam email, respectively).
+In this problem, you will train a Naive Bayes classifier using a corpus of emails extracted from the Enron dataset.
+
+Load in the data from {\tt SpamFeatures.txt}. This is a text file containing a whitespace-delimited
+numerical array with several thousand columns and several thousand rows, each row representing an email
+as a count vector. 
+Also load in the data from {\tt SpamLabels.txt}, which is a text file containing a 1 (for legitimate email) or 0
+(for spam email) on each line, in correspondence with the rows of the count vector array.
 Using your document classification implementation, do the following:
 \begin{enumerate}
-\item Randomly create a test set from the data (100 documents), leaving the remaining documents as the training set.
+\item Randomly create a test set from the data (500 documents), leaving the remaining documents as the training set.
 \item Create a naive Bayes classifier and fit it using the training set.
 \item Predict the labels of the test set and compare to the true labels (by reporting the classification accuracy).
 \end{enumerate}
@@ -329,9 +332,37 @@ Next, perform the same task using {\tt sklearn}'s implementation and the same tr
 >>> predicted = mnb.predict(test_vectors)
 \end{lstlisting} 
 Again report the accuracy of the predicted labels. The result should be on par with those produced by your
-own implementation, although not necessarily exactly the same. The reason for this is that in some cases, the
-probability of both labels for a given email may be equal, and so taking the argmax amounts to an arbitrary choice
-between the labels.
+own implementation.
+
+If you wish, you may use your Naive Bayes classifier on your own email. 
+To do so, you need to load in the words in the vocabulary, contained in the file {\tt SpamVocab.txt}, as follows:
+\begin{lstlisting}
+>>> with open("SpamVocab.txt", 'r') as f:
+>>>     vocab = [s.strip() for s in f]
+\end{lstlisting}
+Next, load the email you wish to classify into memory, stored as a string object (either copy and paste the email
+directly into the interpreter, or load it from a file). Once you have this string, convert it to a count vector using
+the following code:
+\begin{lstlisting}
+from collection import Counter
+def getCountVector(document, vocab):
+    """
+    Return the count vector for the given document using the given vocabulary.
+    
+    Parameters
+    ----------
+    document : string, words separated by whitespace
+    vocab : list of strings of length n
+    
+    Returns
+    -------
+    counts : ndarray of shape (1,n)
+    """
+    tf = Counter(document.lower().split()) # get frequencies of each word
+    counts = np.array([[tf[t] if t in tf else 0 for t in vocab]])
+    return counts
+\end{lstlisting}
+Feed this output into the \li{predict} method of your classifier, and see how well it performs.
 \end{problem}
 
 
