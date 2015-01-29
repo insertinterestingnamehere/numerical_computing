@@ -2,7 +2,7 @@
 Solutions file for the line search lab.
 '''
 
-def newtons1d(f, df, ddf, x, niter=10):
+def newton1d(f, df, ddf, x, niter=10):
     '''
     Perform Newton's method to minimize a function from R to R.
     Inputs:
