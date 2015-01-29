@@ -1,0 +1,219 @@
+\lab{Discrete HMM}{Discrete Hidden Markov Models}
+\label{lab:hmm}
+\objective{Understand how to fit discrete Hidden Markov Models.}
+
+Given a discrete state-space Hidden Markov Model (HMM) with parameters $\lambda$ and an observation sequence $O$, we would like to answer three questions:
+\begin{enumerate}
+ \item What is $\mathbb{P}(O | \lambda)$? In other words, what is the likelihood that our model generated the observation sequence?
+ \item What is the most likely state sequence to have generated $O$, given $\lambda$?
+ \item How can we choose the parameters $\lambda$ that maximize $\mathbb{P}(O | \, \lambda)$?
+\end{enumerate}
+The answers to these questions are centered around the \emph{forward-backward} algorithm for HMMs. 
+For the second question, the approach taken in this lab will be to try to find the state sequence maximizing the expected number of correct states.
+The third question is an example of \emph{unsupervised learning}, since we are attempting to learn (or fit) model parameters using data (the observation sequence $O$) that is devoid
+of human-provided labels (the corresponding state sequence); the algorithm does not rely on human supervision or input.
+
+We assume throughout this lab that the HMM has a discrete state space of cardinality $N$ and a discrete observation space of cardinality $M$. 
+In this context, $\lambda = \left( A, B, \mathbf{\pi} \right)$ where $A$ is a $N \times N$  column-stochastic matrix (the state transition model), $B$ is a $M \times N$ column-stochastic matrix (the
+state-observation model), and $\mathbf{\pi}$ is a stochastic vector of length $N$ (the initial state distribution).
+Further, $O$ is a vector of length $T$ with values in $\{1,2,\ldots,M\}$.
+
+!!WARNING ENVIRONMENT!! (what is the command for it?)
+The mathematical exposition in the lab assumes the standard 1-based indexing of vectors and matrices.
+It will be your job to carefully translate the various formulae into 0-based indexing for the Python code.
+This means that in Python, your array containing the observation sequence $O$ will actually have values
+in the set $\{0,1,\ldots,M-1\}$, so that they may be used to index the matrix $B$.
+
+Throughout this lab, we will be using the data found in the file {\tt declaration.txt}.
+This file contains the text of the Declaration of Independence. 
+We will use the sequence of characters (after stripping out punctuation and converting everything to lower-case) as our observation sequence.
+In order to convert the raw text into a useable data structure, we need to read in the file, process the string as necessary, and then map the characters to integer values.
+We provide sample code below to accomplish this task:
+\begin{lstlisting}
+>>> import numpy as np
+>>> import string
+
+>>> with open("declaration.txt", 'r') as f: # read in the text
+>>>     dec = f.read(-1).lower() # convert to lower-case
+
+>>> # next, remove punctuation and newline characters
+>>> dec = dec.translate(string.maketrans("",""), string.punctuation+"\n")
+
+>>> # create a list of the unique characters in the text
+>>> char_map = list(set(dec))
+
+>>> # map each character to its index in char_map
+>>> obs = []
+>>> for char in dec:
+>>>     obs.append(char_map.index(char))
+>>> obs = np.array(obs)
+\end{lstlisting}
+
+\begin{problem}
+To start off your implementation of the HMM, define a class using the following code.
+You will be adding class methods throughout the remainder of the lab.
+\begin{lstlisting}
+class hmm(object):
+    """
+    Finite state space hidden markov model.
+    """
+    def __init__(self):
+        """
+        Initialize model parameters.
+        """
+        self.A = None
+        self.B = None
+        self.pi = None
+\end{lstlisting}
+\end{problem}
+\subsection*{The Forward Pass}
+Our first task is to efficiently compute $\log \mathbb{P}(O | \lambda)$.
+We can do this using the \emph{forward pass} of the forward-backward algorithm.
+We must take care to compute all values in a numerical stable way; we do this by properly scaling values as necessary.
+
+\begin{comment}
+We define the \emph{forward probabilities} $\alpha_{t,i}$ to be the joint probability of the partial observation sequence up through time $t$ and the event that the system is in state $i$ at time $t$, conditioned on the model parameters $\lambda$, i.e.
+\begin{equation*}
+\alpha_{t,i} = \mathbb{P}(O_{1},\cdots,O_{t},\mathbf{x}_{t} = i | \lambda)
+\end{equation*}
+The forward probabilities $\alpha_{t,i}$ can be computed recursively as follows:
+\begin{itemize}
+ \item $\alpha_{1,i} = \pi_{i}b_{O_{1},i}$
+ \item $\alpha_{t,i} = \left[ \sum_{j=1}^{N} \alpha_{t-1,j}a_{i,j}\right] b_{O_{t},i}$ for $t = 2,\cdots,T.$
+\end{itemize}
+We can represent these forward probabilities in a single $T\times N$ matrix $\alpha$.
+Unfortunately, this is subject to serious underflow issues, since we are repeatedly multiplying together numbers between $0$ and $1$. 
+\end{comment}
+
+We compute a scaled forward probability matrix $\widehat{\alpha}$ of dimension $T \times N$ as follows. 
+Let $\widehat{\alpha}_{i,:}, B_{i,:}$ denote the $i$-th rows of $\widehat{\alpha}$ and $B$, respectively, let $\odot$ denote the Hadamard (or entry-wise) product of arrays,
+and let $\langle \cdot, \cdot \rangle$ denote the standard dot product.
+Then
+\begin{itemize}
+ \item $c_1 = \langle \pi, B_{O_1,:}\rangle^{-1}$
+ \item $\widehat{\alpha}_{1,:} = c_1(\pi\odot B_{O_1,:})$
+ \item For $t = 2, \ldots, T$:
+ \begin{itemize}[]
+     \item $c_t = \langle A\widehat{\alpha}_{t-1,:}, B_{O_t,:}\rangle^{-1}$
+	 \item $\widehat{\alpha}_{t,:} = c_t((A\widehat{\alpha}_{t-1,:})\odot B_{O_t,:})$
+ \end{itemize}
+\end{itemize}
+The matrix $\widehat{\alpha}$ will be of use when fitting parameters, but we can compute the desired log probability using the scaling factors $c_t$ as follows:
+\[
+\log \mathbb{P}(O | \lambda) = -\sum_{t=1}^T \log c_t.
+\]
+
+\begin{problem}
+Implement the forward pass by adding the following method to your class:
+\begin{lstlisting}
+def _forward(self, obs):
+    """
+    Compute scaled forward probability matrix and scaling factors.
+    
+    Parameters
+    ----------
+    obs : ndarray of shape (T,)
+        The observation sequence
+    
+    Returns
+    -------
+    alpha : ndarray of shape (T,N)
+        The scaled forward probability matrix
+    c : ndarray of shape (T,)
+        The scaling factors c = [c_1,c_2,...,c_T]
+    """
+    pass
+\end{lstlisting}
+\end{problem}
+
+\subsection*{The Backward Pass}
+The backward pass of the forward-backward algorithm produces values that can be used calculate the most likely state sequence corresponding to an observation sequence.
+\begin{comment}
+We also define the \emph{backward probabilities} $\beta_{t}(i)$ to be the probability of the partial observation sequence after time $t$, conditioned on the model parameters $\lambda$ and the event that the system is in state $i$ at time $t$, i.e.
+\begin{equation*}
+\beta_{t}(i) = \mathbb{P}(O_{t+1},\cdots,O_{T} | \mathbf{x}_{t} = i, \lambda)
+\end{equation*}
+The backward probabilities $\beta_{t}(i)$ can be computed recursively as well, as follows:
+\begin{itemize}
+ \item $\beta_{T}(i) = 1$
+ \item $\beta_{t}(i) = \sum_{j=1}^{N} a_{ij}b_{jO_{t+1}}\beta_{t+1}(j)$ for $t = T-1, \cdots, 1$.
+\end{itemize}
+\end{comment}
+We compute a scaled backward probability matrix $\widehat{\beta}$ of dimension $T \times N$ as follows.
+\begin{itemize}
+ \item $\widehat{\beta}_{T,i} = c_{T}$ for $i = 1,\ldots, N$
+ \item $\widehat{\beta}_{t,:} = c_{t}A^T(B_{O_{t+1},:}\odot \widehat{\beta}_{t+1,:})$ for $t = T-1, \ldots, 1$.
+\end{itemize}
+
+\begin{problem}
+Implement the backward pass by adding the following method to your class:
+\begin{lstlisting}
+def _backward(self, obs, c):
+    """
+    Compute scaled backward probability matrix.
+    
+     Parameters
+    ----------
+    obs : ndarray of shape (T,)
+        The observation sequence
+    c : ndarray of shape (T,)
+        The scaling factors from the forward pass
+
+    Returns
+    -------
+    beta : ndarray of shape (T,N)
+        The scaled backward probability matrix
+    """
+    pass
+\end{lstlisting}
+\end{problem}
+
+
+\begin{problem}
+Write a function that will compute the modified backward pass, given model parameters $\lambda$ and observation sequence $O$. It should return a $T \times N$ matrix $\widehat{\beta}$.
+\end{problem}
+
+It turns out that the way in which we have scaled our probabilities yields an efficient way to compute the log-likelihood of $O$, given $\lambda$, namely
+$$\log \mathbb{P}(O | \lambda) = - \sum_{t=1}^{T} \log \sigma_{t}.$$
+
+It also turns out that
+\begin{equation*}
+\mathbb{P}(\mathbf{x}_{t} = i | O, \lambda) = \frac{\widehat{\alpha}_{t}(i)\widehat{\beta}_{t}(i)}{\sum_{j=1}^{N} \widehat{\alpha}_{t}(j)\widehat{\beta}_{t}(j)}
+\end{equation*}
+and so we can easily compute the expected state at time $t$ by
+\begin{equation*}
+\mathbf{x}_{t}^{*} = \argmax_{i} \widehat{\alpha}_{t}(i) \widehat{\beta}_{t}(i)
+\end{equation*}
+We refer to the above probability as $\gamma_{t}(i)$.
+
+%\lab{Applications}{English Language}{English Language}
+%\objective{Understand how HMMs can be used in simple natural language processing.}
+
+For example, consider each letter in a document to be an observation emitted by an HMM with two states - consonant and vowel. For simplicity, we will make everything lowercase and consider only the $26$ lowercase letters in the English alphabet and spaces to be in our observation space. In this fashion, our HMM parameters will consist of a $2 \times 2$ transition matrix $A$, a $2 \times 27$ observation matrix $B$, and a vector $\mathbf{\pi}$ of length $2$.
+
+Given the matrix $B$, we might be able to infer some information about the two states. Note that
+\begin{align*}
+\mathbb{P}(\mathbf{x}_{t} = i | O_{t},\lambda) & = \frac{\mathbb{P}(\mathbf{x}_{t} = i, O_{t} | \lambda)}{\mathbb{P}(O_{t} | \lambda)} \\
+& = \frac{\mathbb{P}(O_{t} | \mathbf{x}_{t} = i, \lambda) \mathbb{P}(\mathbf{x}_{t} = i | \lambda)}{\mathbb{P}(O_{t} | \lambda)} \\
+& \propto \mathbb{P}(O_{t} | \mathbf{x}_{t} = i, \lambda) \mathbb{P}(\mathbf{x}_{t} = i| \lambda)
+\end{align*}
+
+The first term in the last expression is simply $b_{iO_{t}}$, so if we know something about the overall probability of the system being in state $i$ at an arbitrary time $t$, then we can have an idea of how likely a state is, given the associated observation. Recall that any irreducible, aperiodic Markov chain has a unique invariant distribution $\pi$ such that
+\begin{equation*}
+\lim_{t \rightarrow \infty} \mathbb{P}(\mathbf{x}_{t} = j | \mathbf{x}_{0} = i) = \pi_{j}
+\end{equation*}
+for \emph{any} initial state $i$. Note also that $\mathbb{P}(\mathbf{x}_{t} = j | \mathbf{x}_{0} = i) = (A^{t})_{ij}$ where $A$ is the row-stochastic transition matrix defining the Markov chain $\mathbf{X}$. While we could directly compute the invariant stationary distribution from a system of equations, we can easily estimate it by using any row of $A^{t}$, where $t$ is sufficiently large.
+
+\begin{problem}
+Given the probabilities
+\begin{align*}
+\mathbb{P}(\mathbf{x} = 1 | \lambda) & = .38 \\
+\mathbb{P}(\mathbf{x} = 2 | \lambda) & = .62
+\end{align*}
+compute the probability $\mathbb{P}(\mathbf{x}_{t} = i | O_{t})$ for $i = 1,2$ and $O_{t}$ in the $27$ character alphabet. Which characters are more likely to correspond with state $1$ and which with state $2$? What do you notice?
+\end{problem}
+It looks like a $2$-state HMM trained on English characters distinguishes clearly between vowels and consonants. But how clearly?
+
+\begin{problem}
+Parse the file \texttt{declaration.txt} containing the Declaration of Independence, removing all punctuation and making every letter lowercase. Estimate the state for each letter in the sequence using the HMM provided, i.e. using the HMM and your code from the previous lab, uncover the optimal hidden state sequence). Write another function to classify each letter as a vowel or a consonant, given your actual knowledge of the English language and considering spaces to be vowels. Compare this true classification with the estimated state classification. What is your misclassification rate? It should be quite low.
+\end{problem}
