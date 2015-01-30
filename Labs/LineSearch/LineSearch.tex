@@ -126,6 +126,9 @@ approximation, which the reader can verify, is
 \begin{equation*}
 x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)}.
 \end{equation*}
+In the one dimensional case, there are only two search directions: to the right ($+$)
+or to the left ($-$). Newton's method chooses the search direction 
+$\text{sign}(-f'(x_n)/f''(x_n))$ and the step size $|f'(x_n)/f''(x_n)|$.
 
 As is typical with optimization algorithms, Newton's Method generates a sequence of
 points or successive approximations to the minimizer. However, the convergence
@@ -146,11 +149,32 @@ an initial guess of 4 led to only a local minimum.}
 \end{figure}
 
 \begin{problem}
-Implement Newton's Method as described above. Write a function called \li{newton1d} that
-accepts a function object for the objective function, the first derivative, and the
-second derivative, a real number giving the initial point, and an integer giving the number
-of iterations. The function should perform Newton's method for the specified number of iterations
-and return the approximated minimizer.
+Implement Newton's Method as described using the following function declaration. 
+\begin{lstlisting}
+def newton1d(f, df, ddf, x, niter=10):
+    '''
+    Perform Newton's method to minimize a function from R to R.
+    
+    Parameters
+    ----------
+    f : callable function object 
+        The objective function (twice differentiable)
+    df : callable function object 
+        The first derivative
+    ddf : callable function object
+        The second derivative
+    x : float
+        The initial guess
+    niter : integer
+        The number of iterations
+        
+    Returns
+    ------
+        min : float
+            The approximated minimizer
+    '''
+    pass
+\end{lstlisting}
 
 Use this function to minimize $x^2 + \sin(5x)$ with an initial guess of $x_0 = 0$.
 Now try other initial guesses farther away from the true minimizer, and note when the
@@ -189,7 +213,7 @@ That is, choose $\alpha >0, \rho \in (0, 1), c\in (0, 1)$, and while
 $$
 f(x_k + \alpha p_k) > f(x_k) + c\alpha\nabla f_k^Tp_k,
 $$
-set $\alpha := \rho\alpha$. Once the loop terminates, set $\alpha_k = \alpha$. Note that the value
+re-scale $\alpha := \rho\alpha$. Once the loop terminates, set $\alpha_k = \alpha$. Note that the value
 $\nabla f_k^Tp_k$ remains fixed for the duration of the backtracking algorithm, and hence need only
 be calculated once at the beginning.
 %The second of the two conditions can be replaced by
@@ -209,10 +233,36 @@ be calculated once at the beginning.
 %preferred.
 
 \begin{problem}
-Implement this backtracking algorithm. Write a function \li{backtrack} that takes a function
-object giving the objective function, a real number giving the value of $\nabla f_k^Tp_k$, the
-current point $x_k$, the search direction $p_k$, an initial guess for $\alpha$, the value for
-$\rho$, and the value for $c$. Return the computed step size.
+Implement this backtracking algorithm using the following function declaration. 
+\begin{lstlisting}
+def backtracking(f, slope, x, p, a=1, rho=.9, c=10e-4):
+    '''
+    Perform a backtracking line search to satisfy the Armijo condition.
+    
+    Parameters
+    ----------
+    f : callable function object
+        The objective function
+    slope : float 
+        The value of grad(f)^T p
+    x : ndarray of shape (n,) 
+        The current iterate
+    p : ndarray of shape (n,) 
+        The current search direction
+    a : float 
+        The intial step length (set to 1 in Newton and quasi-Newton methods)
+    rho : float 
+        A number in (0,1)
+    c : float 
+        A number in (0,1)
+    
+    Returns
+    -------
+        alpha : float
+            The computed step size satisfying the Armijo condition.
+    '''
+    pass
+\end{lstlisting}
 \end{problem}
 
 \subsection*{Choosing a Search Direction}
@@ -256,11 +306,58 @@ $$
 $$
 
 \begin{problem}
-Write a function \li{gradientDescent} that implements the Gradient Descent algorithm.
-Write another function \li{newtonsMethod} that implements the general Newton's Method
-described above. In each function, you should call your backtracking function with
+Implement the Gradient Descent algorithm and Newton's Method using the following function declarations.
+In each function, you should call your backtracking function with
 values $\alpha = 1, \rho = .9$, and $c = 10^{-4}$. The \li{scipy.linalg} module
 may be useful when computing the search direction in Newton's Method.
+\begin{lstlisting}
+def gradientDescent(f, df, x, niter=10):
+    '''
+    Minimize a function using gradient descent.
+    
+    Parameters
+    ----------
+    f : callable function object 
+        A differentiable real-valued function
+    df : callable function object 
+        The gradient of the function
+    x : ndarray of shape (n,) 
+        The initial point
+    niter : integer 
+        The number of iterations to run.
+    
+    Returns
+    -------
+        pts: list of ndarrays 
+            The sequence of points generated
+    '''
+    pass
+
+def newtonsMethod(f, df, ddf, x, niter=10):
+    '''
+    Minimize a function using Newton's method.
+    
+    Parameters
+    ----------
+    f : callable function object
+        Real-valued, twice-differentiable function
+    df : callable function object
+        The gradient of the function
+    ddf : callable function object 
+        The Hessian of the function
+    x : ndarray of shape (n,) 
+        The initial point
+    niter : integer 
+        The number of iterations
+        
+    Returns
+    -------
+    pts : list of ndarrays
+        The sequence of points generated
+    '''
+    pass
+\end{lstlisting}
+
 \end{problem}
 
 \subsection*{Line Search in SciPy}
@@ -364,10 +461,34 @@ For convenience, we summarize these steps in Algorithm \ref{alg:guassnewton}.
 \end{algorithm}
 
 \begin{problem}
-Write a function called \li{gaussNewton} that implements the algorithm described above.
-The function should take functions objects for the objective function, its gradient, the Jacobian,
-the residual vector, an initial guess, and a number of iterations. It should return the estimated
-parameters.
+Implement the Gauss-Newton method using the following function declaration.
+\begin{lstlisting}
+def gaussNewton(f, df, jac, r, x, niter=10):
+    '''
+    Solve a nonlinear least squares problem with Gauss-Newton method.
+    
+    Parameters
+    ----------
+    f : callable function object
+        The objective function
+    df : callable function object
+        The gradient of f
+    jac : callable function object
+        The jacobian of residual vector
+    r : callable function object 
+        The residual vector
+    x : ndarray of shape (n,) 
+        The initial point
+    niter : integer 
+        The number of iterations
+    
+    Returns
+    -------
+    min : ndarray of shape (n,)
+        The minimizer
+    '''
+    pass
+\end{lstlisting}
 
 Feel free to use SciPy functions to solve linear systems and calculate step sizes in your algorithm.
 \end{problem}
@@ -456,7 +577,7 @@ $$
 \phi(x_1,x_2,x_3,t) = x_1\exp(x_2(t+x_3)).
 $$
 By inspection, find a reasonable
-initial guess for the parameters $(x_1, x_2, x_3)$.
+initial guess for the parameters $(x_1, x_2, x_3)$ (i.e. $(150, .4, 2.5)$).
 Write a function for this model in Python, along with the corresponding residual vector,
 and fit the model using the \li{leastsq} function.  Plot the data against the fitted curve,
 to see how close you are.
@@ -469,7 +590,7 @@ $$
 \phi(x_1,x_2,x_3,t) = \frac{x_1}{1+\exp(-x_2(t+x_3))}.
 $$
 By inspection, find a reasonable
-initial guess for the parameters $(x_1, x_2, x_3)$.
+initial guess for the parameters $(x_1, x_2, x_3)$ (i.e. $(150, .4, -15)$).
 Again, write Python functions for the model and the corresponding residual vector,
 and fit the model. Plot the data against the fitted curve. It should be a good fit.
 \end{problem} 
