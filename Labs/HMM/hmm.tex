@@ -162,19 +162,19 @@ Using the same toy example as before, your code should produce the following out
 \subsection*{Computing the $\delta$ and $\gamma$ Probabilities}
 Having implemented both parts of the forward-backward algorithm, we are closing in on the solution to question 3, namely that of fitting parameters.
 At this stage, we combine the information accumulated in the forward-backward algorithm to produce a three-dimensional array $\widehat{\delta}$
-of shape $(T-1)\times N \times N$ whose entries are related to $\mathbb{P}(\mathbf{x}_t = i, \mathbf{x}_{t+1} = j|\, O, \lambda)$, as well as 
+of shape $(T-1)\times N \times N$ whose entries are related to $\mathbb{P}(\mathbf{x}_t = i, \mathbf{x}_{t+1} = j|\, O, \lambda)$, as well as
 a $T \times N$ matrix $\widehat{\gamma}$ whose entries are related to $\mathbb{P}(\mathbf{x}_t=i | \, O, \lambda)$.
 The relevant formulae are
 \[
 \widehat{\delta}_{t,i,j} = \frac{\widehat{\alpha}_{t,i}A_{j,i}B_{O_{t+1},j}\widehat{\beta}_{t+1,j}}{\sum_{k,l}\widehat{\alpha}_{t,k}A_{l,k}B_{O_{t+1},l}\widehat{\beta}_{t+1,l}}
 \]
-for $t = 1, \ldots, T-1$ and $i,j = 1, \ldots, N$, 
+for $t = 1, \ldots, T-1$ and $i,j = 1, \ldots, N$,
 \[
 \widehat{\gamma}_{t,i} = \sum_{j=1}^N \widehat{\delta}_{t,i,j}
 \]
 for $t = 1,\ldots,T-1$ and $i=1,\ldots,N$, and finally
 \[
-\widehat{\gamma}_{T,:} = \frac{\widehat{\alpha}_{T,:}\odot \widehat{\beta}_{T,:}}{\sum_{i=1}^N \widehat{\alpha}_{T,i}\widehat{\beta}_{T,i}}.
+\widehat{\gamma}_{T,:} = \frac{\widehat{\alpha}_{T,:}\odot \widehat{\beta}_{T,:}}{\langle\widehat{\alpha}_{T,:}, \widehat{\beta}_{T,:}\rangle}.
 \]
 
 \begin{problem}
@@ -233,8 +233,8 @@ that increase the probability of observing our data, i.e.
 \]
 The update formulas are given by
 \begin{align*}
-A'_{i,j} &= \frac{\sum_{t=1}^{T-1}\widehat{\delta}_{t,j,i}}{\sum_{t=1}^{T-1}\widehat{\gamma}_{t,i}}\\
-B'_{i,j} &= \frac{\sum_{t=1}^{T}\widehat{\gamma}_{t,i}1_{\{O_t=j\}}}{\sum_{t=1}^{T}\widehat{\gamma}_{t,i}}\\
+A'_{i,j} &= \frac{\sum_{t=1}^{T-1}\widehat{\delta}_{t,j,i}}{\sum_{t=1}^{T-1}\widehat{\gamma}_{t,j}}\\
+B'_{i,j} &= \frac{\sum_{t=1}^{T}\widehat{\gamma}_{t,j}1_{\{O_t=i\}}}{\sum_{t=1}^{T}\widehat{\gamma}_{t,j}}\\
 \pi' &= \widehat{\gamma}_{1,:}
 \end{align*}
 \begin{problem}
@@ -313,7 +313,7 @@ The learning algorithm is essentially an optimization over the parameter space (
 stochastic arrays having the proper dimensions) with respect to the objective function $\mathbb{P}(O |\, \lambda)$.
 The algorithm is guaranteed to increase the objective function at each iteration, so it is sure to converge.
 However, the objective function is riddled with local maxima, and the outcome depends heavily on the randomly
-selected starting values for $A$, $B$, and $\pi$. Figure \ref{fig:logprobs} illustrates the issues involved. 
+selected starting values for $A$, $B$, and $\pi$. Figure \ref{fig:logprobs} illustrates the issues involved.
 The log probability stays approximately constant for the first 100
 iterations. This indicates that the algorithm is not exploring the parameter space enough, and the parameters
 found at the 100-th iteration are virtually the same as those found at the first iteration. After the first
@@ -380,7 +380,7 @@ You are now ready to train a HMM using the Declaration of Independence data.
 Use $N=2$ states and $M=27$ observation values (26 lower case characters and 1 whitespace character),
 and run for 200 iterations with the default value for \li{tol}.
 Generally speaking, if you converge to a log probability larger than $-21550$, then you have reached
-an acceptable set of parameters for this dataset. 
+an acceptable set of parameters for this dataset.
 
 Once the learning algorithm converges, analyze the state-observation matrix $B$.
 Note which rows correspond to the largest and smallest probability values in each column of $B$,
@@ -418,8 +418,8 @@ x, 0.0022, 0.0000
 z, 0.0010, 0.0000
 \end{lstlisting}
 What do you notice about the second column of $B$? It seems that the HMM has detected a vowel state and a consonant state, without any prior input from an English-speaker.
-Interestingly, the whitespace character is grouped together with the vowels. An HMM can also detect the vowel-consonant distinction in other languages. It appears that 
-this distinction is a statistically significant aspect of much of human language. 
+Interestingly, the whitespace character is grouped together with the vowels. An HMM can also detect the vowel-consonant distinction in other languages. It appears that
+this distinction is a statistically significant aspect of much of human language.
 \end{problem}
 
 
