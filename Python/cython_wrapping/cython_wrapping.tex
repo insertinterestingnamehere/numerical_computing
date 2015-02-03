@@ -37,9 +37,60 @@ We include the header in the Cython code so that the compiler can check that the
 Then, when we tell the compiler to \emph{link to} the object file, we simply tell it where to find the instructions defining the function declared in the header.
 
 The Cython code will compile to a second object file.
-This object file defines a module that can be imported into Python. See Figure (TODO).
+This object file defines a module that can be imported into Python. See Figure \ref{fig:cython_flowchart}.
 
 %TODO: make figure
+\begin{figure}
+\begin{tikzpicture}[dot/.style={circle,fill=black,minimum size=3pt,inner sep=0pt,
+            outer sep=-1pt}, >=stealth', thick]
+
+\node[draw, minimum height=1.5cm, minimum width=3cm, align=center](ctri1)
+	[]{\Large{ctridiag.h} \\ {\small declare \texttt{ctridiag()}}};
+
+\node[draw, minimum height=1.5cm, minimum width=3cm, align=center, node
+	distance=2.5cm](ctri2)[below of=ctri1]{\Large{ctridiag.c} \\ {\small define \texttt
+	{ctridiag()}}};
+
+\node[draw, minimum height=1cm, minimum width=2cm, align=center, node
+	distance=2.2cm, color=white!40!black](ctri3)[below of=ctri2]{COMPILE};
+
+\node[draw, minimum height=.7cm, minimum width=3cm, align=center, node
+	distance=1.9cm](ctri4)[below of=ctri3]{ \Large{ctridiag.o} \\{\small object file callable} \\ {\small from C}};
+
+%\node[draw, minimum height=1cm, minimum width=3cm, align=center, node
+%	distance=.85cm](ctri5)[below of=ctri4]{object file  \\ callable by C};
+
+\draw[-, color=white!40!black](ctri2)--(ctri3);
+\draw[->, shorten >=3pt,color=white!40!black](ctri3)--(ctri4);
+
+\node[draw, minimum height=1.5cm, minimum width=3cm, align=center, node
+	distance=7cm](ctri6)[right of=ctri1]{\Large{cython\_ctridiag.pyx}
+	 \\ {\small define \texttt{cytridiag()}}};
+
+\node[draw, minimum height=1cm, minimum width=2cm, align=center, node
+	distance=3.3cm,color=white!40!black](ctri7)[below of=ctri6]{COMPILE};
+
+\node[draw, minimum height=1.5cm, minimum width=3cm, align=center, node
+	distance=3.3cm](ctri8)[below of=ctri7]{\Large{ctridiag.so} \\ {\small object file 
+	callable} \\ {\small from Python}};
+
+\draw[-, color=white!40!black](ctri6)--(ctri7);
+\draw[->, shorten >=3pt,color=white!40!black](ctri7)--(ctri8);
+\draw[->, dashed, shorten >=3pt,color=white!40!black](1.5,-6.95)--(6, -3.3);
+\draw[->, shorten >=3pt,color=white!40!black](ctri1)--(ctri6);
+
+\node[draw, minimum height=.7cm, minimum width=1cm, align=center, node
+	distance=3.1cm,color=white!40!black, fill=white](include)[right of=ctri1]
+	{INCLUDE};
+
+\node[draw, minimum height=.7cm, minimum width=1cm, align=center, node
+	distance=5.8cm,color=white!40!black, fill=white](include)at(3.7,-5.15){LINK};
+
+\end{tikzpicture}
+\caption{This diagram shows the relationships between the files used to write a Cython wrapper for \li{ctridiag()}.
+In fact, the Cython file \texttt{cython\_ctridiag.pyx} compiles first to C code and then to the shared object file, but we have omitted this step from the diagram.}
+\label{fig:cython_flowchart}
+\end{figure}
 
 \section*{Wrapping with Cython: an example}
 As an example, we will wrap the C function \texttt{ctridiag()} below.
