@@ -315,19 +315,39 @@ Because $L=(E_k \ldots E_2E_1)^{-1} = IE_1^{-1}E_2^{-1}\ldots E_k^{-1}$, we can 
 In fact, in this special situation, each right-multiplication will change only one entry of $L$. 
 We have the following algorithm for the LU decomposition, assuming it exists.
 
-\begin{itemize}
-\item Make a copy, $U$, of $A$.
-\item Make an identity matrix $L$ that is the same shape as $A$.
-\item Iterate through the entries below the diagonal of $U$.
+%
+%\begin{itemize}
+%\item Make a copy, $U$, of $A$.
+%\item Make an identity matrix $L$ that is the same shape as $A$.
+%\item Iterate through the entries below the diagonal of $U$.
+%
+%Now for each entry below the main diagonal of $U$ do the following:
+%	\begin{itemize}
+%	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ located above the current entry.
+%	\item Perform the type 3 row operation to set the current entry of $U$ to 0.
+%		Do not modify any entries known to be 0.
+%	\end{itemize}
+%\item Return $L$ and $U$
+%\end{itemize}
 
-Now for each entry below the main diagonal of $U$ do the following:
-	\begin{itemize}
-	\item Set the corresponding entry of $L$ to the quotient of the current entry of $U$ and the entry of the main diagonal of $U$ located above the current entry.
-	\item Perform the type 3 row operation to set the current entry of $U$ to 0.
-		Do not modify any entries known to be 0.
-	\end{itemize}
-\item Return $L$ and $U$
-\end{itemize}
+\begin{algorithm}
+\begin{algorithmic}[1]
+\Procedure{LU Decomposition}{$A$}
+\State $m, n \gets \text{shape} \left( A \right)$ 
+\State $U \gets \text{copy} \left( A \right)$
+\State $L \gets I_n$
+\For{$0 \leq j < n$}
+    \For{$j+1 \leq i < m$}
+    \State $L_{[i,j]} \gets U_{[i, j]}/U_{[j, j]}$
+    \State $U_{[i,j:]} \gets U_{[i,j:]} - L_{[i,j]}U_{[j, j:]}$
+	\EndFor
+\EndFor
+\State \pseudoli{return} $L, U$
+\EndProcedure
+\end{algorithmic}
+\caption{The algorithm for LU decomposition. This algorithm returns lower triangular $L$ and upper triangular $U$ such that $A = LU$.}
+\label{Alg:gram_schmidt}
+\end{algorithm}
 
 \begin{problem}
 \label{prob:LU_copy}
@@ -443,14 +463,14 @@ Thus, an implementation of the Cholesky decomposition must compute the entries o
 
 \node[norm,black](bk1)at(.25,2.25){\LARGE \textbullet};
 \node[norm,black](bk2)at(.75,1.75){\LARGE \textbullet};
-\node[norm,blue](b1)at(1.25,1.25){\LARGE \textbullet};
+\node[norm,black!25!](b1)at(1.25,1.25){\LARGE \textbullet};
 \node[norm,black](bk3)at(1.75,.75){\LARGE \textbullet};
 \node[norm, black](bk4)at(2.25,.25){\LARGE \textbullet};
-\node[norm, blue](b2)at(.25,1.25){\LARGE \textbullet};
-\node[norm,blue](b3)at(.75,1.25){\LARGE \textbullet};
-\node[norm,blue](b4)at(.25,.25){\LARGE \textbullet};
-\node[norm,blue](b3)at(.75,.25){\LARGE \textbullet};
-\node[norm, red](r1)at(1.25,.25){\Huge \textbullet};
+\node[norm, black!25!](b2)at(.25,1.25){\LARGE \textbullet};
+\node[norm,black!25!](b3)at(.75,1.25){\LARGE \textbullet};
+\node[norm,black!25!](b4)at(.25,.25){\LARGE \textbullet};
+\node[norm,black!25!](b3)at(.75,.25){\LARGE \textbullet};
+\node[norm, shadecolor](r1)at(1.25,.25){\Huge \textbullet};
 
 \end{scope}
 
@@ -463,19 +483,19 @@ Thus, an implementation of the Cholesky decomposition must compute the entries o
 \draw [-,ultra thick](2.7,0)--(2.5,0);
 
 
-\node[norm,red](r1)at(1.75,.75){\Huge \textbullet};
+\node[norm, shadecolor](r1)at(1.75,.75){\Huge \textbullet};
 \node[norm,black](bk1)at(.25,2.25){\LARGE \textbullet};
 \node[norm,black](bk2)at(1.25,1.25){\LARGE \textbullet};
 \node[norm,black](bk3)at(.75,1.75){\LARGE \textbullet};
 \node[norm,black](bk4)at(2.25,.25){\LARGE \textbullet};
-\node[norm,blue](bk1)at(.25,.75){\LARGE \textbullet};
-\node[norm,blue](bk1)at(.75,.75){\LARGE \textbullet};
-\node[norm, blue](bk1)at(1.25,.75){\LARGE \textbullet};
+\node[norm,black!25!](bk1)at(.25,.75){\LARGE \textbullet};
+\node[norm,black!25!](bk1)at(.75,.75){\LARGE \textbullet};
+\node[norm, black!25!](bk1)at(1.25,.75){\LARGE \textbullet};
 \end{scope}
 \end{tikzpicture}
 \label{fig:cholesky}
 \caption{The entries of $L$ in the Cholesky decomposition are defined recursively, as illustrated in this picture. 
-To calculate the red entry, you need to know each of the blue entries.}
+To calculate the green entry, you need to know each of the light gray entries.}
 \end{figure}
 
 

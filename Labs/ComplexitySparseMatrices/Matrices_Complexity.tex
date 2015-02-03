@@ -3,10 +3,9 @@
 \objective{Introduce the temporal and spatial complexity and explore SciPy's methods for working with sparse matrices.}
 \label{lab:complexity}
 
-\section*{Complexity}
-The complexity of an algorithm is how hard it is for a computer to solve. 
-Two major constraints on computing are time and available memory (or ``space''). 
-Hence, when you are evaluating an algorithm, you should ask about its temporal complexity and spatial complexity. 
+\section*{Complexity} 
+Two major constraints on computing are time and available memory (or `space').
+The \emph{temporal complexity} and \emph{spatial complexity} of an algorithm measure how much of these resources the algorithm requires. 
 This lab intoduces complexity using examples and intuition; for a rigorous introduction, see Volume 2 of the textbook.
 
 \subsection*{Temporal Complexity}
@@ -145,13 +144,24 @@ Analogous to temporal complexity, the spatial complexity of an algorithm is a fu
 
 This vocabulary allows us to discuss the question at the start of this section: ``How long will a computer take to execute this algorithm?". The amount of time a computer takes to execute an algorithm depends on both the algorithm's temporal complexity and on its spatial complexity. 
 
+\subsection*{Timing functions}
+We can empirically investigate a function's temporal and spatial complexity by timing how long it takes to run.
+In IPython\footnote{If you aren't using IPython, you will need
+to use the timeit function documented here: \url{https://docs.python.org/2/library/timeit.html}.}, you can time a line of code by prefacing it with the command \li{\%timeit}.
+As an example, we time how long it takes to add the numbers from 1 to 1000.
+\begin{lstlisting}
+>>> \%timeit sum(xrange(1000))
+100000 loops, best of 3: 12.2 us per loop
+\end{lstlisting}
+This output means that the computer ran our line 100,000 times and averaged the runtimes.
+The computer repeated this experiment 3 times, and the best average was 12.2 microseconds .
 
 \begin{problem}\label{prob:complexity_problem}
 In this problem you will analyze the complexity of the following functions.
 
 \begin{enumerate}
 \renewcommand{\theenumi}{\alph{enumi}}
-\item
+\item (Optional)
 \begin{lstlisting}
 # Single ``for'' loop
 def func1(n):
@@ -188,7 +198,7 @@ def func4(n):
     la.inv(A)
 \end{lstlisting}
 
-\item 
+\item (Optional)
 \begin{lstlisting}
 # Find the determinant of a matrix.
 from scipy import linalg as la
@@ -222,14 +232,14 @@ A \emph{sparse} matrix is a matrix that has relatively few nonzero elements.
 Sparse matrices arise frequently in both theoretical and real-world applications. 
 We can take advantage of the sparse structure of these matrices to use less memory and do faster computations.
 
-For example, diagonal matrix are sparse. 
+For example, diagonal matrices are sparse. 
 Storing an $n \times n$ diagonal matrix in the naive way means storing $n^2$ values in memory. 
 For most applications, it makes more sense to store the diagonal entries in a 1-dimensional array of $n$ values. 
-In addition to taking up less storage space, this allows for much faster matrix operations. 
+In addition to using less storage space, this allows for much faster matrix operations. 
 Using the standard algorithm to multiply a matrix by a diagonal matrix involves $n^3$ steps, but most of these are multiplying by or adding zero. 
 A smarter algorithm that knows all off-diagonal entries are zero can accomplish the same task much faster.
 
-\subsection*{The \li{sparse} Module}
+\subsection*{The \texttt{sparse} Module}
 The SciPy module \li{sparse} has storage methods to reduce the temporal and spatial complexity of handling sparse matrices.  
 When we are not using these special methods, we say we are storing the \emph{full} matrix. 
 We can also use \li{sparse} methods on dense matrices (matrices with mostly nonzero entries), but doing so will take longer than using the usual methods for handling full matrices. 
@@ -270,6 +280,9 @@ Let us compare a \li{sparse} matrix computation with a full matrix computation.
 Note that we can convert any full matrix to a \li{sparse} matrix of any of the types listed in Table \ref{table:smr}.
 
 \begin{lstlisting}
+import numpy as np
+from scipy import sparse
+
 # Create a dense matrix (stored as a full matrix).
 >>> A_full = np.random.rand(600, 600)
 
@@ -411,9 +424,40 @@ the two sub-diagonals above and below the diagonal.
 \end{problem}
 \end{comment}
 
+\subsection*{Manipulating sparse matrices}
+Scipy's \li{sparse} matrices behave a little differently than NumPy arrays.
+You can multiply two sparse matrices elementwise with the \li{multiply()} method of one of the sparse matrices.
+\begin{lstlisting}
+>>> C = sparse.spdiags(np.ones((3,3)), [-1,0,1], 3, 3)
+>>> (A.multiply(C)).todense()
+matrix([[ 2.,  0.,  0.],
+        [ 0.,  3.,  0.],
+        [ 0.,  0.,  4.]])
+\end{lstlisting}
+
+On the other hand, the asterisk \li{*} performs ordinary matrix multiplication. 
+You can also use \li{dot()} method of one of the sparse matrices. 
+However, you should NOT use \li{np.dot()} on sparse matrices because it may return an incorrect answer.
+\begin{lstlisting}
+# One correct way to mutliply sparse matrices
+>>> (A.dot(C)).todense()
+matrix([[ 2.,  2.,  0.],
+        [ 3.,  3.,  3.],
+        [ 0.,  4.,  4.]])
+\end{lstlisting}
+
+Addition and scalar multiplication is implemented as usual.
+\begin{lstlisting}
+>>> (A + 3*C).todense()
+matrix([[ 5.,  3.,  0.],
+        [ 3.,  6.,  3.],
+        [ 0.,  3.,  7.]])
+\end{lstlisting}
 
 
-\section*{Using Sparse Matrices to Reduce Runtimes}
+
+
+\section*{Using sparse matrices to reduce runtimes}
 In addition to spatial complexity, the \li{sparse} module can reduce temporal complexity. 
 Consider the linear system $A x = b$, where $A$ is a $100000\times 100000$ tri-diagonal matrix.
 Storing a full matrix of that size requires 10 billion double-precision floating-point numbers. 
