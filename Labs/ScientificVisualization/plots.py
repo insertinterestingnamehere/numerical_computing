@@ -37,7 +37,7 @@ def dog_plots():
     
 def heatmap_color():
     plt.figure(num=1, figsize=(10, 4) )
-    n = 401
+    n = 81
     x = np.linspace(-1,4,n)
     y = np.linspace(-4,1,n)
     X, Y = np.meshgrid(x,y)
@@ -51,7 +51,7 @@ def heatmap_color():
 
 def heatmap_gray():
     plt.figure(num=1, figsize=(10, 4) )
-    n = 401
+    n = 81
     x = np.linspace(-1,4,n)
     y = np.linspace(-4,1,n)
     X, Y = np.meshgrid(x,y)
@@ -183,4 +183,3 @@ if __name__ == "__main__":
     healthcare_logscale()
     simplify_plot()
     log_plots()
-    
