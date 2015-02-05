@@ -75,7 +75,7 @@ However, since Givens rotations can be parallelized, they can be much faster tha
 
 \subsection*{Givens triangularization}
 We can apply Givens rotations to a matrix until it is in upper triangular form, producing a factorization $A = QR$ where $Q$ is a composition of Givens rotations and $R$ is upper triangular.
-Similar to the Householder triangularization, when $A$ is square, this decomposition will be the QR decomposition of $A$.
+This is exactly the QR decomposition of $A$.
 
 The idea is to iterate through the subdiagonal entries of $A$ in the order depicted by Figure \ref{fig:givens}. 
 We zero out the $ij^{th}$ entry with a rotation in the plane spanned by $e_{i-1}$ and $e_i$. 
@@ -305,15 +305,19 @@ In this situation, the \emph{least squares solution} is a vector $\widehat{\x}$ 
 By definition, $\widehat{\x}$ is the vector such that $A\widehat{\x}$ will equal the projection of $\b$ onto the range of $A$. 
 We can compute $\widehat{\x}$ by solving the \emph{Normal Equation} $A^HA\widehat{\x} = A^H\b$ (see [TODO: ref textbook] for a derivation of the Normal Equation).
 
-%TODO: update this section, esp the homework problem, once we know how QR is being taught
+
 \subsection*{Solving the normal equation}
 If $A$ is full rank, we can use its QR decomposition to solve the normal equation. 
 In many applications, $A$ is usually full rank, including when least squares is used to fit curves to data.
 
-It can be shown that if $A=QR$ is the QR decomposition of $A$, then $\widehat{\x}$ solves the normal equation if and only if $R\widehat{\x} = Q^T \b$ ([TODO: ref hw problem in textbook]). 
+Let $A=QR$ be the QR decomposition of $A$, so $R = \left(\begin{array}{c}R_0\\
+0\\ \end{array} \right)$
+where $R_0$ is $n \times n$, nonsingular, and upper triangular. 
+It can be shown that $\widehat{x}$ is the least squares solution to $Ax=b$ if and only if $R_0\widehat{x} = (Q^Tb)_{[:n]}.$ 
+Here, $(Q^Tb)_{[:n]}$ refers to the first $n$ rows of $Q^Tb$.
 Since $R$ is upper triangular, we can solve this equation quickly with back substitution. 
 
-%TODO: This problem might need a hint. It is harder to code than it looks.
+
 \begin{problem}
 Write a function that accepts a matrix $A$ and a vector $b$ and returns the least squares solution to $Ax=b$.
 Use the QR decomposition as outlined above.
