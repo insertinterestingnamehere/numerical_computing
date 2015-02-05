@@ -1,6 +1,7 @@
 \lab{Speech Recognition using CDHMMs}{Speech Recognition using CDHMMs}
 \objective{Understand how speech recognition via CDHMMs works, and implement a simplified speech recognition system.}
 
+\subsection{Continuous Density Hidden Markov Models}
 Some of the most powerful applications of HMMs (speech and voice recognition) result from allowing the observation space to be continuous instead of discrete.  
 These are called Continuous Density Hidden Markov Models (CDHMMs), and they have two standard formulations: Gaussian HMMs and Gaussian Mixture Model HMMs (GMMHMMs). 
 In fact, the former is a special case of the latter, so we will just discuss GMMHMMs in this lab.
@@ -87,19 +88,44 @@ def sample_gmmhmm(gmmhmm, n_sim):
 The classic problems for discrete observation HMMs work as well with CDHMMs, though with continuous observations it is much more difficult to keep things numerically stable. 
 We will not have you implement any of the three problems for CDHMMs yourself, but you will use a stable module we provide for you.
 Note, however, that the techniques for solving these problems are still based on the forward-backward algorithm; the implementation may be trickier, but the mathematical
-ideas are virtually the same as with discrete HMMs.
+ideas are virtually the same as those for discrete HMMs.
 
-Hidden Markov Models are the basis of modern speech recognition systems. The audio to be processed is divided into small frames of approximately $30$ ms. These are short enough that we can treat the signal as being constant over these inervals. We can then take this framed signal and through a series of transformations represent it by mel-frequency cepstral coefficients (MFCCs), keeping only the first $K$ (say $K = 10$). Viewing these MFCCs as continuous observations in $\mathbb{R}^{K}$, we can train a GMMHMM on sequences of MFCCs for a given word, spoken multiple times. Doing this for several words, we have a collection of GMMHMMs, one for each word. Given a new speech signal, after framing and decomposing it into its MFCC array, we can score the signal against each GMMHMM, returning the word whose GMMHMM scored the highest.
+\subsection*{Speech Recognition and Hidden Markov Models}
+Hidden Markov Models are the basis of modern speech recognition systems. However, a fair amount of signal processing must precede the HMM stage, and there are other 
+components of speech recognition, such as language models, that we will not address in this lab.
 
-In practice, a GMMHMM is not trained for each word in a vocabulary (that would be ludicrous for a large vocabulary), but rather on \emph{phonemes}, or distinct sounds. The English language has $44$ phonemes, yielding $44$ different GMMHMMs. By correctly classifying a signal by its phonemes, we can determine what word was spoken. Doing so is beyond the scope of this program, so we will simply train GMMHMMs on five words/phrases: biology, mathematics, political science, psychology, and statistics.
+The basic signal processing and HMM stages of the speech recognition system that we develop in this lab can be summarized as follows.
+The audio to be processed is divided into small frames of approximately $30$ ms. These are short enough that we can treat the signal as being constant over these inervals. We can then take this framed signal and through a series of transformations represent it by mel-frequency cepstral coefficients (MFCCs), keeping only the first $K$ (say $K = 10$). Viewing these MFCCs as continuous observations in $\mathbb{R}^{K}$, we can train a GMMHMM on sequences of MFCCs for a given word, spoken multiple times. Doing this for several words, we have a collection of GMMHMMs, one for each word. Given a new speech signal, after framing and decomposing it into its MFCC array, we can score the signal against each GMMHMM, returning the word whose GMMHMM scored the highest.
+
+Industrial-grade speech recognition systems do not train a GMMHMM for each word in a vocabulary (that would be ludicrous for a large vocabulary), but rather on \emph{phonemes}, or distinct sounds. The English language has $44$ phonemes, yielding $44$ different GMMHMMs. By correctly classifying a signal by its phonemes, we can determine what word was spoken. Doing so is beyond the scope of this lab, so we will simply train GMMHMMs on five words/phrases: biology, mathematics, political science, psychology, and statistics.
 
 \begin{problem}
-Using the $20$ recordings of the word \emph{mathematics}, decompose each file into its MFCC array, storing these in a list. Do this also for the words/phrases \emph{biology}, \emph{political science}, \emph{psychology}, and \emph{statistics}. Be sure you complete each word/phrase in the $2$ second window.
+Obtain $30$ (or more) recordings each of the words/phrases \emph{mathematics}, \emph{biology}, \emph{political science}, \emph{psychology}, and \emph{statistics}.
+These audio samples should be 2 seconds in durations, recorded at a rate of 44100 samples per second, with samples stored as 16-bit signed integers in WAV format. 
+Load the recordings into Python using {\tt scipy.io.wavfile.read}. 
+
+If the audio files have two channels, average these channels to obtain an array of length $88200$ for each sample. 
+Extract the MFCCs from each sample using code from the file {\tt MFCC.py}:
+\begin{lstlisting}
+>>> import MFCC
+>>> # assume sample is an array of length 88200
+>>> mfccs = MFCC.extract(sample)
+\end{lstlisting}
+Store the MFCCs for each word in a separate list. You should have five lists, each containing 50 MFCC arrays, corresponding to each of the five words 
+under consideration.
 \end{problem}
 
-For a specific word, given enough samples of that word decomposed into its MFCCs, we can train a GMMHMM. For this, we will use the file \li{gmmhmm.py} provided, as this is a stable implementation of GMMHMM algorithms. To facilitate random restarts, we need a function to provide initializations for the initial state distribution and the transition matrix.
+For a specific word, given enough samples of that word decomposed into its MFCCs, we can train a GMMHMM. 
+Recall, however, that the training procedure does not always produce a very effective model, as it can get stuck in a poor local minimum.
+To combat this, for each word, we will train 10 GMMHMMs (using a different random initialization of the parameters each time) 
+and keep the model with the highest log likelihood.
 
-Let \li{samples} be a list of arrays, where each row in each array is a set of MFCCs corresponding to a frame in a sample for a given word. Using a function \li{initialize()} that returns a random initial state distribution and transition matrix, we will show how to train a GMMHMM with $5$ states, each having an output distribution as a GMM with $3$ mixture components. We also look at the log-likelihood of the data, given the trained model.
+For training, we will use the file {\tt gmmhmm.py} provided, as this is a stable implementation of GMMHMM algorithms.
+To facilitate random restarts, we need a function to provide initializations for the initial state distribution and the transition matrix.
+
+Let \li{samples} be a list of arrays, where each array is the output of the MFCC extraction for a speech sample. 
+Using a function \li{initialize()} that returns a random initial state distribution and (row-stochastic) transition matrix, we can train a GMMHMM with $5$ states
+and $3$ mixture components and view its log likelihood as follows:
 \begin{lstlisting}
 >>> import gmmhmm
 >>> startprob, transmat = initialize(5)
@@ -110,16 +136,21 @@ Let \li{samples} be a list of arrays, where each row in each array is a set of M
 \end{lstlisting}
 
 \begin{problem}
-Train a GMMHMM on each of the words from the previous problem with at least $10$ random restarts, keeping the best model for each word. You might want to do this in parallel to save time.
+Partition each list of MFCCs into a training set of 20 samples, and a test set of the remaining 10 samples.
+
+Using the training sets, train a GMMHMM on each of the words from the previous problem with at least $10$ random restarts, keeping the best model for each word.
+This process may take several minutes. If you wish to use the trained models in a later session, save them to disk using the {\tt pickle} module.
 \end{problem}
 
-Given a trained model, we would like to compute the log-likelihood of a new sample. Letting \li{obs} be an array, each row of which is a set of MFCCs for a frame in a sample, we do this as follows:
+Given a trained model, we would like to compute the log-likelihood of a new sample. 
+Letting \li{obs} be an array of MFCCs for a speech sample we do this as follows:
 \begin{lstlisting}
 >>> score = model.score(obs)
 \end{lstlisting}
-
+We classify a new speech sample by scoring it against each of the 5 trained GMMHMMs, and returning the word corresponding to the GMMHMM with the highest score.
 \begin{problem}
-Using the code from the previous two problems, write a function that loads a sample, converts it into its MFCC array, and then scores it on each of the five trained models. Return the word corresponding to the highest scoring model. Test your speech recognition system on each of the five words multiple times. How does it perform?
+Classify the 10 test samples for each word. 
+How does your system perform? Which words are the hardest to correctly classify?
 \end{problem}
 
 
@@ -145,7 +176,7 @@ Using the code from the previous two problems, write a function that loads a sam
 
 
 
-
+\begin{comment}
 
 Hidden Markov Models are the basis of modern speech recognition systems. We assume that a short speech signal can be viewed as a stationary signal, and so we can divide a speech signal into small frames (approximately $30$ ms or so). We can take this framed signal and through a series of transformations represent it by mel-frequency cepstral coefficients (MFCCs), keeping only the first $K$ (say $K = 10$). Viewing these MFCCs as continuous observations in $\mathbb{R}^{K}$, we can train a GMMHMM on sequences of MFCCs for a given word, spoken multiple times. Doing this for several words, we have a collection of GMMHMMs, one for each word. Given a new speech signal, after framing and decomposing it into its MFCC array, we can score the signal against each GMMHMM, returning the word whose GMMHMM scored the highest.
 
@@ -228,3 +259,4 @@ Given a trained model, we would like to compute the log-likelihood of a new samp
 \begin{problem}
 Write a function that records a sample, converts it into its MFCC array, and then scores it on each of the five trained models. Return the word corresponding to the highest scoring model. Test your speech recognition system on each of the five words multiple times. How does it perform?
 \end{problem} 
+\end{comment}
