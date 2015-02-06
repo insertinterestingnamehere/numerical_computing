@@ -3,6 +3,29 @@ import scipy.io.wavfile as wavfile
 import os
 import gmmhmm as hmm
 import MFCC
+import numpy as np
+
+def sample_gmmhmm(gmmhmm, n_sim):
+    """
+    Simulate from a GMMHMM.
+    
+    Returns
+    -------
+    states : ndarray of shape (n_sim,)
+        The sequence of states
+    obs : ndarray of shape (n_sim, K)
+        The generated observations (vectors of length K)
+    """
+    states = []
+    obs = []
+    state = np.argmax(np.random.multinomial(1,gmmhmm[-1]))
+    for i in xrange(n_sim):
+        sample_component = np.argmax(np.random.multinomial(1, gmmhmm[1][state,:]))
+        sample = np.random.multivariate_normal(gmmhmm[2][state, sample_component, :], gmmhmm[3][state, sample_component, :, :])
+        states.append(state)
+        obs.append(sample)
+        state = np.argmax(np.random.multinomial(1, gmmhmm[0][:,state]))
+    return np.array(states), np.array(obs)
 
 def collect(n=20):
 	obs = []
