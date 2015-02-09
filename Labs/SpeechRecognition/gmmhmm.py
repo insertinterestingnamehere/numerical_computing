@@ -1041,7 +1041,7 @@ class GMMHMM(_BaseHMM):
 
         allobs = np.concatenate(obs, 0)
 	n_centers = self.n_components*self.n_mix
-	cluster_centers = cluster.KMeans(k=n_centers).fit(allobs).cluster_centers_
+	cluster_centers = cluster.KMeans(n_clusters=n_centers).fit(allobs).cluster_centers_
 	K = cluster_centers.shape[1]
 	inds = random.sample(np.arange(0,n_centers),n_centers)
 

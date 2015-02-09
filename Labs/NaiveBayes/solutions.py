@@ -89,7 +89,7 @@ class naiveBayes(object):
         self.word_class_probs = np.empty([self.n_classes,self.n_features])
         for c in xrange(self.n_classes):
             self.word_class_probs[c,:] = (X[Y==c].sum(axis=0)+1).T
-            self.word_class_probs[c,:] /= self.word_class_probs[:,c].sum()
+            self.word_class_probs[c,:] /= self.word_class_probs[c,:].sum()
 
     def predict(self, X):
         """
@@ -108,15 +108,14 @@ class naiveBayes(object):
         
 # spam filtering
 def spam():
-    dat = np.loadtxt("spambase.data", delimiter=",")
-    labs = dat[:,-1]
-    dat = dat[:,:48]
+    dat = np.loadtxt("SpamFeatures.txt")
+    labs = np.loadtxt("SpamLabels.txt")
     nb = naiveBayes()
-    test_rows = np.random.choice(np.arange(len(labs)),100, replace=False)
+    test_rows = np.random.choice(np.arange(len(labs)),500, replace=False)
     train_rows = np.array([i for i in xrange(len(labs)) if i not in test_rows])
     nb.fit(dat[train_rows], labs[train_rows])
-    new_labs= nb.predict(dat[test_rows])
-    print (new_labs == labs[test_rows]).sum()/float(len(new_labs))
+    new_labs = nb.predict(dat[test_rows])
+    print (new_labs==labs[test_rows]).sum()/float(len(new_labs))
     mnb = MultinomialNB()
     mnb.fit(dat[train_rows], labs[train_rows])
     new_labs2 = mnb.predict(dat[test_rows])
