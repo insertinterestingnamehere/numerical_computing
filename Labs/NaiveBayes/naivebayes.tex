@@ -32,7 +32,7 @@ Naive Bayes classification methods are a good introduction to machine learning t
 They are relatively straightforward to understand and implement, yet they are very effective for certain applications.
 They are limited by their strong independence assumptions.
 
-Recall that the classification problem tries to assign the correct label to a set of features 
+Recall that the classification problem tries to assign the correct label to a set of features
 (called a \emph{feature vector}).
 For example, suppose we wish to label two pieces of fruit with their correct names.
 The first fruit is red and round, and the second fruit is long and yellow.
@@ -110,7 +110,7 @@ The Female label has a greater probability given the feature vector, and so we c
 
 A nice way to visualize how a classifier works is to plot the decision boundaries for two-dimensional subspaces of the
 feature vector space.
-For example, the decision boundaries for a Gaussian Naive Bayes classifier trained on a dataset consisting of the 
+For example, the decision boundaries for a Gaussian Naive Bayes classifier trained on a dataset consisting of the
 sepal widths and lengths of three different types of flowers is shown in Figure \ref{fig:decision_boundary}.
 
 \begin{figure}
@@ -122,15 +122,15 @@ for each flower. Each point in the plane represents a 2-dimensional feature vect
 \end{figure}
 
 \subsection*{Working in Log Space}
-In the example presented above, notice that the value of $P(M\,|\,17,1.4)$ is very small. 
+In the example presented above, notice that the value of $P(M\,|\,17,1.4)$ is very small.
 This is often the case in classification problems; certain classes may be very unlikely, and so calculating these probabilities may lead to numerical underflow.
-This is especially pronounced in the naive Bayes model, which involves taking the product of several numbers between 
+This is especially pronounced in the naive Bayes model, which involves taking the product of several numbers between
 0 and 1.
-A useful technique to avoid underflow is to convert the computations in logarithmic space. 
+A useful technique to avoid underflow is to convert the computations in logarithmic space.
 When we do so, the Naive Bayes label assignment is
 \[
 c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, \log P(c_i) + \sum_{j=1}^n \log P(x_j|c_i).
-\] 
+\]
 Since the logarithm is a monotone increasing function, the argmax is the same whether in log space or
 in the original formulation.
 
@@ -157,7 +157,7 @@ The species of wheat are
 The measurements of the kernels are real valued, making this a good example to try our Gaussian classifier.
 
 \begin{enumerate}
-\item Randomly select a training set of 40 vectors from the data.  Make sure you separate this data from your training data.
+\item Randomly select a test set of 40 vectors from the data.  Make sure you separate this data from your training data.
 \item Calculate the mean and variance for each feature of each label using the training set.
 \item Using a uniform prior, predict the labels of your test set.
 \item Compare your predictions to the labels of the test set. In particular, report the accuracy of the prediction,
@@ -206,9 +206,9 @@ When it comes to document classification, a common choice for the feature vector
 is simply a count for the number of times each word in the specified vocabulary occurs in the document.
 For example, suppose we are trying to classify a document, and the vocabulary of relevant words is the ordered set
 \[
-\text{(bank, tree, wealth, money, river, water)}. 
+\text{(bank, tree, wealth, money, river, water)}.
 \]
-Suppose that the document is the sentence 
+Suppose that the document is the sentence
 \begin{quotation}
 ``The woman deposited her money in the bank, and then made her way down to the bank of the river, contemplating her wealth."
 \end{quotation}
@@ -216,44 +216,46 @@ Then the feature vector for this document is
 \[
 (2, 0, 1, 1, 1, 0).
 \]
-Notice in particular that the $i$-th entry of the feature vector indicates the number of occurrences of the $i$-th 
+Notice in particular that the $i$-th entry of the feature vector indicates the number of occurrences of the $i$-th
 vocabulary word in the document.
-Such a feature vector is often called a \emph{word-count vector}. 
-Notice that the count vector ignores words in the document that are not part of the vocabulary, and 
+Such a feature vector is often called a \emph{word-count vector}.
+Notice that the count vector ignores words in the document that are not part of the vocabulary, and
 it also disregards the order of words.
 This simple representation of text documents is known as the \emph{bag-of-words model} or the \emph{vector space model}.
 The hypothesis that drives spam filters is that spam messages will use words with different frequencies.
 For example, a spam message will often have a sales pitch, so the word ``buy'' and ``cheap'' will appear often.
 On the other hand, legitimate messages will probably use different language.
 Thus, it is reasonable to use word-count vectors as our feature vectors when attempting to distinguish between spam and
-legitimate email. 
+legitimate email.
 
 We now introduce formalisms to derive the Naive Bayes model for document classification.
 Let $V = (v_1,v_2,\ldots,v_n)$ be an ordered list of words, called the vocabulary, and let
-$x = (x_1,x_2,\ldots,x_n)$ be a word-count vector. 
+$x = (x_1,x_2,\ldots,x_n)$ be a word-count vector.
 Let $\{c_1,c_2,\ldots,c_k\}$ be the set of classification labels.
 In the case of continuous data and Gaussian Classifiers, each class label was associated with corresponding
 mean and variance parameters, and these determined the likelihood of the feature vector given the class label.
 In the case of document classification, each class label $c_i$ has a corresponding probability vector
-$(p_{i,1}, p_{i,2}, \ldots, p_{i,n})$ whose entries are nonnegative and sum to 1. 
+$(p_{i,1}, p_{i,2}, \ldots, p_{i,n})$ whose entries are nonnegative and sum to 1.
 This probability vector defines a categorical probability distribution over the vocabulary $V$, where $p_{i,j}$
-represents the probability of seeing word $v_j$ given class label $c_i$. 
+represents the probability of seeing word $v_j$ given class label $c_i$.
 With this notation in place, our Naive Bayes model takes the form
 \[
 c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, P(c_i)\prod_{j=1}^n p_{i,j}^{x_j}.
 \]
 
 Given a training set of labeled documents, we can calculate the prior probabilities $P(c_i)$ and word probabilities
-$p_{i,j}$ as follows. 
-Each prior probability $P(c_i)$ is simply the proportion of training documents that have the label $c_i$. 
-We calculate each probability vector $(p_{i,1}, p_{i,2}, \ldots, p_{i,n})$ by first initializing 
-each $p_{i,j}$ to 1 plus the number of total occurrences of word $v_j$ among all documents that have label $c_i$,
-and then dividing the entire vector by the sum of its entries, so that it is a probability vector. 
-(Note that adding 1 to the number of occurrences of each word is known as \emph{add-one smoothing}, and is a 
+$p_{i,j}$ as follows.
+Each prior probability $P(c_i)$ is simply the proportion of training documents that have the label $c_i$.
+Next, let $count(c_i,v_j)$ denote the number of occurrences of word $v_j$ among all training documents that have label $c_i$.
+Then we have
+\[
+p_{i,j}  = \frac{count(c_i,v_j)+1}{\sum_{j=1}^n(count(c_i,v_j)+1)}.
+\]
+(Note that adding 1 to the number of occurrences of each word is known as \emph{add-one smoothing}, and is a
 common technique to prevent over-fitting.)
 
-Once we have calculated these parameters (the ``fitting" stage), we are ready to classify new documents 
-(the ``prediction" stage) using the argmax equation given above. 
+Once we have calculated these parameters (the ``fitting" stage), we are ready to classify new documents
+(the ``prediction" stage) using the argmax equation given above.
 Remember to perform calculations in log-space to prevent numerical underflow.
 
 \begin{problem}
@@ -265,7 +267,7 @@ class naiveBayes(object):
     """
     This class performs naive bayes classification for word-count document features.
     """
-    def __init__(self,smoothed=False):
+    def __init__(self):
         """
         Initialize a naive Bayes classifier.
         """
@@ -282,13 +284,13 @@ class naiveBayes(object):
         Y : ndarray of shape (n_samples,)
             Gives the class label for each instance of training data. Assume class labels
             are in {0,1,...,k-1} where k is the number of classes.
-        """       
+        """
         # get prior class probabilities P(c_i)
         # (you may wish to store these as a length k vector as a class attribute)
 
         # get (smoothed) word-class probabilities
         # (you may wish to store these in a (k, n_features) matrix as a class attribute)
-        
+
         pass
 
     def predict(self, X):
@@ -309,13 +311,16 @@ class naiveBayes(object):
 \end{problem}
 
 \begin{problem}
-Load in the data from {\tt spambase.data}. This is a text file containing a comma-delimited
-numerical array with 49 columns and several thousand rows, each row representing an email. 
-The first 48 columns for a particular row give the word-count vector for the email, while the
-final column has a zero or one (indicating a legitimate or spam email, respectively).
+In this problem, you will train a Naive Bayes classifier using a corpus of emails extracted from the Enron dataset.
+
+Load in the data from {\tt SpamFeatures.txt}. This is a text file containing a whitespace-delimited
+numerical array with several thousand columns and several thousand rows, each row representing an email
+as a count vector.
+Also load in the data from {\tt SpamLabels.txt}, which is a text file containing a 1 (for legitimate email) or 0
+(for spam email) on each line, in correspondence with the rows of the count vector array.
 Using your document classification implementation, do the following:
 \begin{enumerate}
-\item Randomly create a test set from the data (100 documents), leaving the remaining documents as the training set.
+\item Randomly create a test set from the data (500 documents), leaving the remaining documents as the training set.
 \item Create a naive Bayes classifier and fit it using the training set.
 \item Predict the labels of the test set and compare to the true labels (by reporting the classification accuracy).
 \end{enumerate}
@@ -327,11 +332,39 @@ Next, perform the same task using {\tt sklearn}'s implementation and the same tr
 >>> mnb = MultinomialNB()
 >>> mnb.fit(train_vectors, train_labels)
 >>> predicted = mnb.predict(test_vectors)
-\end{lstlisting} 
+\end{lstlisting}
 Again report the accuracy of the predicted labels. The result should be on par with those produced by your
-own implementation, although not necessarily exactly the same. The reason for this is that in some cases, the
-probability of both labels for a given email may be equal, and so taking the argmax amounts to an arbitrary choice
-between the labels.
+own implementation.
+
+If you wish, you may use your Naive Bayes classifier on your own email.
+To do so, you need to load in the words in the vocabulary, contained in the file {\tt SpamVocab.txt}, as follows:
+\begin{lstlisting}
+>>> with open("SpamVocab.txt", 'r') as f:
+>>>     vocab = [s.strip() for s in f]
+\end{lstlisting}
+Next, load the email you wish to classify into memory, stored as a string object (either copy and paste the email
+directly into the interpreter, or load it from a file). Once you have this string, convert it to a count vector using
+the following code:
+\begin{lstlisting}
+from collections import Counter
+def getCountVector(document, vocab):
+    """
+    Return the count vector for the given document using the given vocabulary.
+
+    Parameters
+    ----------
+    document : string, words separated by whitespace
+    vocab : list of strings of length n
+
+    Returns
+    -------
+    counts : ndarray of shape (1,n)
+    """
+    tf = Counter(document.lower().split()) # get frequencies of each word
+    counts = np.array([[tf[t] if t in tf else 0 for t in vocab]])
+    return counts
+\end{lstlisting}
+Feed this output into the \li{predict} method of your classifier, and see how well it performs.
 \end{problem}
 
 
