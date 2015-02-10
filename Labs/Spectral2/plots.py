@@ -65,9 +65,33 @@ def deriv1():
 
 
 
-def deriv2():
-	
-	pass
+def plot_spectral2_derivative():
+	N=24
+	x1 = (2.*np.pi/N)*np.arange(1,N+1)
+	v = np.sin(x1)**2.*np.cos(x1) + np.exp(2.*np.sin(x1+1))
+
+
+	k = np.concatenate(( np.arange(0,N/2) ,
+						 np.array([0])	, # Because w_hat at N/2 is zero
+						 np.arange(-N/2+1,0,1)	))
+
+	# Approximates the derivative using the pseudospectral method
+	v_hat = fft(v)
+	vp_hat = ((1j*k)*v_hat)
+	vp = np.real(ifft(vp_hat))
+
+	# Calculates the derivative analytically
+	x2 = np.linspace(0,2*np.pi,200)
+	derivative = (2.*np.sin(x2)*np.cos(x2)**2. - 
+					np.sin(x2)**3. + 
+					2*np.cos(x2+1)*np.exp(2*np.sin(x2+1))
+					)
+
+	plt.plot(x2,derivative,'-k',linewidth=2.)
+	plt.plot(x1,vp,'*b')
+	# plt.savefig('spectral2_derivative.pdf')
+	# plt.show()
+	# plt.clf()
 
 
 
