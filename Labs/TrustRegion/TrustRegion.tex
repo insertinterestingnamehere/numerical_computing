@@ -23,7 +23,7 @@ x_{k+1} := x_k + \alpha_k d_k.
 
 A trust-region algorithm, on the other hand, does away with a search direction and
 step length, and instead approximates the function $f$ with some simpler function
-$m_k$ (called the \emph{model function}) in a neighborhood of $x_k$. 
+$m_k$ (called the \emph{model function}) in a neighborhood of $x_k$.
 The model $m_k$ will likely not be close to $f$ over the entire
 domain, and so we must restrict our attention to a ball of radius $r_k$ centered at
 the point $x_k$, inside of which $m_k$ is reasonably close to $f$. We then minimize
@@ -70,25 +70,25 @@ and refer to \emph{this} function as the model function.
 \subsection*{The Trust-Region Radius}
 A crucial aspect of trust-region algorithms is the choice of radius $r_k$. If $r_k$ is too small, then the algorithm will
 make slow progress toward the minimizer of $f$. If $r_k$ is too large, the model function will be a poor fit for the objective
-function $f$, and the next iterate $x_{k+1}$ may fail to decrease $f$. 
+function $f$, and the next iterate $x_{k+1}$ may fail to decrease $f$.
 Of course, whether the radius is too small or large depends on the local behavior of $f$, which may change as the algorithm
 converges. A reasonably robust trust-region algorithm must therefore be able to adaptively choose the trust-region radius.
 
 Our strategy for choosing an appropriate radius $r_{k+1}$ for the $(k+1)$-th iterate involves evaluating the accuracy
 of the model function at the $k$-th iterate. If the model was accurate and a large step was taken, we can optimistically choose $r_{k+1}$ to be larger
-than $r_k$ in the hopes of achieving faster convergence. 
+than $r_k$ in the hopes of achieving faster convergence.
 To prevent the radius from growing too large, we set an overall bound $r_{max}$ on the trust-region radii.
 If the model was very inaccurate, we make $r_{k+1}$ smaller than
 $r_k$, since the model function can't be trusted over such a large region. If the model was neither particularly accurate
-nor inaccurate, we simply choose $r_{k+1} = r_k$. 
+nor inaccurate, we simply choose $r_{k+1} = r_k$.
 
 We measure the accuracy of the model by computing the following value:
 \[
 \rho_k = \frac{f(x_k)-f(x_k+p_k)}{m_k(0) - m_k(p_k)}.
 \]
 This value is the ratio of the \emph{actual reduction} to the \emph{predicted reduction} in the objective function. The closer
-$\rho_k$ is to $1$, the more accurate the model. 
-Note that if $\rho_k$ is negative or below a certain positive threshold $\eta$, 
+$\rho_k$ is to $1$, the more accurate the model.
+Note that if $\rho_k$ is negative or below a certain positive threshold $\eta$,
 then the point $x_k+p_k$ is a poor improvement over $x_k$ (and perhaps is worse).
 In this case, we reject the new point and set $x_{k+1} = x_k$.
 
@@ -97,7 +97,7 @@ We now combine the two steps of minimizing the model function and choosing the t
 \begin{algorithm}
 \begin{algorithmic}[1]
 \Procedure{Trust-Region Algorithm}{}
-    \State Choose initial point $x_0$, initial radius $r_0$, and threshold $\eta \in [0,0.25)$. 
+    \State Choose initial point $x_0$, initial radius $r_0$, and threshold $\eta \in [0,0.25)$.
     \For{$k=0, 1, 2, \ldots$}
         \State Solve the sub-problem in Equation \ref{eq:step}.
         \State Compute $\rho_k$.
@@ -129,7 +129,7 @@ Implement the trust-region algorithm using the following function declaration.
 def trustRegion(f,grad,hess,subprob,x0,r0,rmax,eta,gtol=1e-5):
     """
     Minimize a function using the trust-region algorithm.
-    
+
     Parameters
     ----------
     f : callable function object
@@ -150,28 +150,28 @@ def trustRegion(f,grad,hess,subprob,x0,r0,rmax,eta,gtol=1e-5):
         Acceptance threshold
     gtol : float
         Convergence threshold
-        
+
     Returns
     -------
     x : the minimizer of f
-    
+
     Notes
     -----
     The functions f, g, and hess should all take a single parameter.
-    The function subprob takes as parameters a gradient vector, hessian matrix, and radius. 
+    The function subprob takes as parameters a gradient vector, hessian matrix, and radius.
     """
     pass
 \end{lstlisting}
 \end{problem}
 
 \subsection*{Solving the Sub-problem: the Dogleg Method}
-Our trust-region algorithm is as yet incomplete, since we do not have a viable means solving the subproblem 
+Our trust-region algorithm is as yet incomplete, since we do not have a viable means solving the subproblem
 given by Equation \ref{eq:step}.
 We may be tempted to search for the true minimizer of the model function over the trust region, but it turns out
-that we can get away with just an approximate minimizer. 
-We will employ the ``dogleg" method when selecting an approximate minimizer of the model function. 
+that we can get away with just an approximate minimizer.
+We will employ the ``dogleg" method when selecting an approximate minimizer of the model function.
 This method works by minimizing the model function along a particular path extending from the origin out
-to the boundary of the trust region. 
+to the boundary of the trust region.
 This path is piecewise linear and has a shape vaguely reminiscent of a dog's leg, which explains the peculiar name of the method.
 
 To calculate the dogleg minimizer of the model function, we first solve the unconstrained minimizer of the model function,
@@ -220,15 +220,15 @@ We define the dogleg path using these two points as follows:
 
 It can be shown that the model function decreases along this path. Thus,
 the dogleg minimizer is either the endpoint of the path if it lies completely within the trust region,
-or the point of intersection between the path and the boundary of the trust region. 
+or the point of intersection between the path and the boundary of the trust region.
 See Figure \ref{fig:dogleg} for an illustration of the three salient cases. We consider each case in turn.
 \begin{itemize}
 \item
 When the path lies completely within the trust region, the dogleg minimizer is simply the endpoint, namely $p^B$.
-This is the case when $\|p^B\| \leq r_k$. See Figure \ref{fig:dl3}. 
+This is the case when $\|p^B\| \leq r_k$. See Figure \ref{fig:dl3}.
 \item
-When the path intersects the boundary of the trust region in the first line segment, the dogleg minimizer is 
-$r_kp^U/\|p^U\|$. 
+When the path intersects the boundary of the trust region in the first line segment, the dogleg minimizer is
+$r_kp^U/\|p^U\|$.
 This is the case when $\|p^U\| \geq r_k$. See Figure \ref{fig:dl1}.
 \item
 When the path intersects the boundary of the trust region in the second line segment, the dogleg minimizer is
@@ -246,7 +246,7 @@ Remember to avoid calculating the inverse of a matrix.
 def dogleg(gk,Bk,rk):
     """
     Calculate the dogleg minimizer of the quadratic model function.
-    
+
     Parameters
     ----------
     gk : ndarray of shape (n,)
@@ -255,20 +255,20 @@ def dogleg(gk,Bk,rk):
         The current (or approximate) hessian
     rk : float
         The current trust region radius
-        
+
     Returns
     -------
     pk : ndarray of shape (n,)
         The dogleg minimizer of the model function.
     """
-    pass 
+    pass
 \end{lstlisting}
 
 
 \end{problem}
 
 Test your implementation of the trust-region algorithm on the Rosenbrock function contained the {\tt scipy.optimize} module.
-Compare your answer with that obtained by SciPy's trust-region implementation. The code to accomplish this, together with the 
+Compare your answer with that obtained by SciPy's trust-region implementation. The code to accomplish this, together with the
 correct results, is given below.
 \begin{lstlisting}
 >>> x = np.array([10.,10])
@@ -282,3 +282,108 @@ correct results, is given below.
 >>> print np.allclose(sol1.x, sol2)
 True
 \end{lstlisting}
+
+\subsection*{Solving Systems of Nonlinear Equations}
+Trust-region methods can be used to find solutions of systems of nonlinear equations, which arise in applications across science and engineering.
+Suppose we have a vector function $r : \mathbb{R}^n \rightarrow \mathbb{R}^n$, written as
+\[
+r(x) = \begin{bmatrix}
+r_1(x)\\
+r_2(x)\\
+\vdots\\
+r_n(x)
+\end{bmatrix},
+\]
+where each $r_i$ is a nonlinear smooth function mapping from $\mathbb{R}^n$ into $\mathbb{R}$.
+Our goal is to find $x \in \mathbb{R}^n$ that satisfies $r(x) = 0$; such an $x$ is called a solution
+or root of the nonlinear system. In general, there may be several roots (even infinitely many), or there
+may be none at all. Solving the equations by hand can range from arduous to impossible, so we turn
+to trust-region methods for help.
+
+In order to use our trust-region method to find the roots of a system
+of equations, we need to come up with an objective function whose minima correspond to roots of the
+system. As such, we consider the \emph{merit function}
+\[
+f(x) = \frac{1}{2}\|r(x)\|_2^2 = \frac{1}{2}\sum_{i=1}^nr_i(x)^2,
+\]
+which, roughly speaking, measures how close a point $x$ is to being a root of $r$. Note that $f(x) = 0$
+if and only if $r(x) = 0$. Thus, if we can successfully find a global minimum of $f$, we will have
+found a root to the nonlinear system.
+
+Now that we have an objective function, we need to create a quadratic model function. If we let
+$J_k$ be the Jacobian matrix of $r$ at the point $x_k$, i.e.
+\[
+J_k = \begin{bmatrix}
+\nabla r_1(x_k)^T\\
+\nabla r_2(x_k)^T\\
+\vdots\\
+\nabla r_n(x_k)^T
+\end{bmatrix},
+\]
+then we can write the gradient $\nabla f(x_k) = J_k^Tr(x_k)$ and the Hessian $B_k = J_k^TJ_k$.
+We can now use the same model function described earlier.
+
+Let's work through an example. Consider the system
+\[
+r(x,y) = \begin{bmatrix}
+-\sin x\cos y - 2\cos x\sin y\\
+-\sin y\cos x - 2\cos y\sin x
+\end{bmatrix}.
+\]
+Observe that the Jacobian takes the form
+\[
+J(x) = \begin{bmatrix}
+-\cos x\cos y + 2\sin x\sin y & \sin x\sin y - 2\cos x\cos y\\
+\sin y\sin x - 2\cos y\cos x & -\cos y\cos x + 2\sin y \sin x
+\end{bmatrix}.
+\]
+In Python, we initialize all of the requisite functions and then find a root as follows:
+\begin{lstlisting}
+>>> # define the system of equations
+>>> def r(x):
+>>>     return np.array([-sin(x[0])*cos(x[1]) - 2*cos(x[0])*sin(x[1]),
+>>>                      -sin(x[1])*cos(x[0]) - 2*cos(x[1])*sin(x[0])])
+>>>
+>>> # define the merit function
+>>> def f(x):
+>>>     return .5*(r(x)**2).sum()
+>>>
+>>> # define the jacobian function
+>>> def J(x):
+>>>     return np.array([[-cos(x[0])*cos(x[1]) + 2*sin(x[0])*sin(x[1]),
+>>>                       sin(x[0])*sin(x[1]) - 2*cos(x[0])*cos(x[1])],
+>>>                      [sin(x[1])*sin(x[0]) - 2*cos(x[1])*cos(x[0]),
+>>>                       -cos(x[1])*cos(x[0]) + 2*sin(x[1])*sin(x[0])]])
+>>>
+>>> # define the gradient function
+>>> def g(x):
+>>>     return J(x).dot(r(x))
+>>>
+>>> # define the Hessian function
+>>> def B(x):
+>>>     return J(x).T.dot(J(x))
+>>>
+>>> # set trust-region parameters
+>>> rhat=2.
+>>> rr=.25
+>>> eta=1./16
+>>> tol=1e-5
+>>> # set initial point
+>>> x = np.array([3.5, -2.5])
+>>> # find a minimizer of f
+>>> xstar = trustRegion(f,g,B,dogleg,x,rr,rhat,eta,gtol=tol)
+>>> print xstar
+[ 3.14159265 -3.14159265]
+>>> # verify that it is a root of r
+>>> print r(xstar)
+[ -7.75116117e-09   7.75147025e-09]
+\end{lstlisting}
+
+Of course, we are not guaranteed to always find a root, as convergence depends on the choice of initial point.
+However, by running the algorithms with several randomly selected starting points, we are more likely to 
+be successful.
+
+\begin{problem}
+Some problem involving system of nonlinear equations. Consult http://www-sop.inria.fr/coprin/logiciels/ALIAS/Benches/ 
+for ideas.
+\end{problem}
