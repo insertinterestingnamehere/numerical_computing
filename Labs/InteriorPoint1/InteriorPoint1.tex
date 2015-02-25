@@ -2,11 +2,11 @@
 \objective{Learn About Interior Point Methods for Linear Constrained Optimization.}
 
 \section*{Interior Point Methods: Overview}
-Although the Simplex algorithm was long the only practically competitive method for linear programming, the past 30 years have seen the
-discovery and widespread adoption of a new family of algorithms that rival and in some cases outperform the Simplex algorithm, collectively
+Although the Simplex algorithm was long practically the only competitive method for linear programming, the past 30 years have seen the
+discovery and widespread adoption of a new family of algorithms that rival--and in some cases outperform--the Simplex algorithm, collectively
 called Interior Point methods. One of the major shortcomings of the Simplex algorithm is that the number of steps required to solve the
-problem can grow exponentially in the size of the linear system. Thus, for certain large linear programs, the Simplex algorithm is simply
-not viable. Interior Point methods offer and alternative approach and guarantee much better theoretical convergence properties.
+problem can grow exponentially with the size of the linear system. Thus, for certain large linear programs, the Simplex algorithm is simply
+not viable. Interior Point methods offer an alternative approach and guarantee much better theoretical convergence properties.
 
 Recall that a linear program is a constrained optimization problem with a linear objective function and linear constraints.
 The linear constraints define a set of allowable points called the \emph{feasible region}, the boundary of which forms a geometric
@@ -280,13 +280,13 @@ where $\mathbf{u} = (u_1, \ldots, u_n)^T$ and $\mathbf{v} = (v_1, \ldots, v_n)^T
 This can be done in a vectorized fashion in Python as follows (assuming that the arrays \li{u} and \li{v}
 have already been initialized):
 \begin{lstlisting}
->>> mask = u < 0
->>> if np.any(mask):
->>>     myMin = min(1, (-v/u)[mask].min())
->>> else:
->>>     myMin = 1
+    mask = u < 0
+    if np.any(mask):
+        myMin = min(1, (-v/u)[mask].min())
+    else:
+        myMin = 1
 \end{lstlisting}
-We need the if-statement to deal with the case where no entry of $u$ is negative.
+We need the if statement to deal with the case where no entry of $u$ is negative.
 
 Finally, the choice of initial point $(x_0, \lambda_0, s_0)$ is an important, nontrivial one.
 A naively or randomly chosen initial point may cause the algorithm to fail to converge.
@@ -418,7 +418,7 @@ u_i  - \beta_1^T\mathbf{x}_i + \beta_2^T\mathbf{x}_i - b_1 + b_2 - s_{2i-1}&= -y
 u_i + \beta_1^T\mathbf{x}_i - \beta_2^T\mathbf{x}_i + b_1 - b_2 - s_{2i}&= y_i,\\
 u_i, \beta_1, \beta_2, b_1, b_2, s_{2i-1}, s_{2i}&\geq 0.
 \end{align*}
-Writing $\mathbf{y} = (-y_1, y_1, -y_2, y_2, \ldots, -y_m, y_m)^T$ and $\beta_i = (\beta_{i,1}, \ldots, \beta_{i,n})^T$ for $i = 1, 2$,
+Writing $\mathbf{y} = (-y_1, y_1, -y_2, y_2, \ldots, -y_m, y_m)^T$ and $\beta_i = (\beta_{i,1}, \ldots, \beta_{i,n})^T$ for $i = \{1, 2\}$,
 we can aggregate all of our variables into one vector as follows:
 \[
 \mathbf{v} = (u_1,\ldots, u_m, \beta_{1,1},\ldots, \beta_{1,n}, \beta_{2,1},\ldots, \beta_{2,n}, b_1, b_2, s_1,\ldots,s_{2m})^T.
@@ -442,34 +442,34 @@ Let's work through an example. We start with an array \li{data}, each row of whi
 where $\mathbf{x}_i = (x_{i,1}, x_{i,2}, \ldots, x_{i,n})^T$. We will have $3m + 2(n+1)$ variables in our linear program. Below, we initialize
 the vectors $\mathbf{c}$ and $\mathbf{y}$.
 \begin{lstlisting}
->>> m = data.shape[0]
->>> n = data.shape[1] - 1
->>> c = np.zeros(3*m + 2*(n + 1))
->>> c[:m] = 1
->>> y = np.empty(2*m)
->>> y[::2] = -data[:, 0]
->>> y[1::2] = data[:, 0]
->>> x = data[:, 1:]
+    m = data.shape[0]
+    n = data.shape[1] - 1
+    c = np.zeros(3*m + 2*(n + 1))
+    c[:m] = 1
+    y = np.empty(2*m)
+    y[::2] = -data[:, 0]
+    y[1::2] = data[:, 0]
+    x = data[:, 1:]
 \end{lstlisting}
 
 The hardest part is initializing the constraint matrix correctly. It has $2m$ rows and $3m + 2(n+1)$ columns. Try writing out the
 constraint matrix by hand for small $m, n$, and make sure you understand why the code below is correct.
 \begin{lstlisting}
->>> A = np.ones((2*m, 3*m + 2*(n + 1)))
->>> A[::2, :m] = np.eye(m)
->>> A[1::2, :m] = np.eye(m)
->>> A[::2, m:m+n] = -x
->>> A[1::2, m:m+n] = x
->>> A[::2, m+n:m+2*n] = x
->>> A[1::2, m+n:m+2*n] = -x
->>> A[::2, m+2*n] = -1
->>> A[1::2, m+2*n+1] = -1
->>> A[:, m+2*n+2:] = -np.eye(2*m, 2*m)
+    A = np.ones((2*m, 3*m + 2*(n + 1)))
+    A[::2, :m] = np.eye(m)
+    A[1::2, :m] = np.eye(m)
+    A[::2, m:m+n] = -x
+    A[1::2, m:m+n] = x
+    A[::2, m+n:m+2*n] = x
+    A[1::2, m+n:m+2*n] = -x
+    A[::2, m+2*n] = -1
+    A[1::2, m+2*n+1] = -1
+    A[:, m+2*n+2:] = -np.eye(2*m, 2*m)
 \end{lstlisting}
 
 Now we can calculate the solution by calling our interior point function.
 \begin{lstlisting}
->>> sol = interiorPoint(A, y, c, niter=10, verbose=False)[0]
+    sol = interiorPoint(A, y, c, niter=10, verbose=False)[0]
 \end{lstlisting}
 
 The variable \li{sol}, however, holds the value for the vector
@@ -479,8 +479,8 @@ The variable \li{sol}, however, holds the value for the vector
 We want the values of $\beta = \beta_1-\beta_2$ and $b = b_1 - b_2$, and we accomplish this by the
 following code:
 \begin{lstlisting}
->>> beta = sol[m:m+n] - sol[m+n:m+2*n]
->>> b = sol[m+2*n] - sol[m+2*n+1]
+    beta = sol[m:m+n] - sol[m+n:m+2*n]
+    b = sol[m+2*n] - sol[m+2*n+1]
 \end{lstlisting}
 
 \begin{problem}
