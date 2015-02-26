@@ -1,9 +1,24 @@
 import matplotlib
 matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
-import matplotlib.pyplot as plt
-import numpy as np
+import isingmodel
 import metropolis
+import numpy as np
+import scipy.misc as spmisc
+import matplotlib.pyplot as plt
+
+def initialize():
+    spinconfig = isingmodel.initialize(100)
+    spmisc.imsave("init.pdf", spinconfig)
+    
+def beta(n, beta=1):
+    samples, logprobs = isingmodel.mcmc(n, beta, n_samples=5000)
+    
+    stem = str(beta).replace(".", "_")
+    plt.plot(logprobs)
+    plt.savefig("beta" + stem + "_logprobs.pdf")
+    plt.clf()
+    spmisc.imsave("beta" + stem + ".pdf", samples[-1])
 
 def samples_logs():
     x = np.array([100., 100.])
@@ -17,7 +32,3 @@ def samples_logs():
     plt.plot(logs)
     plt.savefig('logprobs.pdf')
     plt.clf()
-
-
-if __name__ == "__main__":
-    samples_logs()
