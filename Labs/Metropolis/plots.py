@@ -86,7 +86,38 @@ def metropolis(x0, s, n_samples):
         logprob[i] = propLogDensity(x)
     return draws, logprob, accept_counter/float(n_samples)
 
+def traces():
+    plt.plot(draws[:,0])
+    plt.savefig("mu_traces.pdf")
+    plt.clf()
+    plt.plot(draws[:,1])
+    plt.savefig("sig_traces.pdf")
+    plt.clf()
+    
+def logprobs():
+    plt.plot(lprobs[:500])
+    plt.savefig("logprobs.pdf")
+    plt.clf()
+    
+def kdes():
+    mu_kernel = gaussian_kde(draws[50:,0])
+    x_min = min(draws[50:,0]) - 1
+    x_max = max(draws[50:,0]) + 1
+    x = np.arange(x_min, x_max, step=0.1)
+    plt.plot(x,mu_kernel(x))
+    plt.savefig("mu_kernel.pdf")
+    plt.clf()
+    
+    sig_kernel = gaussian_kde(draws[50:,1])
+    x_min = 20
+    x_max = 200
+    x = np.arange(x_min, x_max, step=0.1)
+    plt.plot(x,sig_kernel(x))
+    plt.savefig("sig_kernel.pdf")
+    plt.clf()
 
 if __name__ == "__main__":
     draws, lprobs, r = metropolis(np.array([40, 10], dtype=float), 20., 10000)
-    
+    traces()
+    logprobs()
+    kdes()
