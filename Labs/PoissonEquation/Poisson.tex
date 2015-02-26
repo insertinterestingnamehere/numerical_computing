@@ -2,7 +2,7 @@
 \label{lab:poisson2d}
  
 Suppose that we want to describe the distribution of heat throughout a region $\Omega$.
-Let $g(x)$ represent the temperature on the boundary of $\Omega$ ($\partial \Omega$), and let $h(x)$ represent the initial heat distribution at time $t = 0$.
+Let $h(x)$ represent the temperature on the boundary of $\Omega$ ($\partial \Omega$), and let $g(x)$ represent the initial heat distribution at time $t = 0$.
 If we let $f(x,t)$ represent any heat sources/sinks in $\Omega$, then the flow of heat can be described by the boundary value problem (BVP)
 \begin{align}
 	\begin{split}
@@ -27,7 +27,7 @@ Poisson's equation is often used in electrostatics, image processing, surface re
 
 \section*{Poisson's equation in two dimensions}
 
- Consider Poisson's equation together with Dirichlet boundary conditions on a rectangular  domain $R = [a,b] x [c,d]$:
+ Consider Poisson's equation together with Dirichlet boundary conditions on a square domain $R = [a,b]\times [c,d]$:
  \begin{align}
 	\begin{split}
  	u_{xx} + u_{yy} &= f,\quad x \text{ in } R \subset \mathbb{R}^2,\\
@@ -45,7 +45,8 @@ We look for an approximation $U_{i,\,j}$ on the grid $\{(x_i,y_j)\}_{i,j=-1}^{N-
 
 Recall that 
  \begin{align*}
- \triangle u = u_{xx}(x,y) + u_{yy}(x,y) &= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
+ \triangle u &= u_{xx}(x,y) + u_{yy}(x,y) \\
+&= \frac{u(x+h,y) - 2u(x,y)+ u(x-h,y)}{h^2} \\
  & \qquad{}+ 
  \frac{u(x,y+h) - 2u(x,y)+ u(x,y-h)}{h^2} + \mathcal{O}(h^2).
  \end{align*}
@@ -54,7 +55,10 @@ Recall that
  \triangle_h U_{ij} &= \frac{U_{i+1,\,j} - 2U_{i,\,j} + U_{i-1,\,j}}{h^2} + \frac{U_{i,\,j+1} - 2U_{i,\,j}+ U_{i,\,j-1}}{h^2},\\
 &= \frac{1}{h^2}(U_{i-1,\,j} + U_{i+1,\,j} + U_{i,\,j-1} + U_{i,\,j+1}-4U_{i,\,j}).
  \end{align*}
- Then the set of equations  $\triangle_h U_{ij} = f_{ij}$, $i,j = 0,\ldots,N-2$ % $i,j = 1,\ldots,m$ 
+ Then the set of equations  
+\[
+\triangle_h U_{ij} = f_{ij}, \quad i,j = 0,\ldots,N-2,
+\]% $i,j = 1,\ldots,m$ 
 can be written in matrix form as
  \[AU + p +  q  = f.\]
 
@@ -157,6 +161,10 @@ This decomposition reduces the time required for solving consecutive time steps.
 The following code implements the greater portion of the finite difference method; it leaves the construction of the matrix $A$ in \eqref{poisson2d:matrixA} to problem \ref{poisson2d:laplace}.
 
 \begin{lstlisting}
+from __future__ import division
+from scipy.sparse import spdiags
+from scipy.sparse.linalg import spsolve
+
 def poisson_square(a1,b1,c1,d1,n,bcs, source): 
 	# n = number of subintervals
 	# We discretize in the x dimension by 
@@ -228,18 +236,15 @@ above to solve the boundary value problem
 \caption{The solution of \eqref{poisson2d:laplace}.}
 \end{figure}
 
-\section*{Poisson's Equation and Conservative Forces}
+\section*{Poisson's equation and conservative forces}
 In physics Poisson's equation is used to describe the scalar potential of a conservative force.
 In general
-$$ \Delta V = - f$$
-where $V$ is the scalar potential of the force,
-or the potential energy a particle would have at that point,
-and $f$ is a source term.
-Examples of conservative forces include Newton's Law of Gravity (where matter become the source term) and Coulomb's Law,
-which gives the force between two charge particles (where charge is the source term).
+\[ \Delta V = - f\]
+where $V$ is the scalar potential of the force, or the potential energy a particle would have at that point, and $f$ is a source term.
+Examples of conservative forces include Newton's Law of Gravity (where matter become the source term) and Coulomb's Law, which gives the force between two charge particles (where charge is the source term).
 
 In electrostatics the electric potential is also known as the voltage, and is denoted by $V.$ 
-From Maxwell's equations it can be shown that that the voltage obeys Poisson's Equation with the electric charge density (like a continuous cloud of electrons) being the source term: 
+From Maxwell's equations it can be shown that that the voltage obeys Poisson's equation with the electric charge density (like a continuous cloud of electrons) being the source term: 
 \[
  \Delta V = -\frac{\rho}{\epsilon_0},
 \]
@@ -255,6 +260,8 @@ Physically the two inner pipes would function like a capacitor.
 
 The following code will plot the charge distribution of this setup.
 \begin{lstlisting}
+import matplotlib.colors as mcolors
+
 def source(X,Y):
     """
     Takes arbitrary arrays of coordinates X and Y and returns an array of the same shape
@@ -286,7 +293,6 @@ def genDict(data):
     return cdict
 
 
-
 a1 = -2.
 b1 = 2.
 c1 = -2.
@@ -296,16 +302,14 @@ X = np.linspace(a1,b1,n)
 Y = np.linspace(c1,d1,n)
 X,Y = np.meshgrid(X,Y)
 
-rho= source(X,Y)
-
-plt.imshow(rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(rho)))
+plt.imshow(source(X,Y),cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(source(X,Y))))
 plt.colorbar(label="Relative Charge")
 plt.show()
 \end{lstlisting}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{pipesRho.pdf}
-\caption{Charge density of the 3 nested pipes}
+\caption{The charge density of the 3 nested pipes.}
 \end{figure}
 
 The function \li{genDict} scales the color values to be white when the charge density is zero.
@@ -316,14 +320,22 @@ With this definition of the charge density, we can solve Poisson's equation for 
 
 \begin{problem}
 Solve 
-\[\Delta V = -\rho(x,y)\]
+% \[\Delta V = -\rho(x,y)\]
+\begin{align}
+	\begin{split}
+	\Delta V = -\rho(x,y), &{}\quad x \in [-2,2]\times [-2,2],\\
+	u(x,y) = 0, &{}\quad (x,y) \in \partial ([-2,2]\times [-2,2]).
+	\end{split}
+	\label{poisson2d:laplace}
+\end{align}
+% 
 for the electric potential $V.$
-Using the source function and grid sizes defined above.
-Use $V=0$ for the boundary conditions on all sides.
+Use the source function ($-\rho$) defined above. % and grid sizes defined above.
+% Use $V=0$ for the boundary conditions on all sides.
 % \textit{(Due to the size of $A$, this is best done using sparse matrices)}
 \end{problem}
 
 \begin{figure}
 \includegraphics[width=\textwidth]{pipesV.pdf}
-\caption{Electric potential of the 3 nested pipes}
+\caption{The electric potential of the 3 nested pipes.}
 \end{figure}

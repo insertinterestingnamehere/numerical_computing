@@ -37,8 +37,8 @@ def fd_order2_ode(func,a1,a2,a3,a=0.,b=1.,alpha=1.,beta=3.,N=5):
 	B[0], B[1] = alpha, func(xj)-alpha *( a1(xj)*h**(-2.) - a2(xj)*(2.*h)**(-1.) )
 	xj = a+m*h
 	B[-1], B[-2]  = beta, func(xj)-beta*( a1(xj)*h**(-2.) + a2(xj)*(2.*h)**(-1.) )
-	print "\nB = \n", B[1:6]
-	print "\nB = \n", B[-6:-1]
+	# print "\nB = \n", B[1:6]
+	# print "\nB = \n", B[-6:-1]
 	
 	# Here we solve the equation AX = B and return the result
 	B[1:-1] = spsolve(A,B[1:-1])

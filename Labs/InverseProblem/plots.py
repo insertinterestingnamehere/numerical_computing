@@ -116,7 +116,7 @@ def example():
 		return
 	
 	
-	x = np.linspace(0,1,101)
+	x = np.linspace(0,1,11)
 	F, u_p = int_f(x), derivative(u,x,dx=1e-6)
 	
 	def least_squares(c):
@@ -125,12 +125,14 @@ def example():
 	
 	guess = (1./4)*(3-x)
 	sol = minimize(least_squares,guess)
-	
+	print sol.x
+	print F
+	print u_p
 	step = 10
-	plt.plot(x[::step],a(x)[::step],'*b',linewidth=2,label='a(x)')
+	# plt.plot(x[::step],a(x)[::step],'*b',linewidth=2,label='a(x)')
 	
 	plt.plot(x,sol.x,'-b',linewidth=2,label='estimate of a')
-	plt.plot(x,F,'-g',label='integral of f')
+	# plt.plot(x,F,'-g',label='integral of f')
 	plt.legend(loc='best')
 	plt.show()
 	plt.clf()
@@ -219,8 +221,20 @@ def exercise2():
 # plt.plot(sol.x[0],0.,'*k')
 # plt.show()
 
+def plot_figure():
+	pass
+	
+	
+	
+	
+	return
+	
+	
+
 
 if __name__ == "__main__":
 	# example_text()
-	# example()
-	exercise2()
+	example()
+	# exercise2()
+	
+	# plot_figure()

@@ -239,13 +239,13 @@ def plotVs():
 	b1 = 2.
 	c1 = -2.
 	d1 = 2.
-	n =100
-	X = np.linspace(a1,b1,n)
-	Y = np.linspace(c1,d1,n)
-	X,Y = np.meshgrid(X,Y)
-
-	rho= source(X,Y)
-	V = poisson_square(a1,b1,c1,d1,100,lambda x,y:0 , lambda X,Y: source(X,Y))
+	n = 5
+	# X = np.linspace(a1,b1,n)
+	# Y = np.linspace(c1,d1,n)
+	# X,Y = np.meshgrid(X,Y)
+	# 
+	# rho= source(X,Y)
+	V = poisson_square(a1,b1,c1,d1,6,lambda x, y:0, lambda X,Y: source(X,Y))
 	cdict = genDict(V)
 
 	plt.imshow(V,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
@@ -253,12 +253,15 @@ def plotVs():
 	plt.show()
 	# plt.savefig("./pipesV.pdf")
 	plt.clf()
+	# print X.shape
+	# print Y.shape
+	print V.shape
 	return
 
 if __name__ == "__main__":
 	# example()
 	# Exercise1()
-	ExercisePoisson()
+	# ExercisePoisson()
 	# plotRhos()
-	# plotVs()
+	plotVs()
 
