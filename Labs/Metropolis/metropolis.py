@@ -1,3 +1,6 @@
+"""
+These solutions correspond to an old version of the lab.
+"""
 import numpy as np
 import scipy.linalg as la
 from scipy.stats import bernoulli
