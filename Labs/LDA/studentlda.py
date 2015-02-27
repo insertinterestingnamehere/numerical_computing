@@ -1,4 +1,4 @@
-import scipy as sp
+import numpy as np
 from scipy.special import gammaln
 import string
 
@@ -29,7 +29,7 @@ class LDACGS(object):
 			self.vocab += doclines[i]
 		self.vocab = list(set(self.vocab))
 		if stopwords != None:
-			self.vocab = sp.sort(self._removeStopwords(stopwords)).tolist()
+			self.vocab = np.sort(self._removeStopwords(stopwords)).tolist()
 		self.documents = []
 		for i in xrange(n_docs):
 			self.documents.append({})
@@ -40,57 +40,64 @@ class LDACGS(object):
 	def initialize(self):
 		self.n_words = len(self.vocab)
 		self.n_docs = len(self.documents)
-		self.nmz = sp.zeros((self.n_docs,self.n_topics))
-		self.nzw = sp.zeros((self.n_topics,self.n_words))
-		self.nz = sp.zeros(self.n_topics)
-		self.topics = {}
+
+        # initialize the three count matrices
+        # the (i,j) entry of self.nmz is # of words in document i assigned to topic j
+		self.nmz = np.zeros((self.n_docs,self.n_topics))
+        # the (i,j) entry of self.nzw is # of times term j is assigned to topic i
+		self.nzw = np.zeros((self.n_topics,self.n_words))
+        # the (i)-th entry is the number of times topic i is assigned in the corpus
+		self.nz = np.zeros(self.n_topics)
+
+        # initialize the topic assignment dictionary
+		self.topics = {} # key-value pairs of form (m,i):z
 		for m in xrange(self.n_docs):
 			for i in self.documents[m]:
-				# Get random topic assignment
+				# Get random topic assignment, i.e. z = ...
 				# Increment count matrices
-				# Store topic assignment
+				# Store topic assignment, i.e. self.topics[(m,i)]=z
 
 	def sample(self,filename, burnin=100, sample_rate=10, n_samples=10, stopwords=None):
 		self.buildCorpus(filename,stopwords)
 		self.initialize()
-		self.total_nzw = sp.zeros((self.n_topics,self.n_words))
-		self.total_nmz = sp.zeros((self.n_docs,self.n_topics))
-		self.logprobs = sp.zeros(burnin + sample_rate*n_samples)
+		self.total_nzw = np.zeros((self.n_topics,self.n_words))
+		self.total_nmz = np.zeros((self.n_docs,self.n_topics))
+		self.logprobs = np.zeros(burnin + sample_rate*n_samples)
 		for i in xrange(burnin):
 			# Sweep and store log likelihood
 		for i in xrange(n_samples*sample_rate):
 			# Sweep and store log likelihood
 			if not i%sample_rate:
-				# Sweep, store log likelihood, and accumulate
+				# accumulate counts
 
 	def phi(self):
 		""" This function is given. """
 		phi = self.total_nzw + self.beta
-		self._phi = phi / sp.sum(phi, axis=1)[:,sp.newaxis]
+		self._phi = phi / np.sum(phi, axis=1)[:,np.newaxis]
 
 	def theta(self):
 		""" This function is given. """
 		theta = self.total_nmz + self.alpha
-		self._theta = theta / sp.sum(theta, axis=1)[:,sp.newaxis]
+		self._theta = theta / np.sum(theta, axis=1)[:,np.newaxis]
 
 	def topterms(self,n_terms=10):
 		""" This function is given. """
-		vec = sp.atleast_2d(sp.arange(0,self.n_words))
+		vec = np.atleast_2d(np.arange(0,self.n_words))
 		topics = []
 		for k in xrange(self.n_topics):
-			probs = sp.atleast_2d(self._phi[k,:])
-			mat = sp.append(probs,vec,0)
-			sind = sp.array([mat[:,i] for i in sp.argsort(mat[0])]).T
+			probs = np.atleast_2d(self._phi[k,:])
+			mat = np.append(probs,vec,0)
+			sind = np.array([mat[:,i] for i in np.argsort(mat[0])]).T
 			topics.append([self.vocab[int(sind[1,self.n_words - 1 - i])] for i in xrange(n_terms)])
 		return topics
 
 	def toplines(self,n_lines=5):
 		""" This function is given. """
-		lines = sp.zeros((self.n_topics,n_lines))
+		lines = np.zeros((self.n_topics,n_lines))
 		for i in xrange(self.n_topics):
-			args = sp.argsort(self._theta[:,i]).tolist()
+			args = np.argsort(self._theta[:,i]).tolist()
 			args.reverse()
-			lines[i,:] = sp.array(args)[0:n_lines] + 1
+			lines[i,:] = np.array(args)[0:n_lines] + 1
 		return lines
 
 	def _removeStopwords(self,stopwords):
@@ -102,8 +109,13 @@ class LDACGS(object):
 		return output
 
 	def _conditional(self, m, w):
-		# Compute conditional distribution
-		return # Return conditional distribution
+        """ 
+        This function is given. Compute the conditional distribution of 
+        the topic corresponding to document m and word index w.
+        Returns a distribution vector of length self.n_topics.
+        """
+		dist = (self.nmz[m,:] + self.alpha) * (self.nzw[:,w] + self.beta) / (self.nz + self.beta*self.n_words)
+        return dist/sum(dist)
 
 	def _sweep(self):
 		for m in xrange(self.n_docs):
@@ -121,11 +133,11 @@ class LDACGS(object):
 		lik = 0
 
 		for z in xrange(self.n_topics):
-			lik += sp.sum(gammaln(self.nzw[z,:] + self.beta)) - gammaln(sp.sum(self.nzw[z,:] + self.beta))
+			lik += np.sum(gammaln(self.nzw[z,:] + self.beta)) - gammaln(np.sum(self.nzw[z,:] + self.beta))
 			lik -= self.n_words * gammaln(self.beta) - gammaln(self.n_words*self.beta)
 
 		for m in xrange(self.n_docs):
-			lik += sp.sum(gammaln(self.nmz[m,:] + self.alpha)) - gammaln(sp.sum(self.nmz[m,:] + self.alpha))
+			lik += np.sum(gammaln(self.nmz[m,:] + self.alpha)) - gammaln(np.sum(self.nmz[m,:] + self.alpha))
 			lik -= self.n_topics * gammaln(self.alpha) - gammaln(self.n_topics*self.alpha)
 
 		return lik
