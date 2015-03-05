@@ -14,7 +14,7 @@ We can pose such a problem as follows:
 \end{align*}
 Unlike linear constrained optimization, the optimal point is not guaranteed to be one of the vertices of the
 feasible polytope. Thus, any attempt to extend the popular Simplex Algorithm to quadratic
-programs would require substantial adjustments, as that algorithm is based crucially on locating and searching through
+programs would require substantial adjustments, as that algorithm is crucially based on locating and searching through
 the vertices of the feasible region. Interior Point methods, however, generalize readily to the situation at hand.
 In this lab, you will learn about and implement a primal-dual Interior Point method for quadratic constrained
 optimization. You will then explore applications in elastic membrane theory and in finance.
@@ -35,7 +35,7 @@ and $b \in \mathbb{R}^m$.
 The Interior Point method we describe here is an adaptation of the method we used with linear
 programming. The basic intuition is the same as before: we start at some point in the interior of the
 feasible region, and we make a series of steps so that we approach the solution to the KKT conditions
-iteratively. Since the the solution to the KKT conditions can be seen as the root of a system of equations,
+iteratively. Since the solution to the KKT conditions can be seen as the root of a system of equations,
 our first thought might be to use Newton's Method for root-finding. This will not work on its own, however,
 because the KKT conditions also require inequality constraints, which will be violated if we blindly apply
 Newton's Method. Hence, we make adjustments to our choice of search direction and step size, so that we
@@ -97,7 +97,7 @@ y,\lambda &\geq 0.
 Our goal is to produce a sequence of points that approach the solution to this system of equations, all the while
 respecting the nonnegativity constraints $y,\lambda \geq 0$.
 
-We achieve this goal using largely the same approach our linear programming Interior Point method.
+We achieve this goal using largely the same approach as in our linear programming Interior Point method.
 We first apply Newton's method to $F$, obtaining a Newton search direction $(\triangle x, \triangle y, \triangle \lambda)$
 that solves the system
 \begin{equation}
@@ -349,7 +349,7 @@ a tent pole), we have the following linear constraints:
 \[
 x \geq L,
 \]
-where we mean entry-wise inequality between the arrays.
+where we mean entry-wise inequalities between the arrays.
 
 Now, the theory of elastic membranes tells us that such materials tend to naturally minimize a quantity known
 as the \emph{Dirichlet energy}. This quantity can be expressed as a quadratic function of the membrane.
@@ -383,13 +383,12 @@ def laplacian(n):
     Returns:
         dense array of shape n^2 x n^2
     """
-    n = n+2
-    data = -1*np.ones((5, (n-2)**2))
+    data = -1*np.ones((5, n**2))
     data[2,:] = 4
-    data[1, n-3::n-2] = 0
-    data[3, ::n-2] = 0
-    diags = np.array([-n+2, -1, 0, 1, n-2])
-    return spar.spdiags(data, diags, (n-2)**2, (n-2)**2).todense()
+    data[1, n-1::n] = 0
+    data[3, ::n] = 0
+    diags = np.array([-n, -1, 0, 1, n])
+    return spar.spdiags(data, diags, n**2, n**2).todense()
 \end{lstlisting}
 Next, we initialize the tent pole configuration for a grid of side length $n$.
 \begin{lstlisting}
@@ -434,7 +433,7 @@ Plot your solution.
 Suppose you have a certain amount of money saved up, with no intention of consuming it any time soon.
 What will you do with this money? If you hide it somewhere in your living quarters or on your person,
 it will lose value over time due to inflation, not to mention you run the risk of burglary or accidental
-loss. A safer choice might be to put the money in a bank account. Here, there is less risk of losing the
+loss. A safer choice might be to put the money into a bank account. That way, there is less risk of losing the
 money, plus you may even add to your savings through interest payments from the bank. You could also
 consider purchasing bonds from the government or stocks from various companies, which come with their own
 sets of risks and returns. Given all of these possibilities, how can you invest your money in such a way
