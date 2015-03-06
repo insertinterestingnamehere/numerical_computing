@@ -8,7 +8,7 @@ Understanding the variance in complex data is one of the initial tasks in explor
 \caption{Sepal Length vs. Petal Length for 100 iris flowers. Note the strong correlation of these variables.}
 \label{fig:iris_1}
 \end{figure}
-There are three distinct types of iris flowers present: \emph{setosa}, \emph{versicolor}, and \emph{virginica}. 
+There are three distinct types of iris flowers present: \emph{setosa}, \emph{versicolor}, and \emph{virginica}.
 Considering this data, we might ask how to best distinguish the different types of irises given the data about their sepal and petal lengths.
 We can answer this question by finding the characteristic that causes the greatest variance in the data.
 (Greater variance implies a greater ability to distinguish between data points. If the variance is very small, the data are clustered tightly together, and it is difficult to distinguish well.)
@@ -35,7 +35,7 @@ Throughout we will use the iris data set, which can be obtained as follows:
 >>> X = iris.data
 \end{lstlisting}
 We represent the collection of observations as a matrix $n \times m$ matrix $X$, where each row of $X$ is an observation, and each column is a specific feature.
-Let $k = \min(m,n)$. 
+Let $k = \min(m,n)$.
 In the iris example, $X$ contains 150 observations, each consisting of 4 features, as shown below:
 \begin{lstlisting}
 >>> X.shape
@@ -47,7 +47,7 @@ In the iris example, $X$ contains 150 observations, each consisting of 4 feature
  'petal width (cm)']
 \end{lstlisting}
 
-The first step in PCA is to pre-process the data. In particular, we first translate the columns of $X$ to have mean 0. 
+The first step in PCA is to pre-process the data. In particular, we first translate the columns of $X$ to have mean 0.
 The data may then be optionally scaled to remove discrepancies arising from different units of measure (i.e. centimeters vs meters), and we call the centered and scaled data $Y$.
 In this lab, we will not have any scaling issues, so we won't address this further.
 We pre-process our iris data as follows:
@@ -96,7 +96,7 @@ In Figure \ref{fig:iris_pca} we display the transformed iris data set, plotting 
 \end{figure}
 
 \begin{problem}
-Recreate the plot shown in Figure \ref{fig:iris_pca} by performing PCA on the iris dataset, keeping the first two principal components. 
+Recreate the plot shown in Figure \ref{fig:iris_pca} by performing PCA on the iris dataset, keeping the first two principal components.
 
 \emph{Note:}
 If \li{Yhat} is your $150 \times 2$ array of transformed observations, you can access the rows corresponding to the setosa flowers as follows:
@@ -107,96 +107,204 @@ To get the rows corresponding to versicolor and virginica specimens, simply repl
 \end{problem}
 
 \section*{Latent Semantic Indexing}
-Let's now consider PCA in the context of natural language processing.
-Suppose we have a large collection of documents. How can we find an article about PCA?
+\emph{Latent Semantic Indexing} (LSI) is an application of the ideas of PCA to the realm of natural language processing. 
+In particular, LSI employs the SVD to reduce the dimensionality of a large corpus of text documents and to enable us to evaluate the similarity between two documents.
+Many information retrieval systems used in government and industry are based on LSI.
+
+To motivate the problem, suppose we have a large collection of documents dealing with various statistical and mathematical topics. 
+How can we find an article about PCA?
 We might consider simply choosing the article that contains the acronym \emph{PCA} the greatest number of times, but this is a crude method.
 A better way is to use a form of PCA on the collection of the documents.
+
 In order to do so, we need to represent the documents as numerical vectors.
 A standard way of doing this is to define an ordered set of words occurring in the collection of documents (called the \emph{vocabulary}), and then
 represent each document as a vector of word counts from the vocabulary.
 More formally, let our vocabulary be $V = \{w_1,w_2,\ldots,w_m\}$.
 Then a document is a vector $x  = (x_1,x_2,\ldots,x_m) \in \mathbb{R}^m$ such that $x_i$ is the number of occurrences of word $w_i$ in the document.
-In this setup, we represent the entire collection of $m$ documents as an $m \times n$ matrix $f$, where $m$ is the length of the vocabulary and $n$ is the number of documents in our collection, each column being a document vector. As expected, we let $f_{ij}$ be the number of times term $i$ occurs in document $j$.
+In this setup, we represent the entire collection of $m$ documents as an $n \times m$ matrix $X$, where $m$ is the length of the vocabulary and $n$ is the number of documents in our collection, each row being a document vector. 
+As expected, we let $X_{i,j}$ be the number of times term $j$ occurs in document $i$.
+Note that $X$ is often a sparse matrix, as any one document likely doesn't contain most of the vocabulary words.
+This mode of representation is called the \emph{bag of words} model for documents.
 
-We perform PCA on $f$ without centering the data so that we may retain the sparsity of $f$. We now have $f = T\Sigma D^{H}$. The $i^{th}$ row of $D$ is a vector corresponding to the $i^{th}$ document. We typically truncate these vectors, similar to identifying the important principal components of $t\!f$. We let $D_{i}$ denote the $i^{th}$ truncated row of $D$. Given a document $i$, we would like to find the document $j$ most similar to $i$, given that $i\neq j$. What we really need to compare are the vectors $D_{i}\Sigma$ and $D_{j}\Sigma$. Our metric of choice is the angle between two vectors, which is easily computable by considering the identity
-\begin{equation*}
-\cos \theta_{ij} = \frac{D_{i}\Sigma \cdot D_{j}\Sigma}{\|D_{i}\Sigma\| \|D_{j}\Sigma\|}
-\end{equation*}
-where $\theta_{ij}$ is the angle between $D_{i}\Sigma$ and $D_{j}\Sigma$. If two document vectors have a small angle between them, then they are similar; a large angle signifies that they are quite different. Since $\cos \theta_{ij}$ is large whenever $\theta_{ij}$ is small, we seek to find
-\begin{equation*}
-\argmax_{j} \frac{D_{i}\Sigma \cdot D_{j}\Sigma}{\|D_{i}\Sigma\| \|D_{j}\Sigma\|}
-\end{equation*}
-While this is the idea, in practice there are a few other steps we must take prior to the matrix decomposition. In any language, some words are so common that they provide no important information. We call these \emph{stop words}. Examples in English include \emph{the, a, an, and, I, we, you, it, there}, etc. Before processing any set of documents, we must remove all occurrences of stop words. We are going to consider the collection of all State of the Union addresses from 1945 to 2013, but these speeches are in an uncleaned format in the folder \emph{Addresses}, so we must first process them.
+We calculate the SVD of $X$ without centering or scaling the data so that we may retain the sparsity. 
+We now have $X = U\Sigma V^T$. Once we have selected the number of principal components to keep, say $l$, we can represent the corpus of documents by the matrix
+\[
+\widehat{X} = U_l\Sigma_l.
+\]
+Note that $\widehat{X}$ will no longer be a sparse matrix, but it has dimensions $n \times l$, which is much smaller than $n \times m$ when $l \ll m$. 
+
+Now that we have our documents represented in terms of the first $l$ principal components, we can find the similarity between two documents. 
+Our measure for similarity is just the cosine of the angle between the vectors; a small angle (and hence large cosine) indicates greater similarity, while a large angle (hence small cosine)
+indicates greater dissimilarity. 
+Recall that we can use the inner product to find the cosine of the angle between two vectors.
+Under this metric, the similarity between document $i$ and document $j$ (represented by the $i$-th and $j$-th row of $\widehat{X}$, notated $\widehat{X}_i$ and $\widehat{X}_j$, respectively) is just
+\[
+\frac{\langle \widehat{X}_i, \widehat{X}_j\rangle}{\|\widehat{X}_i\|\|\widehat{X}_j\|}.
+\]
+To find the document most similar to document $i$, we simply compute
+\[
+\argmax_{j\neq i} \frac{\langle \widehat{X}_i, \widehat{X}_j\rangle}{\|\widehat{X}_i\|\|\widehat{X}_j\|}.
+\]
+
+
+We now discuss some practical issues involved in creating the bag of words representation $X$ from the raw text.
+Our data set will consist of the US State of the Union addresses from 1945 through 2013, each contained in a separate text file in the folder {\tt Addresses}.
+We would like to avoid loading in all of the text into memory at once, and so we will \emph{stream} the documents one at a time.
+
+The first thing we need to establish is the vocabulary set, i.e. the set of unique words that occur throughout the collection of documents.
+A Python set object automatically preserves the uniqueness of the elements, so we will create a set, and then iteratively read through the documents, adding the unique words of each
+document to the set. As we read in each document, we will remove punctuation and numerical characters and convert everything to lower case.
+The following code will accomplish this task:
+\begin{lstlisting}
+>>> # get list of filepaths to each text file in the folder
+>>> from os import listdir
+>>> path_to_addresses = "./Addresses/"
+>>> paths = [path_to_addresses + p for p in os.listdir(path_to_addresses) if p[-4:]==".txt"]
+
+>>> # helper function to get list of words in a string
+>>> def extractWords(text):
+>>>     return text.strip().translate(trans, string.punctuation+string.digits).lower().split()
+
+>>> # initialize vocab set, then read each file and add to the vocab set
+>>> vocab = set()
+>>> for p in paths:
+>>>     with open(p, 'r') as f:
+>>>         for line in f:
+>>>             vocab.update(extractWords(line))
+\end{lstlisting}
+
+We now have a set of all the unique words in the corpus. However, many of the most common words do not provide important information.
+We call these \emph{stop words}. Examples in English include \emph{the, a, an, and, I, we, you, it, there}, etc;
+a list of common English stop words is given in {\tt stopwords.txt}. 
+We remove the stopwords from our vocabulary set as follows, and then fix an ordering to the vocabulary by creating a dictionary
+whose key-value pairs are of the form (word, index):
+\begin{lstlisting}
+>>> # load stopwords
+>>> with open("stopwords.txt", 'r') as f:
+>>>     stopwords = set([w.strip().lower() for w in f.readlines()])
+
+>>> # remove stopwords from vocabulary, create ordering
+>>> vocab = {w:i for i, w in enumerate(vocab.difference(stopwords))}
+\end{lstlisting}
+
+We are now ready to create the word count vectors for each document, and store these in a sparse matrix $X$.
+It is convenient to use the \li{Counter} object from the \li{collections} module, as this
+object automatically counts the occurrences of each distinct element in a list. 
+\begin{lstlisting}
+>>> from scipy import sparse
+>>> from collections import Counter
+>>> counts = [] # holds the entries of X
+>>> doc_index = [] # holds the row index of X
+>>> word_index = [] # holds the column index of X
+
+>>> # iterate through the documents
+>>> for doc, p in enumerate(paths):
+>>>     with open(p, 'r') as f:
+>>>         # create the word counter
+>>>         ctr = Counter()
+>>>         for line in f:
+>>>             ctr.update(extractWords(line))
+>>>         # iterate through the word counter, store counts
+>>>         for word, count in ctr.iteritems():
+>>>             try: # only look at words in vocab
+>>>                 word_index.append(vocab[word])
+>>>                 counts.append(count)
+>>>                 doc_index.append(doc)
+>>>             except KeyError: # if word isn't in vocab, skip it
+>>>                 pass
+
+>>> # create sparse matrix holding these word counts
+>>> X = sparse.csr_matrix((counts, [doc_index,word_index]), shape=(len(paths),len(vocab)), dtype=np.float)
+\end{lstlisting}
 
 \begin{problem}
-Using the function \li{loadStopwords} and the file
-\texttt{stopwords.txt} provided, read in the stop word list in Python.
-Use the functions \li{termlist}, \li{removeStopwords}, \li{uniq},
-and \li{parseDocument} provided to create an array containing all of the unique
-terms encountered in the corpus that are not included in the stop word list.
-This is called the \emph{term list}.
+Using the techniques of LSI discussed above applied to the word count matrix $X$ and keeping the first 7 principal components,
+find the most similar and least similar speeches to Bill Clinton's 1993 speech and Richard Nixon's 1974 speech.
+Are the results plausible?
+
+\emph{Hint:} Since $X$ is a sparse matrix, you will need to use the SVD method found in \li{scipy.sparse.linalg}. 
+This method operates slightly differently than the SVD method found in \li{scipy.linalg}, so make sure to read the 
+documentation.
+\label{prob:LSI1}
 \end{problem}
 
-\begin{problem}
-Write a function that accepts a file name, a list of stop words, and the term list
-found above, that will return a vector whose $i^{th}$ entry is the number of
-times the $i^{th}$ word from the term list occurs in the .txt file.
-Note that no word in the stop word list should ever contribute to any entry of this vector.
-\end{problem}
-
-\begin{problem}
-Write a function that accepts a directory, a list of stop words, and the term list,
-that will make the term frequency matrix $t\!f$ as described above.
-Each column in $f$ should be the value returned by the function written in the
-previous problem for a particular file. In particular, $f$ should be a
-$m \times n$ matrix, where $m$ is the length of the term list and
-$n$ is the number of .txt files in the given directory.
-\end{problem}
-
-Not only is removing a predetermined set of stop words a good idea,
-but it's also important to consider that words appearing in few documents tend
+The simple bag of words representation is a bit crude, as it fails to consider how some words may be more important than others
+in determining the similarity of documents.
+Words appearing in few documents tend
 to provide more information than words occurring in every document.
 For example, while the word \emph{war} might not be considered a stop word,
-it is likely to appear in quite a few addresses, while \emph{Afghanistan} will not.
+it is likely to appear in quite a few addresses, whereas \emph{Afghanistan} will not.
 Thus two speeches sharing the word \emph{Afghanistan} ought to be considered more
 related than two speeches sharing the word \emph{war}.
-So while $f_{ij}$ is a good measure of the importance of term $i$ in document $j$,
-we also need to consider some kind of global weight for each term $i$,
+So while $X_{i,j}$ is a good measure of the importance of term $j$ in document $i$,
+we also need to consider some kind of global weight for each term $j$,
 indicating how important the term is over the entire collection.
-There are a number of different weights we could choose, but we choose to employ
-the following particular approach.
+There are a number of different weights we could choose; we choose to employ
+the following approach.
 
-Let $t_{i}$ be the total number of times term $i$ appears in the entire
+Let $t_{j}$ be the total number of times term $j$ appears in the entire
 collection of documents.
 Define
 \begin{equation*}
-p_{ij} = \frac{f_{ij}}{t_{i}}
+p_{i,j} = \frac{X_{i,j}}{t_{j}}.
 \end{equation*}
 We then let
 \begin{equation*}
-g_{i} = 1 + \sum_{j=1}^{n} \frac{p_{ij} \log (p_{ij} + 1)}{\log n}
+g_{j} = 1 + \sum_{i=1}^{m} \frac{p_{i,j} \log (p_{i,j} + 1)}{\log m},
 \end{equation*}
-where $n$ is the number of documents in the collection.
-We call $g_{i}$ the global weight of term $i$.
-We replace each term frequency in the matrix $f$ by weighting it globally.
-Specifically, we define
+where $m$ is the number of documents in the collection.
+We call $g_{j}$ the \emph{global weight} of term $i$.
+We replace each term frequency in the matrix $X$ by weighting it globally.
+Specifically, we define a matrix $A$ with entries
 \begin{equation*}
-a_{ij} = g_{i} \log (f_{ij} + 1)
+A_{i,j} = g_{j} \log (X_{i,j} + 1).
 \end{equation*}
-so we can consider these values to be a matrix $A$, which will take the place of
-$f$ as a matrix whose entries are both locally and globally weighted.
+We can now perform LSI on the matrix $A$, whose entries are both locally and globally weighted.
+
+To calculate the matrix $A$ in a streaming manner, we must alter our code above somewhat:
+\begin{lstlisting}
+>>> from itertools import izip
+>>> from math import log
+>>> t = np.zeros(len(vocab))
+>>> counts = []
+>>> doc_index = []
+>>> word_index = []
+
+>>> # get doc-term counts and global term counts
+>>> for doc, path in enumerate(paths):
+>>>     with open(path, 'r') as f:
+>>>         # create the word counter
+>>>         ctr = Counter()
+>>>         for line in f:
+>>>             words = extractWords(line)
+>>>             ctr.update(words)
+>>>         # iterate through the word counter, store counts
+>>>         for word, count in ctr.iteritems():
+>>>             try: # only look at words in vocab
+>>>                 word_ind = vocab[word]
+>>>                 word_index.append(word_ind)
+>>>                 counts.append(count)
+>>>                 doc_index.append(doc)
+>>>                 t[word_ind] += count
+>>>             except KeyError:
+>>>                 pass
+
+>>> # get global weights
+>>> g = np.ones(len(vocab))
+>>> logM = log(len(paths))
+>>> for count, word in izip(counts, word_index):
+>>>     p = count/float(t[word])
+>>>     g[word] += p*log(p+1)/logM
+
+>>> # get globally weighted counts
+>>> gwcounts = []
+>>> for count, word in izip(counts, word_index):
+>>>     gwcounts.append(g[word]*log(count+1))
+
+>>> # create sparse matrix holding these globally weighted word counts
+>>> A = sparse.csr_matrix((gwcounts, [doc_index,word_index]), shape=(len(paths),len(vocab)), dtype=np.float)
+\end{lstlisting}
 
 \begin{problem}
-Write a function that accepts the term frequency matrix returned by your previous
-function, and which returns the matrix $A$ as described above.
-Perform PCA on $A$ as described above, remembering to \emph{not} center the data.
-Truncate the document vectors to retain the first $80\%$ of the variance in the data.
-\end{problem}
-
-\begin{problem}
-Write a function that accepts the truncated document matrix, the list of file names
-for the documents, and an index $i$, and which returns the file name of the document
-most similar to the $i^{th}$ document. Find the speeches most similar to each of
-President George W. Bush's speeches, as well as the speeches most similar to
-each of President Obama's speeches.
+Repeat Problem \ref{prob:LSI1} using the matrix $A$. Do your answers seem more reasonable than before?
 \end{problem}

@@ -7,7 +7,6 @@ from sklearn.datasets import load_iris
 from sklearn import decomposition
 from scipy import linalg as la
 
-import solutions
 
 iris = load_iris()
 
