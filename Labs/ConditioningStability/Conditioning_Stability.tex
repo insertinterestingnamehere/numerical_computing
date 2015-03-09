@@ -76,7 +76,7 @@ Next we perturb the polynomial by changing the $x^{19}$-coefficient from $-210$ 
 \begin{lstlisting}
 >>> perturb = np.zeros(21)
 >>> perturb[1]=1e-7
->>> perturbed_coeffs = w_coeffs + perturb
+>>> perturbed_coeffs = w_coeffs - perturb
 \end{lstlisting}
 
 Now we find the roots of the perturbed polynomial.
@@ -89,24 +89,24 @@ The new roots are plotted with the original roots in Figure \ref{fig:wilkinsonpo
 Finally we compute an approximation to the condition number.
 We sort the roots before we compare them to ensure that they are in the same order.
 \begin{lstlisting}
->>> roots = np.sort(roots)
->>> rootsp = np.sort(rootsp)
->>> la.norm(rootsp-roots)/la.norm(perturb)
-70361526.49231146
+>>> w_roots = np.sort(w_roots)
+>>> perturbed_roots = np.sort(perturbed_roots)
+>>> la.norm(perturbed_roots-w_roots)/la.norm(perturb)
+68214100.15878984
 \end{lstlisting}
-Thus, the condition number of this problem is something like $10^6$. 
+Thus, the condition number of this problem is something like $10^7$. 
 
 When we try to estimate the relative condition number, NumPy will not compute the 2-norm of \li{w_coeffs} because it is so large.
 NumPy will not compute the square root of a very large number.
 One easy solution is to use a different norm that does not require the square root. 
 \begin{lstlisting}
 >>> # Estimate the absolute condition number in the infinity norm
->>> k = la.norm(rootsp-roots, np.inf)/la.norm(perturb, np.inf)
+>>> k = la.norm(perturbed_roots-w_roots, np.inf)/la.norm(perturb, np.inf)
 >>> k
-29060080.472785536
+28260604.34345689
 >>> # Estimate the relative condition number in the infinity norm
->>> k*la.norm(w_coeffs, np.inf)/la.norm(roots, np.inf)
-2.0056918463389856e+25
+>>> k*la.norm(w_coeffs, np.inf)/la.norm(w_roots, np.inf)
+1.9505129642488696e+25
 \end{lstlisting}
 As you can see, the order of magnitude of the absolute condition number is the same as when we computed it with the 2-norm.
 The relative condition number for this problem is approximately $10^{24}$.
