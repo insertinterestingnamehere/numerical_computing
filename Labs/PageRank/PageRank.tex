@@ -2,32 +2,66 @@
 \label{lab:PageRank}
 \objective{Explain the basics of the PageRank Algorithm, and some of its applications}
 
-The PageRank algorithm was one of the first algorithms used by Google to classify search results.
-It is named after one of the co-founders of Google, Larry Page, and is based on an interesting mathematical model that involves random processes, Markov chains, and eigenvalues.
-It ranks pages based upon their connectivity properties with the rest of the internet.
-When you run a search on Google's web page, they find every page that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
-As of 2013, PageRank is one of over 200 algorithms used in determining Google's ranking of a website.
+When you enter keywords into Google's search engine, Google finds every page containing your keywords and lists the pages in order of their \emph{rank}.
+The rank of a page reflects many factors, including how often the page is visited and how connected it is to other pages.
+As of 2013, the PageRank algorithm is one of over 200 algorithms that Google uses to determine the rank of a website.
+Named for Larry Page, cofounder of Google, this algorithm ranks pages based on how connected they are to the rest of the internet.
 
-The PageRank algorithm works by supposing that a person surfing the internet randomly clicks links on the web pages.
-We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$.
-We can write an equation for this probability from one time step to the next using the following notation:
-\[PR(i,t+1) = \sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}\]
-Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$.
-Note that this is simply representing the internet as a Markov chain, just like we discussed in Lab \ref{lab:MarkovGraph}.
-We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
+\section*{The internet as a graph}
+The PageRank algorithm models the internet with a directed graph. 
+Each webpage is a node, and there is an edge from node $i$ to node $j$ if page $i$ links to page $j$.
+Let $\In(i)$ be the websites linking to page $i$ and let $\Out(i)$ be the websites that page $i$ links to. 
+That is, $\In(i)$ is the set of nodes with an arrow to node $i$, and $\Out(i)$ is the set of nodes with an arrow from node $i$.
 
-There are two modifications that still need to be made to this formula.
-First, what if a page has no outbound links?
-In this case we pretend that the page links to every other page.
-It is as if the surfer, upon getting stuck, randomly picks a new page.
-Second, we assume that the surfer sometimes gets bored and randomly picks a new page.
-The probability that the surfer doesn't get bored is called the damping factor $d$.
-A good value is $d=.85$.
-Using these modifications we can write our formula as:
-\[PR(i,t+1) = \frac{1-d}{N} + d\sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}\]
-Note that $N$ is the total number of web pages.
-We then say that the page rank of a particular web page is the value
-\[PR(i) = \lim_{t\to \infty} PR(i,t)\]
+An example is illustrated in Figure \ref{TODO}.
+In this example, we would intuitively say that page x is not very connected to other pages, while page y is very connected. 
+Moreover, because many pages link to page x, we might assume that it is a better webpage, and so pages linked to by page x are more likely to be relevant than pages linked to by page y.
+The PageRank makes these intuitive notions precise.
+
+\section*{The PageRank algorithm}
+The PageRank algorithm assumes that a surfer chooses a starting webpage randomly.
+Then, if the surfer is at page $i$, they randomly select a page from $\Out(i)$ to visit next.
+This means that the surfer's chance of being on page $i$ at time $t$ is determined by where they were at time $t-1$.
+
+Suppose the internet has $N$ webpages and let $P(i,t)$ be the likelihood that the surfer is on page $i$ at time $t$.
+Then the probabilities $P(i,t)$ are given by
+\begin{equation}\label{equ:pr1}
+p(i,0)=\frac{1}{N} \qquad p(i,t+1) = \sum_{j \in \In(i)} \frac{p(j,t)}{\Out(j)}.
+\end{equation}
+
+For example, in Figure \ref{} we have $N=?$ and . . . . .(TODO: insert example)
+
+\subsection*{Refining the model: pages with no outbound links}
+Model these pages as if they link to every other page (TODO: why?)
+
+\subsection*{Refining the model: adding boredom}
+The equations in \eqref{equ:pr1} describe the surfer's habits as a Markov chain.
+However, the model is more realistic if we add the assumption that the surfer sometimes gets bored and randomly picks a new starting page.
+We will denote the probability that a surfer stays interested at step $t$ by a constant $d$, called the \emph{damping factor}.
+Then the probability that the surfer gets bored at time $t$ is $1-d$.
+Accounting for boredom, the formulas in \eqref{equ:pr1} become
+\begin{equation}\label{equ:pr2}
+p(i,0)=\frac{1}{N} \qquad p(i,t+1) = \frac{1-d}{N} + d\sum_{j \in \In(i)} \frac{p(j,t)}{\Out(j)}.
+\end{equation}
+TODO: in hw, use d=.85.
+
+
+\subsection*{Defining page rank}
+As given by the PageRank algorithm, the \emph{rank} of page $i$ is
+\[p(i) = \lim_{t\to \infty} p(i,t).\]
+In other words, the page ranks are the steady state of the modified Markov chain defined in \eqref{equ:pr2}.
+
+\subsection*{Matrix form of the PageRank algorithm}
+We can rewrite \eqref{equ:pr2} as the matrix equation
+\[
+\mathbf{p}(0)=\frac{1}{N}\mathbf{1} \qquad \mathbf{p}(t+1) = dK\mathbf{p}(t) + \frac{1-d}{N}\mathbf{1}
+\]
+where $\mathbf{p}(t)=(p(1,t), p(2,t), \ldots, p(N,t))^T$ and $\mathbf{1} = (1,\ldots, 1)^T$, and $K$ is defined by
+\[K_{ij} = \begin{cases} \frac{1}{\Out(j)} & \mbox{ if j links to i} \\
+	0 & \mbox{ otherwise.} \end{cases}\]
+
+
+
 
 Mathematically, the page rank is the steady state probability of our modified Markov chain.
 We can rewrite this as a matrix equation:
