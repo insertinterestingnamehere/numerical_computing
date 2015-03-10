@@ -17,13 +17,13 @@ In this case, $div$ is the divergence operator and $\nabla$ is the gradient.
 If we want to blur a picture uniformly, we can allow $c$ to be constant, but we are often interested in \textit{preserving the edges} between features of the image.
 $c$ can be used to control how much diffusion is allowed at each point, so we would like to modify it so that it minimizes diffusion across edges in the image.
 If we can limit diffusion near the boundaries between different features of the image, we will be able to allow smaller details of the image to blur away while maintaining the overall form of the image.
-This is especially useful for denoising low quality images. 
+This is especially useful for denoising low quality images.
 This approach was first introduced by Pietro Perona and Jitendra Malik in 1987.
 It is known as Anisotropic Diffusion or Perona-Malik Diffusion.
 
 Suppose we have some estimate $E$ of the rate of change at a given point in an image.
 This means that $E$ will be large at boundaries in the image and small elsewhere.
-We will then let $c(x,y,t) = g(E(x,y,t))$ where $g$ is some function such that $g(0)=1$ and $\displaystyle{\lim_{x \to \infty} g(x) = 0}$. 
+We will then let $c(x,y,t) = g(E(x,y,t))$ where $g$ is some function such that $g(0)=1$ and $\displaystyle{\lim_{x \to \infty} g(x) = 0}$.
 The idea here is that $c$ will be small where $E$ is large, so there will be little diffusion near the boundaries of different portions of the image.
 
 One way to model the evolution of this system is to use a finite differencing scheme where, at each time step, we have an array of values at a 2D grid of points.
@@ -47,12 +47,12 @@ U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n 
 
 Where $\lambda \leq \frac{1}{4}$ for stability.
 
-In this way, we allow each term to be affected most by the terms that are already the most simlar to it, so less diffusion will happen anywhere where there is a sharp difference between pixels.
+In this way, we allow each term to be affected most by the terms that are already the most similar to it, so less diffusion will happen anywhere where there is a sharp difference between pixels.
 
 This particular scheme has the useful property that it does not increase or decrease the total brightness of the image.
-Intuitively, this is because the effect of each point on each of its neighbors is exactly oposite the effect its neighbors have on it.
+Intuitively, this is because the effect of each point on each of its neighbors is exactly opposite the effect its neighbors have on it.
 
-Two good examples of commonly used functions for $g$ are $g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}$ and $g(x) = \frac{1}{1+\left(\frac{x}{\sigma}\right)^2}$. 
+Two good examples of commonly used functions for $g$ are $g(x) = e^{-\left(\frac{x}{\sigma}\right)^2}$ and $g(x) = \frac{1}{1+\left(\frac{x}{\sigma}\right)^2}$.
 In both cases, $\sigma$ is a parameter which allows us to control how sharply we decrease diffusion across boundaries.
 Larger $\sigma$ values allow more diffusion across boundaries.
 Also note that in both cases, $g(0) = 1$ and $\displaystyle{\lim_{x\to \infty} g(x) = 0}$.
@@ -214,7 +214,7 @@ This is significantly faster, but much more messy.
 Unfortunately, there is still a significant speed loss from iterating over the arrays many more times than is actually necessary when performing computation.
 There is still a good way to address this problem.
 We can use the package numexpr to perform multiple computations on an array all at once.
-Numexpr is a package that can evaluate simple algebraic expressions involving arrays quickly by recognizing and computing common subexpressions and optimizing for fast chache management when accessing memory.
+Numexpr is a package that can evaluate simple algebraic expressions involving arrays quickly by recognizing and computing common subexpressions and optimizing for fast cache management when accessing memory.
 You may recall that the primary function in the user interface of numexpr is the \li{evaluate} function.
 It evaluates an expression (in some cases, much faster than NumPy can) that has been expressed as a string containing the names of array objects that are in the current scope.
 Here is how this same algorithm can be written using numexpr.
@@ -285,7 +285,7 @@ One possible way to do these problems is to iterate over the array and operate i
 \label{prob:anisdiff_bw}
 Implement an optimized version of anisotropic diffusion for black and white images using the following boundary conditions:
 
-For the top edge let 
+For the top edge let
 \begin{align*}
 U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(|U_{l-1,m}^n - U_{l,m}^n|)(U_{l-1,m}^n - U_{l,m}^n) \\
 					& + g(|U_{l+1,m}^n - U_{l,m}^n|)(U_{l+1,m}^n - U_{l,m}^n) \\
@@ -376,7 +376,7 @@ Colored images can be processed in a similar manner.
 Instead of being represented as a two-dimensional array, colored images are represented as three dimensional arrays.
 The third dimension is used to store the intensities of each of the standard 3 colors.
 This diffusion process can be carried out in the exact same way, on each of the arrays of intensities for each color, but instead of detecting edges just in one color, we need to detect edges in any color, so instead of using something of the form $g(|U_{l+1,m}^n - U_{l,m}^n|)$ as before, we will now use something of the form $g(||U_{l+1,m}^n - U_{l,m}^n||)$, where $U_{l+1,m}^n$ and $U_{l,m}^n$ are vectors now instead of scalars.
-The difference scheme can be treated as an eqation on vectors in 3-space and now reads:
+The difference scheme can be treated as an equation on vectors in 3-space and now reads:
 \begin{align*}
 U_{l,m}^{n+1} = U_{l,m}^n + & \lambda (g(||U_{l-1,m}^n - U_{l,m}^n||)(U_{l-1,m}^n - U_{l,m}^n) \\
 					& + g(||U_{l+1,m}^n - U_{l,m}^n||)(U_{l+1,m}^n - U_{l,m}^n) \\
@@ -494,7 +494,7 @@ def anisdiff_color_noBCs_numexpr(U, N, lambda_, sigma):
 \begin{problem}
 Make a new version of the code you wrote for the previous problem which processes a colored image.
 Measure the difference between using pixels using the $2$-norm.
-Use the corresponding vector versions of the boundary conditions given in Problen \ref{prob:anisdiff_bw}.
+Use the corresponding vector versions of the boundary conditions given in Problem \ref{prob:anisdiff_bw}.
 
 To do this, you must break up the computation of the different terms so that you can compute the norm along each triple of color values and then broadcast the g values along the last axis of the array of differences.
 This can be done by taking your code from the previous problem and doing the following:
@@ -561,8 +561,8 @@ An example of this limitation can be seen in Figure \ref{fig:anisdif_smearing}
 As we can see, after 100 iterations, some of the boundaries between similar shades of grey have smeared unevenly. You may still have to look closely to see it.
 This can be counteracted somewhat by further decreasing the $\sigma$ value, but if we have random noise throughout the image, this will not remove it.
 If we have random static in the image, we can remove this using a modified version of the filter.
-Instead of measuring the rate of change in the picture in each direction, we change each point according to whether or not any of its adjacent points have roughly the same value it has. 
-This is called a minimum-biased filter. 
+Instead of measuring the rate of change in the picture in each direction, we change each point according to whether or not any of its adjacent points have roughly the same value it has.
+This is called a minimum-biased filter.
 This sort of trick is especially good for removing isolated pixels that are different from those around them.
 A very simple way to do this is by taking the average of the two smallest differences between each pixel and its eight neighbors and using that in place of $g$ in the difference scheme above.
 Along the boundaries, we do not have 8 neighbors for each pixel, but we can get by by just using the pixels we have and eliminating the other terms in the difference scheme, just as we did before.
@@ -574,7 +574,7 @@ Below, we include an example where we have added noise to the color version of t
 
 \begin{problem}
 (optional)
-Implement the minimum-biased finite difference scheme described above. 
+Implement the minimum-biased finite difference scheme described above.
 \end{problem}
 
 \newpage
@@ -607,4 +607,4 @@ Implement the minimum-biased finite difference scheme described above.
 \clearpage
 
 \nocite{Perona1988,Kim2009}
-\printbibliography
+\printbibliography 
