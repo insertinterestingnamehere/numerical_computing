@@ -107,11 +107,11 @@ To get the rows corresponding to versicolor and virginica specimens, simply repl
 \end{problem}
 
 \section*{Latent Semantic Indexing}
-\emph{Latent Semantic Indexing} (LSI) is an application of the ideas of PCA to the realm of natural language processing. 
+\emph{Latent Semantic Indexing} (LSI) is an application of the ideas of PCA to the realm of natural language processing.
 In particular, LSI employs the SVD to reduce the dimensionality of a large corpus of text documents and to enable us to evaluate the similarity between two documents.
 Many information retrieval systems used in government and industry are based on LSI.
 
-To motivate the problem, suppose we have a large collection of documents dealing with various statistical and mathematical topics. 
+To motivate the problem, suppose we have a large collection of documents dealing with various statistical and mathematical topics.
 How can we find an article about PCA?
 We might consider simply choosing the article that contains the acronym \emph{PCA} the greatest number of times, but this is a crude method.
 A better way is to use a form of PCA on the collection of the documents.
@@ -121,21 +121,21 @@ A standard way of doing this is to define an ordered set of words occurring in t
 represent each document as a vector of word counts from the vocabulary.
 More formally, let our vocabulary be $V = \{w_1,w_2,\ldots,w_m\}$.
 Then a document is a vector $x  = (x_1,x_2,\ldots,x_m) \in \mathbb{R}^m$ such that $x_i$ is the number of occurrences of word $w_i$ in the document.
-In this setup, we represent the entire collection of $m$ documents as an $n \times m$ matrix $X$, where $m$ is the length of the vocabulary and $n$ is the number of documents in our collection, each row being a document vector. 
+In this setup, we represent the entire collection of $m$ documents as an $n \times m$ matrix $X$, where $m$ is the length of the vocabulary and $n$ is the number of documents in our collection, each row being a document vector.
 As expected, we let $X_{i,j}$ be the number of times term $j$ occurs in document $i$.
 Note that $X$ is often a sparse matrix, as any one document likely doesn't contain most of the vocabulary words.
 This mode of representation is called the \emph{bag of words} model for documents.
 
-We calculate the SVD of $X$ without centering or scaling the data so that we may retain the sparsity. 
+We calculate the SVD of $X$ without centering or scaling the data so that we may retain the sparsity.
 We now have $X = U\Sigma V^T$. Once we have selected the number of principal components to keep, say $l$, we can represent the corpus of documents by the matrix
 \[
 \widehat{X} = U_l\Sigma_l.
 \]
-Note that $\widehat{X}$ will no longer be a sparse matrix, but it has dimensions $n \times l$, which is much smaller than $n \times m$ when $l \ll m$. 
+Note that $\widehat{X}$ will no longer be a sparse matrix, but it has dimensions $n \times l$, which is much smaller than $n \times m$ when $l \ll m$.
 
-Now that we have our documents represented in terms of the first $l$ principal components, we can find the similarity between two documents. 
+Now that we have our documents represented in terms of the first $l$ principal components, we can find the similarity between two documents.
 Our measure for similarity is just the cosine of the angle between the vectors; a small angle (and hence large cosine) indicates greater similarity, while a large angle (hence small cosine)
-indicates greater dissimilarity. 
+indicates greater dissimilarity.
 Recall that we can use the inner product to find the cosine of the angle between two vectors.
 Under this metric, the similarity between document $i$ and document $j$ (represented by the $i$-th and $j$-th row of $\widehat{X}$, notated $\widehat{X}_i$ and $\widehat{X}_j$, respectively) is just
 \[
@@ -157,12 +157,14 @@ document to the set. As we read in each document, we will remove punctuation and
 The following code will accomplish this task:
 \begin{lstlisting}
 >>> # get list of filepaths to each text file in the folder
+>>> import string
 >>> from os import listdir
 >>> path_to_addresses = "./Addresses/"
 >>> paths = [path_to_addresses + p for p in os.listdir(path_to_addresses) if p[-4:]==".txt"]
 
 >>> # helper function to get list of words in a string
 >>> def extractWords(text):
+>>>     trans = string.maketrans("", "")
 >>>     return text.strip().translate(trans, string.punctuation+string.digits).lower().split()
 
 >>> # initialize vocab set, then read each file and add to the vocab set
@@ -175,7 +177,7 @@ The following code will accomplish this task:
 
 We now have a set of all the unique words in the corpus. However, many of the most common words do not provide important information.
 We call these \emph{stop words}. Examples in English include \emph{the, a, an, and, I, we, you, it, there}, etc;
-a list of common English stop words is given in {\tt stopwords.txt}. 
+a list of common English stop words is given in {\tt stopwords.txt}.
 We remove the stopwords from our vocabulary set as follows, and then fix an ordering to the vocabulary by creating a dictionary
 whose key-value pairs are of the form (word, index):
 \begin{lstlisting}
@@ -189,7 +191,7 @@ whose key-value pairs are of the form (word, index):
 
 We are now ready to create the word count vectors for each document, and store these in a sparse matrix $X$.
 It is convenient to use the \li{Counter} object from the \li{collections} module, as this
-object automatically counts the occurrences of each distinct element in a list. 
+object automatically counts the occurrences of each distinct element in a list.
 \begin{lstlisting}
 >>> from scipy import sparse
 >>> from collections import Counter
@@ -222,8 +224,8 @@ Using the techniques of LSI discussed above applied to the word count matrix $X$
 find the most similar and least similar speeches to Bill Clinton's 1993 speech and Richard Nixon's 1974 speech.
 Are the results plausible?
 
-\emph{Hint:} Since $X$ is a sparse matrix, you will need to use the SVD method found in \li{scipy.sparse.linalg}. 
-This method operates slightly differently than the SVD method found in \li{scipy.linalg}, so make sure to read the 
+\emph{Hint:} Since $X$ is a sparse matrix, you will need to use the SVD method found in \li{scipy.sparse.linalg}.
+This method operates slightly differently than the SVD method found in \li{scipy.linalg}, so make sure to read the
 documentation.
 \label{prob:LSI1}
 \end{problem}
