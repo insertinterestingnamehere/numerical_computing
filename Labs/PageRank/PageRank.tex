@@ -15,11 +15,40 @@ The PageRank algorithm models the internet with a directed graph.
 Each webpage is a node, and there is an edge from node $i$ to node $j$ if page $i$ links to page $j$.
 Let $\In(i)$ be the websites linking to page $i$ and let $\Out(i)$ be the websites that page $i$ links to. 
 That is, $\In(i)$ is the set of nodes with an arrow to node $i$, and $\Out(i)$ is the set of nodes with an arrow from node $i$.
-An example is illustrated in Figure \ref{TODO}.
+An example is illustrated in Figure \ref{fig:network1}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[normalcircle/.style={draw, circle, minimum size=1cm, fill=green!30!black, 
+	fill opacity=.25, thick, node distance=1.5cm}, node distance=1.75cm ]
+
+\node[draw=none](2)[]{2};
+\node[draw=none](3)[right of=2]{3};
+\node[draw=none](4)[right of=3]{4};
+\node[draw=none](5)[right of=4]{5};
+\node[draw=none](6)[right of=5]{6};
+\node[draw=none](1)[above of=3]{1};
+\node[draw=none, node distance=2.5cm](0)[right of=1]{0};
+\node[draw=none](dummy)[above right of=0]{};
+\node[draw=none, node distance=.5cm](7)[below 
+	of=dummy]{7};
+
+\foreach \x/\y in {3/2, 4/5, 5/6, 1/0, 3/0, 4/0, 5/0} \draw[->, 
+	>=stealth'](\x)--(\y);
+\draw[->, >=stealth'](6)--(0);
+\draw[->, >=stealth', shorten >= .1cm](7)edge[bend left=20](0);
+\draw[->, >=stealth', shorten <= .1cm](0)edge[bend left=20](7);
+\draw[->, >=stealth', shorten <= .1cm](3)edge[bend right](6);
+\draw[->, >=stealth', shorten <= .1cm](4)edge[bend right](6);
+\end{tikzpicture}
+
+\caption{A directed graph can describe the links between webpages. In this example, the set of web pages linking to page 0 is $\In(0)=\{1,2,3,4,5,6,7\}$, and page 0 links to $\Out(0)=\{7\}$.}
+\label{fig:network1}
+\end{figure}
 
 The PageRank algorithm ranks pages based on how many other pages link to them.
 Moreover, a link from a more important page counts more than a link from a less important page.
-For example, in Figure \ref{} we would expect node 0 to have a very high rank because every other node links to it. 
+For example, in Figure \ref{fig:network1} we would expect node 0 to have a very high rank because every other node links to it. 
 Consequently we would expect node 7 to have a fairly high rank because node 0 links to it, even though node 0 is the only node to do so.
 
 \section*{The PageRank algorithm}
@@ -33,19 +62,55 @@ Then the probabilities $P(i,t)$ are given by
 p(i,0)=\frac{1}{N} \qquad p(i,t+1) = \sum_{j \in \In(i)} \frac{p(j,t)}{\Out(j)}.
 \end{equation}
 
-For example, in Figure \ref{} we have $N=8$, and 
+For example, in Figure \ref{fig:network1} we have $N=8$, and 
 \[
 p(6, t+1)=\frac{p(3,t)}{3}+\frac{p(4,t)}{3} + \frac{p(5,t)}{2}.
 \]
 
 \subsection*{Refining the model: pages with no outbound links}
 A node with no outbound links is called a \emph{sink}. 
-For example, node 2 in Figure \ref{TODO} is a sink.
+For example, node 2 in Figure \ref{fig:network1} is a sink.
 According to our model, if the surfer ever visits a sink, they will stay there forever.
 
 This is not very realistic; in this situation, a person would likely select another webpage at random and begin surfing again.
 Hence, in our model we replace sinks with nodes linking to every other page. 
-For example, we replace Figure \ref{} with Figure \ref{}.
+For example, we replace Figure \ref{fig:network1} with Figure \ref{fig:network2}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[normalcircle/.style={draw, circle, minimum size=1cm, fill=green!30!black, 
+	fill opacity=.25, thick, node distance=1.5cm}, node distance=1.75cm, >=stealth']
+
+\node[draw=none](2)[]{2};
+\node[draw=none](3)[right of=2]{3};
+\node[draw=none](4)[right of=3]{4};
+\node[draw=none](5)[right of=4]{5};
+\node[draw=none](6)[right of=5]{6};
+\node[draw=none](1)[above of=3]{1};
+\node[draw=none, node distance=2.5cm](0)[right of=1]{0};
+\node[draw=none](dummy)[above right of=0]{};
+\node[draw=none, node distance=.5cm](7)[below 
+	of=dummy]{7};
+
+\foreach \x/\y in {3/2, 4/5, 5/6, 1/0, 3/0, 4/0, 5/0} \draw[->, 
+	>=stealth'](\x)--(\y);
+\draw[-> ](6)--(0);
+
+\foreach \x/\y in {2/1, 2/0} \draw[->, color=black!35!](\x)--(\y);
+\foreach \x/\y in {2/3, 2/4, 2/5, 2/6} \draw[->, color=black!35!](\x)
+	edge[bend right](\y);
+
+\draw[->, shorten <= .1cm](3)edge[bend right](6);
+\draw[->, shorten <= .1cm](4)edge[bend right](6);
+\draw[->, shorten <=.1cm, color=black!35!](2)edge[bend left=40](7);
+
+\draw[->, shorten >= .1cm](7)edge[bend left=20](0);
+\draw[->, shorten <= .1cm](0)edge[bend left=20](7);
+
+\end{tikzpicture}
+\caption{This figure arises from Figure \ref{fig:network1} by adding a link from page 2 to every other page (the added links are grey). The new links guarantee that page 2 is no longer a sink, as required by the PageRank algorithm.}
+\label{fig:network2}
+\end{figure}
 
 \subsection*{Refining the model: adding boredom}
 The equations in \eqref{equ:pr1} describe the surfer's habits as a Markov chain.
@@ -84,7 +149,7 @@ where $A$ is the adjacency matrix of the directed graph representing the interne
 Since $\Out(j)$ can be computed from the adjacency matrix, we will begin by creating $A$.
 
 The adjacency matrix $A$ of a directed graph has $A_{ij}=1$ if there is an edge from node $i$ to node $j$, and $A_{ij}=0$ otherwise.
-For example, the adjacency matrix of the graph in Figure \ref{} is defined below.
+For example, the adjacency matrix of the graph in Figure \ref{fig:network1} is defined below.
 We use a code environment to describe $A$ so you can easily use this example to debug the problems in this lab.
 \begin{lstlisting}
 A = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
@@ -118,7 +183,7 @@ def to_matrix( datafile, n ):
 \end{lstlisting}
 Hints:
 \begin{enumerate}
-\item The file \texttt{data.txt} included with this lab describes the matrix in Figure \ref{}. 
+\item The file \texttt{data.txt} included with this lab describes the matrix in Figure \ref{fig:network1}. 
 You may use it to test your function.
 
 \item You can open a file in Python using the \li{with} syntax. 
@@ -148,7 +213,7 @@ The next step is to compute $K$.
 The matrix $D$ is easily obtained from $A$ (how?). 
 Then, we can use $D$ to identify sinks.
 Modify $A$ so that rows corresponding to sinks have all ones instead of all zeros.
-For Figure \ref{}, the modified adjacency matrix is defined below.
+For Figure \ref{fig:network2}, the modified adjacency matrix is defined below.
 \begin{lstlisting}
 Am = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
                [ 1,  0,  0,  0,  0,  0,  0,  0],
@@ -163,7 +228,7 @@ Am = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
 Finally we compute $K$.
 It is a \emph{very} bad idea to invert $D$ and perform the matrix multiplication $D^{-1}A$.
 Rather, store the diagonal entries of $D$ in a vector and use array broadcasting to divide $A$ by $D$.
-For Figure \ref{}, the matrix $K$ is as follows.
+For Figures \ref{fig:network1} and \ref{fig:network2}, the matrix $K$ is as follows.
 
 \begin{lstlisting}
 K = np.array([[ 0   ,  1   ,  1./8,  1./3,  1./3,  1./2,  1   ,  1   ],
@@ -185,7 +250,7 @@ One possibility is to assume the modified Markov chain has a steady state $\math
 (I-dK)\mathbf{p} = \frac{1-d}{N} \mathbf{1}.
 \end{equation}
 
-We can implement this algorithm in SciPy to solve for the page ranks of the network in Figure \ref{}.
+We can implement this algorithm in SciPy to solve for the page ranks of the network in Figure \ref{fig:network2}.
 \begin{lstlisting}
 >>> from scipy import linalg as la
 >>> I = np.eye(8)
@@ -282,7 +347,7 @@ The \li{matplotlib.pyplot.spy} command on the adjacency matrix from a SNAP data 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{sparse_web.png}
-\caption{\li{spy} command on the adjacency matrix corresponding to the websites supported by Notre Dame University in 1999.
+\caption{Output of the \li{spy} command on the adjacency matrix corresponding to the websites supported by Notre Dame University in 1999.
 Data was taken from the SNAP datasets.}
 \label{fig:WebSparse}
 \end{figure}
