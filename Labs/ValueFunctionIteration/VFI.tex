@@ -60,7 +60,7 @@ where $g_c$ is the partial derivative of $g$ with respect to $c_0$.
 
 Given a specific form for $u$ we could solve for $W_1$ and obtain the optimal solution.  In fact, we can solve a problem of
 any length $T$ in this manner, by starting at the last time period and working backward.  We know that $W_{T+1} = 0$.  Working
-backward in time we obtain an equation at each time step $t<T$ by taking the derivative with respect to $c_t$ and setting the equation equal to zero.  This process is called backward induction.  The equations at each time step, such as equation \eqref{FOC}, are sometimes called the inter-temporal Euler equations.  These equations, along with $c_T = W_T$, make $T+1$ equations to go with our $T+1$ unknowns $\{c_0,c_1,c_2,\ldots,c_T\}$, where we can use the law of motion to relate the $c_t$ and $W_t$
+backward in time we obtain an equation at each time step $t<T$ by taking the derivative with respect to $c_t$ and setting the equation equal to zero.  This process is called backward induction.  The equations at each time step, such as equation \eqref{FOC}, are sometimes called the inter-temporal Euler equations.  These equations, along with $c_T = W_T$, make $T+1$ equations to go with our $T+1$ unknowns $\{c_0,c_1,c_2,\ldots,c_T\}$, where we can use the law of motion \eqref{motion} to relate the $c_t$ and $W_t$
 
 \section*{The Recursive Problem, Finite Horizon}
 Approaching the problem sequentially like this can be somewhat messy.  The dynamic programming approach we consider now is more
@@ -105,7 +105,7 @@ state.  Denoting the policy function by $\psi$, this can be written as
 \begin{equation*}
 W_{t+1}=\psi_t \left(W_t\right).
 \end{equation*}
-The policy function gives the optimal amount of cake to leave for next period (equivalent to the amount of consumption) given
+The policy function gives the optimal amount of cake to leave for the next period (equivalent to the amount of consumption) given
 the amount of cake at the start of the period.  In other words, it determines the choice of $W_t$ that satisfies the $\max$
 condition in \eqref{cake_valfn}.
 
@@ -123,12 +123,14 @@ Continuing backwards in this manner leads us to the solution of the original pro
 
 \begin{problem}
 \label{prob:cake_prob}
+We recommend reading the entire problem before beginning to work on it, as many questions may be addressed further on.  This applies to the other problems in this lab as well.
+
 Follow the steps below to solve the problem described above.  Take $u(c_t) = \sqrt{c_t}$.
 You will write a function called \li{eatCake} that takes parameters $\beta$ (the discount factor),
 $N$ (the number of discrete cake values to consider), $W_{max}$ (the original size of the cake,
 set to the default value of $1$), a keyword argument \li{finite} (set to default value \li{True}),
 a keyword argument  $T$ (the number of time periods, set to
-default value \li{None}), and a keyword argument \li{plot}, which indicates whether
+default value \li{None}), and a keyword argument \li{plot}, which indicates whether or not
 to plot the computed results. The function should return arrays representing the value function and the
 policy function (we describe how to compute these in the following steps).
 \begin{enumerate}
@@ -142,17 +144,17 @@ w = (w_1, w_2, \ldots, w_N),
 where $w_1 = 0$ and $w_N = W_{max}$.
 
 \item Note that in order to compute the value function, we need $u(W_{t-1}-W_t)$.
-We will pre-compute all possible such values and store them in an array, as follows.
+We will pre-compute all such possible values and store them in an array, as follows:
 Create an $N$ by $N$ matrix that contains
 all possible values of $W_{t-1} - W_t$ (where $W_{t-1}$ corresponds to rows and $W_{t}$ to columns).  Make sure that
-$c_t \geq 0$ is satisfied by replacing negative entries in the matrix with zero.  Then take the square root to get a matrix
+$c_t \geq 0$ is satisfied by replacing negative entries in the matrix with zeros.  Then take the square root to get a matrix
 of $u(W_{t-1}-W_t)$.  To make sure we do not choose $W_{t-1} - W_t < 0$ when maximizing, replace the corresponding entries of
 the $u(W_{t-1}-W_t)$ matrix with a large negative number (e.g. $-10^{10}$). You should end up with a matrix whose
 $(i,j)$-th entry is equal to $\sqrt{w_i - w_j}$ when $i \geq j$, and is equal to $-10^{10}$ when $i < j$.
 
 \item Next, create an $N$ by $T+2$ (corresponding to $t=0,1,\ldots, T+1$) matrix representing the value function for a given
-time $t$ and state $W_t$.  We can initialize it to zeros and begin filling in the columns starting with the last (which we
-know is zeros).
+time $t$ and state $W_t$.  We can initialize it with zeros and begin filling in the columns starting with the last (which we
+know is zeros), as explained below.
 
 \item Now we are ready to iterate backward and compute the value function for each time period.  To find $V_T$, we first compute
 $u(W_T - W_{T+1}) + \beta V_{T+1}(W_{T+1})$ for all values of $W_{T}$ and $W_{T+1}$.  This will result in an $N$ by $N$ matrix
@@ -171,13 +173,13 @@ where the rows correspond to values of $W_{T}$ and the columns correspond to val
 %\end{lstlisting}
 %In general, be careful about having the correct rows, columns, transposes, etc throughout your code.
 
-Now we maximize over choices of $W_{T+1}$ (choosing how much to save for next period).  Then we will have a row vector
+Now we maximize over choices of $W_{T+1}$ (choosing how much to save for the next period).  Then we will have a row vector
 representing the value function for period $T$ across all possible $W_{T+1}$.  Iterate this procedure to fill in the value
-function for all $t=0,1,\ldots, T+1$.
+function for all $t=T+1,T,\ldots, 0$.
 
 \item In each iteration, you maximize to find the value function at time $t$.  Save the values of $W_{t+1}$ that achieve the
 maximum.  The result is an $N$ by $T+1$ matrix whose $(n,t)$ entry gives the optimal amount of cake to leave for period
-$t+1$ given that we start period $t$ with the the $n$-th value of our vector of cake.  This is the policy function.
+$t+1$, given that we start period $t$ with the the $n$-th value of our vector of cake.  This is the policy function.
 
 \item If the keyword argument \li{plot} is set to \li{True}, plot the surface of the Value and Policy functions.
 This can be done by including the following import lines
@@ -211,8 +213,8 @@ where \li{W} is the vector of cake amounts, \li{V} is the value function, and \l
 
 Solve the problem using cake size $1$, discount factor $\beta = .9$, number of time periods $T = 10$, and number of
 discrete cake values $N = 100$. You should also try plotting the value and policy functions for fixed time periods across
-$W_t$, or for fixed $W_t$
-across time and make sure that these plots fit your intuition. See Figure \ref{fig:valueslices}. Your output should
+$W_t$, or for fixed $W_t$ across time,
+ and make sure that these plots fit your intuition. See Figure \ref{fig:valueslices}. Your output should
 agree with the figure.
 \end{problem}
 
