@@ -1,7 +1,66 @@
+import numpy as np
+import scipy.stats as st
+from math import sqrt
 import scipy as sp
 from scipy.special import gammaln
 import string
 
+def gibbs(y, mu0, sigma02, alpha, beta, n_samples):
+    """
+    Assuming a likelihood and priors
+        y_i    ~ N(mu, sigma2),
+        mu     ~ N(mu0, sigma02),
+        sigma2 ~ IG(alpha, beta),
+    sample from the posterior distribution
+        P(mu, sigma2 | y, mu0, sigma02, alpha, beta)
+    using a gibbs sampler.
+
+    Parameters
+    ----------
+    y : ndarray of shape (N,)
+        The data
+    mu0 : float
+        The prior mean parameter for mu
+    sigma02 : float > 0
+        The prior variance parameter for mu
+    alpha : float > 0
+        The prior alpha parameter for sigma2
+    beta : float > 0
+        The prior beta parameter for sigma2
+    n_samples : int
+        The number of samples to draw
+
+    Returns
+    -------
+    samples : ndarray of shape (n_samples,2)
+        1st col = mu samples, 2nd col = sigma2 samples
+    """
+    # initialization
+    samples = np.empty((n_samples, 2))
+    N = len(y)
+    mu = y.mean()
+    sigma2 = 25.
+    # initialize posterior alpha, since it doesn't depend on mu or sigma2
+    alphastar = alpha + N/2.
+    for k in xrange(n_samples):
+        # get the posterior parameters and draw mu
+        sigstar2 = 1./((1./sigma02) + (N/sigma2))
+        mustar = sigstar2*((mu0/sigma02) + y.sum()/sigma2)
+        mu = st.norm.rvs(mustar, scale = sqrt(sigstar2))
+
+
+        # get posterior parameters and draw sigma2
+        betastar = beta + ((y-mu)**2).sum()/2.
+        sigma2 = st.invgamma.rvs(alphastar, scale=betastar)
+
+        # save sample
+        samples[k,0] = mu
+        samples[k,1] = sigma2
+    return samples
+    
+# code for plotting KDEs of posteriors, and for getting posterior predictive is contained in plots.py
+
+# below is the LDA solutions
 def loadStopwords(filename):
     """ This function is given. """
     infile = open(filename,'r')
@@ -110,6 +169,7 @@ class LDACGS(object):
         return output
 
     def _conditional(self, m, w):
+        """ This function is given. """
         dist = (self.nmz[m,:] + self.alpha) * (self.nzw[:,w] + self.beta) / (self.nz + self.beta*self.n_words)
         return dist/sum(dist)
 
