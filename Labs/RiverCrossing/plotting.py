@@ -126,6 +126,8 @@ def trajectory():
 	# plt.clf()
 	return x, z, N
 
+
+
 def angle():
 	x,z, N = trajectory()
 	num = int(N/20)
@@ -157,6 +159,7 @@ def angle():
 	plt.show()
 
 
+
 def newfunc():
 	# The integrand of the functional that gives the time required to cross
 	# the river on a given trajectory.
@@ -172,8 +175,8 @@ def newfunc():
 
 if __name__=="__main__":
 	# current_plot()	
-	# time_functional()
-	trajectory()
+	print time_functional()
+	# trajectory()
 	# angle()
 	# newfunc()
 
