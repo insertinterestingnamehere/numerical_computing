@@ -35,7 +35,6 @@ def arnoldi(b, Amul, k, tol=1E-8):
         # Stop if ||q_{j+1}|| is too small.
         if abs(H[j+1, j]) < tol:
             # Here I'll copy the array to avoid excess memory usage.
-            print H
             return np.array(H[:j+1,:j+1], order='F'), Q[:,:j+1]
         # Normalize q_{j+1}
         Q[:,j+1] /= H[j+1, j]
