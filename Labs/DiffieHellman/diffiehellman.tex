@@ -1,0 +1,75 @@
+\lab{Diffie-Hellman Key Exchange}{Diffie-Hellman Key Exchange}
+\objective{Understand a method of sharing secrets over insecure channels.}
+
+The oldest and most intuitive way of sending secret messages is with a symmetric cipher. The ancient Greeks used substitution ciphers, the Nazis used Enigma, and people all over the world use modern symmetric algorithms like AES and Twofish. In each case, the basic principle is the same: two parties must share a piece of secret information called a key. One party uses the key to encrypt a message, and the other uses the key to decrypt it. A third party may be able to intercept an encrypted message, but it doesn't matter unless they can obtain the key.
+
+Symmetric ciphers are worthless if the two parties don't already share a key. That's where a key exchange algorithm comes in. It makes it possible for two people - typically called Alice and Bob in cryptographic literature - to create a secret key that only they share, without requiring them to meet in person or use preexisting secure channels. The Diffie-Hellman key exchange was the first such algorithm, and it forms the basis of several important cryptographic protocols in use today.
+
+To describe the algorithm, we need some basic notions from group theory. We consider a special class of groups. For a prime number $p$, the {\bf multiplicative group of integers modulo $p$}, often denoted $\mathbb{Z}_p^\times$, consists of the integers $1, 2, \dots, p-1$ with the usual modular multiplication. In the case $p=7$, the group would have the following multiplication table:
+
+\begin{center}
+\begin{tabular}{l | l*{6}{c}}
+* & 1 & 2 & 3 & 4 & 5 & 6 \\
+\hline
+1 & 1 & 2 & 3 & 4 & 5 & 6 \\
+2 & 2 & 4 & 6 & 1 & 3 & 5 \\
+3 & 3 & 6 & 2 & 5 & 1 & 4 \\
+4 & 4 & 1 & 5 & 2 & 6 & 3 \\
+5 & 5 & 3 & 1 & 6 & 4 & 2 \\
+6 & 6 & 5 & 4 & 3 & 2 & 1 \\
+\end{tabular}
+\end{center}
+
+\begin{info}
+You've already dealt with groups a lot! A vector space is a special type of group. A {\bf group} consists of a set and an operation with some special properties. Recall for a vector space we have five properties with respect to addition. The first four of these (closure, associativity, existence of an identity, and existence of inverses) are exactly the group properties. The fifth property, commutativity makes a vector space an {\bf abelian group} with respect to addition.
+\end{info}
+
+This group has an important property: every element can be represented as a power of a single element. In this case, $3$ works as $3^1 = 3,\,3^2 = 2,\,3^3 = 6,\,3^4 = 4,\,3^5 = 5,\,3^6 = 1$. Note that not every element generates the whole group; consider powers of $2$. Elements that do are called {\bf primitive roots} (or primitive elements in some contexts) and are said to generate a group. Groups generated entirely by one element are called {\bf cyclic groups}. We have shown that $\mathbb{Z}_7^\times$ is cyclic. In fact, $\mathbb{Z}_p^\times$ is a finite cyclic group for every prime $p$. There are other types of finite cyclic group, but we won't consider them here.
+
+Here is an outline of how Alice and Bob can perform a Diffie-Hellman key exchange:
+
+\begin{itemize}[$\bullet$]
+
+\item Alice and Bob (publicly) agree on a finite cyclic group $\mathbb{Z}_p^\times$ and generator $g$.
+
+\item Alice and Bob each secretly choose an integer, $x$ and $y$ respectively.
+
+\item Alice computes $A = g^x$, while Bob computes $B = g^y$ (modulo $p$).
+
+\item Alice and Bob exchange the group elements $A$ and $B$ to each other (still keeping $x$ and $y$ secret).
+
+\item Alice computes $B^x$, while Bob computes $A^y$.
+
+\item They get the same answer, $s = B^x = (g^y)^x = (g^x)^y = A^y$. 
+
+\item Now $s$ is can be used as a secure key for a symmetric cipher, or any other sort of encryption.
+
+\end{itemize}
+
+
+\begin{problem}
+Implement a Diffie-Hellman key exchange over $\mathbb{Z}_p^\times$. Take as input both a prime $p$ and a primitive root $g$. Randomly choose integers $x$ and $y$. Return $s$. Test them with $p = 21929$ and $g=3$.
+\end{problem}
+
+Why is this key exchange secure? A third party, Eve, can eavesdrop on $A$ and $B$ because they are sent out in the open. If she can compute $x$ and $y$, she can easily compute $s$ in the same way Alice and Bob did. This might sound easy, as it amounts to computing the logarithm $x = \log_g(A)$. While logarithms of real numbers are easy to compute, logarithms of group elements are known as discrete logarithms and they are notoriously difficult. For large cyclic groups, such as $\mathbb{Z}_p^\times$ where $p$ has hundreds or thousands of digits, discrete logs can be effectively impossible. Exponentiation, on the other hand, remains easy due to two simple tricks.
+
+The first trick is called {\bf exponentiation by squaring}, or binary exponentiation. The notion of exponentiation as repeated multiplication leads to a natural implementation. Computing $A = g^x$ by setting $A=1$ and then multiplying by $g$ repeatedly with a of loop requires $x$ multiplications. While this might be fine if $x$ is small, but it quickly becomes unfeasible. To see a better method, we first consider an example. Say we want to compute $g^{34}$. We note that this is equal to $(g^{17})^2$. Now we see the inner exponent is odd, so we pull out a copy of $g$.  Mathematically, we think of the computation as $(g(g^{16})^2$. We continue this process on the inner exponent to eventually get the computation $[g(((g^2)^2)^2)^2]^2$. What was once a 34 computation operation has now been simplified to 6 computations -- square it four times, multiply once, then square a final time. For larger exponents, the relative advantage is even greater.
+
+\begin{problem}
+Write a function that computes arbitrary (integer) powers of an element of $\mathbb{Z}_p^\times$ using exponentiation by squaring. (Hint: Use recursion. There are essentially four cases: the exponent is even (square the value), the exponent is odd (multiply the value by the base $g$), and the base cases where the exponent is one or zero. Don't forget to consider negative exponents.)
+\end{problem}
+
+The second trick is to take advantage of modular arithmetic. If we were working with integers rather than elements of a finite group, we would run into another problem when computing large powers -- the numbers themselves get too big. While python integers won't overflow, they will still take longer to multiply with each added digit. Thus we can optimize the computation by modding out after each multiplication rather than only once at the end, which keeps the numbers relatively small.
+
+\begin{problem}
+Modify your Diffie-Hellman function from the first problem for fast exponentiation using the two techniques above. How long does it take with a 100-digit prime? A 1000-digit prime? [Need to provide a file with primes/generators/exponents] Note importance of Hamming weight (the number of ones in a number's binary representation).
+\end{problem}
+
+The Diffie-Hellman algorithm is very useful because we can reuse the prime $p$ and generator $g$ share more secrets. For example, we Alice can use the same $p$ and $g$ to exchange keys with Carol, and Bob will have no advantage in figuring out Alice and Carol's secret.
+
+This algorithm can also be extended so that Alice, Bob and Carol can create a secure key among all three of them or even arbitrarily many parties. The extension uses the same fact that exponentiating in any order will still yield the same result.
+
+\begin{problem}
+Create a variant of D-H to share a key between $n$ different parties.
+\end{problem}
+
