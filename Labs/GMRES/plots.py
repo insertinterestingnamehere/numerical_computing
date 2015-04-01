@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import linalg as la
-#import matplotlib
-#matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
+import matplotlib
+matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 from matplotlib import pyplot as plt
 
 def plot_gmres():
@@ -45,3 +45,6 @@ def plot_gmres():
     plt.scatter(np.real(evals), np.imag(evals))
     plt.savefig('./plot_gmres.pdf', bbox_inches='tight')
     plt.close()
+    
+if __name__=='__main__':
+    plot_gmres()
