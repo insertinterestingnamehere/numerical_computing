@@ -1,57 +1,192 @@
 \lab{Diffie-Hellman Key Exchange}{Diffie-Hellman Key Exchange}
 \objective{Understand a method of sharing secrets over insecure channels.}
 
-The oldest and most intuitive way of sending secret messages is with a symmetric cipher. The ancient Greeks used substitution ciphers, the Nazis used Enigma, and people all over the world use modern symmetric algorithms like AES and Twofish. In each case, the basic principle is the same: two parties must share a piece of secret information called a key. One party uses the key to encrypt a message, and the other uses the key to decrypt it. A third party may be able to intercept an encrypted message, but it doesn't matter unless they can obtain the key.
 
-Symmetric ciphers are worthless if the two parties don't already share a key. That's where a key exchange algorithm comes in. It makes it possible for two people - typically called Alice and Bob in cryptographic literature - to create a secret key that only they share, without requiring them to meet in person or use preexisting secure channels. The Diffie-Hellman key exchange was the first such algorithm, and it forms the basis of several important cryptographic protocols in use today.
+In cryptography, a \emph{key} is a piece of secret information that is required to either encrypt or decrypt a message.
+A cipher (or code) is \emph{symmetric} if it uses the same key for both encryption and decryption.
+People have used symmetric ciphers since ancient history.
+For example, the ancient Greeks used substitution ciphers, the Nazis used Enigma, and people today use AES and Twofish.
 
-To describe the algorithm, we need some basic notions from group theory. We consider a special class of groups. For a prime number $p$, the {\bf multiplicative group of integers modulo $p$}, often denoted $\mathbb{Z}_p^\times$, consists of the integers $1, 2, \dots, p-1$ with the usual modular multiplication. In the case $p=7$, the group would have the following multiplication table:
+For Alice and Bob to use a symmetric cipher, they must first agree on a key.
+A \emph{key exchange algorithm} is a way to do this so that even if an enemy Eve intercepts all the information passed between Alice and Bob, she will not be able to deduce the key.
+The Diffie-Hellman key exchange was the first such algorithm, and it is frequently used today.
 
-\begin{center}
-\begin{tabular}{l | l*{6}{c}}
-* & 1 & 2 & 3 & 4 & 5 & 6 \\
-\hline
-1 & 1 & 2 & 3 & 4 & 5 & 6 \\
-2 & 2 & 4 & 6 & 1 & 3 & 5 \\
-3 & 3 & 6 & 2 & 5 & 1 & 4 \\
-4 & 4 & 1 & 5 & 2 & 6 & 3 \\
-5 & 5 & 3 & 1 & 6 & 4 & 2 \\
-6 & 6 & 5 & 4 & 3 & 2 & 1 \\
-\end{tabular}
-\end{center}
+\section*{One-Time Pad (Optional)}
+In this section we introduce a basic symmetric cipher with modern uses: the one-time pad.
+This cipher is outlined below.
+\begin{itemize}
+\item The key is a number.
+\item Encrypt a message by 
+\begin{enumerate}
+\item converting it to a number
+\item then adding the key \emph{bitwise}. This means that binary digits are added with no carrying; for example, $1010+11=1001$.
+\end{enumerate}
+\item Decrypt the ciphertext by 
+\begin{enumerate}
+\item adding the key to it bitwise
+\item then converting the resulting number back into text.
+\end{enumerate}
+\end{itemize}
+The security of a one-time pad is compromised when the key is reused to encrypt another message.
 
-\begin{info}
-You've already dealt with groups a lot! A vector space is a special type of group. A {\bf group} consists of a set and an operation with some special properties. Recall for a vector space we have five properties with respect to addition. The first four of these (closure, associativity, existence of an identity, and existence of inverses) are exactly the group properties. The fifth property, commutativity makes a vector space an {\bf abelian group} with respect to addition.
-\end{info}
+For example, suppose we wish to encrypt the message SECRET.
+One way to convert this message to a number is to use the substitution cipher $A=10, B=11, \ldots, Z=35$.
+With this rule, SECRET=281412271429.
+To encrypt this message, we must choose a key that is larger than 281412271429.
+We choose 987654321000. 
+We perform the bitwise addition in Python with the caret operator \li{^}.
+\begin{lstlisting}
+>>> message = 281412271429
+>>> key = 987654321000
+>>>
+>>> ciphertext = message^key    # Encode the message
+>>> ciphertext
+706282163757
+>>>
+>>> message == ciphertext^key    # Decode the message
+True
+\end{lstlisting}
 
-This group has an important property: every element can be represented as a power of a single element. In this case, $3$ works as $3^1 = 3,\,3^2 = 2,\,3^3 = 6,\,3^4 = 4,\,3^5 = 5,\,3^6 = 1$. Note that not every element generates the whole group; consider powers of $2$. Elements that do are called {\bf primitive roots} (or primitive elements in some contexts) and are said to generate a group. Groups generated entirely by one element are called {\bf cyclic groups}. We have shown that $\mathbb{Z}_7^\times$ is cyclic. In fact, $\mathbb{Z}_p^\times$ is a finite cyclic group for every prime $p$. There are other types of finite cyclic group, but we won't consider them here.
+\begin{problem}
+For this problem, use the substitution cipher $A=11, \ldots$ described above, with the additional rule \texttt{' '}=36.
+\begin{enumerate}
+\item Encrypt the message `PRIVATE INFO' with the key 987654321098765432109876.
+\item Decrypt the message 153931672663401143 with the key 12345678901234567890.
+\end{enumerate}
+\end{problem}
+
+
+
+\section*{Diffie-Hellman key exchange algorithm}
+The Diffie-Hellman key exchange uses \emph{primitive roots} modulo a prime.
+
+\subsection*{Primitive roots}
+Let $p$ be a prime number. 
+A positive number $a$ is a \emph{primitive root modulo p} if the positive powers $a^1, a^2, \ldots, a^{p-1}$ generate all nonzero congruence classes modulo $p$.
+For example, let $p=7$.
+Then $a=2$ is not a primitive root, since
+\[
+2^1=2, \quad 2^2=4, \quad 2^3 \equiv 1, \quad 2^4 \equiv 2, \quad 2^5 \equiv 4, \quad 2^6 \equiv 1 \pmod{7}.
+\]
+The powers of $2$ never hit the classes $3, 5,$ or $6$ modulo 7. 
+However, $3$ is a primitive root since
+\[
+3^1=3, \quad 3^2\equiv2, \quad 3^3 \equiv 6, \quad 3^4 \equiv 4, \quad 3^5 \equiv 5, \quad 3^6 \equiv 1 \pmod{7}.
+\]
+That is, each congruence class $\pmod{7}$ appears as a power of 3.
+
+\subsection*{Diffie-Hellman algorithm}
 
 Here is an outline of how Alice and Bob can perform a Diffie-Hellman key exchange:
 
 \begin{itemize}[$\bullet$]
 
-\item Alice and Bob (publicly) agree on a finite cyclic group $\mathbb{Z}_p^\times$ and generator $g$.
+\item Alice and Bob (publicly) agree on a prime $p$ and a primitive root $g$.
 
 \item Alice and Bob each secretly choose an integer, $x$ and $y$ respectively.
 
-\item Alice computes $A = g^x$, while Bob computes $B = g^y$ (modulo $p$).
+\item Alice computes $A = g^x \pmod{p}$ while Bob computes $B = g^y \pmod{p}$.
 
-\item Alice and Bob exchange the group elements $A$ and $B$ to each other (still keeping $x$ and $y$ secret).
+\item Alice and Bob exchange $A$ and $B$ (still keeping $x$ and $y$ secret).
 
-\item Alice computes $B^x$, while Bob computes $A^y$.
-
-\item They get the same answer, $s = B^x = (g^y)^x = (g^x)^y = A^y$. 
-
-\item Now $s$ is can be used as a secure key for a symmetric cipher, or any other sort of encryption.
+\item Alice computes $B^x \pmod{p}$ and Bob computes $A^y \pmod{p}$. They get the same answer, 
+\[k \equiv B^x \equiv (g^y)^x \equiv (g^x)^y \equiv A^y \pmod{p}.\] 
 
 \end{itemize}
+Now Alice and Bob can use $k$ as a secure key for a symmetric cipher. 
+One advantage of this algorithm is that Alice and Bob can use the same prime $p$ and root $g$ to generate a new secure key, simply by picking new integers $x$ and $y$.
 
+The key idea of the Diffie-Hellman algorithm is that $(g^x)^y\equiv (g^y)^x \pmod{p}$. 
+We do an example of this in Python with $p=41$, $g=6$, $x=10$, and $y=13$.
+The function \li{pow(a, b, n)} computes $a^b \pmod{n}$.
+\begin{lstlisting}
+>>> A = pow(6, 10, 41)
+>>> B = pow(6, 13, 41)
+>>> pow(A, 13, 41)
+32
+>>> pow(B, 10, 41)
+32
+\end{lstlisting}
 
 \begin{problem}
-Implement a Diffie-Hellman key exchange over $\mathbb{Z}_p^\times$. Take as input both a prime $p$ and a primitive root $g$. Randomly choose integers $x$ and $y$. Return $s$. Test them with $p = 21929$ and $g=3$.
+With a partner, perform a Diffie-Hellman key exchange with $p = 21929$ and $g=3$.
 \end{problem}
 
-Why is this key exchange secure? A third party, Eve, can eavesdrop on $A$ and $B$ because they are sent out in the open. If she can compute $x$ and $y$, she can easily compute $s$ in the same way Alice and Bob did. This might sound easy, as it amounts to computing the logarithm $x = \log_g(A)$. While logarithms of real numbers are easy to compute, logarithms of group elements are known as discrete logarithms and they are notoriously difficult. For large cyclic groups, such as $\mathbb{Z}_p^\times$ where $p$ has hundreds or thousands of digits, discrete logs can be effectively impossible. Exponentiation, on the other hand, remains easy due to two simple tricks.
+The Diffie-Hellman can also be used to create a secure key shared by $n>2$ people. 
+If $n$ people choose private exponents $x_1, \ldots, x_n$, then the secure key will be $g^{x_1 \ldots x_n}$.
+
+\begin{problem}
+Work out a method by which $n$ people can use Diffie-Hellman to create a secure key.
+Remember that only the $i^{th}$ person knows the $i^{th}$ exponent $x_i$.
+With a group of at least 3 people, perform such an exchange with $p = 21929$ and $g=3$.
+\end{problem}
+
+\subsection*{Security of Diffie-Hellman}
+Why is the Diffie-Hellman algorithm secure? 
+Suppose a third party, Eve, intercepts $p$, $g$, $A$, and $B$
+If she can compute $x$ and $y$, she easily compute $k$ just as Alice and Bob did. 
+Then Eve must compute $x$ satisfying $A\equiv g^x \pmod{p}$.
+This computation is known as taking a \emph{discrete logarithm} of $A$ and there are no fast algorithms for doing it.
+When $p$ is large, say 100s of digits, calculating a discrete logarithm is effectively impossible.
+
+\section*{Practical Considerations}
+For Diffie-Hellman to be a practical key exchange algorithm, we need an efficient way to find primitive roots and perform modular exponentiation.
+
+\subsection*{Finding primitive roots}
+The only way to find the primitive roots of $p$ is to test numbers $a<p$ until a primitive root is found.
+One test to see if $a$ is a primitive root is as follows.
+
+First, factor $p-1$ as a product of primes, say $p=p_1^{k_1}\ldots p_n^{k_n}$.
+Then, for each prime $p_i$ in the factorization, compute $a^{(p-1)/p_i} \pmod{p}$.
+If for any $i$ we find $a^{(p-1)/p_i}\equiv 1 \pmod{p}$, then $a$ is NOT a primitive root.
+Otherwise, $a$ is a primitive root.
+
+As an example we look for a primitive root of $p=41$.
+We factor $p-1=40$ using the function \li{factorint()} from SymPy.
+\begin{lstlisting}
+>>> from sympy import factorint
+>>> factorint(40)
+{2: 3, 5: 1}
+\end{lstlisting}
+This output means that $40=2^3\cdot5^1$.
+Then the powers to check are $40/2=20$ and $40/5=8$.
+The following code shows that $2$ is not a primitive root modulo 41, since $2^{20}\equiv 1 \pmod{41}$.
+\begin{lstlisting}
+>>> pow(2, 20, 41)
+1
+\end{lstlisting}
+However, 6 is a primitive root modulo 41, as the following code shows.
+\begin{lstlisting}
+>>> pow(6, 8, 41)
+10
+>>> pow(6, 20, 41)
+40
+\end{lstlisting}
+
+The idea of this algorithm is that if $a^n \equiv 1 \pmod{p}$ for $n<p-1$, then $a$ will not be a primitive root.
+Instead, powers of $a$ will repeat and miss some congruence classes, as they did in the example of $2 \pmod{7}$.
+For ``group-theoretic'' reasons, if $a^n \equiv 1 \pmod{p}$ for some $n<p-1$ (i.e., $a$ is not a primitive root), then there must be some $p_i$ such that $a^{(p-1)/p_i} \equiv 1 \pmod{p}$.
+So, instead of checking all powers of $a$ modulo $p$, we only need to check the powers $(p-1)/p_i$ for all $i$.
+
+\begin{problem}
+Write the following function to test if $a$ is a primitive root modulo $p$.
+\begin{lstlisting}
+def is_primitive(root, mod):
+    '''Determine whether `root' is a primitive root modulo `mod'.
+    
+    INPUTS:
+    root - A positive integer.
+    mod  - A prime integer.
+    
+    Return a Boolean value.
+    '''
+\end{lstlisting}
+\end{problem}
+
+
+\subsection*{Fast modular exponentiation}
+
+
 
 The first trick is called {\bf exponentiation by squaring}, or binary exponentiation. The notion of exponentiation as repeated multiplication leads to a natural implementation. Computing $A = g^x$ by setting $A=1$ and then multiplying by $g$ repeatedly with a of loop requires $x$ multiplications. While this might be fine if $x$ is small, but it quickly becomes unfeasible. To see a better method, we first consider an example. Say we want to compute $g^{34}$. We note that this is equal to $(g^{17})^2$. Now we see the inner exponent is odd, so we pull out a copy of $g$.  Mathematically, we think of the computation as $(g(g^{16})^2$. We continue this process on the inner exponent to eventually get the computation $[g(((g^2)^2)^2)^2]^2$. What was once a 34 computation operation has now been simplified to 6 computations -- square it four times, multiply once, then square a final time. For larger exponents, the relative advantage is even greater.
 
@@ -65,11 +200,5 @@ The second trick is to take advantage of modular arithmetic. If we were working 
 Modify your Diffie-Hellman function from the first problem for fast exponentiation using the two techniques above. How long does it take with a 100-digit prime? A 1000-digit prime? [Need to provide a file with primes/generators/exponents] Note importance of Hamming weight (the number of ones in a number's binary representation).
 \end{problem}
 
-The Diffie-Hellman algorithm is very useful because we can reuse the prime $p$ and generator $g$ share more secrets. For example, we Alice can use the same $p$ and $g$ to exchange keys with Carol, and Bob will have no advantage in figuring out Alice and Carol's secret.
 
-This algorithm can also be extended so that Alice, Bob and Carol can create a secure key among all three of them or even arbitrarily many parties. The extension uses the same fact that exponentiating in any order will still yield the same result.
-
-\begin{problem}
-Create a variant of D-H to share a key between $n$ different parties.
-\end{problem}
 
