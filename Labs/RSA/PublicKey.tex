@@ -1,17 +1,14 @@
 \lab{Public Key Cryptography}{RSA}
 \objective{Implement the RSA cryptosystem as an example of public key cryptography.}
 
-Perhaps the simplest example of a code is the substitution cipher A=01, B=02, C=03, and so on.
-In this code, the word SECRET becomes 190503180520.
-This code uses the same key for both encryption and decryption.
-
-Codes that use the same key for both encryption and decryption are problematic because in order for me to send you a message, I also must send you the key.
-But if an enemy intercepts the message, they may also intercept the key, and be able to read the message.
-
-\emph{Public key cryptography} eliminates this problem by using separate keys for encryption and decryption.
+A \emph{public key cryptosystem} uses separate keys for encryption and decryption.
 If Alice wishes to send Bob a message, she encrypts it using Bob's \emph{public key}, which is available to everyone.
 Then Bob decrypts it with his \emph{private key}, which only he knows.
 As long as it is difficult to find the private key from the public key, this is a secure system.
+
+Public key cryptosystems are advantageous because for $n$ people to have secure communications with each other, they need exactly $n$ public-private key pairs.
+A symmetric cryptosystem would require on the order of $n^2$ keys.
+Also, they eliminate the need for secure key sharing algorithms like the Diffie-Hellman key exchange (see Lab \ref{}).
 
 One of the oldest and most popular public key cryptosystems is RSA cryptography.\\
 
@@ -282,67 +279,14 @@ def decrypt(ciphertext, e, n):
 
 \section*{Making RSA feasible (Optional)}
 
-\subsection*{Fast Modular Exponentiation}
 For RSA to be a reasonably fast cryptosystem, we need a fast algorithm for modular exponentiation.
-As an example, suppose we wish to compute $5064^{361} \pmod{19673}.$
-The na\"ive way is to multilply 5064 by itself 361 times, producing an enormous number, and then mod this number by 19673.
-A slightly better way is to take the modulus after each multiplication by 5064, since this way we do not store such a large number.
+This algorithm, known as \emph{binary exponentiation}, was discussed in Lab \ref{}.
 
-\begin{problem}\label{prob:power1}
-Write the following function to implement the algorithm for modular exponentiation outlined above.
-\begin{lstlisting}
-def power1(base, exp, mod):
-    ''' Return base^exp modulo `mod'.
-    
-    Multiply `base' by itself `exp' times, taking the modulus after each 
-    multiplication.
-    
-    Example:
-    >>> power1(5064, 361, 19673)
-    994
-    '''
-\end{lstlisting}
+In addition, the security of RSA depends on the use of large prime numbers for $p$ and $q$.
+For RSA to be a practical cryptosystem, we need a fast way to find such numbers.
 
-Time your function against Python's built in \li{pow()} function.
-What is the difference in speed?
-\end{problem}
-
-If you did Problem \ref{prob:power1}, you know that Python's exponentiation method is orders of magnitude faster than the na\"ive method outlined above.
-This increase in performance is acheived with the \emph{right-to-left binary method} of exponentiation.
-
-This idea of this method is as follows. 
-To compute $a^{361} \pmod{19673}$, we first write 361 in binary as 101101001. Thus,
-\begin{equation}\label{equ:pow}
-a^{361} = a^{2^0+2^3+2^5+2^6+2^8} = a^{2^0}a^{2^3}a^{2^5}a^{2^6}a^{2^8} \pmod{19673}.
-\end{equation}
-We can quickly compute the integers
-\[
-a=a^{2^0},\; a^2=a^{2^1}, \;a^{2^2}, \;\ldots, \;a^{2^8} \pmod{19673}
-\]
-by squaring each term to get the next. 
-Then, to compute \eqref{equ:pow}, we simply multiply the appropriate terms from this series.
-
-\begin{problem}
-Implement the right-to-left binary method with the following function.
-\begin{lstlisting}
-def power2(base, exp, mod):
-    ''' Return base^exp modulo `mod'.
-    
-    Compute the result using the right-to-left binary method.
-    
-    Example:
-    >>> power2(5064, 361, 19673)
-    994
-    '''
-\end{lstlisting}
-Do not at any point use Python's built-in exponentiation methods.
-Compare the speed of this function to that of the function in Problem \ref{prob:power1} and Python's \li{pow()} function.
-Even with a na\"ive implementation of the right-to-left binary method, you should see significant improvement over the \li{power1()} function.
-\end{problem}
 
 \subsection*{Finding large primes}
-The security of RSA depends on the use of large prime numbers for $p$ and $q$.
-For RSA to be a practical cryptosystem, we need a fast way to find such numbers.
 It is very slow to check that a large number is prime by finding its factors.
 In fact, it is the difficulty of factoring that makes RSA secure.
 
