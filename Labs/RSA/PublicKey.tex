@@ -103,10 +103,15 @@ def decrypt(ciphertext):
 \subsection*{Security of RSA}
 Suppose an enemy Eve wants to read the message that Bob sent to Alice.
 Like Bob, she has access to Alice's public key $(e, n)$.
-From this, she needs to find $(d, n)$.
+Let's assume she has also intercepted the ciphertext $c$.
 
-However, computing $\phi(n)$ from $n$ directly requires factoring $n$.
-There is no known algorithm for fast factorization. 
+One way for Eve to read Bob's message is to directly find $m$ such that $m^e \equiv c \pmod{n}$.
+Such a computation is known as taking a \emph{discrete logarithm}.
+When $n$ is very large, this computation is essentially impossible.
+
+Another option is for Eve to compute $(d, n)$ and then find $c^d$.
+However, computing $d$ means computing $\phi(n)$.
+Computing $\phi(n)$ from $n$ directly requires factoring $n$.
 When $n$ has hundreds of digits, finding its factors with known algorithms can take years.
 
 
@@ -301,15 +306,14 @@ for all primes $p$ and integers $a$ that are not divisible by $p$.
 Therefore, to check if a fixed number $p$ is likely a prime, we can compute $a^{p-1} \pmod{p}$ for several values of $a$.
 If we ever get something different than 1, then we know that $p$ is composite.
 The value of $a$ that proved $p$ was composite is called a \emph{witness number}.
-If  $a^{p-1} \equiv 1 \pmod{p}$ for every $a$ we try, then $p$ is probably prime---but it may still be composite.
-This test is called Fermat's test for primality.
+In fact, the converse is true: if $a^{p-1} \equiv 1 \pmod{p}$ for every $a<p$ then $p$ is prime.
 
 With a few exceptions, if $p$ is composite then more than half the integers in $[2, p-1]$ are witness numbers.
 Thus, if we run the above test on $p$ just a few times and don't find a witness number, there is a high probability that $p$ is prime.
+This test is called Fermat's test for primality.
 
-In practice, the test described is often used as a ``first pass'' to determine whether a number is prime. 
-If no witness number is found, then more stringent tests for primality are used.
-
+In practice, a probabilistic algorithm like Fermat's test is used to identify numbers that have a high chance of being prime. 
+Then, deterministic algorithms are used to verify primality of a candidate.
 
 \begin{problem}
 Write the following function, implementing Fermat's test for primality.
