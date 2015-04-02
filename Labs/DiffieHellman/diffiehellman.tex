@@ -163,7 +163,7 @@ However, 6 is a primitive root modulo 41, as the following code shows.
 40
 \end{lstlisting}
 
-The idea of this algorithm is that if $a^n \equiv 1 \pmod{p}$ for $n<p-1$, then $a$ will not be a primitive root.
+The idea behind this algorithm is that if $a^n \equiv 1 \pmod{p}$ for some $n<p-1$, then $a$ will not be a primitive root.
 Instead, powers of $a$ will repeat and miss some congruence classes, as they did in the example of $2 \pmod{7}$.
 For ``group-theoretic'' reasons, if $a^n \equiv 1 \pmod{p}$ for some $n<p-1$ (i.e., $a$ is not a primitive root), then there must be some $p_i$ such that $a^{(p-1)/p_i} \equiv 1 \pmod{p}$.
 So, instead of checking all powers of $a$ modulo $p$, we only need to check the powers $(p-1)/p_i$ for all $i$.
@@ -187,17 +187,61 @@ def is_primitive(root, mod):
 \subsection*{Fast modular exponentiation}
 
 
+For RSA to be a reasonably fast cryptosystem, we need a fast algorithm for modular exponentiation.
+As an example, suppose we wish to compute $5064^{361} \pmod{19673}.$
+The na\"ive way is to multilply 5064 by itself 361 times, producing an enormous number, and then mod this number by 19673.
+A slightly better way is to take the modulus after each multiplication by 5064, since this way we do not store such a large number.
 
-The first trick is called {\bf exponentiation by squaring}, or binary exponentiation. The notion of exponentiation as repeated multiplication leads to a natural implementation. Computing $A = g^x$ by setting $A=1$ and then multiplying by $g$ repeatedly with a of loop requires $x$ multiplications. While this might be fine if $x$ is small, but it quickly becomes unfeasible. To see a better method, we first consider an example. Say we want to compute $g^{34}$. We note that this is equal to $(g^{17})^2$. Now we see the inner exponent is odd, so we pull out a copy of $g$.  Mathematically, we think of the computation as $(g(g^{16})^2$. We continue this process on the inner exponent to eventually get the computation $[g(((g^2)^2)^2)^2]^2$. What was once a 34 computation operation has now been simplified to 6 computations -- square it four times, multiply once, then square a final time. For larger exponents, the relative advantage is even greater.
+\begin{problem}\label{prob:power1}
+Write the following function to implement the algorithm for modular exponentiation outlined above.
+\begin{lstlisting}
+def power1(base, exp, mod):
+    ''' Return base^exp modulo `mod'.
+    
+    Multiply `base' by itself `exp' times, taking the modulus after each 
+    multiplication.
+    
+    Example:
+    >>> power1(5064, 361, 19673)
+    994
+    '''
+\end{lstlisting}
 
-\begin{problem}
-Write a function that computes arbitrary (integer) powers of an element of $\mathbb{Z}_p^\times$ using exponentiation by squaring. (Hint: Use recursion. There are essentially four cases: the exponent is even (square the value), the exponent is odd (multiply the value by the base $g$), and the base cases where the exponent is one or zero. Don't forget to consider negative exponents.)
+Time your function against Python's built in \li{pow()} function.
+What is the difference in speed?
 \end{problem}
 
-The second trick is to take advantage of modular arithmetic. If we were working with integers rather than elements of a finite group, we would run into another problem when computing large powers -- the numbers themselves get too big. While python integers won't overflow, they will still take longer to multiply with each added digit. Thus we can optimize the computation by modding out after each multiplication rather than only once at the end, which keeps the numbers relatively small.
+If you did Problem \ref{prob:power1}, you know that Python's exponentiation method is orders of magnitude faster than the na\"ive method outlined above.
+This increase in performance is acheived with the \emph{right-to-left binary method} of exponentiation.
+
+This idea of this method is as follows. 
+To compute $a^{361} \pmod{19673}$, we first write 361 in binary as 101101001. Thus,
+\begin{equation}\label{equ:pow}
+a^{361} = a^{2^0+2^3+2^5+2^6+2^8} = a^{2^0}a^{2^3}a^{2^5}a^{2^6}a^{2^8} \pmod{19673}.
+\end{equation}
+We can quickly compute the integers
+\[
+a=a^{2^0},\; a^2=a^{2^1}, \;a^{2^2}, \;\ldots, \;a^{2^8} \pmod{19673}
+\]
+by squaring each term to get the next. 
+Then, to compute \eqref{equ:pow}, we simply multiply the appropriate terms from this series.
 
 \begin{problem}
-Modify your Diffie-Hellman function from the first problem for fast exponentiation using the two techniques above. How long does it take with a 100-digit prime? A 1000-digit prime? [Need to provide a file with primes/generators/exponents] Note importance of Hamming weight (the number of ones in a number's binary representation).
+Implement the right-to-left binary method with the following function.
+\begin{lstlisting}
+def power2(base, exp, mod):
+    ''' Return base^exp modulo `mod'.
+    
+    Compute the result using the right-to-left binary method.
+    
+    Example:
+    >>> power2(5064, 361, 19673)
+    994
+    '''
+\end{lstlisting}
+Do not at any point use Python's built-in exponentiation methods.
+Compare the speed of this function to that of the function in Problem \ref{prob:power1} and Python's \li{pow()} function.
+Even with a na\"ive implementation of the right-to-left binary method, you should see significant improvement over the \li{power1()} function.
 \end{problem}
 
 
