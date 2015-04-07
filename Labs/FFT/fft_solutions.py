@@ -21,7 +21,7 @@ def prob1():
     plt.close()
     wavfile.write('sine.wav',samplerate,scaled)
 #==============================================================================
-# PROBLEM 2 - Naive FT
+# PROBLEM 2 - 7Naive FT
 #==============================================================================
 def myft(f):
     N = f.size
