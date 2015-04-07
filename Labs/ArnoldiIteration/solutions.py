@@ -73,7 +73,7 @@ def fft_eigs():
     m = 2**20
     b = rand(m) + 1.0j * rand(m)
     k = 10
-    H = arnoldi(b, fft, k, tol=1E-12)
+    H = arnoldi_iter(b, fft, k, tol=1E-12)
     H_eigs = eig(H, right=False)
     H_eigs /= sqrt(m)
     H_eigs = H_eigs[np.absolute(H_eigs).argsort()][::-1]
