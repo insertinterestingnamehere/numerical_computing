@@ -2,7 +2,7 @@ import numpy as np
 from numpy.random import rand
 from scipy.linalg import eig
 from cmath import sqrt
-from pyfftw.interfaces.scipy_fftpack import fft
+#from pyfftw.interfaces.scipy_fftpack import fft
 from scipy import sparse as ss
 from scipy.sparse.linalg import eigsh
 
@@ -30,15 +30,15 @@ def arnoldi(b, Amul, k, tol=1E-8):
             # Set values of $H$
             H[i,j] = np.inner(Q[:,i].conjugate(), Q[:,j+1])
             Q[:,j+1] -= H[i,j] * Q[:,i]
-        # Set subdiagonel element of H.
+        # Set subdiagonal element of H.
         H[j+1,j] = sqrt(np.inner(Q[:,j+1].conjugate(), Q[:,j+1]))
         # Stop if ||q_{j+1}|| is too small.
         if abs(H[j+1, j]) < tol:
             # Here I'll copy the array to avoid excess memory usage.
-            return np.array(H[:j,:j], order='F')
+            return np.array(H[:j+1,:j+1], order='F'), Q[:,:j+1]
         # Normalize q_{j+1}
         Q[:,j+1] /= H[j+1, j]
-    return H[:-1]
+    return H[:-1], Q
 
 # Ritz Value Convergence
 def ritz_compare():
