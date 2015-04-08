@@ -30,6 +30,8 @@ In a speaker, a click is produced by the cone suddenly thrusting forward a small
 Notice that as the pulses occur closer and closer together, eventually your ears no longer perceive them as individual pulses.
 Instead, they are perceived as a tone which increases in pitch as the pulses increase in frequency.
 
+\begin{figure}[ht]\caption{A sequence of pulses of increasing frequency}\label{pulseramp}\centering\includegraphics[width=\textwidth]{pulseramp}\end{figure}
+
 In python we can read in a \texttt{.wav} by importing wavfile from \texttt{scipy.io} and using \texttt{wavfile.read()} as follows:
 \begin{lstlisting}
 import scipy as sp
@@ -54,13 +56,12 @@ We can see this most easily if we plot the waveform of our sound (see Figure \re
 plt.plot(mywave)
 plt.show()
 \end{lstlisting}
-\begin{figure}[ht]\caption{A sequence of pulses of increasing frequency}\label{pulseramp}\centering\includegraphics[width=\textwidth]{pulseramp}\end{figure}
 
 We should keep in mind that the deviations in air pressure that we hear as sound are extremely small relative to atmospheric pressure.
 In normal conversation the deviation in air pressure reaching your ears might be around $.01$ pascals, about one ten-millionth of atmospheric pressure.
 
 
-\section*{Using the Fourier Transform to Investigate the Spectrum of a Signal}
+\section*{The Spectrum of a Signal}
 
 In many ways the most basic kind of sound is one whose waveform is a sinusoid (that is, a scaled, shifted version of the sine function). 
 To the ear, the tone of a sinusoid is more mellow than any other sound of the same pitch. 
@@ -81,7 +82,7 @@ wavfile.write('sinusoid.wav', samplerate, scaled)
 Notice before writing the file we had to scale it to be a 16-bit integer between -32767 and +32767 because \texttt{wavfile.write()} expects the data to be in this form.
 
 \begin{problem} % Problem 1
-Write a function that plots the signal of any given \texttt{.wav} file. Generate a 60Hz sine wave 1 second in length, save it as a \texttt{.wav} file, and use your function to plot the signal. Play the resulting file (\textbf{WARNING}: turn down your volume!).
+Write a function that plots the signal of any given \texttt{.wav} file. Generate a 60Hz sine wave 1 second in length, save it as a \texttt{.wav} file, and use your function to plot the signal. Play the resulting file (\textbf{Warning}: turn down your volume!).
 \end{problem}
 
 
@@ -113,7 +114,6 @@ fsig = fft(sig)
 \end{lstlisting}
 Here \texttt{fsig} is an array of complex numbers representing the DFT of this signal. We plot the absolute values of the entries of \texttt{fsig} in Figure \ref{sinespec}.
 
-
 Notice that there are two spikes, one on the left and one on the right.
 Why are there two spikes when there is only one tone?
 The answer is that for a real-valued signal, the right half of the DFT is always a mirror-image duplicate of the left half -- or, more precisely, each entry in the right half of the DFT is the complex conjugate of the corresponding entry in the left half.
@@ -121,15 +121,17 @@ Thus the right half of the DFT gives us no new information.
 (To be completely accurate in describing this mirror-image symmetry, we must ignore the very first entry of the DFT.)
 
 
-
 \begin{problem} % Problem 2
 Implement a function to compute the DFT of a vector by using \eqref{transform_coefficients}.
-Remember to use complex arrays in your computations (set dtype=sp.complex128 when creating an sp array, etc.).
+Remember to use complex arrays in your computations (set \texttt{dtype=sp.complex128} when creating a scipy array, etc.).
 For each coefficient $c_k$, can you implement the sum in a single line of code?
 
-Test your function on several random vectors (representing $\lbrace f(0),f(1),\dots,f(N-1)\rbrace$ and make sure the results match those of scipy's \texttt{fft}. 
+Test your function on several random vectors (representing the vector $[f(0),f(1),\dots,f(N-1)]$ and make sure the results match those of scipy's \texttt{fft}. 
 Note that the scaling scipy uses does not divide by $N$, so be sure to account for that in your comparison.
 \end{problem}
+
+
+\begin{figure}[ht]\caption{DFT of a sine wave}\label{sinespec}\centering\includegraphics[width=\textwidth]{sinespec}\end{figure}
 
 The naive way of computing the DFT has $O(N^2)$ runtime.
 There is a very important algorithm which computes the DFT with a $O(N \log N)$ runtime, called the \emph{fast Fourier transform}.
@@ -140,14 +142,15 @@ However, there is a $C$ library that computes the FFT called FFTW (Fastest Fouri
 A python package called ``pyFFTW'' wraps FFTW and is available for download. %%% WHERE!?!?!?
 pyFFTW  has an interface to FFTW called scipy\_fftpack that acts exactly like scipy's fft, but it is substantially faster than scipy's implementation when processing larger arrays.
 
-\begin{figure}[ht]\caption{DFT of a sine wave}\label{sinespec}\centering\includegraphics[width=\textwidth]{sinespec}\end{figure}
-
 Now let's look at a more complicated signal. Play the file \texttt{tada.wav}.
 If you read \texttt{tada.wav} into python you will find it has two columns.
 That is because it is a stereo recording; the two columns correspond to two audio signals (left and right).
 By default, pyFFTW takes the Fourier transform along the last axis. We override this by setting axis=0.
 
 The following code computes the discrete Fourier transform of \texttt{tada.wav} and graphs its absolute values (see Figure \ref{tadaspec}).
+
+\begin{figure}[ht]\caption{Absolute value of the DFT of \texttt{tada.wav}}\label{tadaspec}\centering\includegraphics[width=\textwidth]{tadaspec}\end{figure}
+
 \begin{lstlisting}
 from pyfftw.interfaces import scipy_fftpack as fftw
 rate, sig = wavfile.read('tada.wav')
@@ -158,7 +161,6 @@ plt.show()
 \end{lstlisting}
 
 
-\begin{figure}[ht]\caption{Absolute value of the DFT of \texttt{tada.wav}}\label{tadaspec}\centering\includegraphics[width=\textwidth]{tadaspec}\end{figure}
 Again, the right half of the plot is a mirror-image duplicate of the left half.
 We might as well exclude it by only plotting the left half.
 The absolute value of the left half of  the DFT is called the \emph{spectrum} of the signal (see Figure \ref{tadaspec2}):
@@ -192,9 +194,9 @@ There are also other, lower musical notes in the recording which each have their
 
 \begin{problem} % Problem 3
 Listen to \texttt{pianoclip.wav}.
-Use the DFT to identify the audible frequency of greatest amplitude (Ignore the 0 frequency found in the first entry). 
+Use the DFT to identify the audible frequency of greatest amplitude, ignoring the 0 frequency found in the first entry (hint: use \texttt{sp.argmax()} to find the exact frequency).
 What musical note does the fundamental frequency correspond to?
-(For this, you may wish to use the table on http://en.wikipedia.org/wiki/Piano\_key\_frequencies)
+(Use the table on http://en.wikipedia.org/wiki/Piano\_key\_frequencies)
 \end{problem}
 
 You will notice that in this case the largest spike actually occurs in the very first entry of the DFT.
@@ -250,7 +252,7 @@ s_k &= \cos\left(\frac{2\pi kf}r\right) \\
 But this is a sinusoid of frequency $\frac{r}2-a$, which is a frequency below the Nyquist frequency.
 Thus a sinusoid above the Nyquist frequency, when sampled, is indistinguishable from a corresponding sinusoid below the Nyquist frequency.
 An electronic speaker, given the sampled signal, will actually produce the sinusoid which lies below the Nyquist frequency, not the one above.
-Thus, \emph{A frequency above the Nyquist frequency will, when sampled, have its frequency reflected across the Nyquist frequency.}
+Thus, \emph{a frequency above the Nyquist frequency will, when sampled, have its frequency reflected across the Nyquist frequency.}
 This phenomenon is known as \emph{aliasing}.
 
 What does this have to do with our problem?
@@ -265,9 +267,10 @@ See Figure \ref{sawspecdown}.
 
 \begin{figure}[ht]\caption{Spectrum of \texttt{saw.wav} naively downsampled to 22050Hz}\label{sawspecdown}\centering\includegraphics[width=\textwidth]{sawspecdown}\end{figure}
 
-So, how do we downsample our signal in a way that avoids this unwanted aliasing effect? The solution is very simple: we take the DFT of our signal, cut out the upper half of the spectrum (which can no longer be represented, after we downsample), then take the inverse DFT of the result.
+So, how do we downsample our signal in a way that avoids this unwanted aliasing effect? The solution is almost very simple: to start, we take the DFT of our signal, cut out the upper half of the spectrum (which can no longer be represented, after we downsample), then take the inverse DFT of the result.
 
 Unfortunately, we're not quite done. When we say we're cutting out a set of frequencies from the spectrum, we mean we're removing those frequencies from the left half of the DFT and \emph{also} the corresponding frequencies from the right half of the DFT. So, we're actually removing a big chunk out of the \emph{middle} of the DFT and then pasting the two ends back together. We can do this as follows where in\_sig is the signal from \texttt{saw.wav}:
+
 \begin{lstlisting}
 old_rate = 44100
 new_rate = 22050
@@ -281,12 +284,16 @@ fout[0:nsizh] = fin[0:nsizh]
 fout[nsiz-nsizh+1:] = sp.conj(sp.flipud(fout[1:nsizh]))
 out = fftw.ifft(fout)
 \end{lstlisting}
+
 There are just a couple minor problems we need to deal with before we're finished.
 First, because of roundoff error, you will find that some of the entries of the \texttt{out} have (slightly) nonzero imaginary components. Therefore we should first make sure the signal is purely real,
+
 \begin{lstlisting}
 out = sp.real(out) # Take the real component of the signal
 \end{lstlisting}
+
 Second, as always, we need to rescale and cast the signal as a 16-bit integer:
+
 \begin{lstlisting}
 out = sp.int16(out/sp.absolute(out).max() * 32767)
 \end{lstlisting}
