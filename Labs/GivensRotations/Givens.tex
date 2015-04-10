@@ -8,7 +8,7 @@ We can use the same strategy to compute the QR decomposition with rotations inst
 \section*{Givens rotations}
 
 Let us begin with Givens rotations in $\mathbb{R}^2$. 
-An arbitrary vector $\x = (a, b)^T$ can be rotated into the span of $e_1$ via an orthogonal transformation. 
+An arbitrary vector $\x = (a, b)\trp$ can be rotated into the span of $e_1$ via an orthogonal transformation. 
 In fact, the matrix $T_{\theta} = \begin{pmatrix}\cos \theta & - \sin \theta \\ \sin \theta & \cos \theta \end{pmatrix}$ rotates a vector counterclockwise by $\theta$.
 Thus, if $\theta$ is the clockwise-angle between $\x$ and $e_1$, the vector $T_{-\theta}\x$ will be in the span of $e_1$.
 We can find $\sin \theta$ and $\cos \theta$ with the formulas $\sin = \frac{\text{opp}}{\text{hyp}}$ and $\cos = \frac{\text{adj}}{\text{hyp}}$, so $\sin \theta = \frac{b}{\sqrt{a^2+b^2}}$ and $\cos \theta =  \frac{a}{\sqrt{a^2+b^2}}$ (see Figure\ref{fig:angle}).
@@ -31,7 +31,7 @@ T_{-\theta}\x = \begin{pmatrix}\cos \theta &  \sin \theta \\ -\sin \theta & \cos
 	end angle=-20, radius=4.5pt];
 \node[draw=none](theta)at(.8, .15){$\theta$};
 \end{tikzpicture}
-\caption{Rotating clockwise by $\theta$ will send the vector $(a,b)^T$ to the span of $e_1$.}
+\caption{Rotating clockwise by $\theta$ will send the vector $(a,b)\trp$ to the span of $e_1$.}
 \label{fig:angle}
 \end{center}
 \end{figure}
@@ -166,21 +166,22 @@ Assuming that at the $ij^{th}$ stage of the algorithm, $a_{ij}$ is nonzero, Algo
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\caption{Givens Triangularization. Return an orthogonal matrix $Q$ and an upper triangular matrix $R$ satisfying $A = QR$.}
+\caption{Givens triangularization. Return an orthogonal matrix $Q$ and an upper triangular matrix $R$ satisfying $A = QR$.}
 \label{Alg:givens}
 \Procedure{Givens Triangularization}{$A$}
-\State $R \gets \text{copy}(A)$
-\State $Q \gets I_A$
-\State $G \gets \text{empty}((2,2))$
-\For{$0\leq j < n$}
-    \For{$ m \geq i > j$}
-      \State $a, b \gets R_{i-1,j}, R_{i,j}$
+\State $m, n \gets \shape{A}$
+\State $R \gets \makecopy{A}$
+\State $Q \gets \Id{m}$
+\State $G \gets \allocate{2}{2}$
+\For{$j=0\ldots n-1$}
+    \For{$i=m\ldots j+1$}
+      \State $a, b \gets R[i-1,j], R[i,j]$
       \State $G \gets [[a, b],[-b,a]]/\sqrt{a^2+b^2}$
-      \State $R_{i-1:i+1, j:} = GR_{i-1:i+1, j:}$
-      \State $Q_{i-1:i+1,:} = GQ_{i-1:i+1,:}$
+      \State $R[i-1:i+1, j:] \gets GR[i-1:i+1, j:]$
+      \State $Q[i-1:i+1,:] \gets GQ[i-1:i+1,:]$
     \EndFor
 \EndFor
-\State \pseudoli{return} $Q^T, R$
+\State \pseudoli{return} $Q\trp , R$
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
@@ -192,7 +193,7 @@ An interesting side-note is that each Givens rotation can be represented as a si
 A similar approach would to store Householder reflectors in the columns they zero out.
 In either case, we can represent the QR decomposition of an array using only the memory that was originally used to store the array itself.
 This is similar to the approach  for computing the LU decomposition entirely in place.
-These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q^T$ and $R$ as needed.
+These representations of $Q$ and $R$ can be used in various ways to perform matrix multiplication by $Q$, $Q\trp$ and $R$ as needed.
 \end{comment}
 
 
@@ -235,7 +236,7 @@ These representations of $Q$ and $R$ can be used in various ways to perform matr
 
   \end{itemize}
 
-\item Return $Q^T$ and $R$.
+\item Return $Q\trp$ and $R$.
 
 \end{itemize}
 \end{comment}
@@ -253,7 +254,7 @@ Assume that at the $ij^{th}$ stage of the algorithm, $a_{ij}$ will be nonzero.
 Modify your solution to Problem \ref{prob:Givens} to compute the Givens triangularization of an upper Hessenberg matrix, making the following changes:
 \begin{enumerate}
 \item Iterate through the first subdiagonal from left to right. (These are the only entries that need to be zeroed out.)
-\item Line 10 of Algorithm \ref{Alg:givens} updates $Q$ with the current Givens rotation $G$. Decrease the number of entries of $Q$ that are modified in this line. Do this by replacing $Q_{i-1:i+1, :}$ with $Q_{i-1:i+1, :k_i}$ where $k_i$ is some appropriately chosen number (dependent on $i$) such that $Q_{i-1:i+1, k_i:}=0$.
+\item Line 10 of Algorithm \ref{Alg:givens} updates $Q$ with the current Givens rotation $G$. Decrease the number of entries of $Q$ that are modified in this line. Do this by replacing $Q[i-1:i+1, :]$ with $Q[i-1:i+1, :k_i]$ where $k_i$ is some appropriately chosen number (dependent on $i$) such that $Q[i-1:i+1, k_i:]=0$.
 \end{enumerate}
 Hint: Here is how to generate a random upper Hessenberg matrix on which to test your function.
 The idea is to generate a random matrix and then zero out all entries below the first subdiagonal.
@@ -292,7 +293,7 @@ Notice that you will have to apply each Givens rotation across the full width of
 For around what size of matrices is direct multiplication by $Q$ slower than this method of multiplying by $Q$?
 For timing purposes, make a random upper Hessenberg matrix, compute its QR decomposition using the function you just wrote and your solution to Problem \ref{prob:givens_hessenberg}, then time how long it takes to left multiply a random square array by $Q$ using the function you just wrote and the \li{dot} method of NumPy arrays.
 
-Note: the functions you just wrote can be used to perform right multiplication as well since $B Q = \left(Q^T B^T \right)^T$ and $B Q^T = \left( Q B^T \right)^T$.
+Note: the functions you just wrote can be used to perform right multiplication as well since $B Q = \left(Q\trp B\trp \right)\trp$ and $B Q\trp = \left( Q B\trp \right)\trp$.
 \end{problem}
 \end{comment}
 
@@ -303,7 +304,7 @@ Note: the functions you just wrote can be used to perform right multiplication a
 A linear system $A\x=\b$ is \emph{overdetermined} if it has no solutions. 
 In this situation, the \emph{least squares solution} is a vector $\widehat{\x}$ hat is ``closest'' to a solution. 
 By definition, $\widehat{\x}$ is the vector such that $A\widehat{\x}$ will equal the projection of $\b$ onto the range of $A$. 
-We can compute $\widehat{\x}$ by solving the \emph{Normal Equation} $A^HA\widehat{\x} = A^H\b$ (see [TODO: ref textbook] for a derivation of the Normal Equation).
+We can compute $\widehat{\x}$ by solving the \emph{Normal Equation} $A\trp A\widehat{\x} = A\trp \b$ (see [TODO: ref textbook] for a derivation of the Normal Equation).
 
 
 \subsection*{Solving the normal equation}
@@ -313,8 +314,8 @@ In many applications, $A$ is usually full rank, including when least squares is 
 Let $A=QR$ be the QR decomposition of $A$, so $R = \left(\begin{array}{c}R_0\\
 0\\ \end{array} \right)$
 where $R_0$ is $n \times n$, nonsingular, and upper triangular. 
-It can be shown that $\widehat{x}$ is the least squares solution to $Ax=b$ if and only if $R_0\widehat{x} = (Q^Tb)_{[:n]}.$ 
-Here, $(Q^Tb)_{[:n]}$ refers to the first $n$ rows of $Q^Tb$.
+It can be shown that $\widehat{\x}$ is the least squares solution to $A\x=\b$ if and only if $R_0\widehat{\x} = (Q\trp \b)[:n].$ 
+Here, $(Q\trp \b)[:n]$ refers to the first $n$ rows of $Q\trp \b$.
 Since $R$ is upper triangular, we can solve this equation quickly with back substitution. 
 
 
