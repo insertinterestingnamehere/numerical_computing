@@ -7,7 +7,6 @@ from sklearn.datasets import load_iris
 from sklearn import decomposition
 from scipy import linalg as la
 
-import solutions
 
 iris = load_iris()
 
@@ -63,33 +62,45 @@ def iris2():
     plt.savefig('iris2.pdf')
     plt.clf()
     
-def iris_pca_scree():
-    #First make PCA plot of iris dataset
-    U, S, Vh = la.svd(iris.data, full_matrices=False)
-    X = U.dot(np.diag(S))
-    
+def iris_pca():
+    X = iris.data
+    # pre-process
+    Y = X - X.mean(axis=0)
+    # get SVD
+    U,S,VT = la.svd(Y,full_matrices=False)
+    # project onto the first two principal components
+    Yhat = U[:,:2].dot(np.diag(S[:2]))
+    # plot results
     setosa = iris.target==0
     versicolor = iris.target==1
     virginica = iris.target==2
-    p1, p2 = X[:,0], X[:,1]
-    plt.scatter(p1[setosa], p2[setosa], marker='.', color='blue', label='Setosa')
-    plt.scatter(p1[versicolor], p2[versicolor], marker='.', color='red', label='Versicolor')
-    plt.scatter(p1[virginica], p2[virginica], marker='.', color='green', label='Virginica')
+    p1, p2 = Yhat[:,0], Yhat[:,1]
+    plt.scatter(p1[setosa],p2[setosa], marker='.', color='blue', label='Setosa')
+    plt.scatter(p1[versicolor],p2[versicolor], marker='.', color='red', label='Versicolor')
+    plt.scatter(p1[virginica],p2[virginica], marker='.', color='green', label='Virginica')
+    plt.legend(loc=2)
+    plt.ylim([-4,5])
+    plt.xlim([-4,4])
     plt.xlabel("First Principal Component")
     plt.ylabel("Second Principal Component")
-    plt.legend(loc=2)
     plt.savefig('iris_pca.pdf')
     plt.clf()
-    
+
+def iris_scree():
+    X = iris.data
+    # pre-process
+    Y = X - X.mean(axis=0)
+    # get SVD
+    U,S,VT = la.svd(Y,full_matrices=False)
     L = S**2
-    scree = solutions.scree(L/L.sum(dtype=float))
-    scree.savefig('iris_scree.pdf')
+    plt.plot(L/L.sum(dtype=float), 'o-')
+    plt.xlabel("Principal Components")
+    plt.ylabel("Percentage of Variance")
+    plt.savefig('iris_scree.pdf')
     plt.clf()
     
 
 
 if __name__ == "__main__":
-    ibase()
-    iris1()
-    iris2()
-    iris_pca_scree()
+    iris_scree()
+    iris_pca()

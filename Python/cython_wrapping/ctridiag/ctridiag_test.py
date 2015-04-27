@@ -11,8 +11,7 @@ A = np.zeros((n,n))
 A.ravel()[A.shape[1]::A.shape[1]+1] = a
 A.ravel()[::A.shape[1]+1] = b
 A.ravel()[1::A.shape[1]+1] = c
-# Store x so we can verify the algorithm returned
-# the correct values
+# Store x so we can verify the algorithm returned the correct values
 x_copy = x.copy()
 # Call the function.
 ct(a, b, c, x)
