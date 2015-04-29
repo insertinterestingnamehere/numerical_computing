@@ -6,7 +6,7 @@ Thompson Sampling. An application to web page experiments is addressed.}
 \section*{Markov Decision Processes}
 Previously we considered dynamic programming problems.
 These problems involve making sequential decisions in some optimal way,
-possibly under uncertainty.  Dynamic programming problems are closely
+while dealing with possible uncertainties.  Dynamic programming problems are closely
 related to a class of problems called Markov Decision Processes.
 
 A Markov Decision Process (MDP) involves the following elements:
@@ -31,8 +31,8 @@ and we considered both deterministic and stochastic transitions.
 In particular, we will consider what is called the multi-armed bandit
 problem.  The name comes from the following example.
 Suppose there is a row of $N$ slot machines (``one-armed bandits")
-that each pays out with probability $p_i$, $i= 1,2,\ldots,N$,
-where the probabilities are unknown to the gambler.
+where probability of winning is $p_i$, $i= 1,2,\ldots,N$,
+and these probabilities are unknown to the gambler.
 The gambler seeks to determine the sequence of levers to pull in
 order to maximize her winnings.
 
@@ -42,9 +42,9 @@ clinical trial, the different forms of advertising a product,
 or the different research projects a company might invest in.
 
 We now formulate the multi-armed bandit problem precisely.
-For simplicity, suppose there are $2$ arms, though the
-discussion is easily extended to $N$ arms.
-In each time period $t= 1,2,\ldots$, one arm can be pulled.
+For simplicity, suppose there are $2$ arms, although the
+discussion can easily be extended to $N$ arms.
+Any one arm can be pulled in each time period $t= 1,2,\ldots$.
 With unknown probability $p_i$, the $i$-th arm gives
 reward $1$ and with probability $1-p_i$ it gives reward $0$.
 Note we have now defined a set of decision times, actions, and rewards.
@@ -60,7 +60,7 @@ the highest expected payoff and pulling all arms in order to gain
 information about the probabilities $p_i$.
 This trade-off is often referred to as exploring versus exploiting.
 In essence, while gaining rewards, we will also come up with
-estimates of the $p_i$ that improve our decision making.
+better estimates for the real values of each $p_i$, which will improve our decision making.
 We will do so by Bayesian updating.
 
 \section*{Bayesian Updating}
@@ -99,9 +99,9 @@ new information as we seek to determine the value of $p_i$.
 As we get more information, the probability curve gets narrower.
 In the figure, we see that the distributions have expected
 value of $1/3$ and become tighter around that value.
-This is fitting since the parameter values have success $\alpha$ one
-third of the time and the tighter distributions correspond to having
-more prior information.  If we need an estimate for $p_i$ we can use
+This is fitting since the parameter values are successful one third (computed by $\alpha/(\alpha+\beta)$)
+of the time, and the tighter distributions correspond to having
+more prior information.  If we need an estimate for $p_i$, we can use
 the expected value of our distribution corresponding to $p_i$.
 We will denote this estimate by $\overline{p_i}$.
 
@@ -171,6 +171,8 @@ one or lever two respectively.  For example, by pulling lever one, we expect
 to get a reward of 1 with probability $\overline{p_1}$.
 We must also account for the expected value of future rewards
 (discounted by $\beta$) moving to a state with one more success on arm 1.
+Note that this $\beta$ is not the same as that in our distribution, but is the discount
+factor, as it was in the Value Function and Policy Function Iteration labs.
 With probability $1-\overline{p_1}$, lever one does not give a reward and so
 rewards are simply the discounted expected reward starting in the next state.
 
@@ -178,7 +180,8 @@ Notice that the expressions inside of $R(\cdot)$ on the right side have paramete
 values that add to one greater than the $R(\cdot)$ on the left side.
 So if we want to compute $R(1,1,1,1)$ we need to know
 $R(2,1,1,1)$, $R(1,2,1,1)$, $R(1,1,2,1)$ and $R(1,1,1,2)$
-(all possible combinations of parameters that add up to 5).
+(all possible combinations of parameters that add up to 5, 
+which differ from the left hand side by a total value of one in exactly one position).
 To compute these, we need to know the reward corresponding to all possible
 combinations of parameters that add up to 6, and so on.  Consequently, we could
 make a guess for all $R$ for all parameter combinations that add up to some large $N$,
@@ -282,27 +285,27 @@ There are, however, many heuristic methods of solving the multi-armed bandit pro
 In particular we will use a method known as Thompson Sampling, or Randomized Probability Matching.
 The idea is that we should choose arm $i$ with probability equal to the probability
 that arm $i$ is the best arm.  So if we believe there is an $80\%$ probability that
-arm 2 is the best arm we will pull it $80\%$ of the time.  The other $20\%$ of the
-time we would pull arm one which will help give more information about the true value of $p_1$.
+arm 2 is the best arm, we will pull it $80\%$ of the time.  The other $20\%$ of the
+time we would pull arm one, which will help give more information about the true value of $p_1$.
 In this way, we will pull most often the arms from which we expect the most rewards;
 however, we will also pull other arms with some probability so that we accomplish some
-exploration and gain information on all arms until we are confident we have found the best arm.
+exploration and gain information on all arms, until we are confident we have found the best arm.
 
 \begin{problem}
 Write a function \li{arm_probs} that accepts a $k \times n$ array of data computed by the
 function from Problem \ref{prob:simdata}.
 
 This function should return a vector of the probabilities that each of the $n$ arms is optimal.
-This can be computed for each arm by determining in how many of the $k$ simulations
-that arm had the highest value.  Dividing this number by $k$ will give the proportion
+This can be computed for each arm by determining how many of the total $k$ simulations
+that arm had the highest value.  This value, the number divided by $k$, will give the proportion
 of the simulations for which this arm had the greatest probability of success.
 This proportion is interpreted as the probability that the arm is the optimal arm.
 \end{problem}
 
 In some applications, we might want to run computations once, then pull many arms instead
-of computing before each pull.  In these cases, rather than compute these probabilities,
-choose an arm, then recompute, it can be more convenient to view the probabilities as weights.
-For example we can view the probabilities as the weights of how to distribute the next 100 pulls.
+of computing before each pull.  In these cases, rather than computing these probabilities,
+choosing an arm, then recomputing, it can be more convenient to view the probabilities as weights.
+For example, we can view the probabilities as the weights of how to distribute the next 100 pulls.
 Suppose the probabilities resulting from the previous function (with two arms) are $0.4$ and $0.6$.
 Then we would allot 40 of the next 100 pulls to arm 1 and 60 of the next 100 pulls to arm 2.
 Then we could compute new weights for the next 100 pulls.
@@ -319,9 +322,9 @@ pulls out of the next $M$ for each arm.  Make sure the entries sum to $M$.
 
 You now have code that solves the version of the multi-armed bandit problem described here.
 We first start all arms with the state (or prior) Beta$(1,1)$,
-which is the uniform distribution, meaning we have no information on the $p_i$.
+which is the uniform distribution, meaning we have no information on the values for each $p_i$.
 Then we compute the weights for the next $M$ pulls.
-After those $M$ pulls we compute new weights and continue on in this pattern.
+After those $M$ pulls, we compute new weights and continue on in this pattern.
 In some applications we may not continue this forever, but might instead have some stopping
 criterion for when we think we have identified the best arm.
 A common stopping criterion is to stop when one of the arms has a $95\%$ probability
@@ -453,7 +456,7 @@ def val_remaining(data,prob):
     pvr = sp.stats.mstats.mquantiles(valrem,.95)
     return pvr
 \end{lstlisting}
-where \li{data} is simulated using the \li{sim_data} function and
+where \li{data} is simulated using the \li{sim_data} function
 and \li{prob} is a vector containing the probabilities that each arm is optimal
 (obtained from the \li{arm_probs} function).
 
@@ -475,7 +478,7 @@ the pull vectors from each day of simulation.
 \end{lstlisting}
 
 Now we are ready to launch into the iteration.
-Write a while-loop that checks for the stopping criteria.
+Write a while loop that checks for the stopping criteria.
 It might look something like this:
 \begin{lstlisting}
 while (days<14) or (max_p <= .95 and max_pbar/100 <= pvr):

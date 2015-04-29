@@ -10,8 +10,7 @@ from numpy import get_include
 from os import system
 
 # Compile the .o file we will be accessing.
-# This is independent of the process to build
-# the Python extension module.
+# This is independent building the Python extension module.
 shared_obj = "gcc ctridiag.c -fPIC -c -o ctridiag.o"
 print shared_obj
 system(shared_obj)
@@ -23,9 +22,8 @@ ext_modules = [Extension(
                          # Cython source file:
                          ["cython_ctridiag.pyx"],
                          # Other compile arguments
-                         # This flag doesn't do much
-                         # this time, but this is
-                         # where it would go.
+                         # This flag doesn't do much this time, 
+                         # but this is where it would go.
                          extra_compile_args=["-fPIC", "-O3"],
                          # Extra files to link to:
                          extra_link_args=["ctridiag.o"])]
@@ -33,7 +31,6 @@ ext_modules = [Extension(
 # Build the extension.
 setup(name = 'cython_ctridiag',
       cmdclass = {'build_ext': build_ext},
-      # Include the directory with the NumPy headers
-      # when compiling.
+      # Include the directory with the NumPy headers when compiling.
       include_dirs = [get_include()],
       ext_modules = ext_modules)
