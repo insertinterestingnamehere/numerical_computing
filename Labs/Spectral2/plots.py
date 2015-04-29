@@ -90,7 +90,7 @@ def plot_spectral2_derivative():
 	plt.plot(x2,derivative,'-k',linewidth=2.)
 	plt.plot(x1,vp,'*b')
 	# plt.savefig('spectral2_derivative.pdf')
-	# plt.show()
+	plt.show()
 	# plt.clf()
 	return
 
@@ -150,7 +150,7 @@ def advection():
 	ax.set_xlabel('T')
 	ax.set_ylabel('X')
 	ax.set_zlabel('Z')
-	plt.savefig('advection.pdf')
+	plt.savefig('advection.png',dpi=65)
 	plt.show()
 	return
 
@@ -200,7 +200,7 @@ def bvp1_check():
 	print solution(x)[0,:].shape
 	plt.plot(x,solution(x)[0,:])
 	plt.show()
-	np.save('sol',solution(x)[0,:])
+	# np.save('sol',solution(x)[0,:])
 	return
 
 
@@ -285,7 +285,7 @@ def bvp2_check():
 	print solution(x)[0,:].shape
 	plt.plot(x,solution(x)[0,:])
 	plt.show()
-	np.save('sol',solution(x)[0,:])
+	# np.save('sol',solution(x)[0,:])
 	return
 
 
@@ -559,7 +559,7 @@ def tref_solitons():
 
 if __name__ == "__main__":
 	# deriv1()
-	# advection()
+	advection()
 	# bvp1_check()
 	# bvp1()
 	# bvp2_check()
@@ -568,4 +568,9 @@ if __name__ == "__main__":
 	# func0()
 	# Burgers()
 	# Solitons()
-	tref_solitons()
+	# tref_solitons()
+	# plot_spectral2_derivative()
+	
+	
+	
+	

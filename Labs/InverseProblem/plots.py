@@ -58,6 +58,7 @@ def example_text():
 	sol = minimize(least_squares,guess)
 	
 	plt.plot(x,sol.x,'-ob',linewidth=2)
+	# plt.savefig('density_a.pdf')
 	plt.show()
 	# plt.clf()
 	return 
@@ -199,6 +200,7 @@ def exercise2():
 	# plt.plot(x,sol.x,'-b',linewidth=2,label='estimate of a')
 	# plt.legend(loc='best')
 	plt.plot(x,sol.x,'-b',linewidth=2,label='estimate of a')
+	plt.savefig('ill_posed_density_a.pdf')
 	plt.show()
 	plt.clf()
 	return 
@@ -221,20 +223,13 @@ def exercise2():
 # plt.plot(sol.x[0],0.,'*k')
 # plt.show()
 
-def plot_figure():
-	pass
-	
-	
-	
-	
-	return
+
 	
 	
 
 
 if __name__ == "__main__":
 	# example_text()
-	example()
-	# exercise2()
+	# example()
+	exercise2()
 	
-	# plot_figure()

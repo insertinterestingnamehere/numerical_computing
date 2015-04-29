@@ -76,7 +76,7 @@ def plot_soliton():
 		ik3 = 1j*k**3.
 		
 		def F_unscaled(t,u):
-			out = -.5*1j*k*fft(ifft(u,axis=0)**2.,axis=0)  + ik3* u         
+			out = -.5*1j*k*fft(ifft(u,axis=0)**2.,axis=0)  + ik3* u			
 			return out
 		
 		
@@ -114,7 +114,7 @@ def plot_soliton():
 		def F_scaled(t,U):
 			E = np.exp(-ik3*t)
 			E_recip = E**(-1.)
-			out = -.5*1j*E*k*fft(ifft(E_recip*U,axis=0)**2.,axis=0)              
+			out = -.5*1j*E*k*fft(ifft(E_recip*U,axis=0)**2.,axis=0)				 
 			return out
 		
 		
@@ -155,6 +155,7 @@ def plot_soliton():
 	ax.invert_yaxis()
 	ax.set_zlim(0., 4000.)
 	ax.set_xlabel('T'); ax.set_ylabel('X'); ax.set_zlabel('Z')
+	# plt.savefig('interacting_solitons.png',dpi=100)
 	plt.show()
 	return
 

@@ -64,7 +64,7 @@ def ExercisePoisson():
 	# surf2 = ax2.plot_surface(xv, yv, bcs(xv,yv), rstride=2, cstride=2, cmap=cm.coolwarm,
 	#			linewidth=0, antialiased=False)
 	print "Maximum Error = \n", np.max(np.abs( z-bcs(xv,yv) ) )
-	# plt.savefig('Laplace.pdf')
+	# plt.savefig('Laplace.png',dpi=100)
 	# plt.clf()
 	plt.show()
 	
@@ -136,8 +136,8 @@ def plotRhos():
 	
 	plt.imshow(rho,cmap =  mcolors.LinearSegmentedColormap('cmap', genDict(rho)))
 	plt.colorbar(label="Relative Charge")
+	# plt.savefig("./pipesRho.pdf",dpi=100)
 	plt.show()
-	# plt.savefig("./pipesRho.pdf")
 	plt.clf()
 	return
 
@@ -245,23 +245,20 @@ def plotVs():
 	# X,Y = np.meshgrid(X,Y)
 	# 
 	# rho= source(X,Y)
-	V = poisson_square(a1,b1,c1,d1,6,lambda x, y:0, lambda X,Y: source(X,Y))
+	V = poisson_square(a1,b1,c1,d1,100,lambda x, y:0, lambda X,Y: source(X,Y))
 	cdict = genDict(V)
 
 	plt.imshow(V,cmap = mcolors.LinearSegmentedColormap('CustomMap', cdict))
 	plt.colorbar(label="Voltage")
+	# plt.savefig("./pipesV.png",dpi=100)
 	plt.show()
-	# plt.savefig("./pipesV.pdf")
 	plt.clf()
-	# print X.shape
-	# print Y.shape
-	print V.shape
 	return
 
 if __name__ == "__main__":
 	# example()
 	# Exercise1()
 	# ExercisePoisson()
-	# plotRhos()
-	plotVs()
+	plotRhos()
+	# plotVs()
 
