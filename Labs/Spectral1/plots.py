@@ -183,5 +183,5 @@ def nonlinear_minimal_area_surface_of_revolution():
 if __name__ == "__main__":
 	# deriv_matrix_exercise1()
 	# exercise2()
-	# nonzeroDirichlet()
-	nonlinear_minimal_area_surface_of_revolution()
+	nonzeroDirichlet()
+	# nonlinear_minimal_area_surface_of_revolution()
