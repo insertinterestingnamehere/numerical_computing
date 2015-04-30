@@ -123,6 +123,8 @@ def modified_euler(f, y0, t0, t1, n):
         Y[i] = Y[i-1] + (h / 2.) * (f(T[i-1], Y[i-1]) + f(T[i-1], Y[i-1] + h * f(T[i-1], Y[i-1])))
     return Y
 
+
+
 def RK4(f, y0, t0, t1, n):
     """ Use the RK4 method to compute an approximate solution
     to the ODE y' = f(t, y) at n equispaced parameter values from t0 to t
@@ -150,6 +152,7 @@ def RK4(f, y0, t0, t1, n):
         Y[i] = Y[i-1] + (h / 6.) * (K1 + 2 * K2 + 2 * K3 + K4)
     return Y
 
+
 def compare_accuracies(N, t=2):
     """ Test the accuracies of the Euler, backwards Euler, modified Euler,
     midpoint, and RK4 methods using initial value problem
@@ -165,6 +168,7 @@ def compare_accuracies(N, t=2):
     plt.loglog(H, euler_err, H, midpoint_err, H, RK4_err)
     plt.show()
 
+
 def simple_harmonic_oscillator(y0, t0, t, n, m=1, k=1):
     """ Use the RK4 method to solve for the simple harmonic oscillator
     problem described in the problem about simple harmonic oscillators.
@@ -173,6 +177,8 @@ def simple_harmonic_oscillator(y0, t0, t, n, m=1, k=1):
     'm' and 'k' are constants used in the ODE. """
     f = lambda x, y: np.array([y[1], - k * y[0] / float(m)])
     return RK4(f, y0, t0, t, n)[:,0]
+
+
 
 def damped_harmonic_oscillator(y0, t0, t, n, gamma):
     """ Use the RK4 method to solve for the damped harmonic oscillator
@@ -184,9 +190,13 @@ def damped_harmonic_oscillator(y0, t0, t, n, gamma):
     f = lambda x, y: np.array([y[1], - (gamma * y[1] + y[0])])
     return RK4(f, y0, t0, t, n)[:,0]
 
+
+
 def forced_harmonic_oscillator(y0, t0, t, n, gamma, omega):
     """ Use the RK4 method to solve for the forced harmonic oscillator
     problem. 'y0', 't0', 't', and 'n' are the same as the variables passed
     to the RK4 function. 'gamma' and 'omega' are constants. """
     f = lambda x, y: np.array([y[1], np.cos(omega * x) - y[0] - gamma * y[1] / 2])
     return RK4(f, y0, t0, t, n)[:,0]
+
+

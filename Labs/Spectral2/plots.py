@@ -14,7 +14,309 @@ import math
 
 from time import time
 from scipy.optimize import root
+from scikits import bvp_solver
 
+
+# Uses bvp_solver from scikits
+
+def deriv1():
+	N = 100
+	x = (2.*np.pi/N)*np.arange(1,N+1)
+	k = np.concatenate(( np.arange(0,N/2) ,
+						 np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))
+	
+	k2 = np.concatenate(( np.arange(0,N/2+1) ,
+						 # np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))
+	
+	v = np.sin(x)**2.*np.cos(x) + np.exp(2.*np.sin(x+1)) 
+	analytic_vp = 2.*np.sin(x)*np.cos(x)**2. - np.sin(x)**3. + 2*np.cos(x+1)*np.exp(2*np.sin(x+1))
+	
+	analytic_vpp = (2*np.cos(x)**3. -
+					4*np.sin(x)**2.*np.cos(x) - 
+					3*np.sin(x)**2*np.cos(x)-
+					2*np.sin(x+1)*np.exp(2*np.sin(x+1)) + 
+					4*np.cos(x+1)**2*np.exp(2*np.sin(x+1))
+					)
+					
+	v_hat = fft(v)
+	vp_hat = ((1j*k)*v_hat)
+	vp = np.real(ifft(vp_hat))
+	
+	vpp_hat = ((1j*k2)**2.*v_hat)
+	vpp = np.real(ifft(vpp_hat))
+	
+	# plt.plot(x,analytic_vp,'-g',linewidth=2.)
+	# plt.plot(x,vp,'-b',linewidth=2.)
+	# plt.show()
+	# plt.clf()
+	
+	
+	numerical_solution = .5*analytic_vpp - analytic_vp
+	# plt.plot(x,analytic_vpp,'-g',linewidth=2.)
+	# plt.plot(x,vpp,'-b',linewidth=2.)
+	# plt.show()
+	
+	plt.plot(x,numerical_solution,'-g',linewidth=2.)
+	# plt.plot(x,vpp,'-b',linewidth=2.)
+	plt.show()
+	return 
+
+
+
+def plot_spectral2_derivative():
+	N=24
+	x1 = (2.*np.pi/N)*np.arange(1,N+1)
+	v = np.sin(x1)**2.*np.cos(x1) + np.exp(2.*np.sin(x1+1))
+	
+	
+	k = np.concatenate(( np.arange(0,N/2) ,
+						 np.array([0])	, # Because w_hat at N/2 is zero
+						 np.arange(-N/2+1,0,1)	))
+						
+	# Approximates the derivative using the pseudospectral method
+	v_hat = fft(v)
+	vp_hat = ((1j*k)*v_hat)
+	vp = np.real(ifft(vp_hat))
+	
+	# Calculates the derivative analytically
+	x2 = np.linspace(0,2*np.pi,200)
+	derivative = (2.*np.sin(x2)*np.cos(x2)**2. - 
+					np.sin(x2)**3. + 
+					2*np.cos(x2+1)*np.exp(2*np.sin(x2+1))
+					)
+					
+	plt.plot(x2,derivative,'-k',linewidth=2.)
+	plt.plot(x1,vp,'*b')
+	# plt.savefig('spectral2_derivative.pdf')
+	plt.show()
+	# plt.clf()
+	return
+
+
+def advection():
+	# variable coefficient wave equation
+	# Borrowed from p6.m in Spectral Methods in MATLAB, by Lloyd Trefethen
+	
+	# Grid, variable coefficient, and initial data:
+	N = 128
+	h = 2.*np.pi/N
+	x = h*np.arange(1,N+1)
+	t = 0.
+	dt = h/4.
+	c = .2 + np.sin(x-1)**2.
+	v = np.exp(-100*(x-1)**2)
+	vold = np.exp(-100.*(x-.2*dt-1.)**2.)
+	k = np.concatenate(( np.arange(0,N/2) ,
+						 np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))
+	
+	# Time-stepping with RK:
+	tmax = 8
+	tplot = .15
+	plotgap = int(round(tplot/dt))
+	dt = tplot/plotgap
+	nplots = int(round(tmax/tplot))
+	data = np.zeros((nplots+2,N))
+	data[0,:] = v
+	tdata = [t]
+	for i in range(1,nplots+1):
+		for n in range(1,plotgap+1):
+			t = t+dt
+			# print t
+			# v_hat = fft(v)
+			# w_hat = 1j*k* v_hat
+			# w = np.real(ifft(w_hat)) 
+			w = np.real(ifft(1j*k* fft(v)))
+			vnew = vold - 2*dt*c*w
+			vold = v
+			v = vnew
+		data[i+1,:] = v
+		tdata.append(t)
+	tdata = np.array(tdata)
+	fig = plt.figure()
+	#---- First subplot
+	# ax = fig.add_subplot(121, projection='3d')
+	ax = fig.gca(projection='3d')
+	ax.view_init(elev=51., azim=-167)
+	
+	tv, xv = np.meshgrid((tdata).reshape((tdata.shape[0],)),(x).reshape((N,)),indexing='ij')
+	surf = ax.plot_wireframe(tv, xv, data[:-1,:])
+	
+	ax.set_xlim(tdata[0], tdata[-1])
+	ax.set_ylim(x[-1],x[0])
+	ax.set_zlim(0., 3.)
+	ax.set_xlabel('T')
+	ax.set_ylabel('X')
+	ax.set_zlabel('Z')
+	plt.savefig('advection.png',dpi=65)
+	plt.show()
+	return
+
+
+
+def bvp1_check():
+	""" 
+	Using scikits.bvp_solver to solve the bvp
+	y'' = exp(-y) - .9*y, y(0) = y(2*pi) = 0
+	y0 = y, y1 = y'
+	y0' = y1, y1' = y'' = exp(-y0) - .9*y0
+	"""
+	from math import exp, pi
+	lbc, rbc = 0., 0.
+	
+	def function1(x , y):
+		return np.array([y[1] , exp(-y[0])-.9*y[0] ]) 
+	
+	
+	def boundary_conditions(ya,yb):
+		return (np.array([ya[0] - lbc]),  #evaluate the difference between the temperature of the hot stream on the
+											 #left and the required boundary condition
+				np.array([yb[0] - rbc]))#evaluate the difference between the temperature of the cold stream on the
+											 #right and the required boundary condition
+	
+	problem = bvp_solver.ProblemDefinition(num_ODE = 2,
+										  num_parameters = 0,
+										  num_left_boundary_conditions = 1,
+										  boundary_points = (0, 2.*pi),
+										  function = function1,
+										  boundary_conditions = boundary_conditions)
+									
+	solution = bvp_solver.solve(problem,
+								solution_guess = (0.,
+												  0.))
+											
+	A = np.linspace(0.,2.*pi, 200)
+	T = solution(A)
+	plt.plot(A, T[0,:],'-k',linewidth=2.0)
+	plt.show()
+	plt.clf()
+	
+	
+	N = 150
+	x = (2.*np.pi/N)*np.arange(1,N+1).reshape(N,1)
+	print x.shape
+	print solution(x)[0,:].shape
+	plt.plot(x,solution(x)[0,:])
+	plt.show()
+	# np.save('sol',solution(x)[0,:])
+	return
+
+
+def bvp1():
+	N = 6
+	x = (2.*np.pi/N)*np.arange(1,N+1).reshape(N,1)
+	k = np.concatenate(( np.arange(0,N/2+1) ,
+						 # np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))#.reshape(N,1)
+	# print x.shape
+	# print k.shape
+	def g(v):
+		# print v.shape
+		v_hat = fft(v)
+		# print v_hat.shape
+		vpp_hat = (1j*k)**2*v_hat
+		# print vpp_hat.shape
+		vpp = np.real(ifft(vpp_hat))
+		# print vpp.shape
+		# import sys; sys.exit()
+		
+		w = vpp - np.exp(-v) + .9*v
+		w[-1] = v[-1]-0.
+		return w
+	
+	guess = 1.-np.cos(x)
+	# guess = np.load('sol.npy')
+	solution = root(g, guess)
+	# print solution
+	plt.plot(x,guess,'-r',linewidth=2.0)
+	plt.plot(x,solution.x,'-k',linewidth=2.0)
+	plt.show()
+	return
+
+
+
+def bvp2_check():
+	""" 
+	Using scikits.bvp_solver to solve the bvp
+	y'' + y' + sin y = 0, y(0) = y(2*pi) = 0
+	y0 = y, y1 = y'
+	y0' = y1, y1' = y'' = -sin(y0) - y1
+	"""
+	from math import exp, pi, sin
+	lbc, rbc = .1, .1
+	
+	def function1(x , y):
+		return np.array([y[1] , -sin(y[0]) -y[1] ]) 
+	
+	
+	def boundary_conditions(ya,yb):
+		return (np.array([ya[0] - lbc]),  #evaluate the difference between the temperature of the hot stream on the
+											 #left and the required boundary condition
+				np.array([yb[0] - rbc]))#evaluate the difference between the temperature of the cold stream on the
+											 #right and the required boundary condition
+	
+	problem = bvp_solver.ProblemDefinition(num_ODE = 2,
+										  num_parameters = 0,
+										  num_left_boundary_conditions = 1,
+										  boundary_points = (0, 2.*pi),
+										  function = function1,
+										  boundary_conditions = boundary_conditions)
+	
+	guess = np.linspace(0.,2.*pi, 10)
+	guess = np.array([.1-np.sin(2*guess),np.sin(2*guess)])
+	# plt.plot(guess,np.sin(guess))
+	# plt.show()
+	
+	solution = bvp_solver.solve(problem,
+								solution_guess = guess)
+	#										
+	A = np.linspace(0.,2.*pi, 200)
+	T = solution(A)
+	plt.plot(A, T[0,:],'-k',linewidth=2.0)
+	plt.show()
+	plt.clf()
+	
+	
+	N = 150
+	x = (2.*np.pi/N)*np.arange(1,N+1).reshape(N,1)
+	print x.shape
+	print solution(x)[0,:].shape
+	plt.plot(x,solution(x)[0,:])
+	plt.show()
+	# np.save('sol',solution(x)[0,:])
+	return
+
+
+def bvp2():
+	N = 150
+	x = (2.*np.pi/N)*np.arange(1,N+1).reshape(N,1)
+	k1 = np.concatenate(( np.arange(0,N/2) ,
+						 np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))#.reshape(N,1)
+	k2 = np.concatenate(( np.arange(0,N/2+1) ,
+						 # np.array([0])	,
+						 np.arange(-N/2+1,0,1)	))#.reshape(N,1)
+	def g(v):
+		v_hat = fft(v)
+		vp_hat = (1j*k1)*v_hat
+		vpp_hat = (1j*k2)**2*v_hat
+		vpp = ifft(vpp_hat)
+		vp = ifft(vp_hat)
+		w = np.real(vpp	 + np.sin(v) + vp)
+		w[-1] = v[-1]-.1
+		return w
+	
+	# guess = 1.-np.cos(x)
+	# guess = .1-np.sin(2*x)
+	guess = np.load('sol.npy')
+	solution = root(g, guess)
+	print solution
+	plt.plot(x,guess,'-r',linewidth=2.0)
+	plt.plot(x,solution.x,'-k',linewidth=2.0)
+	plt.show()
+	return
 
 
 def func0():
@@ -182,10 +484,9 @@ def Solitons():
 
 
 def tref_solitons():
-	
 	# p27.m - Solve KdV eq. u_t + uu_x + u_xxx = 0 on [-pi,pi] by
 	#		 FFT with integrating factor v = exp(-ik^3t)*u-hat.
-
+	
 	# Set up grid and two-soliton initial data:
 	N = 256
 	dt = .4*N**(-2.)
@@ -204,7 +505,7 @@ def tref_solitons():
 	# print "k = ", k # This is correct
 	# Solve PDE and plot results:
 	tmax = 0.006;
-	nplt = int(np.floor((tmax/25.)/dt))
+	nplt = int(np.floor((tmax/45.)/dt))
 	nmax = int(round(tmax/dt))
 	
 	print "nplt = ", nplt
@@ -251,12 +552,25 @@ def tref_solitons():
 	  # waterfall(x,tdata,udata'), colormap(1e-6*[1 1 1]); view(-20,25)
 	  # xlabel x, ylabel t, axis([-pi pi 0 tmax 0 2000]), grid off
 	  # set(gca,'ztick',[0 2000]), close(h), pbaspect([1 1 .13])
+	return 
 	
 
 
 
 if __name__ == "__main__":
+	# deriv1()
+	advection()
+	# bvp1_check()
+	# bvp1()
+	# bvp2_check()
+	# bvp2()
+	
 	# func0()
 	# Burgers()
 	# Solitons()
-	tref_solitons()
+	# tref_solitons()
+	# plot_spectral2_derivative()
+	
+	
+	
+	
