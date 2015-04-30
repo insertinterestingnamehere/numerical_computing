@@ -105,8 +105,8 @@ def trajectory():
 		a_, yp_ = a(x), num_func(x)
 		return a_*(1 + a_**2.*yp_**2.)**(1./2) - a_**2.*r(x)*yp_
 	
-	# print "The shortest time is approximately "
-	# print integrate.quad(L,-1,1,epsabs=1e-10,epsrel=1e-10)[0]
+	print "The shortest time is approximately "
+	print integrate.quad(L,-1,1,epsabs=1e-10,epsrel=1e-10)[0]
 	
 	# x0 = np.linspace(-1,1,200)
 	# y0 = y(x0,eps)
@@ -125,6 +125,8 @@ def trajectory():
 	# plt.show()
 	# plt.clf()
 	return x, z, N
+
+
 
 def angle():
 	x,z, N = trajectory()
@@ -156,11 +158,27 @@ def angle():
 	plt.axis([-1.1,1.1,0. -.5,z1 +1.])
 	plt.show()
 
+
+
+def newfunc():
+	# The integrand of the functional that gives the time required to cross
+	# the river on a given trajectory.
+	def yp(x):
+		return 2.5
+		
+	def L(x,yp):
+		a_, yp_ = a(x), yp(x)
+		return a_*(1 + a_**2.*yp_**2.)**(1./2) - a_**2.*r(x)*yp_
+
+	print integrate.quad(lambda x:L(x,yp),-1,1)[0]
+	return 
+
 if __name__=="__main__":
 	# current_plot()	
-	# time_functional()
+	print time_functional()
 	# trajectory()
-	angle()
+	# angle()
+	# newfunc()
 
 
 
