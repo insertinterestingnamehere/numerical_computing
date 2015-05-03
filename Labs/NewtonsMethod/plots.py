@@ -3,6 +3,7 @@ matplotlib.rcParams = matplotlib.rc_params_from_file('../../matplotlibrc')
 
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 def basins_1d():
     f = lambda x:x**2-1
@@ -40,83 +41,21 @@ def fractal_1d():
     plt.savefig('fractal1d.pdf', bbox_inches='tight')
     plt.close()   
     
-def fractal_ex():
-    f = lambda x:x**3-x
-    Df = lambda x:3*x**2-1
-    roots = np.array([-1, 0, 1])
-    xreal = np.linspace(-1.5, 1.5, 700)
-    ximag = np.linspace(-1.5, 1.5, 700)
+def plot_basins(f, Df, roots, xmin, xmax, ymin, ymax, numpoints=100, iters=15, colormap='brg', name='name.png', dpinum=150):
+    xreal = np.linspace(xmin, xmax, numpoints)
+    ximag = np.linspace(ymin, ymax, numpoints)
     Xreal, Ximag = np.meshgrid(xreal, ximag)
-    xold = Xreal+1j*Ximag
-    n = 0
-    while n <= 15:
-        xnew = xold - f(xold)/Df(xold)
-        xold = xnew
-        n += 1 
+    Xold = Xreal + 1j * Ximag
+    for i in xrange(iters):
+        Xnew = Xold - f(Xold)/Df(Xold)
+        Xold = Xnew
+    m,n = Xnew.shape
+    for i in xrange(m):
+        for j in xrange(n):
+            Xnew[i,j] = np.argmin(np.abs(Xnew[i,j]-roots))    
+    plt.pcolormesh(Xreal, Ximag, Xnew, cmap=colormap)
+    plt.savefig(name, bbox_inches='tight', dpi=dpinum)
 
-    converged_to = np.empty_like(xnew)
-    for i in xrange(xnew.shape[0]):
-        for j in xrange(xnew.shape[1]):
-            root = np.abs(roots-xnew[i,j]).argmin()
-            converged_to[i,j] = root
-
-    plt.pcolormesh(Xreal, Ximag, converged_to, cmap='brg')
-    #plt.colorbar()
-    plt.savefig('fractal_ex.png', bbox_inches='tight')
-    plt.close()
-    
-def fractal_zoom():
-    f = lambda x:x**3-x
-    Df = lambda x:3*x**2-1
-    roots = np.array([-1, 0, 1])
-    xreal = np.linspace(.445, .475, 700)
-    ximag = np.linspace(-.015, .015, 700)
-    Xreal, Ximag = np.meshgrid(xreal, ximag)
-    xold = Xreal+1j*Ximag
-    n = 0
-    while n <= 15:
-        xnew = xold - f(xold)/Df(xold)
-        xold = xnew
-        n += 1 
-
-    converged_to = np.empty_like(xnew)
-    for i in xrange(xnew.shape[0]):
-        for j in xrange(xnew.shape[1]):
-            root = np.abs(roots-xnew[i,j]).argmin()
-            converged_to[i,j] = root
-
-    plt.pcolormesh(Xreal, Ximag, converged_to, cmap='brg')
-    #plt.colorbar()
-    plt.savefig('fractal_zoom.png', bbox_inches='tight')
-    plt.close()
-    
-def fractal_hw():
-    f = lambda x:x**3-1
-    Df = lambda x: 3*x**2
-    roots = np.array([1, -.5+np.sqrt(3)/2*1j, -.5-np.sqrt(3)/2*1j]) 
-    xreal = np.linspace(-1.5, 1.5, 1000)
-    ximag = np.linspace(-1.5, 1.5, 1000)
-    Xreal, Ximag = np.meshgrid(xreal, ximag)
-    xold = Xreal+1j*Ximag
-    n = 0
-    while n <= 15:
-        xnew = xold - f(xold)/Df(xold)
-        xold = xnew
-        n += 1 
-
-    converged_to = np.empty_like(xnew)
-    for i in xrange(xnew.shape[0]):
-        for j in xrange(xnew.shape[1]):
-            root = np.abs(roots-xnew[i,j]).argmin()
-            converged_to[i,j] = root
-
-    plt.pcolormesh(Xreal, Ximag, converged_to, cmap='brg')
-    plt.savefig('fractal_hw.png', bbox_inches='tight')
-    plt.close()
-    
 if __name__ == "__main__":
     basins_1d()
     fractal_1d()
-    fractal_ex()
-    fractal_zoom()
-    fractal_hw()
