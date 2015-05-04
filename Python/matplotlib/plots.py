@@ -14,7 +14,7 @@ def exp_plot():
     x = np.linspace(-2, 3, 501)
     y = np.exp(x)
     plt.plot(x, y)
-    plt.savefig("exp_plot.pdf")
+    plt.savefig("exp_plot.pdf", bbox_inches='tight')
     plt.clf()
 
 def statemachine():
@@ -24,8 +24,24 @@ def statemachine():
     plt.cla()
     for n in y:
         plt.plot(x, n)
-    plt.savefig("statemachine.pdf")
+    plt.savefig("statemachine.pdf", bbox_inches='tight')
     plt.clf()
+
+def histogram():
+    x = array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
+        1,  9,  2])
+    plt.hist(x, bins=10, range=[.5, 10.5])
+    plt.xlim([.5, 10.5])
+    plt.savefig('histogram.pdf', bbox_inches='tight')
+    plt.close()
+    
+def scatter():
+    x = array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
+        1,  9,  2])
+    t = np.linspace(1,20,20)
+    plt.scatter(t, x, s=100)
+    plt.xlim([0,21])
+    plt.savefig('scatter.pdf', bbox_inches='tight')
 
 def subplots():
     x = np.linspace(-np.pi, np.pi, 400)
@@ -34,9 +50,13 @@ def subplots():
 
     plt.subplot(211)
     plt.plot(x, y1)
+    plt.xlim([-np.pi, np.pi])
+    
     plt.subplot(212)
     plt.plot(x, y2)
-    plt.savefig("subplots.pdf")
+    plt.xlim([-np.pi, np.pi])
+    
+    plt.savefig("subplots.pdf", bbox_inches='tight')
     plt.clf()
     
 def sinxsiny():
@@ -48,6 +68,7 @@ def sinxsiny():
     
     
     plt.pcolormesh(X, Y, C, edgecolors='face', shading='flat')
+    plt.colorbar()
     plt.savefig("sinxsiny.png", size=png_size)
     plt.clf()
     
@@ -136,13 +157,25 @@ def prob3_solution():
     
 def prob2_solution():
     f = solutions.problem2()
-    plt.savefig('soln2.pdf')
+    plt.savefig('soln2.pdf', bbox_inches='tight')
+    plt.clf()
+    
+def subplot_solution():
+    f = solutions.subplot()
+    plt.savefig('subplotProb.pdf', bbox_inches='tight')
+    plt.clf()
+    
+def heatmap_solution():
+    f = solutions.heatmap()
+    plt.savefig('pcolor2.png', bbox_inches='tight')
     plt.clf()
     
 if __name__ == "__main__":
     exp_plot()
     statemachine()
     subplots()
+    scatter()
+    histogram()
     interact()
     three_d_plot()
     sinxsiny()
