@@ -140,22 +140,23 @@ For a complete derivation see [TODO: ref textbook].
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\Procedure{GMRES}{$A, b, k, tol$}
-	\State $Q \gets \text{empty}\left(b.size, k+1\right)$			\Comment{Initialize}
-	\State $H \gets \text{zeros}\left(k+1, k\right)$
-	\State $Q_{[:,0]} = b/\|b\|_2$
-    \For{$n=1,2,\ldots, k$}
+\Procedure{GMRES}{$A, \b, k, tol$}
+	\State $Q \gets \empty{\size{\b}}{k+1}$			\Comment{Initialize}
+	\State $H \gets \zeros{k+1}{ k}$
+	\State $Q[:,0] = \b/\norm{\b}_2$
+    \For{$n=1\ldots k$}
         \State Set entries of $Q$ and $H$ as in Arnoldi iteration
-        \State Calculate least squares solution $y$ of \ref{eq:GMRES_lstsq2}.
+        \State Calculate least squares solution $\y$ of \ref{eq:GMRES_lstsq2}.
         \State Calculate the residual $res$ given by Equation \ref{eq:GMRES_residual}.
         \If{$res < tol$}
-            \State \pseudoli{return} $Q_{[:,n+1]}y, \,\, res$
+            \State \pseudoli{return} $Q[:,n+1]\y, \,\, res$
         \EndIf
     \EndFor
-    \State \pseudoli{return} $Q_{[:,n+1]}y, \,\, res$						
+    \State \pseudoli{return} $Q[:,n+1]\y, \,\, res$						
 \EndProcedure
 \end{algorithmic}
-\caption{The GMRES algorithm. This algorithm operates on a vector $b$ of length $m$ and an $m \times m$ matrix $A$. It iterates $k$ times or until the residual is less than $tol$.}
+\caption{The GMRES algorithm. This algorithm operates on a vector $\b$ and matrix $A$. 
+It iterates $k$ times or until the residual is less than $tol$, returning an approximate solution to $A\x=\b$ and the error in this approximation.}
 \label{alg:gmres}
 \end{algorithm}
 
@@ -331,20 +332,21 @@ GMRES with restarts is outlined in Algorithm \ref{alg:gmres_k}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\Procedure{GMRES(k)}{$A, b, k, tol, restarts$}
+\Procedure{GMRES(k)}{$A, \b, k, tol, restarts$}
   \State $r \gets 0$ \Comment{Restart counter}
-  \State $Q \gets \text{empty}\left(b.size, k+1\right)$			\Comment{Initialize}
-\State $H \gets \text{zeros}\left(k+1, k\right)$
+  \State $Q \gets \empty{\size{b}}{k+1}$			\Comment{Initialize}
+\State $H \gets \zeros{k+1}{ k}$
    \While{$r \leq restarts$}
-	\State{ Perform the GMRES algorithm, obtaining a least squares solution $y$}
+	\State{ Perform the GMRES algorithm, obtaining a least squares solution $\y$}
 	\State{ If the desired tolerance was reached, return. Otherwise, continue.}
-    \State $b \gets Q_{[:,k+1]}y$
+    \State $b \gets Q[:,k+1]\y$
     \State $r \gets r+1$
     \EndWhile
-    \State \pseudoli{return} $Q_{[:,k+1]}y, \,\, res$		\Comment{Return the approximate solution and the residual}
+    \State \pseudoli{return} $Q[:,k+1]\y, \,\, res$		\Comment{Return the approximate solution and the residual}
 \EndProcedure
 \end{algorithmic}
-\caption{The GMRES(k) algorithm. This algorithm performs GMRES on a vector $b$ of length $m$ and an $m \times m$ matrix $A$. It iterates $k$ times before restarting. It returns after $restarts$ restarts or when the residual is less than $tol$. }
+\caption{The GMRES(k) algorithm. This algorithm performs GMRES on a vector $\b$ and matrix $A$. It iterates $k$ times before restarting. 
+It terminates after $restarts$ restarts or when the residual is less than $tol$, returning an approximate solution to $A\x=\b$ and the error in this approximation. }
 \label{alg:gmres_k}
 \end{algorithm}
 
