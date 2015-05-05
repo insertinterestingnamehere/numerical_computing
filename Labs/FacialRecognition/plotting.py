@@ -39,46 +39,17 @@ def plotEigenFaces(U):
 def plotReconstructed(U, A, mu):
     imsave("rebuiltAll.png", (A[:,20]+mu).reshape((200,180)))
     s = U.shape[1]
-    r1 = U[:,:s/2].dot(U[:,:s/2].T.dot(A[:,20])) + mu
-    r2 = U[:,:s/4].dot(U[:,:s/4].T.dot(A[:,20])) + mu
+    r1 = U[:,:75].dot(U[:,:75].T.dot(A[:,0])) + mu
+    r2 = U[:,:38].dot(U[:,:38].T.dot(A[:,0])) + mu
+    r3 = U[:,:19].dot(U[:,:19].T.dot(A[:,0])) + mu
+    r4 = U[:,:9].dot(U[:,:9].T.dot(A[:,0])) + mu
+    r5 = U[:,:5].dot(U[:,:5].T.dot(A[:,0])) + mu
     imsave("rebuiltHalf.png", r1.reshape((200,180)))
     imsave("rebuiltFourth.png", r2.reshape((200,180)))
-
-# below are the plotting functions from a previous version
-def checkMeanImage(faces):
-    """
-    Plot the mean face of a facial recognition database
-    """
-    
-    imsave("meanFace.png",faces.meanImage)
-   
-def checkDifferenceFaces(faces):
-    """
-    Plot the first 3 difference faces of a facial recognition database
-    """
-    for i in range(3):
-        imsave("differenceFace{0}.png".format(i),faces.differenceFaces[i])
-        
-def checkEigenFaces(faces):
-    """
-    Plot the first 3 eigenfaces of a facial recognition database
-    """
-    for i in range(3):
-        imsave("eigenface{0}.png".format(i),faces.eigenFaces[i].reshape(faces.dim))
-
-
-def checkRebuildImage(faces,image):
-    """
-    Rebuild an image with varying number of eigenfaces
-    """
-    coefs = faces.projectToImageFaceSpace(image)
-    
-    imsave("rebuiltAll.png",faces.rebuildFromEigenFaces(coefs))
-    
-    imsave("rebuiltHalf.png",faces.rebuildFromEigenFaces(coefs,coefs.size//2))
-    
-    imsave("rebuiltFourth.png",faces.rebuildFromEigenFaces(coefs,coefs.size//4))
-    
+    imsave("rebuiltEighth.png", r3.reshape((200,180)))
+    imsave("rebuiltSixteenth.png", r4.reshape((200,180)))
+    imsave("rebuiltThirtySecond.png", r5.reshape((200,180)))
+  
     
 if __name__ == "__main__":
     F = getFaces(path="../../../faces94")
