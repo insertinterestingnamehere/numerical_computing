@@ -163,9 +163,9 @@ def Exercise3():
     Y3 = solveSecant(new_ode,X,a,b,za,va,beta,np.pi/4., np.pi/4.5,40)
     Y4 = solveSecant(new_ode,X,a,b,za,va,beta,np.pi/3.5, np.pi/3.0,40)
     
-    plt.plot(X,Y1,'-b',linewidth=1.5,label=r"$\nu = 0.0003$")
+    plt.plot(X,Y1,'-b',linewidth=1.5,label=r"$\mu = 0.0003$")
     plt.plot(X,Y2,'-b',linewidth=1.5)
-    plt.plot(X,Y3,'-k',linewidth=1.5,label=r"$\nu = 0.0$")
+    plt.plot(X,Y3,'-k',linewidth=1.5,label=r"$\mu = 0.0$")
     plt.plot(X,Y4,'-k',linewidth=1.5)
     plt.legend(loc='best')
     plt.xlabel('$x$',fontsize=16)
