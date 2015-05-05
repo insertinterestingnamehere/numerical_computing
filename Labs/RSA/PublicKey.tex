@@ -1,0 +1,505 @@
+\lab{Public Key Cryptography}{RSA}
+\label{lab:RSA}
+
+\objective{Implement the RSA cryptosystem as an example of public key cryptography.}
+
+A \emph{public key cryptosystem} uses separate keys for encryption and decryption.
+If Alice wishes to send Bob a message, she encrypts it using Bob's \emph{public key}, which is available to everyone.
+Then Bob decrypts it with his \emph{private key}, which only he knows.
+As long as it is difficult to find the private key from the public key, this is a secure system.
+
+Public key cryptosystems are advantageous because for $n$ people to have secure communications with each other, they need exactly $n$ public-private key pairs.
+A symmetric cryptosystem would require on the order of $n^2$ keys.
+Also, they eliminate the need for secure key sharing algorithms like the Diffie-Hellman key exchange (see Lab \ref{lab:DiffieHellman}).
+
+One of the oldest and most popular public key cryptosystems is RSA cryptography.\\
+
+All material in this lab through the section ``Security of RSA'' is required. 
+After that, all sections and subsections are independent of each other and may be covered as desired.
+
+\section*{The RSA system}
+Suppose Alice wants to receive secret messages using RSA.
+To do so, she first needs to generate a public key (for encryption) and a private key (for decryption).
+Alice does this by choosing two prime numbers, $p$ and $q$, and setting $n=pq$.
+Then she sets $\phi(n) = (p-1)(q-1)$.\footnote{
+The function $\phi: \mathbb{Z} \rightarrow \mathbb{N}$ is called the \emph{Euler phi function}. In general $\phi(n)$ is the number of positive integers less than $n$ that are relatively prime to $n$.}
+Alice chooses her encryption exponent to be some integer $e$ that is relatively prime to $\phi(n)$.
+Then she uses the Extended Euclidean Algorithm to find $d'$ such that $ed' + \phi(n)x' = 1$, and adds or subtracts multiples of $\phi(n)$ until $d = d'+k\phi(n)$ is between 0 and $\phi(n)$.
+Alice publishes her public key $(e, n)$ for the world to see and keeps her private key $(d,n)$ a secret.
+
+Now imagine Bob wants to send Alice a message, which he represents as an integer $m<n$ (say, using the A=01, B=02 scheme).
+Bob computes 
+\[
+c \equiv m^e \pmod{n}
+\]
+and sends the ciphertext $c$ to Alice.
+
+To decript the message, Alice computes
+\[
+m' \equiv c^d \pmod{n}.
+\]
+At this point, she uses the following theorem, which is easily proved with a combination of ring and group theory.
+\begin{theorem}
+For any integers $m$ and $n$ such that $n$ does not divide $m$, the following equality holds:
+\[
+m^{\phi(n)}\equiv 1 \pmod{n}.
+\]
+\end{theorem}
+Then Alice concludes that
+\[
+m' = c^d \equiv m^{ed} = m^{\phi(n)(ek-x')+1} \equiv m \pmod{n}.
+\]
+Now Alice can read Bob's message.
+
+As an example, let us encrypt and decrypt the message SECRET=190503180520.
+First we define $p$, $q$, $n$, and $\phi(n)$.
+\begin{lstlisting}
+>>> p = 1000003
+>>> q = 608609
+>>> n = p*q
+>>> phi_n = (p-1)*(q-1)
+\end{lstlisting}
+
+Now we choose an encryption exponent $e = 1234567891$ and compute $d = 589492582555$ using the Extended Euclidean Algorithm.
+\begin{lstlisting}
+>>> e = 1234567891
+>>> d = 589492582555
+\end{lstlisting}
+
+Finally we are ready to encrypt the message. 
+Note that $m<n$. If this were not the case, we would need to break up $m$ into shorter pieces.
+Also, we force $m$ to be a \li{long} integer so that the exponentiation operation does not overflow.
+The function \li{pow(a, b, n)} computes $a^b \pmod{n}$.
+\begin{lstlisting}
+>>> m = long(190503180520)
+>>> c = pow(m, e, n)
+\end{lstlisting}
+
+We decript the message by raising $c$ to the $d^{th}$ power.
+\begin{lstlisting}
+>>> m == pow(c, d, n)
+True
+\end{lstlisting}
+
+\begin{problem}
+Implement the RSA cryptosystem with three functions: one to generate keys, one to encrypt messages, and one to decrypt messages.
+\begin{lstlisting}
+def keys(p, q, e):
+   '''Create a pair of RSA keys from primes `p' and `q' and encryption 
+   exponent `e'.
+   
+   Return [(e, n), (d, n)] where (e, n) is the public key and (d, n) is 
+   the private key.
+   '''
+    
+def encrypt(message, e, n):
+    '''Encrypt the `message' using the public key (e, n).'''
+    
+def decrypt(ciphertext):
+    '''Decrypt the `ciphertext' using your private key.'''
+\end{lstlisting}
+\label{prob:rsa1}
+\end{problem}
+\subsection*{Security of RSA}
+Suppose an enemy Eve wants to read the message that Bob sent to Alice.
+Like Bob, she has access to Alice's public key $(e, n)$.
+Let's assume she has also intercepted the ciphertext $c$.
+
+One way for Eve to read Bob's message is to directly find $m$ such that $m^e \equiv c \pmod{n}$.
+Such a computation is known as taking a \emph{discrete logarithm}.
+When $n$ is very large, this computation is essentially impossible.
+
+Another option is for Eve to compute $(d, n)$ and then find $c^d$.
+However, computing $d$ means computing $\phi(n)$.
+Computing $\phi(n)$ from $n$ directly requires factoring $n$.
+When $n$ has hundreds of digits, finding its factors with known algorithms can take years.
+
+
+
+\subsection*{Logistical considerations (Optional)}
+The cryptosystem you wrote in Problem \ref{prob:rsa1} is not particularly easy to use, since you must convert your message to an integer and back again by hand.
+The appendix to this lab contains some functions you can use to fix this problem.
+The function \li{string_to_int()} turns any string into an integer (using a mapping more complicated than $A=01, B=02$), and the function \li{int_to_string()} changes it back again.
+
+\begin{lstlisting}
+>>> string_to_int('SECRET')
+91556947314004
+\end{lstlisting}
+
+At this point we have a problem, because the message 91556947314004 is larger than $n=608610825827$.
+We can only use RSA to encrypt messages that are smaller than $n.$
+In fact, the function \li{string_size()} provided in the appendix tells us the maximum number of characters we can encrypt with this choice of $n$.
+
+\begin{lstlisting}
+>>> string_size(608610825827)
+4
+\end{lstlisting}
+
+The function \li{partition()}, also in the appendix, will break our message into pieces of length 4.
+We specify the ``fill value'' \li{x} that will be used to make all pieces the same length.
+
+\begin{lstlisting}
+>>> partition('SECRET', 4, 'x')
+['SECR', 'ETxx']
+\end{lstlisting}
+Now we can proceed to encrypt and decrypt the strings \li{'SECR'} and \li{'ETxx'} as before.
+
+\begin{problem}[Optional]
+Modify your solution to Problem \ref{prob:rsa1}, making it simpler to use, by writing the following functions.
+\begin{lstlisting}
+def encrypt(message, e, n):
+    '''Encrypt `message' using the public key (e, n).
+    
+    INPUTS:
+    message - A string.
+    (e, n)  - A pair of integers. Should be an RSA public key.
+    
+    OUTPUTS:
+    Partition `message' into pieces of sufficiently small size, padding if 
+    necessary. Return a list of the encryptions of the pieces.
+    '''
+    
+def decrypt(ciphertext):
+    '''Decrypt `ciphertext' using your private key.
+    
+    INPUTS:
+    ciphertext - A list of integers.
+    
+    OUTPUTS:
+    Decrypt each integer in `cipertext' and return a single string.
+    '''
+\end{lstlisting}
+
+You can test your cryptosystem on the example in this lab and also on this larger example:
+\begin{itemize}
+\item message: \emph{Simon sells seashells by the seashore.}
+\item $p=83285677$, $q=2848968679$, $e=65593$
+\end{itemize}
+\label{rsa2}
+\end{problem}
+
+\section*{Digital Signatures (Optional)}
+Suppose Bob wants Alice to be able to verify that \emph{he} sent her a message, not Eve.
+Bob can do this using a \emph{digital signature}.
+
+\subsection*{Method 1}
+One way for Bob to digitally sign a message is to apply his \emph{private key} (his ``signature'') to the message and then apply Alice's public key.
+When Bob applies his private key to a message, we say he \emph{signs} the message.
+When Alice receives this message, she first applies her private key and then Bob's public key. 
+If the message makes sense, she knows it must be from Bob, since he is the only person with his private key.
+
+Symbolically, let $e_B()$ and $d_B()$ be Bob's encryption and decryption functions (these are inverse functions), and let $e_A()$ and $d_A()$ be the corresponding functions for Alice.
+Then Bob sends $e_A(d_B(m))$ to Alice, and Alice computes 
+\[e_B(d_A(e_A(d_B(m)))) = e_B(d_B(m)) = m.\]
+
+This method requires twice as many RSA encryptions as sending an unsigned message.
+Modular exponentiation can be an expensive operation, so if the message is long (and must be broken into several pieces) this is a serious slow-down.
+
+
+\subsection*{Method 2: hashes}
+A more efficient method (which also turns out to be more cryptographically secure) is to ``hash the message, and then sign the hash.''
+A hash is a function that takes a string of any size to a fixed number of bytes.
+A cryptographically secure hash satisfies two properties:
+\begin{itemize}
+\item If $m_1$ is different from $m_2$ then hash($m1$) is (almost certainly) different from hash($m2$).
+\item Given hash($m$), it is essentially impossible to find $m$.
+\end{itemize}
+For example, the MD5 hash will map any string to 16 bytes (a character like \li{'a'} is one byte of data).\footnote{
+The hash MD5 is not cryptographically secure, but is often used in non-cryptographic applications. 
+Because of its small digest size we use it as an example here.}
+Signing the hash will be faster than signing the original message, if the original message is more than 16 characters.
+
+In Python, hashes are implemented in the \li{hashlib} library. 
+Here we use MD5 to hash the string \li{'SECRET'}.
+\begin{lstlisting}
+>>> import hashlib
+>>> hash = hashlib.md5('SECRET')
+\end{lstlisting}
+We view the hash with the \li{digest()} method.
+\begin{lstlisting}
+>>> hash.digest()
+'D\xc7\xbeH"n\xba\xd5\xdc\xa8!ft\xca\xd6+'
+\end{lstlisting}
+The output is 16 bytes, some represented as characters (e.g. \li{'D'}) and some as two hexidecimal digits (e.g. \li{'\\xc7'}).
+Here we separate the digest into its bytes.
+\begin{lstlisting}
+>>> [byte for byte in hash.digest()]
+['D', '\xc7', '\xbe', 'H', '"', 'n', '\xba', '\xd5', '\xdc', '\xa8', '!', 'f', 't', '\xca', '\xd6', '+']
+\end{lstlisting}
+
+So when Bob sends Alice a message, he hashes the message and then signs the hash (applies his private key).
+Then he encrypts the message with Alice's public key. 
+When Alice receives the message and signature, she decrypts the message with her private key.
+After reading the message, she hashes it and compares the result to Bob's public key applied to the signature.
+If they agree, then she knows the message came from Bob.
+
+\begin{problem}
+Rewrite your RSA cryptosystem to include digital signatures. 
+That is, write the following functions, using the same hash in each.
+\begin{lstlisting}
+def encrypt(message, e, n):
+    '''Encrypt `message' using the public key (e, n) and sign it.
+    
+    INPUTS:
+    message - A string.
+    (e, n)  - A pair of integers. Should be an RSA public key.
+    
+    OUTPUTS:
+    ciphertext - A list of the encrypted pieces of `message.'
+    signatures - The hash of `message', signed with your private key.
+    '''
+    
+def decrypt(ciphertext, e, n):
+    '''Decrypt `ciphertext' using your private key and verify the 
+    signature matches the public key (e, n).
+    
+    INPUTS:
+    ciphertext - A list of integers.
+    (e, n)     - A public key.
+    
+    OUTPUTS:
+    message  - The decrypted `ciphertext' as a single string.
+    verified - A Boolean value indicating whether the digital signature 
+               was verified.
+    '''
+\end{lstlisting}
+\end{problem}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section*{Making RSA feasible (Optional)}
+
+For RSA to be a reasonably fast cryptosystem, we need a fast algorithm for modular exponentiation.
+This algorithm, known as \emph{binary exponentiation}, was discussed in Lab \ref{lab:DiffieHellman}.
+
+In addition, the security of RSA depends on the use of large prime numbers for $p$ and $q$.
+For RSA to be a practical cryptosystem, we need a fast way to find such numbers.
+
+
+\subsection*{Finding large primes}
+It is very slow to check that a large number is prime by finding its factors.
+In fact, it is the difficulty of factoring that makes RSA secure.
+
+However, there exist fast algorithms that determine when a number is ``probably prime.''
+One such algorithm comes from a special case of Theorem \ref{thm:fermat} known as \emph{Fermat's Little Theorem}:
+\[
+a^{p-1} \equiv 1 \pmod{p}
+\]
+for all primes $p$ and integers $a$ that are not divisible by $p$.
+Therefore, to check if a fixed number $p$ is likely a prime, we can compute $a^{p-1} \pmod{p}$ for several values of $a$.
+If we ever get something different than 1, then we know that $p$ is composite.
+The value of $a$ that proved $p$ was composite is called a \emph{witness number}.
+In fact, the converse is true: if $a^{p-1} \equiv 1 \pmod{p}$ for every $a<p$ then $p$ is prime.
+
+With a few exceptions, if $p$ is composite then more than half the integers in $[2, p-1]$ are witness numbers.
+Thus, if we run the above test on $p$ just a few times and don't find a witness number, there is a high probability that $p$ is prime.
+This test is called Fermat's test for primality.
+
+In practice, a probabilistic algorithm like Fermat's test is used to identify numbers that have a high chance of being prime. 
+Then, deterministic algorithms are used to verify primality of a candidate.
+
+\begin{problem}
+Write the following function, implementing Fermat's test for primality.
+\begin{lstlisting}
+def is_prime(n):
+    '''Use Fermat's test for primality to see if `n' is probably prime.
+    
+    INPUTS:
+    n - An integer.
+    
+    Run Fermat's test on at most 5 numbers randomly chosen from [2, n-1]. 
+    If a witness number is found, return the number of tries it took to 
+    find the witness number. If no witness number is found after 5 tries, 
+    return 0.
+    '''
+\end{lstlisting}
+For most composite values of \li{n}, if you call \li{is_prime(n)} one hundred times, you should expect to get 0 at most five times.
+
+However, some composite numbers do not follow this rule. 
+How many times do you have to call \li{is_prime()} on 340561 to get an answer of 0?
+\label{prob:prime_confidence}
+\end{problem}
+
+
+
+
+
+
+\section*{PyCrypto: RSA in Python (Optional)}
+A professional implementation of RSA is found in the PyCrypto module.
+
+% TODO: edit this section. The PyCrypto documentation is extremely poor and I can't figure out how to use it.
+\begin{comment}
+RSA encryption in Python can be accomplished very easily with a library called PyCrypto.
+This library contains many secure hash functions, random number generators, and encryption classes.
+Many programs use PyCrypto for their security needs.
+\begin{warn}
+Make certain that you are using the latest version of PyCrypto.
+Security software is updated often to fix security vulnerablilities and bugs.
+The current version of PyCrypto at the time of writing is version 2.6.1.
+\end{warn}
+
+The RSA module in PyCrypto is located in the PublicKey module.
+Let's try a small example using PyCrypto.
+The library allows us to explicity construct a key, or generate a key automatically.
+\begin{lstlisting}
+>>> from Crypto.PublicKey import RSA
+>>> from Crypto import Random
+>>> keypair = RSA.generate(2048) #generate a 2048-bit RSA key
+>>> publickey = keypair.publickey()
+>>> share_this = publickey.exportkey()
+\end{lstlisting}
+
+The RSA encryption and decryption methods on these keys are textbook approaches.
+However, to increase security, we will want to pad the messages so every message encrypted with a particular will become exactly as large (in bits) as the key itself.
+A commonly used padding algorithm is implemented in PyCrypto in the \li{Crypto.Cipher.PKCS1_OAEP} module.
+\begin{lstlisting}
+>>> from Crypto.Cipher import PKCS1_OAEP as oaep
+
+# generate a new key from the original RSA key.
+# This key can encrypt and decrypt
+>>> paddedkey = oaep.new(keypair)
+>>> encrypted = paddedkey.encrypt('hello world')
+>>> paddedkey.decrypt(encrypted)
+'hello world'
+\end{lstlisting}
+
+To sign the message we use PyCrypto's \li{Crypto.Signature.PKCS1_PSS} module.
+We first need to hash the message using a cryptographically secure hash, such as SHA.
+Just as only private keys can decrypt, only private keys can sign.
+Public keys can decrypt and verify.
+\begin{lstlisting}
+>>> from Crypto.Signautre import PKCS1_PSS as pss
+>>> from Crypto.Hash import SHA
+>>> sigkey = pss.new(keypair)
+>>> mhash = SHA.new("Hello World")
+>>> sigkey.sign
+\end{lstlisting}
+
+
+\begin{problem}[Group Project]
+Split into several groups of at least three individuals.
+Each group member should generate a private and public keypair using PyCrypto.
+Share your public keys with everyone in the group.
+
+You might find it useful to transmit your messages as strings.
+Here are two functions that will read and write specially formatted strings for your messages.
+\begin{lstlisting}
+def print_msg(m_encrypted):
+    #print the encrypted message as a specially formatted string
+    out = ("----BEGIN MESSAGE----",
+           m_encrypted[0],
+           "----END MESSAGE----",
+           "----BEGIN SIGNATURE----",
+           m_encrypted[1],
+           "----END SIGNATURE----")
+    return '\n'.join(out)
+
+def read_msg(m_string):
+    d1 = m_string.find('----BEGIN MESSAGE----') + 21
+    d2 = m_string.find('----END MESSAGE----', d1)
+    
+    d3 = m_string.find('----BEGIN SIGNATURE----', d2) + 23
+    d4 = m_string.find('----END SIGNATURE----', d3)
+    message  = m_string[d1:d2]
+    sign = m_string[d3:d4]
+    return message.strip(), sign.strip()
+\end{lstlisting}
+
+\begin{enumerate}
+\item Encrypt and sign a message for someone in the group and send it to the entire group.
+Attach the sender's name to the encrypted message (a claim that the message came from a particular sender).
+In this exercise we will verify that the actual origin of the message is indeed the claimed origin.
+Each group member should do the following:
+\begin{enumerate}
+\item Decrypt and verify the message addressed for you.
+\item Attempt to decrypt and verify message addressed for someone else in the group.
+\item Report the message and verified signature.
+\end{enumerate}
+
+\item Encrypt and sign a different message for someone in the group and send it, anonymously, to the entire group.
+For example, if Bob encrypts a message and sends it to Alice, he should claim the message came from another individual.
+Each group member should do the following:
+\begin{enumerate}
+\item Decrypt and verify the message address to you.
+\item Report the message and verified signature.
+\end{enumerate}
+\end{enumerate}
+\end{problem}
+\end{comment}
+
+
+\section*{Appendix: Helper Code}
+Here are some functions that you can use to make your implementation of RSA more user-friendly (see the ``Logistical considerations'' section).
+Note that you must import \li{izip_longest} from \li{itertools} before using some of these functions.
+ 
+ \begin{lstlisting}
+ from itertools import izip_longest
+ 
+ def partition(iterable, n, fillvalue=None):
+    '''Partition data into blocks of length `n', padding with `fillvalue' if needed. Return a list of the partitions.
+    
+    EXAMPLE:
+    >>> partition('ABCDEFG', 3, 'x')
+    ['ABC', 'DEF', 'Gxx']
+    '''
+    args = [iter(iterable)] * n
+    pieces = izip_longest(fillvalue=fillvalue, *args)
+    return [''.join(block) for block in pieces]
+    
+def string_size(n):
+    '''Return the maximum number of characters that can be encoded with the public key (e, n).
+    
+    In other words, find the largest integer L, such that if `string' has at most L characters, then a2i(`string') will be less than `n.'
+    '''
+    L=0
+    max_int = 0
+    while max_int < n:
+        max_int += sum([2**i for i in range(8*L, 8*L+8)])
+        L += 1
+    return L-1
+    
+def string_to_int(msg):
+    '''Convert the string `msg' to an integer.
+    '''
+    # bytearray will give us the ASCII values for each character
+    if not isinstance(msg, bytearray):
+        msg = bytearray(msg)
+    binmsg = []
+    # convert each character to binary
+    for c in msg:
+        binmsg.append(bin(c)[2:].zfill(8))
+    return int(''.join(binmsg), 2)
+
+def int_to_string(msg):
+    '''Convert the integer `msg' to a string.
+    
+    This function is the inverse of string_to_int().
+    '''
+    # convert to binary first
+    binmsg = bin(msg)[2:]
+    # we need to pad the message so length is divisible by 8
+    binmsg = "0"*(8-(len(binmsg)%8)) + binmsg
+    msg = bytearray()
+    for block in partition(binmsg, 8):
+        # convert block of 8 bits back to ASCII
+        msg.append(int(block, 2))
+    return str(msg)
+ \end{lstlisting}
