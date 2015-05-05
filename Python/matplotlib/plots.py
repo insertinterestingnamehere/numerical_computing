@@ -186,3 +186,4 @@ if __name__ == "__main__":
     GrandCanyon()
     prob3_solution()
     prob2_solution()
+    subplot_solution()
