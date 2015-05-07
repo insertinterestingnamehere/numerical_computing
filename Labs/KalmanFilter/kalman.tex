@@ -15,13 +15,16 @@ of the projectile's trajectory.
 In this lab, we will simulate measurements of a projectile and implement a Kalman filter to estimate the complete trajectory of the projectile.
 
 \section*{Linear Dynamical Systems}
-The standard Kalman filter assumes that we have a linear dynamical system, where the state of the system evolves over time with some noise, and we receive noisy measurements about the state of the system at each iteration.
+The standard Kalman filter assumes that:
+(1) we have a linear dynamical system,
+(2) the state of the system evolves over time with some noise, and 
+(3) we receive noisy measurements about the state of the system at each iteration.
 More formally, letting $\mathbf{x}_{k}$ denote the state of the system at time $k$, we have
 \begin{equation}
 \mathbf{x}_{k+1} = F_{k} \mathbf{x}_{k} + B_{k}\mathbf{u}_{k} + \mathbf{w}_{k}
 \label{eq:state}
 \end{equation}
-where $F_{k}$ is a state transition model, $B_{k}$ is a control-input model, $\mathbf{u}_{k}$ is a control vector, and $\mathbf{w}_{k}$ is the state noise present at iteration $k$.
+where $F_{k}$ is a state transition model, $B_{k}$ is a control-input model, $\mathbf{u}_{k}$ is a control vector, and $\mathbf{w}_{k}$ is the noise present in state $k$.
 This noise is assumed to be drawn from a multivariate Gaussian distribution with zero mean and covariance matrix $Q_{k}$.
 The control-input model and control vector allows the assumption that the state can be additionally influenced by some other factor than the linear state transition model.
 
@@ -36,7 +39,7 @@ As before, we assume that this noise is also drawn from a multivariate Gaussian 
 The dynamics stated above are all taken to be linear.
 Thus, for our purposes, the operators $F_k$, $B_k$, and $H_k$ are all matrices, and $\mathbf{x}_k$, $\mathbf{u}_k$, $\mathbf{z}_k$, and $\mathbf{v}_k$ are all vectors.
 
-We will assume that the transition and observation models, control vector, and noise covariances are constant, i.e. we will replace $F_{k}, H_k, \mathbf{u}_{k}, Q_{k},$ and $R_{k}$ with $F, H, \mathbf{u}, Q,$ and $R$ throughout.
+We will assume that the transition and observation models, control vector, and noise covariances are constant, i.e. we will replace $F_{k}, H_k, \mathbf{u}_{k}, Q_{k},$ and $R_{k}$ with $F, H, \mathbf{u}, Q,$ and $R$ for each iteration.
 We will also assume that $B = I$ is the identity matrix, so it can be ignored.
 
 \begin{problem}
@@ -65,31 +68,32 @@ class KalmanFilter(object):
 \end{lstlisting}
 \end{problem}
 
-We now derive the linear dynamical system parameters for a projectile traveling through $\mathbb{R}^2$ undergoing a constant downward gravitational force of $9.8 m/s^2$. 
+We now derive the linear dynamical system parameters for a projectile traveling through $\mathbb{R}^2$ undergoing a constant downward gravitational force of 9.8 $m/s^2$. 
 The relevant information needed to describe how the projectile moves through space is its position and velocity.
 Thus, our state vector has the form
 \[
-\mathbf{x} = \left( \begin{array}{c} s_{x} \\ s_{y} \\ v_{x} \\ v_{y} \end{array} \right),
+\mathbf{x} = \left( \begin{array}{c} s_{x} \\ s_{y} \\ V_{x} \\ V_{y} \end{array} \right),
 \]
-where $s_x$ and $s_y$ give the $x$ and $y$ coordinates of the position (in meters), and $v_x$ and $v_y$ give the horizontal and vertical components of the velocity (in meters per second), respectively.
+where $s_x$ and $s_y$ give the $x$ and $y$ coordinates of the position (in meters), and $V_x$ and $V_y$ give the horizontal and vertical components of the velocity (in meters per second), respectively.
+
 How does the system evolve from one time step to the next? 
-Assuming the time step is $.1$ seconds, it is easy enough to calculate the new position:
+Assuming each time step is $0.1$ seconds, it is easy enough to calculate the new position:
 \begin{align*}
-s_x' &= s_x + .1v_x\\
-s_y' &= s_y + .1v_y.
+s_x' &= s_x + 0.1V_x\\
+s_y' &= s_y + 0.1V_y.
 \end{align*}
 Further, since the only force acting on the projectile is gravity (we are ignoring things like wind resistance), the horizontal velocity remains constant:
 \[
-v_x' = v_x.
+V_x' = V_x.
 \]
 The vertical velocity, however, does change due to the effects of gravity. 
 From basic Newtonian mechanics, we have
 \[
-v_y' = v_y - .1\cdot9.8.
+V_y' = V_y - 0.1\cdot9.8.
 \]
 In summary, over one time step, the state evolves from $\mathbf{x}$ to $\mathbf{x}'$, where
 \[
-\mathbf{x}' = \left( \begin{array}{c} s_{x} + .1v_x \\ s_{y} + .1v_y \\ v_{x} \\ v_{y} - .98 \end{array} \right).
+\mathbf{x}' = \left( \begin{array}{c} s_{x} + 0.1V_x \\ s_{y} + 0.1V_y \\ V_{x} \\ V_{y} - 0.98 \end{array} \right).
 \]
 From this equation, you can extract the state transition model $F$ and the control vector $u$.
 
@@ -107,7 +111,7 @@ These equations indicate the appropriate choice of observation model.
 Work out the transition and observation models $F$ and $H$, along with the control vector $\mathbf{u}$, corresponding to the projectile.
 Assume that the noise covariances are given by
 \begin{align*}
-Q &= .1 \cdot I_4\\
+Q &= 0.1 \cdot I_4\\
 R &= 5000 \cdot I_2.
 \end{align*}
 Instantiate a \li{KalmanFilter} object with these values.
@@ -200,7 +204,7 @@ This is reflected in Figure \ref{fig:norms}.
 
 \begin{problem}
 Add code to your \li{KalmanFilter} class to estimate a state sequence corresponding to a given observation sequence and initial state estimate.
-Implement the following class method.
+Implement the following class method:
 \begin{lstlisting}
 estimate(self,x,P,z):
     """
@@ -242,7 +246,7 @@ Using these observations, we seek to estimate the corresponding true states of t
 We must first come up with a state estimate $\widehat{\mathbf{x}}_{200}$ for time step $200$, and then feed this into the Kalman filter
 to obtain estimates $\widehat{\mathbf{x}}_{201}, \ldots, \widehat{\mathbf{x}}_{800}$.
 \begin{problem}
-Calculate an initial state estimate $\widehat{\mathbf{x}}_{200}$ as follows.
+Calculate an initial state estimate $\widehat{\mathbf{x}}_{200}$ as follows:
 For the horizontal and vertical positions, simply use the observed position at time $200$. 
 For the velocity, compute the average velocity between the observations $\mathbf{z}_k$ and $\mathbf{z}_{k+1}$ for 
 $k = 200,\ldots,208$, then average these 9 values and take this as the initial velocity estimate.
@@ -250,7 +254,7 @@ $k = 200,\ldots,208$, then average these 9 values and take this as the initial v
 
 Using the initial state estimate, $P_{200} = 10^{6} \cdot Q$, and your Kalman filter, compute the next $600$ state estimates,
 i.e. compute $\widehat{\mathbf{x}}_{201}, \ldots, \widehat{\mathbf{x}}_{800}$.
-Plot these state estimates as a smooth green curve together with the radar observations (as red dots) and the complete true state sequence (as a blue curve).
+Plot these state estimates as a smooth green curve together with the radar observations (as red dots) and the entire true state sequence (as a blue curve).
 Zoom in to see how well it follows the true path. Your plots should be similar to Figure \ref{fig:estimates}.
 \label{prob:state_estimate}
 \end{problem}
