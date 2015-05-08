@@ -28,7 +28,7 @@ def statemachine():
     plt.clf()
 
 def histogram():
-    x = array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
+    x = np.array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
         1,  9,  2])
     plt.hist(x, bins=10, range=[.5, 10.5])
     plt.xlim([.5, 10.5])
