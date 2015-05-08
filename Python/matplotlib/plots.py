@@ -36,7 +36,7 @@ def histogram():
     plt.close()
     
 def scatter():
-    x = array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
+    x = np.array([ 3,  9,  5,  2,  7, 10,  7,  2,  5,  8,  7,  8,  1,  9,  7, 10,  2,
         1,  9,  2])
     t = np.linspace(1,20,20)
     plt.scatter(t, x, s=100)
@@ -187,3 +187,4 @@ if __name__ == "__main__":
     prob3_solution()
     prob2_solution()
     subplot_solution()
+    
