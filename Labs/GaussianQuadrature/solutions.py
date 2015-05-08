@@ -8,7 +8,7 @@ from scipy.integrate import quad
 def shift_function(f, a, b):
     """ 'f' is a callable funciton, 'a' and 'b' are
     the limits of the interval you want to consider."""
-    return lambda x: f((b - a) * x / 2. + (b + a) / 2)
+    return lambda x: f((b - a) * x / 2. + (b + a) / 2.)
 
 # plotting part of the shifting problem
 # The easy way, not the way in the lab.

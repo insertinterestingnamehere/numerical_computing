@@ -100,26 +100,27 @@ form.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\Procedure{arnoldi}{$b, A, k, tol$}
-	\State $Q \gets \text{empty}\left(b.size, k+1\right)$	\Comment{Some initialization steps}
-	\State $H \gets \text{zeros}\left( k+1, k\right)$
-	\State $Q_{[:,0]} = b/\|b\|_2$							
-	\For{$j=0$, $j<k$}							\Comment{Perform the actual iteration.}
-		\State $Q_{[:,j+1]} = AQ_{[:,j]}$		
-		\For{$i=0$, $i<j+1$}					\Comment{Modified Gram-Schmidt.}
-			\State $H_{[i,j]} = \langle Q_{[:,i]}, Q_{[:,j+1]}\rangle$		
-			\State $Q_{[:,j+1]} -= H_{[i,j]} Q_{[:,i]}$
+\Procedure{Arnoldi}{$\b, A, k, tol$}
+	\State $Q \gets \allocate{\size{\b}}{k+1}$			\Comment{Some initialization steps}
+	\State $H \gets \zeros{ k+1}{ k}$
+	\State $Q[:,0] \gets \b/\norm{\b}_2$							
+	\For{$j=0\ldots k-1$}							\Comment{Perform the actual iteration.}
+		\State $Q[:,j+1] \gets AQ[:,j]$		
+		\For{$i=0\ldots j$}					\Comment{Modified Gram-Schmidt.}
+			\State $H[i,j] \gets Q[:,i]\trp Q[:,j+1]$		
+			\State $Q[:,j+1] \gets Q[:,j+1] - H[i,j] Q[:,i]$
 		\EndFor
-		\State $H_{[j+1,j]} = \|Q_{[:,j+1]}\|_2$			\Comment{Set subdiagonal element of $H$.}
-            \If{$|H_{[j+1,j]}|<tol$}					\Comment{Stop if $\|Q_{[:,j+1]}\|_2$ is too small.}
-			\State \pseudoli{return} $H_{[:j+1,:j+1]}$, $Q_{[:,:j+1]}$
+		\State $H[j+1,j] \gets \norm{Q[:,j+1]}_2$			\Comment{Set subdiagonal element of $H$.}
+            \If{$|H[j+1,j]|<tol$}					\Comment{Stop if $\norm{Q[:,j+1]}_2$ is too small.}
+			\State \pseudoli{return} $H[:j+1,:j+1]$, $Q[:,:j+1]$
 		\EndIf
-		\State $Q_{[:,j+1]} /= H_{[j+1,j]}$				\Comment{Normalize $q_{j+1}$.}
+		\State $Q[:,j+1] \gets Q[:,j+1]/H[j+1,j]$				\Comment{Normalize $\q_{j+1}$.}
 	\EndFor
-	\State \pseudoli{return} $H_{[:-1, :]}$, $Q$			\Comment{Return $H_{k}$.}
+	\State \pseudoli{return} $H[:-1, :]$, $Q$			\Comment{Return $H_{k}$.}
 \EndProcedure
 \end{algorithmic}
-\caption{The Arnoldi Iteration. This algorithm operates on a vector $b$ of length $n$ and an $n \times n$ matrix $A$. It iterates $k$ times or until the norm of the next vector in the iteration is less than $tol$.}
+\caption{The Arnoldi Iteration. This algorithm accepts a square matrix $A$ and starting vector $\b$. It iterates $k$ times or until the norm of the next vector in the iteration is less than $tol$.
+The algorithm returns upper Hessenberg $H$ and orthonormal $Q$ such that $H = Q^{\mathsf{H}}AQ$.}
 \label{alg:arnoldi_iteration}
 \end{algorithm}
 
@@ -193,7 +194,7 @@ Let $Q_k$ be the matrix whose columns $\q_1, \ldots, \q_k$ are the orthonormal b
 let $H_k$ be the $k\times k$ upper Hessenburg matrix defined at the $k^{th}$ stage of the algorithm.
 Then these matrices satisfy
 \begin{equation}\label{equ:hqa}
-H_k = Q_k^* A Q_k.
+H_k = Q_k^{\mathsf H} A Q_k.
 \end{equation}
 If $k<n$ then $H_k$ is a low-rank approximation to $A$.
 We may use its eigenvalues as approximations to the eigenvalues of $A$.
@@ -392,27 +393,26 @@ The Lanczos iteration is found in Algorithm \ref{alg:lanczos_iteration}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-\Procedure{lanczos}{$b, A, k, tol$}
-	\State $q_0 \gets zeros(b.size)$								\Comment{Some initialization}
-	\State $q_1 \gets b/\|b\|_2$
-	\State $\alpha \gets \text{empty}\left(k\right)$
-	\State $\beta \gets \text{empty}\left(k\right)$
-	\State $\beta_{k} = 0$
-	\For{$i=0$, $i<k$}									\Comment{Perform the iteration.}
-		\State $z \gets Aq_1$					\Comment{$z$ is a temporary vector to store $q_{i+1}$.}
-		\State $\alpha_{i} = \langle q_1, z \rangle$				\Comment{$q_1$ is used to store the previous $q_i$.}
-		\State $z -= \alpha_i q_1 + \beta_{i-1} q_0$				\Comment{$q_0$ is used to store $q_{i-1}$.}
-		\State $\beta_{i} = \|z\|_2$						\Comment{Initialize $\beta_i$.}
-		\If{$\beta_i<tol$}								\Comment{Stop if $\|q_{i+1}\|_2$ is too small.}
-			\State \pseudoli{return} $\alpha_{[: i+1]}$, $\beta_{[: i]}$
+\Procedure{Lanczos}{$\b, A, k, tol$}
+	\State $\q_0 \gets \zeros{\size{\b}}$								\Comment{Some initialization}
+	\State $\q_1 \gets \b/\norm{\b}_2$
+	\State $\x \gets \allocate{k}$
+	\State $\y \gets \allocate{k}$
+	\For{$i=0\ldots k-1$}									\Comment{Perform the iteration.}
+		\State $\z \gets A\q_1$					\Comment{$\z$ is a temporary vector to store $\q_{i+1}$.}
+		\State $\x[i] \gets \q_1\trp \z$				\Comment{$\q_1$ is used to store the previous $\q_i$.}
+		\State $\z \gets \z - \x[i] \q_1 + \y[i-1] \q_0$				\Comment{$\q_0$ is used to store $\q_{i-1}$.}
+		\State $\y[i] = \norm{\z}_2$						\Comment{Initialize $\y[i]$.}
+		\If{$\y[i]<tol$}								\Comment{Stop if $\norm{ \q_{i+1}}_2$ is too small.}
+			\State \pseudoli{return} $\x[: i+1]$, $\y[: i]$
 		\EndIf
-		\State $z /= \beta_i$
-		\State $q_0, q_1 = q_1, z$						\Comment{Store new $q_{i+1}$ and $q_i$ on top of $q_1$ and $q_0$.}
+		\State $\z = \z/ \y[i]$
+		\State $\q_0, \q_1 = \q_1, \z$						\Comment{Store new $\q_{i+1}$ and $\q_i$ on top of $\q_1$ and $\q_0$.}
 	\EndFor
-	\State \pseudoli{return} $\alpha$, $\beta_{[: -1]}$
+	\State \pseudoli{return} $\x$, $\y[: -1]$
 \EndProcedure
 \end{algorithmic}
-\caption{The Lanczos Iteration. This algorithm operates on a vector $b$ of length $n$ and an $n \times n$ symmetric matrix $A$. It iterates $k$ times or until the norm of the next vector in the iteration is less than $tol$. It returns two vectors $\alpha$ and $\beta$ that respectively contain the main diagonal and first subdiagonal of the current Hessenberg approximation.}
+\caption{The Lanczos Iteration. This algorithm operates on a vector $\b$ of length $n$ and an $n \times n$ symmetric matrix $A$. It iterates $k$ times or until the norm of the next vector in the iteration is less than $tol$. It returns two vectors $\x$ and $\y$ that respectively contain the main diagonal and first subdiagonal of the current Hessenberg approximation.}
 \label{alg:lanczos_iteration}
 \end{algorithm}
 
