@@ -24,9 +24,9 @@ More formally, letting $\mathbf{x}_{k}$ denote the state of the system at time $
 \mathbf{x}_{k+1} = F_{k} \mathbf{x}_{k} + B_{k}\mathbf{u}_{k} + \mathbf{w}_{k}
 \label{eq:state}
 \end{equation}
-where $F_{k}$ is a state transition model, $B_{k}$ is a control-input model, $\mathbf{u}_{k}$ is a control vector, and $\mathbf{w}_{k}$ is the noise present in state $k$.
+where $F_{k}$ is a state-transition model, $B_{k}$ is a control-input model, $\mathbf{u}_{k}$ is a control vector, and $\mathbf{w}_{k}$ is the noise present in state $k$.
 This noise is assumed to be drawn from a multivariate Gaussian distribution with zero mean and covariance matrix $Q_{k}$.
-The control-input model and control vector allows the assumption that the state can be additionally influenced by some other factor than the linear state transition model.
+The control-input model and control vector allow the assumption that the state can be additionally influenced by some other factor than the linear state-transition model.
 
 We further assume that the states are ``hidden", and we only get the noisy observations
 \begin{equation}
@@ -34,13 +34,13 @@ We further assume that the states are ``hidden", and we only get the noisy obser
 \label{eq:obs}
 \end{equation}
 where $H_{k}$ is the observation model mapping the state space to the observation space, and $\mathbf{v}_{k}$ is the observation noise present at iteration $k$.
-As before, we assume that this noise is also drawn from a multivariate Gaussian distribution with zero mean and covariance matrix $R_{k}$.
+As with the aforementioned error, we assume that this noise is drawn from a multivariate Gaussian distribution with zero mean and covariance matrix $R_{k}$.
 
 The dynamics stated above are all taken to be linear.
 Thus, for our purposes, the operators $F_k$, $B_k$, and $H_k$ are all matrices, and $\mathbf{x}_k$, $\mathbf{u}_k$, $\mathbf{z}_k$, and $\mathbf{v}_k$ are all vectors.
 
-We will assume that the transition and observation models, control vector, and noise covariances are constant, i.e. we will replace $F_{k}, H_k, \mathbf{u}_{k}, Q_{k},$ and $R_{k}$ with $F, H, \mathbf{u}, Q,$ and $R$ for each iteration.
-We will also assume that $B = I$ is the identity matrix, so it can be ignored.
+We will assume that the transition and observation models, the control vector, and the noise covariances are constant, i.e. for each $k$, we will replace $F_{k}, H_k, \mathbf{u}_{k}, Q_{k},$ and $R_{k}$ with $F, H, \mathbf{u}, Q,$ and $R$.
+We will also assume that $B = I$ is the identity matrix, so it can safely be ignored.
 
 \begin{problem}
 Begin implementing a \li{KalmanFilter} class by writing an initialization method that stores the transition and observation models, noise covariances, and control vector.
@@ -206,7 +206,7 @@ This is reflected in Figure \ref{fig:norms}.
 Add code to your \li{KalmanFilter} class to estimate a state sequence corresponding to a given observation sequence and initial state estimate.
 Implement the following class method:
 \begin{lstlisting}
-estimate(self,x,P,z):
+def estimate(self,x,P,z):
     """
     Compute the state estimates using the Kalman filter.
     If x and P correspond to time step k, then z is a sequence of 
@@ -240,7 +240,7 @@ estimate(self,x,P,z):
 	\label{fig:estimates}
 \end{figure}
 
-Returning to the projectile example, we now assume that our radar sensor has taken observations from time step $200$ through $800$ (take the corresponding slice of the
+Returning to the projectile example, we now assume that our radar sensor has taken observations from time steps $200$ through $800$ (take the corresponding slice of the
 observations produced in Problem \ref{prob:simulation}).
 Using these observations, we seek to estimate the corresponding true states of the projectile.
 We must first come up with a state estimate $\widehat{\mathbf{x}}_{200}$ for time step $200$, and then feed this into the Kalman filter
@@ -259,8 +259,8 @@ Zoom in to see how well it follows the true path. Your plots should be similar t
 \label{prob:state_estimate}
 \end{problem}
 
-In the absence of observations, we can still infer some information about the state of the system at some future time.
-We can see this by recognizing that the expected state noise $\mathbb{E}\left[\mathbf{w}_{k}\right] = 0$ at any time $k$.
+In the absence of observations, we can still estimate some information about the state of the system at some future time.
+We can do this by recognizing that the expected state noise $\mathbb{E}\left[\mathbf{w}_{k}\right] = 0$ at any time $k$.
 Thus, given a current state estimate $\widehat{\mathbf{x}}_{n|m}$ using only measurements up through time $m$, the expected state at time $n+1$ is
 \begin{equation*}
 \widehat{\mathbf{x}}_{n+1|m} = F \widehat{\mathbf{x}}_{n|m} + \mathbf{u}
