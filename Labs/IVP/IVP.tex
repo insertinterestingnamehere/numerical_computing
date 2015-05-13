@@ -1,68 +1,83 @@
-\lab{IVP Methods}{IVP Methods}
-\label{lab:IVP}
+\lab{Numerical Methods for Initial Value Problems; Harmonic Oscillators}{Numerical Methods for Initial Value Problems; Harmonic Oscillators}
+\label{lab:ivp}
 
-\objective{Implement several basic numerical methods for initial value problems, and use them to study harmonic oscillators.}
+\objective{Implement several basic numerical methods for initial value problems (IVPs), and use them to study harmonic oscillators.}
 
 \section*{Methods for Initial Value Problems}
 Consider the initial value problem
-\begin{align*}
-y' &= f(x,y),\,\, a \leq x \leq b, \\
-y(a) &= y_0,
-\end{align*}
-where $f$ is a continuous function. A solution is a continuously differentiable function $y(x)$ that satisfies the equation $y' = f(x,y)$ on the interval $[a,b]$ and for which $y(a) = y_0$.
+\begin{align}
+	\begin{split}
+y' &= f(x,y),\quad a \leq x \leq b, \\
+y(a) &= y_0, 
+	\end{split}\label{ivp:generic}
+\end{align}
+where $f$ is a continuous function. 
+A solution of this IVP is a continuously differentiable function $y(x)$ that satisfies the equation $y' = f(x,y)$ on the interval $[a,b]$ and for which $y(a) = y_0$. 
+In this lab we will focus on numerical methods for approximating a solution $y(x)$, and sidestep the important mathematical problem of verifying that \eqref{ivp:generic} has a unique solution.
 
-There are many initial value problems (IVPs) where it is impossible to find a closed form (analytic) expression for the solution.
+There are many IVPs where it is impossible to find a closed form, analytic expression for the solution.
 For other IVPs there is a closed form expression for the solution, but it may be difficult to interpret.
-In either case, we can usually make good use of various methods of numerical approximation to study the solution. (It is still important to know mathematically that a solution exists, even when we cannot find an explicit solution!)
+In either case, we can usually make good use of various methods of numerical approximation to study the solution. 
 
-Consider the initial value problem
-\begin{align*}
+As an example, consider the initial value problem
+\begin{align}
+	\begin{split}
 y'(x) &= \sin y(x), \\
 y(0) &= y_0.
-\end{align*}
-This IVP does have solution, which is given implicitly by
+	\end{split}\label{ivp:example}
+\end{align}
+This IVP does have solution, which is defined implicitly by
 \[x = \ln \left|\frac{\cos y_0 + \cot y_0}{\csc y + \cot y} \right|.\]
-In this case, to understand the general solution it helps to use an IVP solver to plot the integral curves for some initial values. It is easy to show that this differential equation has constant solutions $y_n(x) = n \pi, n \in \mathbb{N}$. Knowing this, and after plotting several integral curves (see Figure \ref{ivp:int_curves} ), it is obvious how solutions of this IVP will behave.
+Since this solution is not very helpful intuitively, we turn to a combination of qualitative and numerical methods. 
+We begin by noting that since $\sin (n \pi) = 0$ for $n \in \mathbb{N},$ this differential equation has constant solutions $y_n(x) = n \pi,$ $n \in \mathbb{N}$. 
+We can also use an IVP solver to numerically approximate solutions for several other initial values. 
+After plotting these solutions (see Figure \ref{ivp:int_curves}), it becomes  obvious how solutions of this IVP will behave.
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{Fig2.pdf}
-\caption{Several integral curves for the differential equation $y' =\sin y$, using the python solver \li{dopri5}. }
+\caption{Several solutions of equation \eqref{ivp:example}, using the Python solver \li{dopri5}. }
 \label{ivp:int_curves}
 \end{figure}
 
 
-
-Numerical methods for solving initial value problems require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. We then look for values $y_0,y_1, \hdots, y_n$ that approximate our solution ( so $y_i \approx y(x_i)$).
-
+\section*{Numerical Methods}
+Numerical methods for solving initial value problems require us to approximate the solution on a set of grid points $a = x_0< x_1<\hdots< x_n = b$ in our interval.  
+For simplicity we will assume that each of the $n$ subintervals $[x_{i-1},x_i]$ has equal length $h = (b-a)/n$. $h$ is called the \textit{step size}. 
+We then look for values $y_0, y_1, \hdots, y_n$ that approximate the solution at $x_0, x_1, \hdots, x_n$.
 For a fixed value of $i$, $ 1 \leq i \leq n$, Taylor's theorem says that
 \begin{align*}
 y(x_{i+1}) &= y(x_{i}) + h y'(x_i) + \frac{h^2}{2} y''(\xi_i)\text{ for some }\xi_i \in [x_i,x_{i+1}].
 \end{align*}
-For small values of $h$ the quantity $\frac{h^2}{2} y''(\xi_i)$ will be negligible and so we will have
+For small values of $h$, the quantity $\frac{h^2}{2} y''(\xi_i)$ will be negligible and thus
 \begin{align*}
 y(x_{i+1}) &\approx y(x_{i}) + h y'(x_i)  ,\\
 &\approx y(x_{i}) + h f(x_i,y(x_i)).
 \end{align*}
-This approximation leads to a first order ($\mathcal{O}(h^1)$) method called Euler's method: Let $y_0 = y(a)$, and for $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$.
+This approximation leads to a method called Euler's method: Fix $y_0 = y(a)$, and for $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$. 
+Euler's method is first order, so-named because its error is $\mathcal{O}(h^1)$.
 % \begin{enumerate}
 % \item Let $y_0 = y(a)$.
 % \item For $i = 0, 1, \hdots, n-1$, let $y_{i+1} = y_i +hf(x_i,y_i)$.
 % \end{enumerate}
 
-Taylor's theorem also says that
+A similar application of Taylor's theorem shows that
 \begin{align*}
-y(x_{i}) &= y(x_{i+1}) - h y'(x_{i+1}) + \frac{h^2}{2} y''(\xi_i) \text{ for some } \xi_i \in [x_i,x_{i+1}], \\
+y(x_{i}) &= y(x_{i+1}) - h y'(x_{i+1}) + \frac{h^2}{2} y''(\xi_i) \text{ for some } \xi_i \in [x_i,x_{i+1}]; \\
 \end{align*}
-so that for small $h$
+thus for small $h$
 \begin{align*}
 y(x_{i+1}) &\approx  y(x_{i}) + h f(x_{i+1},y(x_{i+1})).
 \end{align*}
-This approximation leads to the backwards Euler method, another first order method: Let $y_0 = y(a)$ and for $i = 0, 1, \hdots, n-1$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$.
+This approximation leads to another first order method called the backwards Euler method: Fix $y_0 = y(a)$ and for $i = 1, \hdots, n$, solve  $y_{i} = y_{i+1}-hf(x_{i+1},y_{i+1})$ for $y_{i+1}$.
 
-Note that for both the Euler and backwards Euler methods, only $y_i, f, $ and other points in the interval $[x_i, x_{i+1}]$ are needed to find $y_{i+1}$. Because of this these are called \textit{one-step methods}.
+Note that for both the Euler and backwards Euler methods, only $y_i, f,$ and other points in the interval $[x_i, x_{i+1}]$ are needed to find $y_{i+1}$. 
+Because of this, they are called \textit{one-step methods}.
 
-Euler's method is an explicit method. The backwards Euler method is an implicit method since an equation must be solved at each step to find $y_{i+1}$. Explicit and implicit methods usually have their own advantages and disadvantages. While implicit methods require an equation to be solved at each time step, they also often have better stability properties than the corresponding explicit methods.
+Euler's method is an explicit method. 
+The backwards Euler method is an implicit method since an equation must be solved at each step to find $y_{i+1}$. 
+Explicit and implicit methods each have advantages and disadvantages. 
+While implicit methods require an equation to be solved at each time step, they often have better stability properties than explicit methods.
 
 \begin{figure}[ht]
 \centering
