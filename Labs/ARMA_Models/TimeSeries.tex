@@ -141,7 +141,7 @@ def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
 \end{lstlisting}
 
 \vspace{3mm} \noindent
-For example,
+When done correctly, your function should match the following result:
 \begin{lstlisting}
 >>> arma_likelihood(time_series_a, phis=array([0.9]), mu=17., sigma=0.4)
 -77.6035
@@ -151,8 +151,8 @@ For example,
 \section*{Identification and Fitting}
 
 When modeling a data set with an $\text{ARMA}(p,q)$ model, the order of the
-model must be determined as well as the other parameters. The process of
-choosing $p$ and $q$ is called model identification. Different methods have
+model must be determined, as well as the other parameters. The process of
+choosing $p$ and $q$ is called \emph{model identification}. Different methods have
 been used; for example, Box and Jenkins propose a methodology that involves
 examining the estimated autocorrelation and partial-autocorrelation functions
 of the data. We will choose $p$ and $q$ that minimize the Akaike information
@@ -201,7 +201,7 @@ def arma_fit(time_series):
 \vspace{3mm} \noindent
 Here's a hint for performing the optimization at each step, using {\tt scipy.optimize.fmin}.
 \begin{lstlisting}
->>> # assume p, q, time_series are defined
+>>> # assume p, q, and time_series are defined
 >>> def f(x): # x contains the phis, thetas, mu, and sigma
 >>>     return -1*arma_likelihood(time_series, phis=x[:p], thetas=x[p:p+q], mu=x[-2],sigma=x[-1])
 >>> # create initial point
@@ -215,10 +215,11 @@ The variable \li{sol} is a flat array of length $p+q+2$, whose first $p$ entries
 for the $\phi$ polynomial, the next $q$ entries give the optimal values for the $\theta$ polynomial,
 and the last two entries give the optimal values for $\mu$ and $\sigma_a$, respectively.
 Notice that we defined a wrapper function $f$ to feed into the {\tt scipy.optimize.fmin} routine.
-This wrapper function return \emph{negative} of the log likelihood, since the optimization routine we are
-calling finds the minimum of a function, and we are interested in the maximum of the log likelihood.
+This wrapper function returns the \emph{negative} of the log likelihood, since the optimization routine we are
+calling finds the minimum of a function, and we are interested in the \emph{maximum} of the log likelihood.
 
-Your code should produce the following output (it may take a minute or so to run):
+Your code should produce the following output, where the input data is found in
+{\tt time\_series\_a.txt} (it may take a minute or so to run):
 \begin{lstlisting}
 >>> arma_fit(time_series_a)
 (array([ 0.9087]), array([-0.5759]), 17.0652..., 0.3125...)
@@ -292,7 +293,7 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
 \end{lstlisting}
 
 \vspace{3mm} \noindent
-For example,
+You should get the following result:
 \begin{lstlisting}
 >>> arma_forecast(time_series_a, phis, thetas, mu, sigma, 4)
 (array([ 17.3762,  17.3478,  17.322 ,  17.2986]),
