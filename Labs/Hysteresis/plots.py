@@ -140,7 +140,6 @@ def BudwormEquilibria():
     plt.plot(x,f1(x,r,k),'-g',linewidth=2.,label=r'$r(1-x/k)$')
     plt.plot(x,f2(x),'-b',linewidth=2.,label=r'$x/(1+x^2)$')
     plt.xlabel('x',fontsize=16)
-#    plt.ylabel('x',fontsize=16)
     plt.axis([-.1,10,-.1,1.1])
     plt.legend(loc='best')
     plt.savefig('BudwormEquilibria.pdf')
