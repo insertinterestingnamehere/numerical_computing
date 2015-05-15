@@ -7,6 +7,8 @@ def initialize_all(y0, t0, t1, n):
         Y = np.empty((n, y.size)).squeeze()
     else:
         Y = np.empty(n)
+	# print y0
+	# print Y
     Y[0] = y0
     T = np.linspace(t0, t1, n)
     h = float(t1 - t0) / (n - 1)
