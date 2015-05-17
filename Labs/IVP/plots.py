@@ -71,7 +71,35 @@ def Fig2():
 	plt.clf()
 
 
+
 def Fig3():
+    a, b, ya = 0., 2., 0.
+    def f(x,ya):
+        return -2. + 2.*x + 2.*np.exp(x)
+    
+    def ode_f(x,y): 
+        return np.array([1.*y -2.*x + 4.])
+    
+    N = np.array([10,20,40,80,160])  # Number of subintervals
+    Euler_sol, Mid_sol, RK4_sol = np.zeros(len(N)), np.zeros(len(N)), np.zeros(len(N))
+    for j in range(len(N)):
+            Euler_sol[j] = euler(ode_f,ya,a,b,N[j])[-1]
+            Mid_sol[j] = midpoint(ode_f,ya,a,b,N[j])[-1]
+            RK4_sol[j] = RK4(ode_f,ya,a,b,N[j])[-1]
+    
+    h = 2./N
+    plt.loglog(h, abs(( Euler_sol - f(2.,0.))/f(2.,0.) ), '-b', label="Euler method"   , linewidth=2.)
+    plt.loglog(h, abs(( Mid_sol - f(2.,0.))/f(2.,0.) ),   '-g', label="Midpoint method", linewidth=2. )
+    plt.loglog(h, abs(( RK4_sol - f(2.,0.))/f(2.,0.) ),   '-k', label="Runge Kutta 4"  , linewidth=2. )
+    plt.xlabel("$h$", fontsize=16)
+    plt.ylabel("Relative Error", fontsize = 16)
+    # plt.title("loglog plot of relative error in approximation of $y(2)$.")
+    plt.legend(loc='best')
+    # plt.savefig('Fig3.pdf')
+    plt.show()
+    plt.clf()
+
+def Fig4():
 	a, b, ya = 0., 8., 1.
 	from math import exp, sin, cos
 	def f(x):
@@ -80,74 +108,65 @@ def Fig3():
 	def ode_f(x,y): 
 		return np.array([y*cos(x)])
 	
-	N1 = np.array([10,20,40,80,160,320,640,1280,2560,5120,10240,20480,40960,81920,163840,327680,655360,1310720])#, 2621440,  5242880])	 # Number of subintervals
-	N2, N3 = N1[:12],N1[:12]
+	# Number of subintervals
+	N1 = np.array([10,20,40,80,160,320,640,1280,2560,5120,
+	     			10240,20480,40960,81920,163840,327680,655360,1310720])
+	N2, N3 = N1[:12],N1[:10]
 	Euler_sol, Mid_sol, RK4_sol = np.zeros(len(N1)), np.zeros(len(N2)), np.zeros(len(N3))
-	for j in range(len(N1)):
-		print "Euler: N = %i"%N1[j]
+	
+	for j in range(len(N1)): 
 		Euler_sol[j] = euler(ode_f,ya,a,b,N1[j])[-1]
-	print "Euler is finished."
 	for j in range(len(N2)):	
-		print "Midpoint: N = %i"%N2[j]
 		Mid_sol[j] = midpoint(ode_f,ya,a,b,N2[j])[-1]
-	print "Midpoint is finished."
 	for j in range(len(N3)):
-		print "RK4: N = %i"%N3[j]
 		RK4_sol[j] = RK4(ode_f,ya,a,b,N3[j])[-1]
-	print "RK4 is finished."
 	
 	
-	# print abs(( Euler_sol - f(b))/f(b) )
-	h1 = 2./N1
-	h2, h3 = h1[:16],h1[:8]
-	# plt.loglog(h1, abs(( Euler_sol - f(b))/f(b) ), '-b', label="Euler method"   , linewidth=2.)
-	# plt.loglog(h2, abs(( Mid_sol - f(b))/f(b) ),	  '-g', label="Midpoint method", linewidth=2. )
-	# plt.loglog(h3, abs(( RK4_sol - f(b))/f(b) ),	  '-k', label="Runge Kutta 4"  , linewidth=2. )
-	fig = plt.figure()
-	print N1[:,np.newaxis].shape
+	# Data for a Table?
 	euler_error = np.concatenate((abs(( Euler_sol - f(b))/f(b) )[:,np.newaxis], N1[:,np.newaxis]),axis=1)
-	print "euler_error = \n", euler_error
 	rk4_error = np.concatenate((abs(( RK4_sol - f(b))/f(b) )[:,np.newaxis], 4*N3[:,np.newaxis]),axis=1)
-	print "\nrk4_error = \n",rk4_error
-	plt.loglog(abs(( Euler_sol - f(b))/f(b) ), N1,'-b', label="Euler method"   , linewidth=2.)
-	plt.loglog(abs(( Mid_sol - f(b))/f(b) ), 2*N2, '-g', label="Midpoint method", linewidth=2. )
-	plt.loglog(abs(( RK4_sol - f(b))/f(b) ), 4*N3, '-k', label="Runge Kutta 4"  , linewidth=2. )
+	
+	# Plot number of function evaluations versus relative error
+	fig = plt.figure()
+	plt.loglog(N1, abs(( Euler_sol - f(b))/f(b) ),'-b', label="Euler method"   , linewidth=2.)
+	plt.loglog(2*N2, abs(( Mid_sol - f(b))/f(b) ),  '-g', label="Midpoint method", linewidth=2. )
+	plt.loglog(4*N3, abs(( RK4_sol - f(b))/f(b) ),  '-k', label="Runge Kutta 4"  , linewidth=2. )
 	ax = fig.add_subplot(111)
-	plt.xlabel("Error", fontsize=16)
-	plt.ylabel("Functional Evaluations", fontsize = 16)
-	# plt.title("loglog plot of relative error in approximation of $y(2)$.")
+	plt.ylabel("Error", fontsize=16)
+	plt.xlabel("Functional Evaluations", fontsize = 16)
 	ax.legend(loc='best')
-	ax.invert_xaxis()
-	# plt.savefig('Fig3.pdf')
+	# ax.invert_xaxis()
+	# plt.savefig('Fig4.pdf')
 	plt.show()
 	plt.clf()
 
 
 def Exercise1(): 
 	a, b, ya = 0.0, 2.0, 0.0
-	def f(x,ya): 
+	def f(x,ya=0.): 
 		return 4. - 2.*x + (ya - 4.)*np.exp(-x)
 	
 	def ode_f(x,y): 
 		return np.array([-1.*y -2.*x + 2.])
 	
 	
-	plt.plot(np.linspace(a,b,11), Euler(ode_f,a,b,10,ya) , 'b-',label="h = 0.2")
-	plt.plot(np.linspace(a,b,21), Euler(ode_f,a,b,20,ya) , 'g-',label="h = 0.1")
-	plt.plot(np.linspace(a,b,41), Euler(ode_f,a,b,40,ya) , 'r-',label="h = 0.05")
+	plt.plot(np.linspace(a,b,11), euler(ode_f,ya,a,b,11) , 'b-',label="h = 0.2")
+	plt.plot(np.linspace(a,b,21), euler(ode_f,ya,a,b,21) , 'g-',label="h = 0.1")
+	plt.plot(np.linspace(a,b,41), euler(ode_f,ya,a,b,41) , 'r-',label="h = 0.05")
 	
 	x = np.linspace(0,2,200); k =int(200/40)
-	plt.plot(x[::k], solution.function(x,f,0.0)[::k], 'k*-',label="Solution") # The solution 
-	plt.plot(x[k-1::k], solution.function(x,f,0.0)[k-1::k], 'k-') # The solution 
+	plt.plot(x[::k], f(x[::k]), 'k*-',label="Solution") # The solution 
+	plt.plot(x[k-1::k], f(x[k-1::k]), 'k-') # The solution 
 	
 	plt.legend(loc='best')
 	plt.xlabel('x'); plt.ylabel('y')
 	# plt.savefig('Exercise1.pdf')
-	# plt.show()
+	plt.show()
 	plt.clf()
 
 
 def Exercise2():
+	# When y' = f(t,y) = f(t), these IVP methods are well known quadrature methods.
 	# Euler's method corresponds to the left hand sum.
 	# Backward Euler's method corresponds to the right hand sum.
 	# Modified Euler's method corresponds to the trapezoidal rule.
@@ -167,12 +186,12 @@ def Exercise3():
 	N = np.array([10,20,40,80,160])	 # Number of subintervals
 	Euler_sol, Mid_sol, RK4_sol = np.zeros(len(N)), np.zeros(len(N)), np.zeros(len(N))
 	for j in range(len(N)):
-			Euler_sol[j] = Euler(ode_f,a,b,N[j],ya)[-1]
-			Mid_sol[j] = Midpoint(ode_f,a,b,N[j],ya)[-1]
-			RK4_sol[j] = RK4(ode_f,a,b,N[j],ya,dim=1)[-1][0]
+			Euler_sol[j] = euler(ode_f,ya,a,b,N[j])[-1]
+			Mid_sol[j] = midpoint(ode_f,ya,a,b,N[j])[-1]
+			RK4_sol[j] = RK4(ode_f,ya,a,b,N[j])[-1]
 	
-	print Euler_sol, Mid_sol, RK4_sol
-	print "Answer = ", f(2.,0.)
+	# print Euler_sol, Mid_sol, RK4_sol
+	# print "Answer = ", f(2.,0.)
 	h = 2./N
 	plt.loglog(h, abs(( Euler_sol - f(2.,0.))/f(2.,0.) ), '-b', label="Euler method"   , linewidth=2.)
 	plt.loglog(h, abs(( Mid_sol - f(2.,0.))/f(2.,0.) ),	  '-g', label="Midpoint method", linewidth=2. )
@@ -185,24 +204,6 @@ def Exercise3():
 	# plt.show()
 	plt.clf()
 	
-
-def Exercise4old(): 
-# Integral curves for f(x).
-	a , b, n = 0.0,	 1.6,  200
-	k, x = int(n/20), np.linspace(a,b,n+1)
-	def f(x,ya): 
-		return 4. - 2.*x + (ya - 4.)*np.exp(-x)
-	
-	plt.plot(x, solution.function(x,f,0.0), 'k-')
-	plt.plot(x, solution.function(x,f,2.0), 'k-')
-	plt.plot(x[::k], solution.function(x,f,4.0)[::k], 'k*-', label='Particular solution for 'r"$y' +y =	 - 2x + 2 $.")
-	plt.plot(x, solution.function(x,f,6.0), 'k-')
-	plt.plot(x, solution.function(x,f,8.0), 'k-')
-	plt.legend(loc='best')
-	plt.xlabel('x'); plt.ylabel('y')
-	# plt.show()
-	# plt.savefig('Exercise4.pdf')
-	plt.clf()
 
 
 def HOFig1(): 
@@ -258,6 +259,7 @@ def Exercise4():
 	a, b, ya = 0.0, 20.0, np.array([2., -1.])
 	
 	m , gamma, k, F = 3., 0., 1.,lambda x: 0.
+	simple_harmonic_oscillator(y0, t0, t, n, m=1, k=1)
 	func1 = lambda x,y: solution.harmonic_oscillator_ode(x,y,m,gamma,k,F)
 	Y1 = solution.RK4(func1,a,b,800,ya,2) # 2 dimensional system
 	plt.plot(np.linspace(a,b,801), Y1[:,0], 'k',linestyle='-')
@@ -339,6 +341,7 @@ if __name__ == "__main__":
 	# Fig1()
 	# Fig2()
 	Fig3()
+	Fig4()
 	# Exercise1()
 	# Exercise2()
 	# Exercise3()
