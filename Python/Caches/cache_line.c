@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
         t1 = clock();
         for(i=0; i < loops; ++i) {
             for(j=0; j < LEN; j += stepsize) {
-                arr[j] *= 3;
+                arr[j] = 113;
             }
         }
         t2 = clock();

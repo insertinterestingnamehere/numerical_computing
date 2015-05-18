@@ -52,6 +52,17 @@ def problem4():
     Y = np.absolute(f(X))
     plt.pcolormesh(R, I, Y)
     plt.show()
+    
+def heatmap():
+    x = y = np.linspace(-2*np.pi, 2*np.pi, 402)
+    X, Y = np.meshgrid(x, y)
+    Z = np.sin(X)*np.sin(Y)/(X*Y)
+    plt.pcolormesh(X, Y, Z, cmap='seismic')
+    plt.pcolorbar()
+    plt.gca().set_aspect('equal')
+    plt.xlim([-2*np.pi, 2*np.pi])
+    plt.ylim([-2*np.pi, 2*np.pi])
+    plt.show()
 
 def problem5():
     fig = plt.figure()
@@ -101,6 +112,22 @@ def problem7():
     plt.subplot(224)
     plt.plot(x, x**2)
     plt.suptitle("My Different Plots")
+    plt.show()
+    
+def subplot():
+    x = np.random.rand(50)
+    plt.subplot(1, 2, 1)
+    plt.hist(x, bins=5, range=[0,1])
+    
+    plt.subplot(1,2,2)
+    t = np.linspace(1,50,50)
+    plt.scatter(t, x)
+    
+    tnew = np.linspace(0,51,2)
+    y = x.mean()*np.ones(2)
+    plt.plot(tnew, y, 'r', )
+    
+    plt.xlim([0,51])
     plt.show()
 
 def problem8():

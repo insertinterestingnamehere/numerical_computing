@@ -1,138 +1,304 @@
 \lab{Complex Numbers}{Complex Numbers}
 \label{Lab:complex_intro}
 
-\objective{Learn to perform basic computation and visualization with complex numbers.}
-
-\begin{comment}
-\section*{Arithmetic with complex numbers}
-Computationally, complex numbers are really just a pair of floating point numbers.
-The first is understood to represent the real part of the complex number.
-The second is understood to represent the imaginary part.
-In Python, a complex number $a + b i$ can be defined using either of the following methods
-\begin{lstlisting}
-complex(a, b)
-a + 1.0j * b
-\end{lstlisting}
-Python lets us define purely imaginary numbers using the syntax shown there with \li{j}.
-As another example, $2 i$ would be \li{2.0j}.
-
-Python also includes the built in \li{cmath} library.
-This library provides basic math functions for complex numbers.
-For examle, the functions \li{polar} and \li{rect} can be used to convert to and from polar coordinates (discussed below).
-It also includes basic functions like \li{sin}, \li{cos}, etc. with their domains extended to the complex numbers.
-
-There are some computational advantages and disadvantages to using complex numbers.
-Addition or subtraction between two complex numbers now requires two floating point operations (one for each part of the number), so it takes longer.
-Multiplication and division are more costly.
-Mutliplication is easily seen to take 4 floating point multiplies and two floating point adds instead of just a single floating point multiply.
-The fact that there two numbers are stored also increases the amount of floating point error that can be created in each computation.
-
-Most of the basic functions in NumPy support complex numbers.
-Fore example, \li{numpy.absolute} will take the absolute value of a complex number without any trouble.
-You can also acces the real and imaginary parts of a complex array via the \li{real} and \li{imag} attributes.
-For example,
-\begin{lstlisting}
-import numpy as np
-from numpy.random import rand
-Z = rand(10) + 1.0j * rand(10)
-# print real part
-print Z.real
-# print imaginary part
-print Z.imag
-\end{lstlisting}
-
-The complex conjugate of a complex number or array can be obtained using the \li{conjugate} method.
-For example, if \li{A} is a complex number or complex array, its conjugate (or elementwise conjugate) is obtained via
-\begin{lstlisting}
-A.conjugate()
-\end{lstlisting}
-\end{comment}
+\objective{Visualize complex functions to estimate their zeros and poles.}
 
 \section*{Polar Representation of Complex Numbers}
 
-One of the most important results in Complex Analysis is Euler's Formula.
-It states that:
-
-\[e^{i\theta}=cos(\theta)+i sin(\theta)\]
-
-One way to derive this important result is to consider the taylor series expansion of each of the functions involved.
-
-From this formula, we can see that $e^x$ maps the imaginary axis onto the unit circle on the complex plane.
-From our knowledge of the sine and cosine functios, we can also know that this mapping has a period of $2\pi$.
-From here, notice that we may represent any number on the complex plane in the form $r e^{i\theta}$ for $r\geq 0$ and $0 \leq \theta \leq 2\pi$.
-This is what is known as the polar representation of a complex number.
-Conceptually, it is \emph{identical} to the polar representation of points in the standard cartesian plane.
-The primary difference is that, here we define a map from $\mathbb{C}$ to the polar coordinates instead of from $\mathbb{R}^{2}$ to the polar coordinates.
-The number $\theta$ is known as the argument, or phase, of a complex number.
-The number $r$ is known as the modulus, magnitude, or absolute value of a complex number.
-In the complex plane we define $|z|$ as the modulus of $z$ and $arg(z)$ as the argument of $z$.
-To get the argument and the modulus for an array of complex numbers you can use the functions \li{np.angle} and \li{np.absolute} respectively.
-
-\section*{Visualization of Complex Functions}
-Functions that map the complex plane to itself cannot be visualized  the same ways we usually visualize functions that map $\mathbb{R}$ to itself.
-Since $\mathbb{C}$ is isomorphic to $\mathbb{R}^2$, visualizing a mapping from the complex numbers to themselves is the same as vizualizing a mapping from $\mathbb{R}^2 \to \mathbb{R}^2$.
-This gives a hint at how we can go about visualizing complex valued functions.
-A complex valued plot can be thought of as two separate maps from $\mathbb{R}^2 \to \mathbb{R}$.
-The $arg(z)$ maps the function to a color.  The $|z|$ maps the number to the hue. The picture is what the identity map maps to Figure \ref{fig:identity} 
+Any complex number $z = x+iy$ can be written in \emph{polar coordinates} as $re^{i\theta}$ where
+\begin{itemize}
+\item $r=\sqrt{x^2+y^2}$ is the magnitude of $z$, and
+\item $\theta = \arctan(y/x)$ is the angle between $z$ and 0, as in Figure \ref{fig:polar_coords}.
+\end{itemize}
+Conversely, Euler's formula implies $re^{i\theta} = r\cos(\theta) + ir\sin(\theta)$. Then if we set $re^{i\theta}=x+iy$ and equate real and imaginary parts, we find $x=r\cos(\theta)$ and $y=r\sin(\theta)$.
 
 \begin{figure}
-\includegraphics[width=\textwidth]{Identity.png}
-\caption{Color plot of the identity map.}
+\begin{tikzpicture}[dot/.style={circle,fill=black,minimum size=3pt,inner sep=0pt,
+            outer sep=-1pt}, >=stealth', thick, xscale=1.4]
+
+\draw[-](-.5,0)--(3,0);
+\draw[-](0,-.5)--(0,3);
+
+\draw[-, dashed, gray, anchor=east](2.6,2.3)--(0,2.3);
+\node[draw=none]()at(-.3,2.3){$iy$};
+\draw[-, dashed, gray, anchor=north ](2.6,2.3)--(2.6,0);
+\node[draw=none]()at(2.6,-.3){$x$};
+
+\draw[gray](.75,0) arc (0:45:.7 and .7);
+
+\draw[-](0,0)--(2.6,2.3);
+\node[dot,draw](point)at(2.6,2.3){};
+\node[draw=none]()at(.9,.35){$\theta$};
+
+\draw [decorate,decoration={brace,amplitude=10pt},rotate=-45, gray] (0,0) --(.2,3.45);
+\node[draw=none]()at(.95,1.55){$r$};
+
+
+\end{tikzpicture}
+\caption{The complex number represented by the black dot equals both $x+iy$ and $re^{i\theta}$, when $\theta$ is written in radians.}
+\label{fig:polar_coords}
+\end{figure}
+
+It is easy to convert between coordinate systems in NumPy, which uses the symbol \li{1j} for the complex number $i=\sqrt{-1}$.
+\begin{lstlisting}
+>>> import numpy as np
+>>> from matplotlib import pyplot as plt
+>>> z = 2 - 2*1j
+\end{lstlisting}
+Use \li{np.angle()} and \li{np.absolute()} to compute $\theta$ and $r$, respectively.
+These functions also operate elementwise on NumPy arrays.
+\begin{lstlisting}
+>>> theta = np.angle(z)
+>>> r = np.absolute(z)
+
+# The function np.absolute() returns a value between -pi and pi.
+>>> print r, theta
+(2.8284271247461903, -0.78539816339744828)
+
+# Check that z=re^(i*theta)
+>>> np.allclose(z, r*np.exp(1j*theta))
+True
+\end{lstlisting}
+
+\section*{Visualizing complex functions}
+Suppose we wish to graph a function $f(z): \mathbb{C} \rightarrow \mathbb{C}$. 
+The difficulty is that $\mathbb{C}$ has 2 real dimensions, so the graph of $f$ should use 4 real dimensions.
+ Since we already have ways to visualize 3 dimensions, we should choose one dimension to ignore. 
+ We will ignore the magnitude $r = |f(z)|$ of the output.
+
+To visualize $f$, we will asign a color to each point $z \in \mathbb{C}$. 
+The color will correspond to the angle $\theta$ of the output $f(z)$. 
+As an example, we have plotted the identity function $f(z)=z$ in Figure \ref{fig:identity}.
+As $\theta$ goes from 0 to $2\pi$, the colors cycle smoothly counterclockwise from red to green to purple and back to red.
+
+This kind of plot uses rectangular coordinates in the domain and polar coordinates (or rather, just the $\theta$-coordinate) in the codomain.
+Note that this kind of plot tells you nothing about $|f(z)|$.
+
+You can create the plot in Figure \ref{fig:identity} as follows.
+Begin by creating a grid of complex numbers.
+We create the real and imaginary parts separately, and then use \li{np.meshgrid()} to turn them into a single array of complex numbers.
+\begin{lstlisting}
+>>> x = np.linspace(-1, 1, 401)
+>>> y = np.linspace(-1, 1, 401)
+>>> X, Y = np.meshgrid(x, y)
+>>> Z = X + 1j*Y
+\end{lstlisting}
+
+Now we compute the angles of the points in \li{Z} and plot these using \li{plt.pcolormesh()} with the colormap \li{'hsv'}. 
+This colormap is red at both ends, so that $0$ and $2 \pi$ will map to the same color.
+
+\begin{lstlisting}
+>>> plt.pcolormesh(X, Y, np.angle(Z), cmap='hsv')
+>>> plt.show()
+\end{lstlisting}
+
+
+\begin{figure}
+\includegraphics[width=.7\textwidth]{Identity.png}
+\caption{Plot of $f: \mathbb{C} \rightarrow \mathbb{C}$ defined by $f(z)=z$. 
+The color at each point $z$ represents the argument of $f(z)$.}
 \label{fig:identity}
 \end{figure}
 
-The colorize function below takes in an array of complex values and outputs the RBG colors for each point.
 
 
 
-\begin{lstlisting}
-import numpy as np
-import matplotlib.pyplot as plt
-from colorsys import hls_to_rgb
-
-def colorize(z):
-    zy=np.flipud(z)
-    r = np.abs(zy)
-    arg = np.angle(zy)
-
-    h = (arg + np.pi)  / (2 * np.pi) + 0.5
-    l = 1.0 - 1.0/(1.0 + r**0.3)
-    s = 0.8
-
-    c = np.vectorize(hls_to_rgb) (h,l,s) # --> tuple
-    c = np.array(c)  # -->  array of (3,n,m) shape, but need (n,m,3)
-    c = c.swapaxes(0,2)
-    c = c.swapaxes(0,1)
-    return c
-\end{lstlisting}
-
-The following code uses the colorize function to plot  $\frac{x^2 - 1}{x}$ see \ref{fig:example} for what the output looks like.
-
-\begin{lstlisting}
-def f(z):
-	return (z**2-1)/z
-xbounds=(-.5, 1.5)
-ybounds=(-1, 1)
-res=401
-x = np.linspace(xbounds[0],xbounds[1], res)
-y = np.linspace(ybounds[0],ybounds[1], res)
-X,Y = np.meshgrid(x,y)
-Z=f(X+Y*1j)
-Zc=colorize(Z)
-plt.imshow(Zc,extent=(xbounds[0],xbounds[1],ybounds[0],ybounds[1]))
-plt.show()
-\end{lstlisting}
-
-\begin{figure}
-\includegraphics[width=\textwidth]{example.png}
-\caption{Colorplot of the  function $\frac{x^2 - 1}{x}$.}
-\label{fig:example}
-\end{figure}
 
 \begin{problem}
-Write a function called \li{plot_complex} following the code above. Have it take in a function, xbounds, ybounds and a resolution.
+Write the following function to plot any function from $\mathbb{C}$ to $\mathbb{C}$.
+\begin{lstlisting}
+def plot_complex(f, xbounds, ybounds, res=401):
+    '''Plot the complex function f.
+    
+    INPUTS:
+    f        - A function handle. Should represent a function 
+    			from C to C.
+    xbounds  - A tuple (xmin, xmax) describing the bounds on the real part 
+    			of the domain.
+    ybounds  - A tuple (ymin, ymax) describing the bounds on the imaginary 
+    			part of the domain.
+    res      - A scalar that determines the resolution of the plot. 
+    			Defaults to 401.
+    '''
+\end{lstlisting}
+When you call \li{plt.pcolormesh()} in this function, you should specify the keyword arguments \li{vmin} and \li{vmax}. 
+These define which numbers should map to each end of the color scale. 
+If you do not specify them, matplotlib will scale the colormap to fit your data exactly.
+
+Check your function on the identity (graphed in Figure \ref{fig:identity}) and on the function $f(z) = \sqrt{z^2+1}$, which is graphed in Figure \ref{fig:check_plot}.
+\begin{figure}[H]
+\includegraphics[width=.7\textwidth]{check_plot.png}
+\caption{Plot of $\sqrt{z^2+1}$ on the domain $\{x+iy \mid x \in [-3,3] , \; y \in [-3,3]\}$ created by \li{plot_complex()}.}
+\label{fig:check_plot}
+\end{figure}
+
 \end{problem}
 
+
+\section*{Analyzing Complex Plots}
+
+\subsection*{Zeros}
+
+The plots created by your function \li{plot_complex()} are surprisingly informative.
+
+\begin{problem}\label{prob:zeros}
+\leavevmode
+\begin{enumerate}
+\item Use \li{plot_complex()} to plot the functions $z^2$, $z^3$, and $z^4$. What do you notice?
+\item Plot $z^3 - iz^4 - 3z^6$ on the domain $\{x+iy \mid x \in [-1,1] , \; y \in [-1,1]\}$ (this plot is Figure \ref{fig:zeros}). 
+Compare it to your plot of $z^3$, especially near the origin.
+Based on these plots, what can you learn about the zeros of a function from its graph?
+\end{enumerate}
+\end{problem}
+
+In Problem \ref{prob:zeros} you should have noticed when you plot $z^n$, the color circle around 0 repeats $n$ times. 
+This is explained by looking at $z^n$ in polar coordinates:
+\[
+z^n = (re^{i \theta})^n = r^n e^{i(n\theta)}.
+\]
+Multiplying $\theta$ by a number greater than $1$ compresses the graph along the ``$\theta$-axis'' by a factor of $n$. 
+Compare this to replacing $f(x)$ with $f(nx)$ when $f$ is a function from $\mathbb{R}$ to $\mathbb{R}$.
+
+From Problem \ref{prob:zeros} you should also have noticed that the plot of $z^3 - iz^4 - 3z^6$ looks a lot like the plot of $z^3$ near the origin.
+This is because when $z$ is very small, $z^4$ and $z^6$ are much smaller than $z^3$, and so the behavior of $z^3$ dominates the function.
+
+In general, $f(z)$ has a \emph{zero of order $n$ at $z_0$} if the Taylor series of $f(z)$ centered at $z_0$ can be written as 
+\[
+f(z) = \sum_{k=n}^{\infty} a_k(z-z_0)^k \qquad \text{with} \; a_n \neq 0.
+\]
+In other words, $f(z) = a_n(z-z_0)^n + a_{n+1}(z-z_0)^{n+1} + \ldots$. 
+In a small neighborhood of $z_0$, the quantity $|z-z_0|^{n+k}$ is much smaller than $|z-z_0|^n$, and so the function behaves like $a_n(z-z_0)^n$.
+This explains why you can estimate the order of a zero by counting the number of times the colors circle a point (see Figure \ref{fig:zeros}).
+
+\begin{figure}
+\includegraphics[width=.7\textwidth]{zeros.png}
+\caption{Plot of $f(z)=z^3 - iz^4 - 3z^6$ on the domain $\{x+iy \mid x \in [-1,1] , \; y \in [-1,1]\}$.
+From this plot we see that $f(z)$ has a zero of order 3 at the origin, and 3 zeros of order 1 scattered around it. 
+This accounts for the 6 roots of $f(z)$ that are guaranteed to exist by the Fundamental Theorem of Algebra.}
+\label{fig:zeros}
+\end{figure}
+
+
+\subsection*{Poles}
+
+The plots created by \li{plot_complex()} can also tell us about the poles of a function.
+
+\begin{problem}\label{prob:poles}
+\leavevmode
+\begin{enumerate}
+\item Use \li{plot_complex()} to plot the function $f(z) = 1/z$. 
+Compare this to the plot of $f(z)=z$ in Figure \ref{fig:identity}.
+What is the difference?
+\item Plot $z^{-2}$, $z^{-3}$, and $z^2+iz^{-1}+z^{-3}$ on the domain $\{x+iy \mid x \in [-1,1] , \; y \in [-1,1]\}$. 
+Compare the plots of the last two functions near the origin.
+Based on these plots, what can you learn about the poles of a function from its graph?
+\end{enumerate}
+\end{problem}
+
+In Problem \ref{prob:poles} you should have noticed that in the graph of $1/z$, the colors cycle around 0 in the opposite direction from the graph of the identity map.
+Again this can be explained by looking at the polar representation:
+\[
+z^{-n} = (re^{i \theta})^{-n} = r^{-n} e^{i(-n\theta)}.
+\]
+The minus-sign on the $\theta$ reverses the direction of the colors, and the $n$ makes them repeat $n$ times.
+
+In general, a function has a \emph{pole of order n} at $z_0$ if its Laurent series on a punctured neighborhood of $z_0$ is
+\[
+f(z) = \sum_{k=-n}^\infty a_k(z-z_0)^k  \qquad \text{with} \; a_{-n} \neq 0.
+\]
+In other words, $f(z) = a_{-n}(z-z_0)^{-n}+a_{-n+1}(z-z_0)^{-n+1} + \ldots$.
+Since $|z-z_0|^{-n+k}$ is much smaller than $|z-z_0|^{-n}$ when $|z-z_0|$ is small, near $z_0$ the function behaves like $a_{-n}(z-z_0)^{-n}$.
+This explains why you can estimate the order of a pole by counting the number of times the colors circle a point in the ``backwards direction.''
+
+Finally, a function has an \emph{essential pole} at $z_0$ if its Laurent series in a punctured neighborhood of $z_0$ requires infinitely many terms with negative exponents.
+For example, 
+\[
+e^{1/z} = \sum_{k=0}^{\infty}\frac{1}{n! z^n} = 1+\frac{1}{z}+\frac{1}{2}\frac{1}{z^2}+\frac{1}{6}\frac{1}{z^3}+\ldots.
+\]
+The plot of $f(z) = e^{1/z}$ is in Figure \ref{fig:essential_singularity}. 
+Here, you can see that the colors circle around an essential singularity infinitely many times.
+
+\begin{figure}
+\includegraphics[width=.7\textwidth]{essential_pole.png}
+\caption{Plot of $e^{1/z}$ on the domain $\{x+iy \mid x \in [-1,1] , \; y \in [-1,1]\}$.
+The colors circle clockwise around the origin because it is a singularity, not a zero.
+Because the singularity is essential, the colors repeat infinitely many times.}
+\label{fig:essential_singularity}
+\end{figure}
+
+\subsection*{Using plots to estimate poles and zeros}
+To summarize, you can use the plot of a complex function to estimate its poles and zeros with the following rules.
+\begin{itemize}
+\item Colors circle around zeros in the ``forwards direction''.
+\item Colors circle around poles in the ``backwards direction''.
+\item The number of times the colors repeat equals the order of the zero or pole.
+\end{itemize}
+
+\begin{problem}\label{prob:findpz}
+Plot these functions on the domains given and estimate the number and order of their poles and zeros.
+\begin{itemize}
+\item $f(z) = e^z$ on $\{ x+iy \mid x \in [-8,8], \; y \in [-8,8]\}$
+%\item $z^2-2z^7+2z^6-4z^5+2z^4-2z^3-5z^2+4z-4$ from $x \in [-2.5,2.5]$ and $y \in [-2.5,2.5]$ 
+\item $f(z) = \tan(z)$ on $\{x+iy \mid x \in [-8,8], \; y \in [-8,8]\}$
+\item $f(z) = \frac{16z^4+32z^3+32z^2+16z+4}{16z^4-16z^3+5z^2}$ on $\{x+iy \mid x \in [-1,1], \; y \in [-1,1]\}$
+%\item $f(z) = \sin{\frac{1}{z}}$ on ${x+iy \mid x \in [-.8,.8], y \in [-.8,.8]\}$
+\end{itemize}
+\end{problem}
+
+One useful application of complex plots is to estimate the zeros of polynomials and their multiplicity.
+
+\begin{problem}\label{prob:find_roots}
+Use complex plots to determine the multiplicity of the zeros of each of the following polynomials.
+Use the Fundamental Theorem of Algebra to ensure that you have found them all.
+\begin{enumerate}
+\item $-2z^7+2z^6-4z^5+2z^4-2z^3-4z^2+4z-4$
+\item $z^7 + 6z^6 - 131z^5 - 419z^4 + 4906z^3 - 131z^2 - 420z + 4900$
+\end{enumerate}
+\end{problem}
+
+Plotting functions is not a substitute for rigorous mathematics. 
+Often, plots can be deceptive.
+
+\begin{problem}\label{prob:caution}
+\leavevmode
+\begin{enumerate}
+\item This example shows that sometimes you have to ``zoom in'' to see all the information about a pole.
+\begin{enumerate}
+\item Plot the function $f(z) =\sin( \frac{1}{100z})$ on the domain $\{x+iy \mid x \in [-1,1],\; y \in [-1,1]\}$.
+What might you conclude about this function?
+\item Now plot $f(z)$ on $\{x+iy \mid x \in [-.01,.01], \; y \in [-.01,.01]\}$.
+Now what do you conclude about the function?
+\end{enumerate}
+\item This example shows that from far away, two distinct zeros (or poles) can appear to be a single zero (or pole) of higher order.
+\begin{enumerate}
+\item Plot the function $f(z) = z+1000z^2$ on the domain $\{x+iy \mid x \in [-1,1], \; y \in [-1,1]\}$.
+What does this plot imply about the zeros of this function?
+\item Find the zeros of $f(z)$ using algebra.
+\item Plot $f(z)$ on a domain that allows you to see the true nature of its zeros.
+\end{enumerate}
+\end{enumerate}
+\end{problem}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{comment}
 
 From these plots you can see the poles and zeros. The zeros are the black dots and the poles are the white dots on the plots. the order of the pole or zero can be read from the number of times the full set of colors show up around the pole or zero. As you can see from Figure \ref{fig:funcplot} $x^2-1$ has two zeros of order one at $1$ and $-1$. $x^4-\frac{1}{x^4}$ has eight zeros of order one and a pole of order four. 
 For essential singularities the colors circle outward like in \ref{fig:e}, the plot of $e^\frac{1}{z}$.
@@ -164,6 +330,9 @@ Plot the following functions and look at the plots. Write a function that prints
 \end{itemize}
 
 \end{problem}
+
+
+
 
 \section*{Multi-Valued Functions}
 
@@ -201,7 +370,7 @@ Plot three cuts of $\ln\left(z\right)$ and$\arctan{x}$ on $x \in [-2,2]$ and $y 
 All three of these functions can be made analytic at almost any point, except at their singularities, but that depends on how we cut the domain to give it a single value.
 When Integrating such functions, be careful about integrating across such cuts in the domain.
 
-\begin{comment}
+
 \begin{problem}
 Write two functions, both accepting accept a natural number $n$.
 Have one function plot the riemann surface for the real part $f(z)=\sqrt[n]{z}$ and the other plot the imaginary part.
@@ -213,7 +382,7 @@ Notice that here $f(z)$ has distinct values for $k = 0, 1, \dots, n-1$ a total o
 
 If you use just one surface to plot each branch you will get erroneous vertical lines from jump discontinuities. Split each branch into two surfaces to get rid of these lines. You can investigate where the discontinuities occur by first plotting it as just one surface. The discontinuities happen at the same place for all $n$;
 \end{problem}
-\end{comment}
+
 
 \section*{Contour Integrals in the Complex Plane}
 
@@ -286,3 +455,102 @@ Notice that in Cauchy's Integral Formula, we are integrating along a contour tha
 The function is also holomorphic at every point except $z_0$. At $z_0$ the integrand is undefined and has a singularity.
 This integral around a singularity has some useful properties.
 We will discuss these properties later on.
+
+\end{comment}
+
+\subsection*{Multi-valued functions}
+Every complex number has two complex square roots, since if $w^2=z$, then also $(-w)^2=z$.
+If $z$ is not zero, these roots are distinct.
+
+Over the nonnegative real numbers, it is possible to define a continuous square root function.
+However, it is not possible to define a continuous square root function over any open set of the complex numbers that contains 0.
+This is intuitive after graphing $\sqrt{z}$ on the complex plane.
+
+\begin{problem}
+\begin{enumerate}
+\item Use \li{plot_complex} to graph $f(z) = \sqrt{z}$.
+Use \li{np.sqrt()} to take the square root.
+What do you see?
+\item Now plot $f(z) = -\sqrt{z}$ to see the ``other square root'' of $z$. What do you see?
+\end{enumerate}
+\end{problem}
+
+Just as raising $z$ to a positive integer ``compresses the $\theta$-axis'', making the color wheel repeat itself $n$ times around 0, raising $z$ to a negative power \emph{stretches} the $\theta$-axis, so that only one $n^{th}$ of the color wheel appears around 0.
+The colors at the ends of this $n^{th}$-slice are not the same, but they appear next to each other in the plot of $z^{-n}$.
+This discontinuity will appear in every neighborhood of the origin. 
+
+
+If your domain does not contain the origin, it is possible to define a continuous root function by picking one of the roots.
+
+
+\section*{Appendix}
+It is possible to visualize the argument and the modulus of the output of a complex function $f(z)$. 
+One way to do so is to assign the modulus to a \emph{lightness} of color.
+For example, suppose we have a complex number with argument 0, so it will map to red in the color plots described above.
+If its modulus is very small, then we can map it to a blackish red, and if its modulus is large, we can map it to a whitish red.
+With this extra rule, our complex plots will still be very much the same, except that zeros will look like black dots and poles will look like white dots (see Figure \ref{fig:example} for an example).
+
+The code below implements the map we just described.
+Be warned that this implementation does not scale well.
+For example, if you try to plot a complex function whose outputs are all very small in modulus, the entire plot will appear black.
+
+
+\begin{lstlisting}
+import numpy as np
+import matplotlib.pyplot as plt
+from colorsys import hls_to_rgb
+
+def colorize(z):
+    ''' 
+    Map a complex number to a color (or hue) and lightness.
+    
+    INPUT:
+    z - an array of complex numbers in rectangular coordinates
+    
+    OUTPUT:
+    If z is an n x m array, return an n x m x 3 array whose third axis encodes 
+    (hue, lightness, saturation) tuples for each entry in z. This new array can 
+    be plotted by plt.imshow().
+    '''
+    
+    zy=np.flipud(z)
+    r = np.abs(zy)
+    arg = np.angle(zy)
+
+    # Define hue (h), lightness (l), and saturation (s)
+    # Saturation is constant in our visualizations
+    h = (arg + np.pi)  / (2 * np.pi) + 0.5
+    l = 1.0 - 1.0/(1.0 + r**0.3)
+    s = 0.8
+
+    # Convert the HLS values to RGB values.
+    # This operation returns a tuple of shape (3,n,m).
+    c = np.vectorize(hls_to_rgb) (h,l,s) 
+    
+    # Convert c to an array and change the shape to (n,m,3)
+    c = np.array(c)  
+    c = c.swapaxes(0,2)
+    c = c.swapaxes(0,1)
+    return c
+\end{lstlisting}
+
+The following code uses the \li{colorize()} function to plot  $\frac{z^2 - 1}{z}$. The output is Figure \ref{fig:example}.
+
+\begin{lstlisting}
+>>> f = lambda z :  (z**2-1)/z
+>>> x = np.linspace(-.5, 1.5, 401)
+>>> y = np.linspace(-1, 1, 401)
+>>> X,Y = np.meshgrid(x,y)
+>>> Z=f(X+Y*1j)
+>>> Zc=colorize(Z)
+>>> plt.imshow(Zc, extent=(-.5, 1.5, -1, 1))
+>>> plt.show()
+\end{lstlisting}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{example.png}
+\caption{Plot of the function $\frac{z^2 - 1}{z}$ created with \li{colorize()}.
+Notice that the zero at 1 is a black dot and the pole at 0 is a white dot.}
+\label{fig:example}
+\end{figure}
+
