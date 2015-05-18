@@ -11,7 +11,7 @@ It is managed by a \emph{database management system}, or DBMS.
 The DBMS is software that allows users to interact directly with the database.
 
 \section*{Relational Databases}
-A \emph{relational database} is paradigm for organizing data inside of a database.
+A \emph{relational database} is a paradigm for organizing data inside of a database.
 In this paradigm, the data are broken down into tuples of information.
 These tuples are then grouped into tables, or \emph{relations}, each of which is simply a set of tuples.
 Each table has a \emph{schema} that defines the attributes of the tuples within the table.
@@ -42,23 +42,10 @@ One important feature of a database is the \emph{transaction}, which is a concep
 interacting with the database.
 Most relational databases are transactional databases.
 The best way to conceptualize this is imagine that your database is like a bank.
-Your connection the database is analogous to the bank teller.
+Your connection to the database is analogous to the bank teller.
 When you make one or more deposits and withdrawals, you are making a transaction.
 A database transaction should have certain properties to protect the integrity of the data.
-These properties are succinctly captured in the acronym of ACID, and
-compliance with these properties is an important feature of transactional databases.
-Let us consider the four ACID properties: atomic, consistent, isolation, and durable.
-\begin{description}
-\item[Atomic.] Each transaction should be all or nothing.  If some error occurs in the middle of a transaction,
-no changes are made to the database.  Changes are only made during error-free transactions.  This is especially
-useful if a transaction is interrupted due to power failure, or some other type of unforeseen error.
-\item[Consistent.] Ensure that the database is always left in a valid state.  This ensures that any transaction
-satisfies all rules and constraints of the database.
-\item[Isolation.] The final effect of concurrent transactions is equivalent to the final effect of each transaction
-in serial.  This essentially means that if multiple users perform several transactions in parallel, none of the transactions
-can depend on each other.
-\item[Durable.] Once a transaction is committed, the changes are permanent regardless of any errors that may happen later.
-\end{description}
+These properties are described in detail in \li{en.wikipedia.org/wiki/ACID}
 
 \section*{Introduction to SQL}
 Most common DBMSs use a variant of the SQL language to interact with the database.
@@ -75,6 +62,8 @@ Predicates specify conditions that can limit the effect of a clause.
 SQL commands are often written in all caps to help distinguish them from the other parts of the query.
 It is only a matter of style.
 SQLite, along with most other database managers, is case insensitive.
+In Python's SQL interface, the semicolon is also not needed.
+However, most other database systems will require it, so it's a good idea to conform in Python.
 \end{info}
 
 Let's look at an example SQL statement:
@@ -82,7 +71,7 @@ Let's look at an example SQL statement:
 SELECT * FROM table WHERE id=3+1 AND name='Bob';
 \end{lstlisting}
 This statement includes a SELECT clause and a WHERE clause.
-The WHERE clause contains two predicates: \texttt{id=3+1} and \texttt{name='Bob'}
+The WHERE clause contains two predicates: \texttt{id=3+1} and \texttt{name='Bob'}.
 These two predicates limit the effect of the SELECT clause because any resulting tuples in the table must satisfy both conditions.
 This entire statement is classified as a query since it does not modify the database in any way.
 
@@ -129,9 +118,8 @@ import sqlite3 as sql
 db = sql.connect("test1")
 \end{lstlisting}
 The \li{connect()} function is used to connect to a database.
-If it does not already exist, then a new database will be created using string passed as the argument.
+If it does not already exist, then a new database will be created using the string passed as the argument for the name.
 The new database was created as a file in the current working directory.
-If we wanted an in-memory database, we would call \li{sql.connect('':memory:'')}.
 
 To execute SQL commands, we need to get a cursor object from the database.
 \begin{lstlisting}
@@ -213,7 +201,8 @@ cur.execute('CREATE TABLE student_classes (StudentID INT NOT NULL, CourseID INT,
 \end{lstlisting}
 
 \begin{problem}
-In this problem you will create two new tables.  The first table will be called MajorInfo and have a columns called MajorCode and MajorName.
+In this problem you will create two new tables.
+The first table will be called MajorInfo and have a column called MajorCode and MajorName.
 MajorCode is an integer and MajorName is a string.
 
 The second table will be called CourseInfo and have columns called CourseID and CourseName, also integers and strings, respectively.
@@ -300,11 +289,13 @@ If we omitted the \lsql{WHERE} clause, every record in the table would be set to
 The ICD is a large collection of codes used to classify any diagnosis that a doctor would make.
 When someone goes to the hospital or doctors office, their visit will be recorded using these codes.
 Insurance companies, the government, and researchers find this data useful.
-The data file provided to you has simulated health histories for one million persons.
-Each line has columns for identification number, gender, age followed by ICD-9 codes of various quantities. Each ICD-9 code should have its own column and they are strings. Note that the codes for each individual are separated by semicolons.
+The data file provided to you, \li{icd9.csv}, has simulated health histories for one million persons.
+Each line has columns for identification number, gender, and age, followed by ICD-9 codes of various quantities.
+Note that the codes for each individual are written in a single string, each code separated by semicolons.
 Create a new database with a single table to store all the simulated data.
+Yourn table should have four columns, one each for id number, gender, age, and codes.
 
-Because of the volume of data, it is highly recommended the \li{executemany()} method of the cursor.
+Because of the volume of data, it is highly recommended you use the \li{executemany()} method of the cursor.
 It will be about twice as fast as using an \li{execute()} for each line of the CSV file.
 Recall the \li{csv} package in Python. To read a CSV file into a list of tuples, where each tuple consists
 of the delimited values of a particular line in the file, one can use the following code as a guideline:
@@ -457,6 +448,18 @@ Method & Description \\
 \label{table:fetching}
 \end{table}
 
+\begin{problem}
+From the ICD9 table you created in Problem \ref{prob:icd9tables}, how many men between the ages of 25 and 35 are there?  How many women between those same ages?  
+\label{prob:youngfreqcodes}
+\end{problem}
+
+\begin{comment}
+From the ICD9 table you created in Problem \ref{prob:icd9tables}, how many men between the ages of 25 and 35 are there?  How many women between those same ages?
+
+What code is the most frequent code for men between age 25 and 35?
+What code is the most frequent for women between  the same age?
+\end{comment}
+
 \subsection*{When an Error Occurs}
 It is important to be able to recover from errors gracefully, especially when working a database.
 Data integrity in a database is often a critical need.
@@ -465,10 +468,10 @@ Fortunately, \li{sqlite3} reports a variety of errors.
 These errors and when they are raised is explained in PEP249 (\url{http://legacy.python.org/dev/peps/pep-0249/}).
 \begin{description}
 \item[Error] The base class for errors thrown by \li{sqlite3}.  All other errors inherit from this class.  Catching this error will catch any error raised.
-\item[InterfaceError] This is error is raised when there is a problem with the interface to the database rather than the database itself.
+\item[InterfaceError] Raised when there is a problem with the interface to the database rather than the database itself.
 \item[DatabaseError] Raised when there is an error with the database itself.
 \item[DataError] Subclass of DatabaseError.  Raised when there are errors in the processed data (division by zero, value out of range, etc.).
-\item[OperationalError] Subclass of DatabaseError. Raised for errors related to the database that are not the fault of the programmer.  For example, a unexpected disconnect, failure to process a transaction, a memory allocation error during a transaction, etc.
+\item[OperationalError] Subclass of DatabaseError. Raised for errors related to the database that are not the fault of the programmer.  For example, an unexpected disconnect, failure to process a transaction, a memory allocation error during a transaction, etc.
 \item[IntegrityError] Subclass of DatabaseError.  Raised when the relational integrity of the database is compromised.
 \item[InternalError] Subclass of DatabaseError. Raised when there is an internal error such as an invalid cursor, out-of-sync transaction, etc.
 \item[ProgrammingError] Subclass of DatabaseError.  Raised for programming errors.
@@ -484,14 +487,7 @@ except sql.Error:
     db.rollback()
 \end{lstlisting}
 Note that rolling back is not needed if we are just performing queries.
-If we don't change any of the data in the database, there is no need to roll anything back.  However, even with queries, there are the potential for errors.  You must design your code to handle these errors gracefully.
-
-\begin{problem}
-From the ICD9 table you created in Problem \ref{prob:icd9tables}, how many men between the ages of 25 and 35 are there?  How many women between those same ages?
-
-What code is the most frequent code for men between age 25 and 35? What code is the most frequent for women between 25 and 35?  
-\label{prob:youngfreqcodes}
-\end{problem}
+If we don't change any of the data in the database, there is no need to roll anything back.  However, even with queries, there is the potential for errors.  You must design your code to handle these errors gracefully.
 
 \subsection*{Ending the SQL Session}
 Once we are finished performing SQL statements and interacting with the database, we need to commit our changes and safely close the connection
