@@ -1,144 +1,368 @@
 \lab{PageRank Algorithm}{PageRank Algorithm}
 \label{lab:PageRank}
-\objective{Explain the basics of the PageRank Algorithm, and some of its applications}
+\objective{Implement the PageRank Algorithm and understand the theory behind it.}
 
-The PageRank algorithm was one of the first algorithms used by Google to classify search results.
-It is named after one of the co-founders of Google, Larry Page, and is based on an interesting mathematical model that involves random processes, Markov chains, and eigenvalues.
-It ranks pages based upon their connectivity properties with the rest of the internet.
-When you run a search on Google's web page, they find every page that contains the keywords you specified and then list them primarily in order of page rank (this isn't true in every case, but it is generally how it works).
-As of 2013, PageRank is one of over 200 algorithms used in determining Google's ranking of a website.
+When you enter keywords into Google's search engine, Google finds every page containing your keywords and lists the pages in order of their \emph{rank}.
+The rank of a page reflects many factors, including how often the page is visited and how connected it is to other pages.
+As of 2013, the PageRank algorithm is one of over 200 algorithms that Google uses to determine the rank of a website.
+Named for Larry Page, cofounder of Google, this algorithm ranks pages based on how many other pages link to them.
 
-The PageRank algorithm works by supposing that a person surfing the internet randomly clicks links on the web pages.
-We will notate the probability that the surfer is a particular page $i$ at time $t$ by $PR(i,t)$.
-We can write an equation for this probability from one time step to the next using the following notation:
-\[PR(i,t+1) = \sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}\]
-Where $M(i)$ is the set of pages that link to page $i$, and $L(j)$ represents the number of outbound links on page $j$.
-Note that this is simply representing the internet as a Markov chain, just like we discussed in Lab \ref{lab:MarkovGraph}.
-We assume that the starting probability is uniform, or in other words that $PR(i,0) = 1/N$.
+The PageRank algorithm is also used in applications other than internet search engines.
+For example, it has been used to rank graduate institutions and the impact factor of journals, and it has been used in some biological applications.
 
-There are two modifications that still need to be made to this formula.
-First, what if a page has no outbound links?
-In this case we pretend that the page links to every other page.
-It is as if the surfer, upon getting stuck, randomly picks a new page.
-Second, we assume that the surfer sometimes gets bored and randomly picks a new page.
-The probability that the surfer doesn't get bored is called the damping factor $d$.
-A good value is $d=.85$.
-Using these modifications we can write our formula as:
-\[PR(i,t+1) = \frac{1-d}{N} + d\sum_{j \in M(i)} \frac{PR(j,t)}{L(j)}\]
-Note that $N$ is the total number of web pages.
-We then say that the page rank of a particular web page is the value
-\[PR(i) = \lim_{t\to \infty} PR(i,t)\]
+\section*{The internet as a graph}
+The PageRank algorithm models the internet with a directed graph. 
+Each webpage is a node, and there is an edge from node $i$ to node $j$ if page $i$ links to page $j$.
+Let $\In(i)$ be the websites linking to page $i$ and let $\Out(i)$ be the websites that page $i$ links to. 
+That is, $\In(i)$ is the set of nodes with an arrow to node $i$, and $\Out(i)$ is the set of nodes with an arrow from node $i$.
+An example is illustrated in Figure \ref{fig:network1}.
 
-Mathematically, the page rank is the steady state probability of our modified Markov chain.
-We can rewrite this as a matrix equation:
-\[R(t+1) = d K R(t) + \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
-Where $R_i(t) = PR(i,t)$.
-The matrix $K$ is defined by:
-\[K_{ij} = \begin{cases} \frac{1}{L(j)} & \mbox{ if j is linked to i} \\
-	0 & \mbox{ otherwise} \end{cases}\]
+\begin{figure}
+\centering
+\begin{tikzpicture}[node distance=1.75cm, thick ]
 
-We can write $K$ neatly as follows:
-\[K = (B^{-1}A)^T\]
+\node[draw=none](2)[]{2};
+\node[draw=none](3)[right of=2]{3};
+\node[draw=none](4)[right of=3]{4};
+\node[draw=none](5)[right of=4]{5};
+\node[draw=none](6)[right of=5]{6};
+\node[draw=none](1)[above of=3]{1};
+\node[draw=none, node distance=2.5cm](0)[right of=1]{0};
+\node[draw=none](dummy)[above right of=0]{};
+\node[draw=none, node distance=.5cm](7)[below 
+	of=dummy]{7};
 
-Where $A$ is the adjacency matrix for the directed graph (the edges are links) and $B$ is the diagonal matrix containing the number of links leaving each vertex.
-Remember that we have to modify our graph so that any page without outbound links points to every other page.
-Otherwise these definitions don't make sense (for example $B^{-1}$ will not be well-defined).
-In practice, you should \textit{never} construct a diagonal matrix, invert it, then do matrix multiplication.
-That would be a series of very computationally expensive and unnecessary operations.
-Store the diagonal entries of $B$, compute the inverse by taking their reciprocal, then perform the matrix multiplication by multiplying each of the rows of $A$ by each of the corresponding  entries of the diagonal of $B^{-1}$.
-These operations are mathematically equivalent versions of the inversion and multiplication, but they are much more efficient.
+\foreach \x/\y in {3/2, 4/5, 5/6, 1/0, 3/0, 4/0, 5/0} \draw[->, 
+	>=stealth'](\x)--(\y);
+\draw[->, >=stealth'](6)--(0);
+\draw[->, >=stealth', shorten >= .1cm](7)edge[bend left=20](0);
+\draw[->, >=stealth', shorten <= .1cm](0)edge[bend left=20](7);
+\draw[->, >=stealth', shorten <= .1cm](3)edge[bend right=40](6.9,-.25);
+\draw[->, >=stealth', shorten <= .1cm](4)edge[bend right](6);
 
-A useful way to think of this algorithm is to think in terms of voting.
-Every link that I place on my web page is a vote for the web page that it points to.
-Additionally, if I am more prestigious then my votes count for more.
+
+
+\end{tikzpicture}
+
+\caption{A directed graph can describe the links between webpages. In this example, the set of web pages linking to page 0 is $\In(0)=\{1,2,3,4,5,6,7\}$, and page 0 links to $\Out(0)=\{7\}$.}
+\label{fig:network1}
+\end{figure}
+
+The PageRank algorithm ranks pages based on how many other pages link to them.
+Moreover, a link from a more important page counts more than a link from a less important page.
+For example, in Figure \ref{fig:network1} we would expect node 0 to have a very high rank because every other node links to it. 
+Consequently we would expect node 7 to have a fairly high rank because node 0 links to it, even though node 0 is the only node to do so.
+
+\section*{The PageRank algorithm}
+The PageRank algorithm assumes that a surfer chooses a starting webpage randomly.
+Then, if the surfer is at page $i$, they randomly select a page from $\Out(i)$ to visit next.
+This means that the surfer's chance of being on page $i$ at time $t$ is determined by where they were at time $t-1$.
+
+Suppose the internet has $N$ webpages and let $P(i,t)$ be the likelihood that the surfer is on page $i$ at time $t$.
+Then the probabilities $P(i,t)$ are given by
+\begin{equation}\label{equ:pr1}
+p(i,0)=\frac{1}{N} \qquad p(i,t+1) = \sum_{j \in \In(i)} \frac{p(j,t)}{\Out(j)}.
+\end{equation}
+
+For example, in Figure \ref{fig:network1} we have $N=8$, and 
+\[
+p(6, t+1)=\frac{p(3,t)}{3}+\frac{p(4,t)}{3} + \frac{p(5,t)}{2}.
+\]
+
+\subsection*{Refining the model: pages with no outbound links}
+A node with no outbound links is called a \emph{sink}. 
+For example, node 2 in Figure \ref{fig:network1} is a sink.
+According to our model, if the surfer ever visits a sink, they will stay there forever.
+
+This is not very realistic; in this situation, a person would likely select another webpage at random and begin surfing again.
+Hence, in our model we replace sinks with nodes linking to every other page. 
+For example, we replace Figure \ref{fig:network1} with Figure \ref{fig:network2}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}[node distance=1.75cm, >=stealth', thick]
+
+\node[draw=none](2)[]{2};
+\node[draw=none](3)[right of=2]{3};
+\node[draw=none](4)[right of=3]{4};
+\node[draw=none](5)[right of=4]{5};
+\node[draw=none](6)[right of=5]{6};
+\node[draw=none](1)[above of=3]{1};
+\node[draw=none, node distance=2.5cm](0)[right of=1]{0};
+\node[draw=none](dummy)[above right of=0]{};
+\node[draw=none, node distance=.5cm](7)[below 
+	of=dummy]{7};
+
+
+\draw[->, color=black!35!](2)--(1);
+\draw[->, color=black!35!, shorten >= .2cm](2)--(0);
+\foreach \x/\y in {2/3, 2/4, 2/5} \draw[->, color=black!35!](\x)
+	edge[bend right](\y);
+
+\draw[->, shorten <= .1cm, color=black!35!](2)edge[bend right=50](7,-.35);
+\draw[->, shorten <= .1cm](3)edge[bend right=40](6.9,-.25);
+\draw[->, shorten <= .1cm](4)edge[bend right](6);
+\draw[->, shorten <=.1cm, color=black!35!](2)edge[bend left=40](7);
+
+\draw[->, shorten >= .1cm](7)edge[bend left=20](0);
+\draw[->, shorten <= .1cm](0)edge[bend left=20](7);
+
+\foreach \x/\y in {3/2, 4/5, 5/6, 1/0, 3/0, 4/0, 5/0} \draw[->, 
+	>=stealth'](\x)--(\y);
+\draw[-> ](6)--(0);
+
+\end{tikzpicture}
+
+\caption{This figure arises from Figure \ref{fig:network1} by adding a link from page 2 to every other page (the added links are grey). The new links guarantee that page 2 is no longer a sink, as required by the PageRank algorithm.}
+\label{fig:network2}
+\end{figure}
+
+\subsection*{Refining the model: adding boredom}
+The equations in \eqref{equ:pr1} describe the surfer's habits as a Markov chain.
+However, the model is more realistic if we add the assumption that the surfer sometimes gets bored and randomly picks a new starting page.
+We will denote the probability that a surfer stays interested at step $t$ by a constant $d$, called the \emph{damping factor}.
+Then the probability that the surfer gets bored at time $t$ is $1-d$.
+Accounting for boredom, the formulas in \eqref{equ:pr1} become
+\begin{equation}\label{equ:pr2}
+p(i,0)=\frac{1}{N} \qquad p(i,t+1) = \frac{1-d}{N} + d\sum_{j \in \In(i)} \frac{p(j,t)}{\Out(j)}.
+\end{equation}
+
+
+\subsection*{Matrix form of the PageRank algorithm}
+We can rewrite \eqref{equ:pr2} as the matrix equation
+\begin{equation}\label{equ:pr3}
+\mathbf{p}(0)=\frac{1}{N}\mathbf{1} \qquad \mathbf{p}(t+1) = dK\mathbf{p}(t) + \frac{1-d}{N}\mathbf{1}
+\end{equation}
+where $\mathbf{p}(t)=(p(1,t), p(2,t), \ldots, p(N,t))^T$ and $\mathbf{1} = (1,\ldots, 1)^T$, and $K$ is defined by
+\[K_{ij} = \begin{cases} \frac{1}{\Out(j)} & \mbox{ if j links to i} \\
+	0 & \mbox{ otherwise.} \end{cases}\]
+
+
+\subsection*{Defining page rank}
+As given by the PageRank algorithm, the \emph{rank} of page $i$ is
+\[p(i) = \lim_{t\to \infty} p(i,t).\]
+In other words, the page ranks are the steady state of the modified Markov chain defined in \eqref{equ:pr3}.
+
+
+
+\section*{Implementation in Python}
+A good strategy for computing $K$ comes from writing
+\[
+K = (D^{-1}A)^T
+\]
+where $A$ is the adjacency matrix of the directed graph representing the internet and $B$ is a diagonal matrix with $B_{jj}=\Out(j)$.
+Since $\Out(j)$ can be computed from the adjacency matrix, we will begin by creating $A$.
+
+The adjacency matrix $A$ of a directed graph has $A_{ij}=1$ if there is an edge from node $i$ to node $j$, and $A_{ij}=0$ otherwise.
+For example, the adjacency matrix of the graph in Figure \ref{fig:network1} is defined below.
+We use a code environment to describe $A$ so you can easily use this example to debug the problems in this lab.
+\begin{lstlisting}
+A = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
+              [ 1,  0,  0,  0,  0,  0,  0,  0],
+              [ 0,  0,  0,  0,  0,  0,  0,  0],
+              [ 1,  0,  1,  0,  0,  0,  1,  0],
+              [ 1,  0,  0,  0,  0,  1,  1,  0],
+              [ 1,  0,  0,  0,  0,  0,  1,  0],
+              [ 1,  0,  0,  0,  0,  0,  0,  0],
+              [ 1,  0,  0,  0,  0,  0,  0,  0]])
+\end{lstlisting}
+
+
 
 \begin{problem}
-Included with this lab is a sample data set.
-There is a comment at the top.
-Each of the remaining lines represents a link going from one web page to another.
-Each line consists of two integers.
-The first is the index of the web page containing the link.
-The second is the index of the web page pointed to by the link.
-Write a function that constructs the adjacency matrix by reading in the data from file.
-Store the data in a \li{scipy.sparse.dok_matrix}.
+Write the following function that creates an adjacency matrix from a file.
+\begin{lstlisting}
+def to_matrix( datafile, n ):
+    ''' Return the nxn adjacency matrix described by datafile.
+    
+    INPUTS:
+    datafile - A .txt file describing a directed graph. Lines 
+    			describing edges should have the form 
+				'<from node>\t<to node>\n'. The file may also 
+				include comments.
+    n		- The number of nodes in the graph described by datafile
+    
+    RETURN:
+    Return a SciPy sparse `dok_matrix'.
+    '''
+\end{lstlisting}
+Hints:
+\begin{enumerate}
+\item The file \texttt{data.txt} included with this lab describes the matrix in Figure \ref{fig:network1}. 
+You may use it to test your function.
 
-Recall that you can open a file (in read mode) using an \li{with} construct
+\item You can open a file in Python using the \li{with} syntax. 
+Then, you can iterate through the lines using a \li{for} loop.
+Here is an example.
 \begin{lstlisting}
-with open(filename, 'r') as f:
-    # do stuff here.
+# Open `data.txt' for read-only
+with open('./data.txt', 'r') as myfile:
+    for line in myfile:
+        print line
 \end{lstlisting}
-Once you have opened the file you can iterate through the lines of the file by doing something like
+
+\item Here is an example of how to process a line of the form in \li{datafile}.
 \begin{lstlisting}
-for L in f:
-    # 'L' iterates through each line of 'f'
-    # You can do stuff with the lines here.
+>>> line = '0\t4\n'
+# strip() removes trailing whitespace from a line.
+# split() returns a list of the space-separated pieces of the line.
+>>> line.strip().split()
+['0', '4']
 \end{lstlisting}
-For each line, you will want to split the line into its space-separated parts.
-This can be done with something like \li{l.strip().split()}.
-The \li{strip()} method removes endline characters and the \li{split()} method splits the string into the space-separated parts.
-Once you have read in the line, you can use a try-except block to avoid issues with errors that occur with the strings you obtain 
+
+\item Rather than testing for lines of \texttt{data.txt} that contain comments, put all your string operations in a \li{try} block with an \li{except} block following.
+\end{enumerate}
 \end{problem}
 
-There are several ways to solve for $\lim_{t \to \infty} R(t)$.
-One option is simply iterate the equation for $R(t)$ until $\norm{R(t)-R(t-1)}$ is sufficiently small.
+The next step is to compute $K$. 
+The matrix $D$ is easily obtained from $A$ (how?). 
+Then, we can use $D$ to identify sinks.
+Modify $A$ so that rows corresponding to sinks have all ones instead of all zeros.
+For Figure \ref{fig:network2}, the modified adjacency matrix is defined below.
+\begin{lstlisting}
+Am = np.array([[ 0,  0,  0,  0,  0,  0,  0,  1],
+               [ 1,  0,  0,  0,  0,  0,  0,  0],
+               [ 1,  1,  1,  1,  1,  1,  1,  1],
+               [ 1,  0,  1,  0,  0,  0,  1,  0],
+               [ 1,  0,  0,  0,  0,  1,  1,  0],
+               [ 1,  0,  0,  0,  0,  0,  1,  0],
+               [ 1,  0,  0,  0,  0,  0,  0,  0],
+               [ 1,  0,  0,  0,  0,  0,  0,  0]])
+\end{lstlisting}
+
+Finally we compute $K$.
+It is a \emph{very} bad idea to invert $D$ and perform the matrix multiplication $D^{-1}A$.
+Rather, store the diagonal entries of $D$ in a vector and use array broadcasting to divide $A$ by $D$.
+For Figures \ref{fig:network1} and \ref{fig:network2}, the matrix $K$ is as follows.
+
+\begin{lstlisting}
+K = np.array([[ 0   ,  1   ,  1./8,  1./3,  1./3,  1./2,  1   ,  1   ],
+              [ 0   ,  0   ,  1./8,  0   ,  0   ,  0   ,  0   ,  0   ],
+              [ 0   ,  0   ,  1./8,  1./3,  0   ,  0   ,  0   ,  0   ],
+              [ 0   ,  0   ,  1./8,  0   ,  0   ,  0   ,  0   ,  0   ],
+              [ 0   ,  0   ,  1./8,  0   ,  0   ,  0   ,  0   ,  0   ],
+              [ 0   ,  0   ,  1./8,  0   ,  1./3,  0   ,  0   ,  0   ],
+              [ 0   ,  0   ,  1./8,  1./3,  1./3,  1./2,  0   ,  0   ],
+              [ 1   ,  0   ,  1./8,  0   ,  0   ,  0   ,  0   ,  0   ]])
+\end{lstlisting}
+
+
+\subsection*{Solving for the page ranks}
+There are several ways to solve for $\lim_{t \to \infty} \mathbf{p}(t)$.
+\subsubsection*{Algebraic method}
+One possibility is to assume the modified Markov chain has a steady state $\mathbf{p}$ and solve for it algebraically:
+\begin{equation}\label{equ:matrix_solve}
+(I-dK)\mathbf{p} = \frac{1-d}{N} \mathbf{1}.
+\end{equation}
+
+We can implement this algorithm in SciPy to solve for the page ranks of the network in Figure \ref{fig:network2}.
+\begin{lstlisting}
+>>> from scipy import linalg as la
+>>> I = np.eye(8)
+>>> d = .85
+>>> la.solve(I-d*K, ((1-d)/8)*np.ones(8))
+array([ 0.43869288,  0.02171029,  0.02786154,  0.02171029,  0.02171029,
+        0.02786154,  0.04585394,  0.39459924])
+\end{lstlisting}
+As expected, node 0 has the highest rank, approximately equal to .43. 
+Node 7 has a much higher rank than node 6, even though $\In(7)=1$ and $\In(6)=3$. 
+This is because node 7's single in-edge comes from a node that has a very high rank (node 0).
+
+\subsubsection*{Iterative method}
+Solving the system in \eqref{equ:matrix_solve} is feasible for our small working example, but this is not an efficient strategy for very large systems.
+
+One option for large systems is to iterate the equation for $\mathbf{p}(t)$ until $\norm{\mathbf{p}(t)-\mathbf{p}(t-1)}$ is sufficiently small.
+
 
 \begin{problem}
 \label{prob:pagerank_dense_iter}
-Write an implementation of the page rank algorithm that computes the steady state $R$ iteratively, as described above.
-Your function should accept a file name for the data, a floating point value for $d$, and a size \li{n} that defaults to \li{None}.
-When the size is not None, your function should only consider the upper left $n \times n$ portion of the array.
+Implement the function below, using the iterative method to find the steady state of the PageRank algorithm.
+\begin{lstlisting}
+def iter_solve( data, N=None, d=.85, tol=1E-5):
+    '''
+    Return the page ranks of the network described by `data`.
+    
+    INPUTS:
+    data - A NumPy array representing the adjacency matrix of a directed 
+            graph
+    N     - Restrict the computation to the first `N` nodes of the graph. 
+            Defaults to N=None; in this case, the entire matrix is used.
+    d     - The damping factor, a float between 0 and 1. 
+            Defaults to .85.
+    tol  - Stop iterating when the change in approximations to the 
+            solution is less than `tol'. Defaults to 1E-5.
+    
+    OUTPUTS:
+    Iterate through the PageRank algorithm until the error is less than 
+    `tol'. Return the approximation to the steady state.
+    '''
+\end{lstlisting}
+Hints:
+\begin{enumerate}
+\item At each step, test your function against the example in this lab.
+\item Don't forget to eliminate sinks. 
+It is possible (but not necessary) to do this in a single line.
+\item When \li{n} is not \li{None}, you want to work with only the upper $n \times n$ portion of the array \li{data}.
+\end{enumerate}
 \end{problem}
 
-Another method for computation assumes a steady state $R$ and solves the resulting system:
-\[(I-dK)R = \frac{1-d}{N} \begin{pmatrix}1\\\vdots\end{pmatrix}\]
-We won't have you implement this version of the algorithm here.
+\subsubsection*{Eigenvalue method}
+Another way to solve this problem is to make it into an eigenvalue problem. 
+Let $E$ be an $N \times N$ matrix of ones; then $E\mathbf{p}(t) = \mathbf{p}(t)$. 
+Hence, the matrix equation \eqref{equ:pr3} for $\mathbf{p}(t+1)$ becomes
+\[\mathbf{p}(t+1) = \Big(dK + \frac{1-d}{N}E\Big)\mathbf{p}(t).\]
+If we write $B = dK + \frac{1-d}{N}E$, this simplifies to $\mathbf{p}(t+1) = B\mathbf{p}(t).$
+Thus, the steady state $\mathbf{p}(t)$ is an eigenvector of $B$ corresponding to the eigenvalue 1.
 
-Another way to solve this problem is to make it into an eigenvalue problem.
-Since $R$ can be viewed as a vector of probabilities we can rewrite $\left(\begin{smallmatrix}1\\\vdots\end{smallmatrix}\right) = E R$, where $E$ is a matrix of all ones.
-Thus the equation becomes:
-\[R = (dK + \frac{1-d}{N}E)R\]
-Since $(dK + \frac{1-d}{N}E)$ will be a strictly positive stochastic matrix (each column sums to one) the Perron-Frobenius theorem guarantees that this eigenvalue equation corresponds to the largest magnitude eigenvalue and that the eigenvector is unique.
-This means that, by finding the eigenvector corresponding to the largest eigenvalue of $(dK + \frac{1-d}{N}E)$, we can find $R$.
-The first option for finding $R$ (the iterative approach) is equivalent to using a numerical method called power iteration to find the eigenvalues of this system.
-As we have formulated the eigenvalue problem here, it cannot be stored easily in one of SciPy's sparse matrix types, but it is still possible to work with eigenvalue solvers that exploit the symmetries of this matrix.
+The columns of $B$ sum to 1, and the entries of $B$ are strictly positive (because the entries of $E$ are all positive).
+With these hypotheses, the Perron-Frobenius theorem says that 1 is the unique eigenvalue of B of largest magnitude, and the corresponding eigenvector is unique.
+In this case, the ``iterative method'' described above is just the power method for finding the eigenvector corresponding to a dominant eigenvalue, introduced in Lab \ref{lab:EigSolve}.
 
+We can also attempt to compute $\mathbf{p}$ using eigenvalue solvers in SciPy.
+
+%TODO: the output from scipy.linalg.eig is not very accurate, even for the small example in this lab.
 \begin{problem}
-Write another version of the algorithm that uses the eigenvalue solver in \li{scipy.linalg} to compute the page rank within a group of web pages.
-You will want to solve the eigenvalue problem above, then return the eigenvector corresponding to the eigenvalue of largest magnitude.
-It should accept the same inputs as your solution to Problem \ref{prob:pagerank_dense_iter}.
+Implement the function below, using the eigenvalue method to find the steady state of the PageRank algorithm.
+\begin{lstlisting}
+def iter_solve( data, n=None, d=.85):
+    '''
+    Return the page ranks of the network described by `data`.
+    
+    INPUTS:
+    data - A NumPy array representing the adjacency matrix of a directed 
+            graph
+    N     - Restrict the computation to the first `N` nodes of the graph. 
+            Defaults to N=None; in this case, the entire matrix is used.
+    d     - The damping factor, a float between 0 and 1. 
+            Defaults to .85.
+    
+    OUTPUTS:
+    Use the eigenvalue solver in \li{scipy.linalg} to calculate the steady 
+    state of the PageRank algorithm.
+    '''
+\end{lstlisting}
+Hint: Review the techniques from the Markov chain section of Lab \ref{lab:EigSolve}.
 \end{problem}
 
-The computed value for $R$ gives the page rank associated with each web page.
 
-This algorithm has been used in several settings (primarily in academia).
-For example, it has been used to rank graduate institutions, to rank impact factor of journals and has even been used in some biological applications.
-
-Let's try implementing the Page Rank algorithm on a small subset of the internet.
-The SNAP graph library includes a variety of medium sized data sets that can be used for analysis.
-Their data sets can be found at \url{http://snap.stanford.edu/data/index.html}.
-Download one of the data sets there so you can use it to test your page ranking algorithm.
-
-The \li{matplotlib.pyplot.spy} command of this adjacency matrix yields the plot shown in figure \ref{fig:WebSparse}
+\section*{SNAP datasets}
+The SNAP graph library, located at \url{http://snap.stanford.edu/data/index.html}, provides a variety of medium sized data sets for public use.
+The \li{matplotlib.pyplot.spy} command on the adjacency matrix from a SNAP data set yielded the plot shown in Figure \ref{fig:WebSparse}
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{sparse_web.png}
-\caption{\li{spy} command on the adjacency matrix corresponding to the websites supported by Notre Dame University in 1999.
+\caption{Output of the \li{spy} command on the adjacency matrix corresponding to the websites supported by Notre Dame University in 1999.
 Data was taken from the SNAP datasets.}
 \label{fig:WebSparse}
 \end{figure}
 
 \begin{problem}
-Use your previous implementations of the Page Rank algorithm to calculate the Page Rank of the first 3500 web pages in the data set you have downloaded.
-Which page has the highest page rank, and what is the value of the page rank?
-\label{prob:pg_calc}
-\end{problem}
-
-\begin{problem}
-The iterative method allows for an easy implementation using sparse matrices.
-Write an implementation of the iterative Page Rank algorithm that uses sparse matrices.
-Use it to compute the Page Ranks for all the pages in the data set.
-Which page has the highest rank?
-
-Hint: You will want to convert your sparse matrix to a \li{csc_matrix} or a \li{csr_matrix} to perform the computations.
+Try running the functions you wrote in this lab on a data set downloaded from SNAP.
+\begin{enumerate}
+\item Begin by running your methods on the first 100 nodes of the data set.
+\item Modify your solution to Probelm \ref{prob:pagerank_dense_iter} so that it uses only sparse matrices. 
+With this modification, you should be able to run the function on more nodes.
+Hint: Convert the adjacency matrix to a \li{csc_matrix} or a \li{csr_matrix} to perform the computations.
+\end{enumerate}
 \end{problem}
