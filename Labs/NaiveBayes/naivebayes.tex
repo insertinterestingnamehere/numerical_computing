@@ -79,24 +79,25 @@ The calculation of conditional probabilities and our choice of a prior will depe
 \subsection*{Gaussian Classifiers}
 
 Gaussian classifiers are commonly used when dealing with continuous data.
-We assume that each feature is normally distributed and conditionally independent.
-We may then calculate $\mu_{j,i}$ and $\sigma^2_{j,i}$ corresponding to each feature of each class.
+We assume that each feature is normally distributed and conditionally-independent of all other features.
+We may then calculate $\mu_{j,i}$ and $\sigma^2_{j,i}$ (the mean and variance) corresponding to each feature of each class.
 Then $P(x_j|c_i)$ can be calculated using the gaussian pdf
 \[
-P(x_j|c_i) = \frac{1}{\sqrt{2\pi\sigma_{j,i}^2}}\exp{-\frac{(x_j - \mu_{j,i})^2}{2\sigma^2_{j,i}}}
+P(x_j|c_i) = \frac{1}{\sqrt{2\pi\sigma_{j,i}^2}}\exp{-\frac{(x_j - \mu_{j,i})^2}{2\sigma^2_{j,i}}}.
 \]
 
 For example, suppose we have a training set with labels indicating the sex of a person (1 for female, 2 for male), and  features consisting of hair length and height (features 1 and 2, respectively).
-Further suppose that the mean height of the men in the training set is 1.75 meters with standard deviation 7 cm, and mean hair length is 5 centimeters with standard deviation 2.5 cm.
-Similarly, suppose that the mean height of the women in the training set is 1.25 meters with standard deviation 6 cm, and the mean hair length is 15 centimeters with standard deviation 1.5 cm.
+Further suppose that the mean hair length of the women in the training set is 15 centimeters with standard deviation 1.5 cm, and the mean height is 1.25 meters with standard deviation 6 cm.
+Similarly, suppose that the mean hair length of the men in the training set is 5 centimeters with standard deviation 2.5 cm, and the mean height is 1.75 meters with standard deviation 7 cm.
 Under this setup, we have
 \begin{align*}
-\mu_{1,1} &= 15, \quad &&\sigma_{1,1} = 1.5\\
-\mu_{2,1} &= 1.25, &&\sigma_{2,1} = .06\\
-\mu_{1,2} &= 5, &&\sigma_{1,2} = 2.5\\
+\mu_{1,1} &= 15, \quad &&\sigma_{1,1} = 1.5,\\
+\mu_{2,1} &= 1.25, &&\sigma_{2,1} = .06,\\
+\mu_{1,2} &= 5, &&\sigma_{1,2} = 2.5,\\
 \mu_{2,2} &= 1.75, &&\sigma_{2,2} = .07.
 \end{align*}
-If we wish to classify a person that is 1.4 meters tall and a hair length of 17 centimeters, we calculate the probability of each label using the parameters given above and a uniform prior ($P(F) = P(M) = \frac{1}{2}$):
+
+If we wish to classify a person with hair length 17 centimeters who is 1.4 meters tall, we calculate the probability of each label using the parameters given above and a uniform prior ($P(F) = P(M) = \frac{1}{2}$) as follows:
 \begin{align*}
 P(F\,|\,17,1.4) &= P(F)\left(\frac{1}{\sqrt{2\pi\sigma_{1,1}^2}}\exp{-\frac{(17-\mu_{1,1})^2}{2\sigma^2_{1,1}}}\right)
 \left(\frac{1}{\sqrt{2\pi\sigma_{2,1}^2}}\exp{-\frac{(1.4-\mu_{2,1})^2}{2\sigma^2_{2,1}}}\right)\\
@@ -110,7 +111,7 @@ The Female label has a greater probability given the feature vector, and so we c
 A nice way to visualize how a classifier works is to plot the decision boundaries for two-dimensional subspaces of the
 feature vector space.
 For example, the decision boundaries for a Gaussian Naive Bayes classifier trained on a dataset consisting of the
-sepal widths and lengths of three different types of flowers is shown in Figure \ref{fig:decision_boundary}.
+sepal widths and sepal lengths of three different types of flowers are shown in Figure \ref{fig:decision_boundary}.
 
 \begin{figure}
 	\centering
@@ -123,9 +124,9 @@ for each flower. Each point in the plane represents a 2-dimensional feature vect
 \subsection*{Working in Log Space}
 In the example presented above, notice that the value of $P(M\,|\,17,1.4)$ is very small.
 This is often the case in classification problems; certain classes may be very unlikely, and so calculating these probabilities may lead to numerical underflow.
-This is especially pronounced in the naive Bayes model, which involves taking the product of several numbers between
+This is especially pronounced in the Naive Bayes model, which involves taking the product of several numbers between
 0 and 1.
-A useful technique to avoid underflow is to convert the computations in logarithmic space.
+A useful technique to avoid underflow is to perform all of the computations in logarithmic space, where the products all become sums.
 When we do so, the Naive Bayes label assignment is
 \[
 c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, \log P(c_i) + \sum_{j=1}^n \log P(x_j|c_i).
@@ -153,20 +154,20 @@ The species of wheat are
 \item Canadian
 \end{enumerate}
 
-The measurements of the kernels are real valued, making this a good example to try our Gaussian classifier.
-
+The measurements of the kernels are real valued, making this a good example on which to try our Gaussian classifier.
+Make a function that classifies a subset of the data in this file and returns the accuracy of your calculations by proceeding in the following manner:
 \begin{enumerate}
-\item Randomly select a test set of 40 vectors from the data.  Make sure you separate this data from your training data.
+\item Randomly select a test set consisting of 40 vectors.  Make the remaining vectors into your training set.
 \item Calculate the mean and variance for each feature of each label using the training set.
 \item Using a uniform prior, predict the labels of your test set.
-\item Compare your predictions to the labels of the test set. In particular, report the accuracy of the prediction,
-which is the number of correctly predicted instances divided by the total number of instances.
+\item Compare your predictions to the correct labels of the test set. In particular, report the accuracy of the prediction,
+which is the number of correctly predicted test samples divided by the total number of test samples.
 \end{enumerate}
 
 \end{problem}
 
 We may also use SciPy's {\tt sklearn} library to implement a Gaussian classifier.
-After importing the library, we can create a new classifier and train it with just a couple of lines of code.
+After importing the library, we can create a new classifier and train it with just a few lines of code.
 To create a Gaussian classifier, use the following code.
 
 \begin{lstlisting}
@@ -191,9 +192,9 @@ The {\tt predict} method returns an array of labels for the test set.
 
 \begin{problem}
 
-Repeat the previous problem using {\tt sklearn}'s naive Bayes classifier.
-Check that your implementation predicts the same labels as the {\tt sklearn}
-implementation.
+Repeat the previous problem using {\tt sklearn}'s Naive Bayes classifier.
+Check that your implementation from the previous problem predicts the same labels as the {\tt sklearn}
+implementation does.
 
 \end{problem}
 
