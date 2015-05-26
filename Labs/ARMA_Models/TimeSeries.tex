@@ -9,7 +9,7 @@ process $\{z_t\}$ that satisfies
     z_t - \mu = \left(\sum_{i=1}^p \phi_{i}(z_{t - i} - \mu)\right) + a_t +
     \left(\sum_{j=1}^{q} \theta_{j}a_{t-j} \right)
 \end{align}
-where $\mu = E[z_t]$ and $a_t$ are identically Gaussian distributed with
+where $\mu = E[z_t]$ and $a_t$ are identically-distributed Gaussian variables with
 variance $\sigma_a^2$. We note that the assumption that $\{z_t\}$ is
 covariance-stationary is eqivalent to the condition that the roots of the
 polynomial in $B$
@@ -90,7 +90,7 @@ found via the Kalman filter, namely
     \text{mean} & \quad H\hat{x}_{t|t-1} + \mu \\
     \text{variance} & \quad HP_{t|t-1}H^T
 \end{align}
-where $\hat{x}_{t|t-1}, P_{t|t-1}$ are found during the Predict step. Our
+where $\hat{x}_{t|t-1}$ and $P_{t|t-1}$ are found during the Predict step. Our
 likelihood becomes
 \begin{align}
     \label{eq:arma:likelihood}
@@ -122,7 +122,7 @@ def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
     Parameters
     ----------
     time_series : ndarray of shape (n,1)
-        The time series in question
+        The time series in question, z_t
     phis : ndarray of shape (p,)
         The phi parameters
     thetas : ndarray of shape (q,)
@@ -141,7 +141,7 @@ def arma_likelihood(time_series, phis=array([]), thetas=array([]), mu=0.,
 \end{lstlisting}
 
 \vspace{3mm} \noindent
-For example,
+When done correctly, your function should match the following output:
 \begin{lstlisting}
 >>> arma_likelihood(time_series_a, phis=array([0.9]), mu=17., sigma=0.4)
 -77.6035
@@ -151,8 +151,8 @@ For example,
 \section*{Identification and Fitting}
 
 When modeling a data set with an $\text{ARMA}(p,q)$ model, the order of the
-model must be determined as well as the other parameters. The process of
-choosing $p$ and $q$ is called model identification. Different methods have
+model must be determined, as well as the other parameters. The process of
+choosing $p$ and $q$ is called \emph{model identification}. Different methods have
 been used; for example, Box and Jenkins propose a methodology that involves
 examining the estimated autocorrelation and partial-autocorrelation functions
 of the data. We will choose $p$ and $q$ that minimize the Akaike information
@@ -165,13 +165,13 @@ the model, and $\ell(\Theta)$ is the maximum likelihood for the model class.
 
 To compute the maximum likelihood for a model class, we need to optimize
 \ref{eq:arma:likelihood} over the space of parameters $\Theta$. We can do so
-using our function from Problem \ref{prob:arma:likelihood} along with some
+by using our function from Problem \ref{prob:arma:likelihood} along with some
 optimization routine, such as {\tt scipy.optimize.fmin}.
 
 \begin{problem}
 \label{prob:arma:mle}
 Write a function that accepts a time series $\{z_t\}$ and returns the
-parameters of the model that minimizes the AICc, given the constraint that $p
+parameters of the model that minimize the AICc, given the constraint that $p
 \leq 3$, $q \leq 3$.
 
 \begin{lstlisting}
@@ -183,7 +183,7 @@ def arma_fit(time_series):
     Parameters
     ----------
     time_series : ndarray of shape (n,1)
-        The time series in question
+        The time series in question, z_t
 
     Returns
     -------
@@ -201,7 +201,7 @@ def arma_fit(time_series):
 \vspace{3mm} \noindent
 Here's a hint for performing the optimization at each step, using {\tt scipy.optimize.fmin}.
 \begin{lstlisting}
->>> # assume p, q, time_series are defined
+>>> # assume p, q, and time_series are defined
 >>> def f(x): # x contains the phis, thetas, mu, and sigma
 >>>     return -1*arma_likelihood(time_series, phis=x[:p], thetas=x[p:p+q], mu=x[-2],sigma=x[-1])
 >>> # create initial point
@@ -215,10 +215,11 @@ The variable \li{sol} is a flat array of length $p+q+2$, whose first $p$ entries
 for the $\phi$ polynomial, the next $q$ entries give the optimal values for the $\theta$ polynomial,
 and the last two entries give the optimal values for $\mu$ and $\sigma_a$, respectively.
 Notice that we defined a wrapper function $f$ to feed into the {\tt scipy.optimize.fmin} routine.
-This wrapper function return \emph{negative} of the log likelihood, since the optimization routine we are
-calling finds the minimum of a function, and we are interested in the maximum of the log likelihood.
+This wrapper function returns the \emph{negative} of the log likelihood, since the optimization routine we are
+calling finds the minimum of a function, and we are interested in the \emph{maximum} of the log likelihood.
 
-Your code should produce the following output (it may take a minute or so to run):
+Your code should produce the following output, where the input data is found in
+{\tt time\_series\_a.txt} (it may take a minute or so to run):
 \begin{lstlisting}
 >>> arma_fit(time_series_a)
 (array([ 0.9087]), array([-0.5759]), 17.0652..., 0.3125...)
@@ -269,7 +270,7 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
     Parameters
     ----------
     time_series : ndarray of shape (n,1)
-        The time series in question
+        The time series in question, z_t
     phis : ndarray of shape (p,)
         The phi parameters
     thetas : ndarray of shape (q,)
@@ -283,16 +284,16 @@ def arma_forecast(time_series, phis=array([]), thetas=array([]), mu=0.,
 
     Returns
     -------
-    evls : ndarray of shape (future_periods,)
-        The expected values of z for times n + 1, ..., n + future_periods
+    e_vals : ndarray of shape (future_periods,)
+        The expected values of z for times n+1, ..., n+future_periods
     sigs : ndarray of shape (future_periods,)
-        The standard deviations of z for times n + 1, ..., n + future_periods
+        The standard deviations of z for times n+1, ..., n+future_periods
     """
     pass
 \end{lstlisting}
 
 \vspace{3mm} \noindent
-For example,
+You should get the following result:
 \begin{lstlisting}
 >>> arma_forecast(time_series_a, phis, thetas, mu, sigma, 4)
 (array([ 17.3762,  17.3478,  17.322 ,  17.2986]),
@@ -300,7 +301,7 @@ For example,
 \end{lstlisting}
 
 \vspace{3mm} \noindent
-Your results should match those in Figure \ref{fig:forecasted}.
+Your results (when using twenty future periods) should match those in Figure \ref{fig:forecasted}.
 \end{problem}
 
 \begin{figure}
