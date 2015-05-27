@@ -14,15 +14,15 @@ The third question is an example of \emph{unsupervised learning}, since we are a
 of human-provided labels (the corresponding state sequence); the algorithm does not rely on human supervision or input.
 
 We assume throughout this lab that the HMM has a discrete state space of cardinality $N$ and a discrete observation space of cardinality $M$.
-In this context, $\lambda = \left( A, B, \mathbf{\pi} \right)$ where $A$ is a $N \times N$  column-stochastic matrix (the state transition model), $B$ is a $M \times N$ column-stochastic matrix (the
-state-observation model), and $\mathbf{\pi}$ is a stochastic vector of length $N$ (the initial state distribution).
-Further, $O$ is a vector of length $T$ with values in $\{1,2,\ldots,M\}$.
+In this context $\lambda = \left( A, B, \mathbf{\pi} \right)$, where $A$ is a $N \times N$  column-stochastic matrix (the state transition model), $B$ is a $M \times N$ column-stochastic matrix (the
+state observation model), and $\mathbf{\pi}$ is a stochastic vector of length $N$ (the initial state distribution).
+Further, $O$ is a vector of length $T$ with values in the set $\{1,2,\ldots,M\}$.
 
 \begin{warn}
 The mathematical exposition in the lab assumes the standard 1-based indexing of vectors and matrices.
-It will be your job to carefully translate the various formulae into 0-based indexing for the Python code.
-This means that in Python, your array containing the observation sequence $O$ will actually have values
-in the set $\{0,1,\ldots,M-1\}$, so that they may be used to index the matrix $B$.
+Be sure to carefully translate the various formulae into 0-based indexing when implementing these methods for Python coding.
+This means that, in Python, your array containing the observation sequence $O$ will actually have values
+in the set $\{0,1,\ldots,M-1\}$ so that they may be used to index the matrix $B$ correctly.
 \end{warn}
 
 Throughout this lab, we will be using the following toy HMM to verify your code.
@@ -35,6 +35,9 @@ Throughout this lab, we will be using the following toy HMM to verify your code.
 \end{lstlisting}
 
 \begin{problem}
+\begin{comment}
+The following was listed as a problem, but gave the student nothing to do, so we removed the given code.
+
 To start off your implementation of the HMM, define a class using the following code.
 You will be adding class methods throughout the remainder of the lab.
 \begin{lstlisting}
@@ -50,15 +53,21 @@ class hmm(object):
         self.B = None
         self.pi = None
 \end{lstlisting}
+\end{comment}
+To start off your implementation of the HMM, define a class object which you should call ``hmm".
+Then add the initialization method, in which you should set the \emph{self} aspects A, B, and pi to be None objects.
+You will be adding methods throughout the remainder of the lab.
 \end{problem}
+
 \subsection*{The Forward Pass}
 Our first task is to efficiently compute $\log \mathbb{P}(O | \lambda)$.
 We can do this using the \emph{forward pass} of the forward-backward algorithm.
-We must take care to compute all values in a numerical stable way; we do this by properly scaling values as necessary.
+We must take care to compute all values in a numerically stable way; we do this by properly scaling values as necessary.
 
-We compute a scaled forward probability matrix $\widehat{\alpha}$ of dimension $T \times N$ as follows.
+We compute a scaled forward probability matrix $\widehat{\alpha}$ of dimension $T \times N$ as follows:
 Let $\widehat{\alpha}_{i,:}, B_{i,:}$ denote the $i$-th rows of $\widehat{\alpha}$ and $B$, respectively, let $\odot$ denote the Hadamard (or entry-wise) product of arrays,
 and let $\langle \cdot, \cdot \rangle$ denote the standard dot product.
+(Note that here, using 0-based indexing and the toy HMM example, $B_{O_3,:}$ would refer to $[.5,.1]$.)
 Then
 \begin{itemize}
  \item $c_1 = \langle \pi, B_{O_1,:}\rangle^{-1}$
@@ -79,7 +88,7 @@ Implement the forward pass by adding the following method to your class:
 \begin{lstlisting}
 def _forward(self, obs):
     """
-    Compute scaled forward probability matrix and scaling factors.
+    Compute the scaled forward probability matrix and scaling factors.
 
     Parameters
     ----------
@@ -95,7 +104,7 @@ def _forward(self, obs):
     """
     pass
 \end{lstlisting}
-To verify that your code works, use the toy HMM:
+To verify that your code works, you should get the following output using the toy HMM:
 \begin{lstlisting}
 >>> h = hmm()
 >>> h.A = A
@@ -108,9 +117,9 @@ To verify that your code works, use the toy HMM:
 \end{problem}
 
 \subsection*{The Backward Pass}
-The backward pass of the forward-backward algorithm produces values that can be used calculate the most likely state sequence corresponding to an observation sequence.
+The backward pass of the forward-backward algorithm produces values that can be used to calculate the most likely state sequence corresponding to an observation sequence.
 
-We compute a scaled backward probability matrix $\widehat{\beta}$ of dimension $T \times N$ as follows.
+We compute a scaled backward probability matrix $\widehat{\beta}$ of dimension $T \times N$ as follows:
 \begin{itemize}
  \item $\widehat{\beta}_{T,i} = c_{T}$ for $i = 1,\ldots, N$
  \item $\widehat{\beta}_{t,:} = c_{t}A^T(B_{O_{t+1},:}\odot \widehat{\beta}_{t+1,:})$ for $t = T-1, \ldots, 1$
@@ -125,14 +134,14 @@ and so we can easily compute the most likely state at time $t$ by
 \begin{equation*}
 \mathbf{x}_{t}^{*} = \argmax_{i} \widehat{\alpha}_{t,i} \widehat{\beta}_{t,i}.
 \end{equation*}
-This is the solution to the second question.
+This is the solution to the second question posed at the beginning of the lab.
 
 \begin{problem}
 Implement the backward pass by adding the following method to your class:
 \begin{lstlisting}
 def _backward(self, obs, c):
     """
-    Compute scaled backward probability matrix.
+    Compute the scaled backward probability matrix.
 
      Parameters
     ----------
@@ -160,7 +169,7 @@ Using the same toy example as before, your code should produce the following out
 \end{problem}
 
 \subsection*{Computing the $\delta$ and $\gamma$ Probabilities}
-Having implemented both parts of the forward-backward algorithm, we are closing in on the solution to question 3, namely that of fitting parameters.
+Having implemented both parts of the forward-backward algorithm, we are closing in on the solution to question three, namely that of fitting parameters $\lambda$ that maximize $\mathbb{P}(O | \, \lambda)$.
 At this stage, we combine the information accumulated in the forward-backward algorithm to produce a three-dimensional array $\widehat{\delta}$
 of shape $(T-1)\times N \times N$ whose entries are related to $\mathbb{P}(\mathbf{x}_t = i, \mathbf{x}_{t+1} = j|\, O, \lambda)$, as well as
 a $T \times N$ matrix $\widehat{\gamma}$ whose entries are related to $\mathbb{P}(\mathbf{x}_t=i | \, O, \lambda)$.
@@ -189,9 +198,9 @@ def _delta(self, obs, alpha, beta):
     obs : ndarray of shape (T,)
         The observation sequence
     alpha : ndarray of shape (T,N)
-        The scaled forward probability matrix from forward pass
+        The scaled forward probability matrix from the forward pass
     beta : ndarray of shape (T,N)
-        The scaled backward probability matrix from backward pass
+        The scaled backward probability matrix from the backward pass
 
     Returns
     -------
