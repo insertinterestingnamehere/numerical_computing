@@ -2,11 +2,11 @@
 \objective{Understand the basic principles of implementing a Gibbs sampler. Apply this to Latent Dirichlet Allocation.}
 
 \section*{Gibbs Sampling}
-Gibbs sampling is an MCMC sampling method in which we construct a Markov chain by which to sample from a desired joint (conditional) distribution
+Gibbs sampling is an MCMC sampling method in which we construct a Markov chain which is used to sample from a desired joint (conditional) distribution
 \begin{equation*}
 \mathbb{P}(x_{1},\cdots,x_{n} | \mathbf{y}).
 \end{equation*}
-Often it is difficult to sample from this high-dimensional joint distribution, while it may be easy to sample from the one dimensional
+Often it is difficult to sample from this high-dimensional joint distribution, while it may be easy to sample from the one-dimensional
 conditional distributions
 \begin{equation*}
 \mathbb{P}(x_{i} | \mathbf{x}_{-i}, \mathbf{y})
@@ -30,13 +30,13 @@ where $\mathbf{x}_{-i} = x_{1},\cdots,x_{i-1},x_{i+1},\cdots,x_{n}.$
 \label{alg:gibbs}
 \end{algorithm}
 A Gibbs sampler proceeds according to Algorithm \ref{alg:gibbs}.
-Each iteration of the outer for-loop is a \emph{sweep} of the Gibbs sampler, and the value of $\mathbf{x}^{(k)}$ after a sweep is a sample. This creates an irreducible, non-null recurrent, aperiodic Markov chain over the state space consisting of all possible $\mathbf{x}$. The unique invariant distribution for the chain is the desired joint distribution
+Each iteration of the outer for loop is a \emph{sweep} of the Gibbs sampler, and the value of $\mathbf{x}^{(k)}$ after a sweep is a \emph{sample}. This creates an irreducible, non-null recurrent, aperiodic Markov chain over the state space consisting of all possible $\mathbf{x}$. The unique invariant distribution for the chain is the desired joint distribution
 \begin{equation*}
 \mathbb{P}(x_{1},\cdots,x_{n} | \mathbf{y}).
 \end{equation*}
 Thus, after a burn-in period, our samples $\mathbf{x}^{(k)}$ are effectively samples from the desired distribution.
 
-Consider the data set of $N$ scores from a calculus exam in the file \texttt{examscores.csv}. We believe that the spread of these exam scores can be
+Consider the dataset of $N$ scores from a calculus exam in the file \texttt{examscores.csv}. We believe that the spread of these exam scores can be
 modeled with a normal distribution of mean $\mu$ and variance $\sigma^{2}$.
 Because we are unsure of the true value of $\mu$ and $\sigma^2$, we take a Bayesian approach and place priors on each parameter to quantify this uncertainty:
 \begin{align*}
@@ -66,7 +66,7 @@ where
 \alpha^* &= \alpha + \frac{N}{2}\\
 \beta^* &= \beta + \frac{1}{2}\sum_{i=1}^N (y_i-\mu)^2
 \end{align*}
-We have thus set this up as a Gibbs sampling problem, where we just have to alternate between sampling $\mu$ and $\sigma^{2}$.
+We have thus set this up as a Gibbs sampling problem, where we have only to alternate between sampling $\mu$ and sampling $\sigma^{2}$.
 We can sample from a normal distribution and an inverse gamma distribution as follows:
 \begin{lstlisting}
 >>> from math import sqrt
@@ -171,15 +171,15 @@ for each sample pair $\mu_{(t)}, \sigma_{(t)}^{2}$. Now we have essentially draw
 \end{figure}
 
 \begin{problem}
-Use your samples to draw samples from the posterior predictive distribution. Plot the kernel density estimator of your sampled scores.
+Use your samples of $\mu$ and $\sigma^{2}$ to draw samples from the posterior predictive distribution. Plot the kernel density estimator of your sampled scores.
 It should resemble the plot in Figure \ref{fig:predictive}.
 \end{problem}
 
 \section*{Latent Dirichlet Allocation}
-Gibbs sampling can be applied to an interesting problem in language processing: that of determining which topics are prevalent in a document.
+Gibbs sampling can be applied to an interesting problem in language processing: determining which topics are prevalent in a document.
 Latent Dirichlet Allocation (LDA) is a generative model for a collection of text documents.
-It supposes that there is some fixed vocabulary of terms (of length $V$) and $K$ different topics, each represented as a probability distribution $\phi_{k}$ over the vocabulary, each with a Dirichlet prior $\beta$.
-With the vocabulary and topics chosen, the LDA model assumes that a set of $D$ documents is generated as follows.
+It supposes that there is some fixed vocabulary (composed of $V$ distinct terms) and $K$ different topics, each represented as a probability distribution $\phi_{k}$ over the vocabulary, each with a Dirichlet prior $\beta$.
+With the vocabulary and topics chosen, the LDA model assumes that a set of $D$ documents is generated as follows:
 The $m$-th document consists of $N_m$ words, and
 a probability distribution $\theta_{m}$ over the topics is drawn from a Dirichlet distribution with parameter $\alpha$.
 To generate each new word in the $m$-th document, we first draw a topic assignment $z_{m,n}$ from the categorical distribution $\theta_{m}$, and then we draw a word $w_{m,n}$ from the categorical distribution $\phi_{z_{m,n}}$. Throughout this implementation, we assume $\alpha$ and $\beta$ are scalars. In summary, we have
@@ -287,7 +287,7 @@ Complete the method \li{sample}. The argument \emph{filename} is the name and lo
 You should now have a working Gibbs sampler to perform LDA inference on a corpus. Let's test it out on Ronald Reagan's State of the Union addresses.
 
 \begin{problem}
-Create an \li{LDACGS} object with $20$ topics, letting \li{alpha} and \li{beta} be the default values. Load in the stop word list provided. Run the Gibbs sampler, with a burn in of $100$ iterations, accumulating $10$ samples, only keeping the results of every $10$ sweep. Plot the log-likelihoods. How long did it take to truly burn in?
+Create an \li{LDACGS} object with $20$ topics, letting \li{alpha} and \li{beta} be the default values. Load in the stop word list provided. Run the Gibbs sampler, with a burn in of $100$ iterations, accumulating $10$ samples, only keeping the results of every $10^{th}$ sweep. Plot the log-likelihoods. How long did it take to truly burn in?
 \end{problem}
 
 We can estimate the values of each $\phi_{k}$ and each $\theta_{m}$ as follows:
@@ -297,13 +297,13 @@ We can estimate the values of each $\phi_{k}$ and each $\theta_{m}$ as follows:
 \widehat{\phi}_{k,v} & = \frac{n_{(k,\cdot,v)} + \beta}{V \cdot \beta + \sum_{v=1}^{V} n_{(k,\cdot,v)}}
 \end{align*}
 
-We have provided methods \li{phi} and \li{theta} that do this for you. We often examine the topic-term distributions $\phi_{k}$ by looking at the $n$ terms with highest probability, where $n$ is small (say $10$ or $20$).  We have provided a method \li{topterms} which does this for you.
+We have provided methods \li{phi} and \li{theta} that do this for you. We often examine the topic-term distributions $\phi_{k}$ by looking at the $n$ terms with the highest probability, where $n$ is small (say $10$ or $20$).  We have provided a method \li{topterms} which does this for you.
 
 \begin{problem}
 Using the methods described above, examine the topics for Reagan's addresses. As best as you can, come up with labels for each topic.
 \end{problem}
 
-We can use $\widehat{\theta}$ to find the paragraphs in Reagan's addresses that focus the most on each topic. The documents with highest values of $\widehat{\theta}_{k}$ are those most heavily focused on topic $k$.
+We can use $\widehat{\theta}$ to find the paragraphs in Reagan's addresses that focus the most on each topic. The documents with the highest values of $\widehat{\theta}_{k}$ are those most heavily focused on topic $k$.
 
 \begin{problem}
 In your above topic analysis, you should have found a topic about the Cold War and one about education. Find the five paragraphs in Reagan's addresses that most closely focus on each of these topics, according to the above method.
