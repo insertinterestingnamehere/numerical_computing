@@ -270,12 +270,16 @@ Throughout this lab we will guide you through writing several more methods in or
 Complete the method \li{initialize}. By randomly assigning initial topics, fill in the count matrices and topic assignment dictionary. In this method, you will initialize the count matrices (among other things). Note that the notation
 provided in the code is slightly different than that used above. Be sure to understand how the formulae above
 connect with the code.
+
+To be explicit, you will need to initialize $nmz$, $nzw$, and $nz$ to be zero arrays of the correct size.  Then, in the second for loop, you will assign z to be a random integer in the correct range of topics.  In the increment step, you need to figure out the correct indices to increment by one for each of the three arrays.  Finally, assign $topics$ as given.
 \end{problem}
 
 The next method we need to write fully outlines a sweep of the Gibbs sampler.
 
 \begin{problem}
 Complete the method \li{\_sweep}, which needs to iterate through each word of each document. It should call on the method \li{\_conditional} to get the conditional distribution at each iteration.
+
+Note that the first part of this method will undo what the \li{initialize} method did.  Then we will use the conditional distribution (instead of the uniform distribution we used previously) to pick a more accurate topic assignment.  Finally, the latter part repeats what we did in \li{initialize}, but does so using this more accurate topic assignment. 
 \end{problem}
 
 \begin{comment}
@@ -308,11 +312,17 @@ We can estimate the values of each $\phi_{k}$ and each $\theta_{m}$ as follows:
 We have provided methods \li{phi} and \li{theta} that do this for you. We often examine the topic-term distributions $\phi_{k}$ by looking at the $n$ terms with the highest probability, where $n$ is small (say $10$ or $20$).  We have provided a method \li{topterms} which does this for you.
 
 \begin{problem}
-Using the methods described above, examine the topics for Reagan's addresses. As best as you can, come up with labels for each topic.
+Using the methods described above, examine the topics for Reagan's addresses. As best as you can, come up with labels for each topic.  Note that if $ntopics=20$ and $n=10$, we will get the top $10$ words that represent each of the $20$ topics.  What you will want to do for each topic is decide what these ten words jointly represent represent.  Save your topic labels in a list or an array.
 \end{problem}
 
-We can use $\widehat{\theta}$ to find the paragraphs in Reagan's addresses that focus the most on each topic. The documents with the highest values of $\widehat{\theta}_{k}$ are those most heavily focused on topic $k$.
+We can use $\widehat{\theta}$ to find the paragraphs in Reagan's addresses that focus the most on each topic. The documents with the highest values of $\widehat{\theta}_{k}$ are those most heavily focused on topic $k$.  For example, if you chose the topic label for topic $p$ to be \emph{the Cold War}, you can find the five highest values in $\widehat{\theta_{p}}$, which will tell you which five paragraphs are most centered on the Cold War.
+\begin{comment}
+This problem was difficult for the first cohort, and since it does not add much to the lab it has been removed.
 
 \begin{problem}
 In your above topic analysis, you should have found a topic about the Cold War and one about education. Find the five paragraphs in Reagan's addresses that most closely focus on each of these topics, according to the above method.
 \end{problem}
+\end{comment}
+
+Let's take a moment to see what our Gibbs sampler has accomplished.  By simply feeding in a group of documents, and with no human input, we have found the most common topics discussed, which are represented by the words most frequently used in relation to that particular topic.  The only work that the user has done is to assign topic labels, saying what the words in each group have in common.  As you may have noticed, however, these topics may or may not be \emph{relevant} topics.  You might have noticed that some of the most common topics were simply English particles (words such as \emph{a}, \emph{the}, \emph{an}) and conjunctions (\emph{and}, \emph{so}, \emph{but}).  Industrial grade packages can effectively remove such topics so that they are not included in the results.
+
