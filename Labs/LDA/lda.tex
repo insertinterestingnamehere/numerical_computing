@@ -179,19 +179,27 @@ It should resemble the plot in Figure \ref{fig:predictive}.
 Gibbs sampling can be applied to an interesting problem in language processing: determining which topics are prevalent in a document.
 Latent Dirichlet Allocation (LDA) is a generative model for a collection of text documents.
 It supposes that there is some fixed vocabulary (composed of $V$ distinct terms) and $K$ different topics, each represented as a probability distribution $\phi_{k}$ over the vocabulary, each with a Dirichlet prior $\beta$.
-With the vocabulary and topics chosen, the LDA model assumes that a set of $D$ documents is generated as follows:
+What this means is that $\phi_{k,v}$ is the probability that topic $k$ is represented by vocabulary term $v$.
+
+With the vocabulary and topics chosen, the LDA model assumes that we have a set of $M$ documents (each ``document" may be a paragraph or other section of the text, rather than a ``full" document).
 The $m$-th document consists of $N_m$ words, and
 a probability distribution $\theta_{m}$ over the topics is drawn from a Dirichlet distribution with parameter $\alpha$.
-To generate each new word in the $m$-th document, we first draw a topic assignment $z_{m,n}$ from the categorical distribution $\theta_{m}$, and then we draw a word $w_{m,n}$ from the categorical distribution $\phi_{z_{m,n}}$. Throughout this implementation, we assume $\alpha$ and $\beta$ are scalars. In summary, we have
+Thus $\theta_{m,k}$ is the probability that document $m$ is assigned the label $k$.
+If $\phi_{k,v}$ and $\theta_{m,k}$ are viewed as matrices, their rows sum to one.
+
+We will now iterate through each document in the same manner.  Assume we are working on document $m$, which you will recall contains $N_{m}$ words.  For word $n$, we first draw a topic assignment $z_{m,n}$ from the categorical distribution $\theta_{m}$, and then we draw a word $w_{m,n}$ from the categorical distribution $\phi_{z_{m,n}}$. Throughout this implementation, we assume $\alpha$ and $\beta$ are scalars. In summary, we have
 \begin{enumerate}
 	\item Draw $\phi_{k} \sim \text{Dir}(\beta)$ for $1 \leq k \leq K$.
-	\item For $1 \leq m \leq D$:
+	\item For $1 \leq m \leq M$:
 	\begin{enumerate}
         \item Draw $\theta_{m} \sim \text{Dir}(\alpha)$.
         \item Draw $z_{m,n} \sim \text{Cat}(\theta_{m})$ for $1 \leq n \leq N_{m}$.
 	    \item Draw $w_{m,n} \sim \text{Cat}(\phi_{z_{m,n}})$ for $1 \leq n \leq N_{m}$.
 	\end{enumerate}
 \end{enumerate}
+
+What we end up with here for document $m$ is $n$ words which represent the document.  Note that these words are \emph{not} distinct from one another; indeed, we are most interested in the words that have been repeated the most.
+
 This is typically depicted with graphical plate notation as in Figure \ref{fig:ldaplates}.
 \begin{figure}[h]
 \centering
@@ -233,23 +241,23 @@ This is typically depicted with graphical plate notation as in Figure \ref{fig:l
 \label{fig:ldaplates}
 \end{figure}
 
-In the plate model, only the variables $w_{m,n}$ are shaded, signifying that these are the only observations visible to us; the rest are latent variables. Our goal is to estimate each $\phi_{k}$ and each $\theta_{m}$. This will allow us to understand what each topic is, as well as understand how each document is distributed over the $K$ topics. We can estimate these well if we know $z_{m,n}$ for each $m, n$, collectively referred to as $\mathbf{z}$. Thus, we need to sample
-$\mathbf{Z}$ from the posterior distribution $\mathbb{P}(\mathbf{z} | \mathbf{w}, \alpha, \beta),$ where $\mathbf{w}$ is the collection words in the text corpus. Unsurprisingly, it is intractable to sample directly from the joint posterior distribution. However, letting $\mathbf{z}_{\neg (m,n)} = \mathbf{z}\setminus \{z_{m,n}\}$, the conditional posterior distributions
-\[\mathbb{P}(z_{m,n} = k | \mathbf{z}_{\neg (m,n)}, \mathbf{w}, \alpha, \beta)\]
+In the plate model, only the variables $w_{m,n}$ are shaded, signifying that these are the only observations visible to us; the rest are latent variables. Our goal is to estimate each $\phi_{k}$ and each $\theta_{m}$. This will allow us to understand what each topic is, as well as understand how each document is distributed over the $K$ topics. In other words, we want to predict the topic of each document, and also which words best represent this topic.  We can estimate these well if we know $z_{m,n}$ for each $m, n$, collectively referred to as $\mathbf{z}$. Thus, we need to sample
+$\mathbf{z}$ from the posterior distribution $\mathbb{P}(\mathbf{z} | \mathbf{w}, \alpha, \beta),$ where $\mathbf{w}$ is the collection words in the text corpus. Unsurprisingly, it is intractable to sample directly from the joint posterior distribution. However, letting $\mathbf{z}_{-(m,n)} = \mathbf{z}\setminus \{z_{m,n}\}$, the conditional posterior distributions
+\[\mathbb{P}(z_{m,n} = k | \mathbf{z}_{-(m,n)}, \mathbf{w}, \alpha, \beta)\]
 have nice, closed form solutions, making them easy to sample from.
 
 These conditional distributions have the following form:
 \begin{equation*}
-\mathbb{P}(z_{m,n} = k | \mathbf{z}_{\neg (m,n)}, \mathbf{w}, \alpha, \beta) \propto \frac{(n_{(k,m,\cdot)}^{\neg (m,n)} + \alpha)(n_{(k, \cdot, w_{m,n})}^{\neg (m,n)} + \beta)}{n_{(k,\cdot,\cdot)}^{\neg (m,n)} + V \beta}
+\mathbb{P}(z_{m,n} = k | \mathbf{z}_{-(m,n)}, \mathbf{w}, \alpha, \beta) \propto \frac{(n_{(k,m,\cdot)}^{-(m,n)} + \alpha)(n_{(k, \cdot, w_{m,n})}^{-(m,n)} + \beta)}{n_{(k,\cdot,\cdot)}^{-(m,n)} + V \beta}
 \end{equation*}
 where
 \begin{align*}
 n_{(k,m,\cdot)} & = \mbox{ the number of words in document $m$ assigned to topic $k$} \\
 n_{(k,\cdot,v)} & = \mbox{ the number of times term $v = w_{m,n}$ is assigned to topic $k$} \\
 n_{(k,\cdot,\cdot)} & = \mbox{ the number of times topic $k$ is assigned in the corpus} \\
-n_{(k,m,\cdot)}^{\neg (m,n)} & = n_{(k,m,\cdot)} - \indicator{z_{m,n} = k} \\
-n_{(k,\cdot,v)}^{\neg (m,n)} & = n_{(k,\cdot,v)} - \indicator{z_{m,n} = k} \\
-n_{(k,\cdot,\cdot)}^{\neg (m,n)} & = n_{(k,\cdot,\cdot)} - \indicator{z_{m,n} = k}
+n_{(k,m,\cdot)}^{-(m,n)} & = n_{(k,m,\cdot)} - \indicator{z_{m,n} = k} \\
+n_{(k,\cdot,v)}^{-(m,n)} & = n_{(k,\cdot,v)} - \indicator{z_{m,n} = k} \\
+n_{(k,\cdot,\cdot)}^{-(m,n)} & = n_{(k,\cdot,\cdot)} - \indicator{z_{m,n} = k}
 \end{align*}
 
 Thus, if we simply keep track of these count matrices, then we can easily create a Gibbs sampler over the topic assignments. This is actually a particular class of samplers known as \emph{collapsed Gibbs samplers}, because we have collapsed the sampler by integrating out $\theta$ and $\phi$.
