@@ -3,27 +3,27 @@
 Ising Model.}
 
 \section*{The Metropolis Algorithm}
-Sampling from a given probability distribution is an important task in applications throughout the sciences.
-When these distributions are complicated, as is often the case when modeling the world, direct sampling methods
+Sampling from a given probability distribution is an important task in many different applications found throughout the sciences.
+When these distributions are complicated, as is often the case when modeling real-world problems, direct sampling methods
 can become difficult, as they might involve computing high-dimensional integrals.
 The Metropolis algorithm is an effective method to sample from many distributions, requiring only that we
 be able to evaluate the probability density function up to a constant of proportionality. In particular,
-the Metropolis algorithm does not require us to compute difficult high-dimensional integrals that are found,
-for example, in the denominator of Bayesian posterior distributions.
+the Metropolis algorithm does not require us to compute difficult high-dimensional integrals, such as those that are found
+in the denominator of Bayesian posterior distributions.
 
-Like Gibbs sampling, the Metropolis algorithm is a MCMC sampling method, and generates a sequence of random
-variables forming a Markov Chain whose invariant distribution is equal to the distribution from which we wish
+The Metropolis algorithm is an MCMC sampling method which generates a sequence of random variables, similar to Gibbs sampling. 
+These random variables form a Markov Chain whose invariant distribution is equal to the distribution from which we wish
 to sample. Suppose that $h : \mathbb{R}^n \rightarrow \mathbb{R}$ is the probability density function of distribution,
-and suppose that $f(\theta) = ch(\theta)$ for some nonzero constant $c$ (in practice, we assume that $f$ is an easy
+and suppose that $f(\theta) = c \cdot h(\theta)$ for some nonzero constant $c$ (in practice, we assume that $f$ is an easy
 function to evaluate, while $h$ is difficult). Let $Q : \mathbb{R}^n \times \mathbb{R}^n \rightarrow \mathbb{R}$ be
 a symmetric \emph{proposal function}
-(so that $Q(\cdot, y)$ is a probability density function for all $y \in \mathbb{R}^n$
+(so that $Q(\cdot, y)$ is a probability density function for all $y \in \mathbb{R}^n$,
  and $Q(x,y) = Q(y,x)$ for all $x,y \in \mathbb{R}^n$) and let
  $A : \mathbb{R}^n \times \mathbb{R}^n \rightarrow \mathbb{R}$ be an \emph{acceptance function} defined by
 \[
 A(x,y) = \min\left(1, \frac{f(x)}{f(y)}\right).
 \]
-We combine these functions to sample from the aforementioned Markov Chain by following Algorithm \ref{alg:metropolis}.
+We can combine these functions in such a way so as to sample from the aforementioned Markov Chain by following Algorithm \ref{alg:metropolis}.
 \begin{algorithm}
 \begin{algorithmic}[1]
 \Procedure{Metropolis Algorithm}{}
@@ -44,14 +44,14 @@ We combine these functions to sample from the aforementioned Markov Chain by fol
 \label{alg:metropolis}
 \end{algorithm}
 The Metropolis algorithm can be interpreted as follows:
-given our current state $y$, we propose a new state according to the distribution $Q(\cdot, y)$. We then accept or reject it according to $A$, and continue the process. So long as $Q$ defines an irreducible, non-null recurrent, and aperiodic Markov chain, we will have a Markov chain whose unique invariant distribution will have density $h$. Furthermore, given any initial state, the chain will converge to this invariant distribution.
+given our current state $y$, we propose a new state according to the distribution $Q(\cdot, y)$. We then accept or reject it according to $A$.  We continue by repeating the process. So long as $Q$ defines an irreducible, aperiodic, and non-null recurrent Markov chain, we will have a Markov chain whose unique invariant distribution will have density $h$. Furthermore, given any initial state, the chain will converge to this invariant distribution.
 Note that for numerical reasons, it is often wise to make calculations of the acceptance functions in log space:
 \[
 \log A(x,y) = \min(0, \log f(x) - \log f(y)).
 \]
 
 
-Let's apply the Metropolis algorithm to a simple Bayesian analysis.
+Let's apply the Metropolis algorithm to a simple example of Bayesian analysis.
 Consider the problem of computing the posterior distribution over the mean $\mu$ and variance $\sigma^2$
 of a normal distribution for which we have $N$ data points $y_1,\ldots,y_N$. For concreteness,
 we use the data in {\tt examscores.csv} and we assume
@@ -60,14 +60,15 @@ the prior distributions
 \mu &\sim N(\mu_0=80,\sigma_0^2=16)\\
 \sigma^2 &\sim IG(\alpha=3,\beta=50).
 \end{align*}
-In this situation, we wish to sample from posterior distribution
+In this situation, we wish to sample from the posterior distribution
 \[
 p(\mu,\sigma^2 \,|\,y_1,\ldots,y_N) = \frac{p(\mu)p(\sigma^2)\prod_{i=1}^N N(y_i \, | \, \mu, \sigma^2)}
 {\int_{-\infty}^\infty\int_{0}^\infty p(\mu)p(\sigma^2)\prod_{i=1}^N N(y_i \, | \, \mu, \sigma^2)\,d\sigma^2d\mu}
-\]
-but we can conveniently calculate only the numerator of the expression on the right. Since the denominator
+\].
+However, we can conveniently calculate only the numerator of this expression. Since the denominator
 is simply a constant with respect to $\mu$ and $\sigma^2$, the numerator can serve as the function $f$
-in the Metropolis algorithm. We choose our proposal function to be based on a bivariate Normal distribution:
+in the Metropolis algorithm, and the denominator can serve as the constant $c$. 
+We choose our proposal function to be based on a bivariate Normal distribution:
 \[
 Q(x,y) = N(x\, | \, y, sI),
 \]
@@ -84,13 +85,13 @@ from scipy.stats import gaussian_kde
 scores = np.loadtxt('examscores')
 
 # initialize the hyperparameters
-alpha=3
-beta=50
+alpha = 3
+beta = 50
 mu0 = 80
 sig20 = 16
 
 # initialize the prior distributions
-muprior=st.norm(loc=mu0, scale=sqrt(sig20))
+muprior = st.norm(loc=mu0, scale=sqrt(sig20))
 sig2prior = st.invgamma(alpha,scale=beta)
 
 # define the proposal function
@@ -178,7 +179,7 @@ Acceptance Rate: 0.3531
 
 We can evaluate the quality of our results by plotting the log probabilities, the $\mu$ samples, the $\sigma^2$ samples,
 and kernel density estimators for the marginal posterior distributions of $\mu$ and $\sigma^2$. The code
-below will accomplish these tasks:
+below will accomplish this task:
 \begin{lstlisting}
 >>> # plot the first 500 log probs
 >>> plt.plot(lprobs[:500])
@@ -270,8 +271,10 @@ From this we can see that after between $300$ and $500$ iterations, we had conve
 Using $\mu$ and $\Sigma$ as defined previously and using an initial state $\mathbf{x} = \left[ \begin{array}{cc} 1000 & -1000 \end{array} \right]$ run your Metropolis sampler for $10000$ iterations. Plot the log probs as well as the samples. How long did it take to converge?
 \end{problem}
 \end{comment}
+
+
 \section*{The Ising Model}
-In statistical mechanics, the Ising model describes how atoms interact in ferromagnetic material. More specifically, we assume that there is some lattice $\Lambda$ of sites. We say $i \sim j$ if $i$ and $j$ are adjacent sites. With each site $i$ in our lattice is an associated \emph{spin} $\sigma_{i} \in \{\pm 1\}$. A \emph{state} in our Ising model is a particular spin configuration $\sigma = (\sigma_{j})_{j \in \Lambda}$. If $L = |\Lambda|$, then there are $2^{L}$ possible states in our model. If $L$ is large, the state space becomes huge, which is why MCMC sampling methods (in particular the Metropolis algorithm) are so useful in calculating model estimations.
+In statistical mechanics, the Ising model describes how atoms interact in ferromagnetic material. Assume we have some lattice $\Lambda$ of sites. We say $i \sim j$ if $i$ and $j$ are adjacent sites. Each site $i$ in our lattice is assigned an associated \emph{spin} $\sigma_{i} \in \{\pm 1\}$. A \emph{state} in our Ising model is a particular spin configuration $\sigma = (\sigma_{k})_{k \in \Lambda}$. If $L = |\Lambda|$, then there are $2^{L}$ possible states in our model. If $L$ is large, the state space becomes huge, which is why MCMC sampling methods (in particular the Metropolis algorithm) are so useful in calculating model estimations.
 
 With any spin configuration $\sigma$, there is an associated energy
 \[
@@ -279,7 +282,7 @@ H(\sigma) = -J \sum_{i \sim j} \sigma_{i} \sigma_{j}
 \]
  where $J > 0$ for ferromagnetic materials, and $J < 0$ for antiferromagnetic materials. Throughout this lab, we will assume $J = 1$, leaving the energy equation to be $H(\sigma) = -\sum_{i \sim j} \sigma_{i}\sigma_{j}$ where the interaction from each pair is added only once.
 
-We will consider a lattice that is a $100 \times 100$ square grid. The adjacent sites for a given site are those directly above, below, to the left, and right of the site, so to speak. For sites on the edge of the grid, we assume it wraps around. In other words, a site at the furthest left of the grid is adjacent to the corresponding site on the furthest right. Thus, a single spin configuration can be represented as a $100 \times 100$ array, with entries from $\{\pm 1\}$.
+We will consider a lattice that is a $100 \times 100$ square grid. The adjacent sites for a given site are those directly above, below, to the left, and to the right of the site, so to speak. For sites on the edge of the grid, we assume it wraps around. In other words, a site at the farthest left side of the grid is adjacent to the corresponding site on the farthest right side. Thus, a single spin configuration can be represented as a $100 \times 100$ array, with entries of $\pm 1$.
 
 \begin{problem}
 Write a function that initializes a spin configuration for an $n \times n$ lattice. It should return an $n \times n$ array, each entry of which is either $1$ or $-1$, chosen randomly. Test this for the grid described above, and plot the spin configuration using \li{matplotlib.pyplot.imshow}. It should look fairly random, as in Figure \ref{fig:random_spin}.
@@ -293,28 +296,28 @@ Write a function that initializes a spin configuration for an $n \times n$ latti
 \end{figure}
 
 \begin{problem}
-Write a function that computes the energy of a spin configuration with an $n \times n$ lattice described above. Make sure that you do not double count site pair interactions!
+Write a function that computes the energy of a wrap-around $n \times n$ lattice with a given spin configuration, as described above. Make sure that you do not double count site pair interactions!
 \end{problem}
 
 Different spin configurations occur with different probabilities, depending on the energy of the spin configuration and $\beta > 0$, a quantity inversely proportional to the temperature. More specifically, for a given $\beta$, we have
 \begin{equation*}
 \mathbb{P}_{\beta}(\sigma) = \frac{e^{-\beta H(\sigma)}}{Z_{\beta}}
 \end{equation*}
-where $Z_{\beta} = \sum_{\sigma} e^{-\beta H(\sigma)}$. Because for our particular lattice there are $2^{100 \cdot 100} = 2^{10000}$ possible spin configurations, computing this sum is unfeasible. However, the numerator is quite simple, provided we can efficiently compute the energy $H(\sigma)$ of a spin configuration. Thus the ratio of the probability densities of two spin configurations is simple:
+where $Z_{\beta} = \sum_{\sigma} e^{-\beta H(\sigma)}$. Because there are $2^{100 \cdot 100} = 2^{10000}$ possible spin configurations for our particular lattice, computing this sum is infeasible. However, the numerator is quite simple, provided we can efficiently compute the energy $H(\sigma)$ of a spin configuration. Thus the ratio of the probability densities of two spin configurations is simple:
 \begin{align*}
 \frac{\mathbb{P}_{\beta}(\sigma^{*})}{\mathbb{P}_{\beta}(\sigma)} & = \frac{e^{-\beta H(\sigma^{*})}}{e^{-\beta H(\sigma)}} \\
 & = e^{\beta (H(\sigma) - H(\sigma^{*}))}
 \end{align*}
 
-The simplicity of this ratio should lead us to think that a Metropolis algorithm might be appropriate by which to sample from the spin configuration probability distribution, in which case our acceptance probability would be
+The simplicity of this ratio should lead us to think that a Metropolis algorithm might be an appropriate way by which to sample from the spin configuration probability distribution, in which case our acceptance probability would be
 \begin{equation*}
 A(\sigma^{*}, \sigma) = \begin{cases} 1 & \mbox{if } H(\sigma^{*}) < H(\sigma) \\ e^{\beta (H(\sigma) - H(\sigma^{*}))} & \mbox{ otherwise.} \end{cases}
 \end{equation*}
 
-By choosing our transition matrix $Q$ cleverly, we can also make it easy to compute the energy for any proposed spin configuration. We restrict our possible proposals to only those spin configurations in which we have flipped the spin at exactly one lattice site, i.e. we choose a lattice site $i$ and flip its spin. Thus, there are only $L$ possible proposal spin configurations $\sigma^{*}$ given $\sigma$, each being proposed with probability $\frac{1}{L}$, and such that $\sigma_{j}^{*} = \sigma_{j}$ for all $j \neq i$, and $\sigma_{i}^{*} = - \sigma_{i}$. Note that we would never actually write out this matrix (it would be $2^{10000} \times 2^{10000}$!!!). Computing the proposed sites energy is simple: if the spin flip site is $i$, then we have $H(\sigma^{*}) = H(\sigma) + 2\sum_{j: j \sim i} \sigma_{i}\sigma_{j}$.
+By choosing our transition matrix $Q$ cleverly, we can also make it easy to compute the energy for any proposed spin configuration. We restrict our possible proposals to only those spin configurations in which we have flipped the spin at exactly one lattice site, i.e. we choose a lattice site $i$ and flip its spin. Thus, there are only $L$ possible proposal spin configurations $\sigma^{*}$ given $\sigma$, each being proposed with probability $\frac{1}{L}$, and such that $\sigma_{j}^{*} = \sigma_{j}$ for all $j \neq i$, and $\sigma_{i}^{*} = - \sigma_{i}$. Note that we would never actually write out this matrix (it would be $2^{10000} \times 2^{10000}$!!!). Computing the proposed site's energy is simple: if the spin flip site is $i$, then we have $H(\sigma^{*}) = H(\sigma) + 2\sum_{j: j \sim i} \sigma_{i}\sigma_{j}$.
 
 \begin{problem}
-Write a function that proposes a new spin configuration given the current spin configuration on an $n \times n$ lattice described above. This function simply needs to return a pair of indices $(i,j)$, chosen with probability $\frac{1}{n^{2}}$.
+Write a function that proposes a new spin configuration given the current spin configuration on an $n \times n$ lattice, as described above. This function simply needs to return a pair of indices $(i,j)$, chosen with probability $\frac{1}{n^{2}}$.
 \end{problem}
 
 \begin{problem}
@@ -322,19 +325,19 @@ Write a function that computes the energy of a proposed spin configuration, give
 \end{problem}
 
 \begin{problem}
-Write a function that accepts or rejects a proposed spin configuration, given the current configuration. It should accept the current energy, proposed energy, and $\beta$, and return a boolean.
+Write a function that accepts or rejects a proposed spin configuration, given the current configuration. It should accept the current energy, the proposed energy, and $\beta$, and should return a boolean.
 \end{problem}
 
-To track the convergence of the markov chain, we would like to look at the probabilities of each sample at each time. However, this would require us to compute the denominator $Z_{\beta}$, which as we explained previously is generally the reason we have to use a Metropolis algorithm to begin with.
-We can get away with examining only $-\beta H(\sigma)$. We should see this increase as the algorithm proceeds, and converge once we are sampling from the correct distribution. Note that we don't expect these values to converge
-to a specific value, but rather a restricted range of values.
+To track the convergence of the Markov chain, we would like to look at the probabilities of each sample at each time. However, this would require us to compute the denominator $Z_{\beta}$, which--as we explained previously--is generally the reason we have to use a Metropolis algorithm to begin with.
+We can get away with examining only $-\beta H(\sigma)$. We should see this value increase as the algorithm proceeds, and it should converge once we are sampling from the correct distribution. Note that we don't expect these values to converge
+to a specific value, but rather to a restricted range of values.
 
 \begin{problem}
-Write a function that initializes a spin configuration for an $n \times n$ lattice as done previously, and then performs the Metropolis algorithm, choosing new spin configurations and accepting or rejecting them. It should burn in first, and then iterate $n\_samples$ times, keeping every $100^{\text{th}}$ sample (this is to prevent memory failure) and all of the above values $-\beta H(\sigma)$ (keep the values even for the burn in period). It should also accept $\beta$ as an argument, allowing us to effectively adjust the temperature for the model.
+Write a function that initializes a spin configuration for an $n \times n$ lattice as done previously, and then performs the Metropolis algorithm, choosing new spin configurations and accepting or rejecting them. It should burn in first, and then iterate $n\_samples$ times, keeping every $100^{\text{th}}$ sample (this is to prevent memory failure) and all of the above values for $-\beta H(\sigma)$ (keep the values even for the burn-in period). It should also accept $\beta$ as an argument, allowing us to effectively adjust the temperature for the model.
 \end{problem}
 
 \begin{problem}
-Test your Metropolis sampler on a $100 \times 100$ grid, with $200000$ iterations, with $n\_samples$ large enough to get $50$ samples, testing with $\beta = 1$ and then with $\beta = 0.2$. Plot the proportional log probabilities, and also plot a late sample from each test using \li{matplotlib.pyplot.imshow}. How does the ferromagnetic material behave differently with differing temperatures? Recall that $\beta$ is an inverse function of temperature. You should see more structure with lower temperature, as illustrated in Figures \ref{fig:config1} and \ref{fig:config2}.
+Test your Metropolis sampler on a $100 \times 100$ grid, with $200000$ iterations, with $n\_samples$ large enough so that you will keep $50$ samples, testing with $\beta = 1$ and then with $\beta = 0.2$. Plot the proportional log probabilities, and also plot a late sample from each test using \li{matplotlib.pyplot.imshow}. How does the ferromagnetic material behave differently with differing temperatures? Recall that $\beta$ is an inverse function of temperature. You should see more structure with lower temperature, as illustrated in Figures \ref{fig:config1} and \ref{fig:config2}.
 \end{problem}
 
 \begin{figure}

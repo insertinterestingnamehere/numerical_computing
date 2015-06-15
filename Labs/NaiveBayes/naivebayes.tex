@@ -2,7 +2,7 @@
 \label{Ch:NaiveBayes}
 
 
-\objective{Implement Naive Bayes Classification Models}
+\objective{Implement Naive Bayes Classification Models.}
 
 %Outline
 %
@@ -29,75 +29,75 @@
 \subsection*{Introduction}
 
 Naive Bayes classification methods are a good introduction to machine learning techniques.
-They are relatively straightforward to understand and implement, yet they are very effective for certain applications.
-They are limited by their strong independence assumptions.
+They are relatively straightforward to understand and to implement, while they are also very effective for certain applications.
+However, they are somewhat limited by their strong dependence on assumptions of independence.
 
-Recall that the classification problem tries to assign the correct label to a set of features
+Recall that ``the classification problem" tries to assign the correct label to a given set of features
 (called a \emph{feature vector}).
-For example, suppose we wish to label two pieces of fruit with their correct names.
-The first fruit is red and round, and the second fruit is long and yellow.
-These attributes of the fruit are the features.
-If we assign the names apple and banana respectively, then these are our labels.
+For example, suppose we wish to give the correct labels (names) to two different pieces of fruit.
+The given features of the first fruit are that it is red and round, and the features of the second are that the fruit is long and yellow.
+If we assign to these fruits the names ``apple" and ``banana" respectively, then these are our labels.
 
-It is common in classification problems to start with a set of labeled feature vectors called a training set.
+It is common in classification problems to start with a set of correctly-labeled feature vectors called a \emph{training set}.
 We use the training set to train our algorithm to make predictions.
-It is also common to have another smaller set of labeled feature vectors called a test set.
+It is also common to have another smaller set of correctly-labeled feature vectors called a \emph{test set}.
 To verify the effectiveness of our algorithm, we predict the labels of the test set, and then compare the predicted labels to the true labels.
 
-Now recall Bayes rule for random variables:
+Recall that Bayes rule for random variables gives that
 \[
 P(Y|X) = \frac{P(X|Y)P(Y)}{\int P(X|Y)P(Y) dy}
 \]
-Where $P(Y)$ is our prior distribution and $P(X|Y)$ is our likelihood function.
+where $P(Y)$ is our prior distribution and $P(X|Y)$ is our likelihood function.
 
 Suppose that we have a set of features that we wish to label.
-Let $x = (x_1, \ldots, x_n)$ be a feature vector and let $C = {c_1, \ldots, c_k}$ be our set of labels.
+Let $x = (x_1, \ldots, x_n)$ be this feature vector and let $C = \{c_1, \ldots, c_k\}$ be our set of possible labels for $x$.
 We may apply Bayes rule to this problem as follows:
 \[
 P(c_i|x) = P(c_i | x_1, \ldots, x_n)  = \frac{P(x_1, \ldots, x_n|c_i)P(c_i)}{P(x_1, \ldots, x_n)}
 \]
 If we make no further assumptions, this problem is intractable.
-To effectively estimate even a case where each feature is a boolean value would require us to estimate around $k2^{n}$ parameters.
+To effectively estimate even the simplest case where each feature is a boolean value would require us to estimate around $k2^{n}$ parameters.
 The problem gets exponentially worse if we were to consider non-boolean features.
 
-However, if we make the assumption that features are conditionally independent from each other, the problem simplifies dramatically.
-If we make this assumption and apply Bayes rule, we have
+However, if we can make the assumption that the features are conditionally-independent of one another, the problem can be simplified dramatically.
+If we make this assumption and apply Bayes rule, we have that
 \[
-P(c_i | x_1, \ldots, x_n) = \frac{P(x_1|c_i)P(x_2|c_i)\ldots P(x_n|c_i)P(c_i)}{P(x_1,\ldots,x_n)}
+P(c_i | x_1, \ldots, x_n) = \frac{P(x_1|c_i)P(x_2|c_i)\ldots P(x_n|c_i)P(c_i)}{P(x_1,\ldots,x_n)}.
 \]
 In this case, we only need to estimate $kn$ parameters.
-The naive Bayes classification algorithm chooses the label with the highest probability.
+The Naive Bayes classification algorithm chooses the label with the highest probability.
 Since this is independent of the denominator in Bayes rule, we can simplify the problem further.
 Given an unlabeled feature vector $x=(x_1,\ldots,x_n)$, we assign the label
 \[
-c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, P(c_i)\prod_{j=1}^n P(x_j|c_i)
+c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, P(c_i)\prod_{j=1}^n P(x_j|c_i).
 \]
 
 To assign a label to a set of features, we calculate each $P(x_j|c_i)$ and choose a prior $P(c_i)$.
 We then choose the argmax as above.
-The calculation of conditional probabilities and choice of prior will depend on the type of problem that we are solving.
+The calculation of conditional probabilities and our choice of a prior will depend on the type of problem that we are solving.
 
 \subsection*{Gaussian Classifiers}
 
 Gaussian classifiers are commonly used when dealing with continuous data.
-We assume that each feature is normally distributed and conditionally independent.
-We may then calculate $\mu_{j,i}$ and $\sigma^2_{j,i}$ corresponding to each feature of each class.
+We assume that each feature is normally distributed and conditionally-independent of all other features.
+We may then calculate $\mu_{j,i}$ and $\sigma^2_{j,i}$ (the mean and variance) corresponding to each feature of each class.
 Then $P(x_j|c_i)$ can be calculated using the gaussian pdf
 \[
-P(x_j|c_i) = \frac{1}{\sqrt{2\pi\sigma_{j,i}^2}}\exp{-\frac{(x_j - \mu_{j,i})^2}{2\sigma^2_{j,i}}}
+P(x_j|c_i) = \frac{1}{\sqrt{2\pi\sigma_{j,i}^2}}\exp{-\frac{(x_j - \mu_{j,i})^2}{2\sigma^2_{j,i}}}.
 \]
 
 For example, suppose we have a training set with labels indicating the sex of a person (1 for female, 2 for male), and  features consisting of hair length and height (features 1 and 2, respectively).
-Further suppose that the mean height of the men in the training set is 1.75 meters with standard deviation 7 cm, and mean hair length is 5 centimeters with standard deviation 2.5 cm.
-Similarly, suppose that the mean height of the women in the training set is 1.25 meters with standard deviation 6 cm, and the mean hair length is 15 centimeters with standard deviation 1.5 cm.
+Further suppose that the mean hair length of the women in the training set is 15 centimeters with standard deviation 1.5 cm, and the mean height is 1.25 meters with standard deviation 6 cm.
+Similarly, suppose that the mean hair length of the men in the training set is 5 centimeters with standard deviation 2.5 cm, and the mean height is 1.75 meters with standard deviation 7 cm.
 Under this setup, we have
 \begin{align*}
-\mu_{1,1} &= 15, \quad &&\sigma_{1,1} = 1.5\\
-\mu_{2,1} &= 1.25, &&\sigma_{2,1} = .06\\
-\mu_{1,2} &= 5, &&\sigma_{1,2} = 2.5\\
+\mu_{1,1} &= 15, \quad &&\sigma_{1,1} = 1.5,\\
+\mu_{2,1} &= 1.25, &&\sigma_{2,1} = .06,\\
+\mu_{1,2} &= 5, &&\sigma_{1,2} = 2.5,\\
 \mu_{2,2} &= 1.75, &&\sigma_{2,2} = .07.
 \end{align*}
-If we wish to classify a person that is 1.4 meters tall and a hair length of 17 centimeters, we calculate the probability of each label using the parameters given above and a uniform prior ($P(F) = P(M) = \frac{1}{2}$):
+
+If we wish to classify a person with hair length 17 centimeters who is 1.4 meters tall, we calculate the probability of each label using the parameters given above and a uniform prior ($P(F) = P(M) = \frac{1}{2}$) as follows:
 \begin{align*}
 P(F\,|\,17,1.4) &= P(F)\left(\frac{1}{\sqrt{2\pi\sigma_{1,1}^2}}\exp{-\frac{(17-\mu_{1,1})^2}{2\sigma^2_{1,1}}}\right)
 \left(\frac{1}{\sqrt{2\pi\sigma_{2,1}^2}}\exp{-\frac{(1.4-\mu_{2,1})^2}{2\sigma^2_{2,1}}}\right)\\
@@ -111,7 +111,7 @@ The Female label has a greater probability given the feature vector, and so we c
 A nice way to visualize how a classifier works is to plot the decision boundaries for two-dimensional subspaces of the
 feature vector space.
 For example, the decision boundaries for a Gaussian Naive Bayes classifier trained on a dataset consisting of the
-sepal widths and lengths of three different types of flowers is shown in Figure \ref{fig:decision_boundary}.
+sepal widths and sepal lengths of three different types of flowers are shown in Figure \ref{fig:decision_boundary}.
 
 \begin{figure}
 	\centering
@@ -124,9 +124,9 @@ for each flower. Each point in the plane represents a 2-dimensional feature vect
 \subsection*{Working in Log Space}
 In the example presented above, notice that the value of $P(M\,|\,17,1.4)$ is very small.
 This is often the case in classification problems; certain classes may be very unlikely, and so calculating these probabilities may lead to numerical underflow.
-This is especially pronounced in the naive Bayes model, which involves taking the product of several numbers between
+This is especially pronounced in the Naive Bayes model, which involves taking the product of several numbers between
 0 and 1.
-A useful technique to avoid underflow is to convert the computations in logarithmic space.
+A useful technique to avoid underflow is to perform all of the computations in logarithmic space, where the products all become sums.
 When we do so, the Naive Bayes label assignment is
 \[
 c = \underset{i \in \{1, \ldots, k\}}{\argmax}\, \log P(c_i) + \sum_{j=1}^n \log P(x_j|c_i).
@@ -154,20 +154,20 @@ The species of wheat are
 \item Canadian
 \end{enumerate}
 
-The measurements of the kernels are real valued, making this a good example to try our Gaussian classifier.
-
+The measurements of the kernels are real valued, making this a good example on which to try our Gaussian classifier.
+Make a function that classifies a subset of the data in this file and returns the accuracy of your calculations by proceeding in the following manner:
 \begin{enumerate}
-\item Randomly select a test set of 40 vectors from the data.  Make sure you separate this data from your training data.
+\item Randomly select a test set consisting of 40 vectors.  Make the remaining vectors into your training set.
 \item Calculate the mean and variance for each feature of each label using the training set.
 \item Using a uniform prior, predict the labels of your test set.
-\item Compare your predictions to the labels of the test set. In particular, report the accuracy of the prediction,
-which is the number of correctly predicted instances divided by the total number of instances.
+\item Compare your predictions to the correct labels of the test set. In particular, report the accuracy of the prediction,
+which is the number of correctly predicted test samples divided by the total number of test samples.
 \end{enumerate}
 
 \end{problem}
 
 We may also use SciPy's {\tt sklearn} library to implement a Gaussian classifier.
-After importing the library, we can create a new classifier and train it with just a couple of lines of code.
+After importing the library, we can create a new classifier and train it with just a few lines of code.
 To create a Gaussian classifier, use the following code.
 
 \begin{lstlisting}
@@ -192,14 +192,14 @@ The {\tt predict} method returns an array of labels for the test set.
 
 \begin{problem}
 
-Repeat the previous problem using {\tt sklearn}'s naive Bayes classifier.
-Check that your implementation predicts the same labels as the {\tt sklearn}
-implementation.
+Repeat the previous problem using {\tt sklearn}'s Naive Bayes classifier.
+Check that your implementation from the previous problem predicts the same labels as the {\tt sklearn}
+implementation does.
 
 \end{problem}
 
 
-\subsection*{Document Classification and spam Filters}
+\subsection*{Document Classification and Spam Filters}
 
 Naive Bayes classifiers are often used in document classification, a major example being spam detection.
 When it comes to document classification, a common choice for the feature vector
@@ -220,7 +220,7 @@ Notice in particular that the $i$-th entry of the feature vector indicates the n
 vocabulary word in the document.
 Such a feature vector is often called a \emph{word-count vector}.
 Notice that the count vector ignores words in the document that are not part of the vocabulary, and
-it also disregards the order of words.
+it also disregards the order of the words.
 This simple representation of text documents is known as the \emph{bag-of-words model} or the \emph{vector space model}.
 The hypothesis that drives spam filters is that spam messages will use words with different frequencies.
 For example, a spam message will often have a sales pitch, so the word ``buy'' and ``cheap'' will appear often.
@@ -256,7 +256,7 @@ common technique to prevent over-fitting.)
 
 Once we have calculated these parameters (the ``fitting" stage), we are ready to classify new documents
 (the ``prediction" stage) using the argmax equation given above.
-Remember to perform calculations in log-space to prevent numerical underflow.
+Remember to perform calculations in log space to prevent numerical underflow.
 
 \begin{problem}
 Implement a Naive Bayes model for document classification.
@@ -265,11 +265,11 @@ We provide an interface below.
 \begin{lstlisting}
 class naiveBayes(object):
     """
-    This class performs naive bayes classification for word-count document features.
+    This class performs Naive Bayes classification for word-count document features.
     """
     def __init__(self):
         """
-        Initialize a naive Bayes classifier.
+        Initialize a Naive Bayes classifier.
         """
         pass
 
@@ -282,8 +282,7 @@ class naiveBayes(object):
         X : ndarray of shape (n_samples, n_features)
             Each row is the word-count vector for one of the documents
         Y : ndarray of shape (n_samples,)
-            Gives the class label for each instance of training data. Assume class labels
-            are in {0,1,...,k-1} where k is the number of classes.
+            Gives the class label for each instance of training data. Assume class labels are in {0,1,...,k-1} where k is the number of classes.
         """
         # get prior class probabilities P(c_i)
         # (you may wish to store these as a length k vector as a class attribute)
@@ -300,6 +299,7 @@ class naiveBayes(object):
         Parameters
         ----------
         X : ndarray of shape (n_samples, n_features)
+            The test data
 
         Returns
         -------
@@ -321,11 +321,11 @@ Also load in the data from {\tt SpamLabels.txt}, which is a text file containing
 Using your document classification implementation, do the following:
 \begin{enumerate}
 \item Randomly create a test set from the data (500 documents), leaving the remaining documents as the training set.
-\item Create a naive Bayes classifier and fit it using the training set.
-\item Predict the labels of the test set and compare to the true labels (by reporting the classification accuracy).
+\item Create a Naive Bayes classifier and fit it using the training set.
+\item Predict the labels of the test set and compare them to the true labels (by reporting the classification accuracy).
 \end{enumerate}
 
-Next, perform the same task using {\tt sklearn}'s implementation and the same train and testing sets:
+Next, perform the same task using {\tt sklearn}'s implementation and the same training and testing sets:
 \begin{lstlisting}
 >>> # assume train_vectors, train_labels, and test_vectors are defined
 >>> from sklearn.naive_bayes import MultinomialNB
@@ -335,9 +335,13 @@ Next, perform the same task using {\tt sklearn}'s implementation and the same tr
 \end{lstlisting}
 Again report the accuracy of the predicted labels. The result should be on par with those produced by your
 own implementation.
+\end{problem}
+
+\begin{problem}
+(Optional)
 
 If you wish, you may use your Naive Bayes classifier on your own email.
-To do so, you need to load in the words in the vocabulary, contained in the file {\tt SpamVocab.txt}, as follows:
+To do so, you need to load in the vocabulary words contained in the file {\tt SpamVocab.txt} as follows:
 \begin{lstlisting}
 >>> with open("SpamVocab.txt", 'r') as f:
 >>>     vocab = [s.strip() for s in f]
@@ -353,12 +357,15 @@ def getCountVector(document, vocab):
 
     Parameters
     ----------
-    document : string, words separated by whitespace
-    vocab : list of strings of length n
+    document : string
+		The text of the document, words separated by whitespaces
+    vocab : list of length (n) containing strings
+		Each vocab word is a string
 
     Returns
     -------
     counts : ndarray of shape (1,n)
+		The word-count vector
     """
     tf = Counter(document.lower().split()) # get frequencies of each word
     counts = np.array([[tf[t] if t in tf else 0 for t in vocab]])
