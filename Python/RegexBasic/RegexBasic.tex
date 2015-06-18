@@ -1,8 +1,10 @@
-\lab{Algorithms}{Basic Regular Expressions}{Basic Regular Expressions}
+
+
+\lab{Basic Regular Expressions}{Basic Regular Expressions}
 \objective{Learn the basics of using regular expressions to find text}
 \label{lab:Regex_Basic}
 
-Regular expressions are a tool that allow for quick searching and replacing of general patterns of text.
+Regular expressions allow for quick searching and replacing of general patterns of text.
 While nearly all text editors have a feature that will find and replace exact strings of text, regular expressions are used to find text in a much more general way. For example, using a single regular expression, you can find every email address in a text file without having to sift through it by hand.
 % include email regex?
 % TODO add a cool example here... this will do for now:
@@ -38,7 +40,10 @@ False
 
 The main functions we will use are \li{re.match(pattern, string_to_test)} and \li{re.compile(pattern)}.
 You can think of \li{re.match} as returning a boolean value representing whether the given pattern matched the given string.
-The function \li{re.compile} returns a compiled object that represents a regular expression. You can then call the \li{match} function on this compiled object to get a boolean value.
+The function \li{re.compile} returns a compiled object that represents a regular expression.
+You can then call the \li{match} function on this compiled object to get a boolean value.
+There is a similar function, \li{re.search}, which will match the regular expression anywhere inside a given string.
+We will see one example shortly where \li{re.search} is preferred in multiline matching.
 
 The following code shows an example of how to use \li{re.compile}:
 \begin{lstlisting}
@@ -137,7 +142,26 @@ False
 >>> bool(pattern.match("abcx"))
 False
 \end{lstlisting}
-That's much better.
+
+An added benefit of using \li{'^'} and \li{'\$'} is that they allow you to search across multiple lines.
+For example, how would we match \li{"World"} in the string \mbox{\li{"Hello\\nWorld"}}?
+Using \li{re.MULTILINE} in the \li{re.search} function will allow us to match at the beginning of each new line, instead of just the beginning of the string.
+Since we have seen two ways to match strings with regex expressions, the following shows two ways to implement multiline searching:
+
+\begin{lstlisting}
+>>>bool(re.search("^W","Hello\nWorld"))
+False
+>>>bool(re.search("^W","Hello\nWorld", re.MULTILINE))
+True
+>>>pattern1 = re.compile("^W")
+>>>pattern2 = re.compile("^W", re.MULTILINE)
+>>>bool(pattern1.search("Hello\nWorld"))
+False
+>>>bool(pattern2.search("Hello\nWorld"))
+True
+\end{lstlisting}
+
+For simplicity, the rest of the lab will focus on single line matching.
 
 % TODO should i include this?
 % \begin{Warn}
@@ -183,6 +207,9 @@ For now, note that parentheses aren't matched literally:
 >>> bool(re.match(r"r(hi)no(c(e)ro)s", "rhinoceros"))
 True
 \end{lstlisting}
+
+Parentheses help give regular expressions higher precedence.
+For example, \li{"^one|two fish$"} gives precedence to the invisible string concatenation between \li{"two"} and \li{"fish"} while \li{"^(one|two) fish$"} gives precedence to the \li{'\|'} metacharacter.
 
 \begin{problem}
 Give a description of \emph{every} string that the pattern \li{"^one|two fish\$"} matches. Hint: Consider the strings \li{"one more"} and \li{"thirty-two fish"}.
@@ -237,7 +264,7 @@ False
 False
 \end{lstlisting}
 
-Note that the two \li{'^'} characters mean completely different things; the first one anchors us at the beginning of the line, while the second \li{'^'} performs a set complement operation on the character class \li{"[ab]"}.
+Note that the two \li{'^'} characters mean completely different things; the first \mbox{\li{'^'}} anchors us at the beginning of the line, while the second \li{'^'} performs a set complement operation on the character class \li{"[ab]"}.
 
 The other character class metacharacter is \li{'-'}. This is used to specifiy a range of values.
 For example:
@@ -268,12 +295,13 @@ False
 >>> bool(pattern.match("E1"))
 False
 \end{lstlisting}
+Notice in the first line that \li{[abcA-C]} acts like \li{[a|b|c|(A-C)]} and \li{[0-27-9]} acts like \li{[(0-2)|(7-9)]}.
 
 Finally, there are some built-in shorthands for certain character classes: 
 \begin{itemize}
     \item \li{'\\d'} (think ``digit'') matches any digit. It is equivalent to \li{"[0-9]"}.
     \item \li{'\\w'} (think ``word'') matches any alphanumeric character or underscore. It is equivalent to \li{"[a-zA-Z0-9_]"}.
-    \item \li{'\\s'} (think ``space'') matches any whitespace character. It is equivalent to \li{"[ \t\n\r\f\v]"}.
+    \item \li{'\\s'} (think ``space'') matches any whitespace character. It is equivalent to \li{"[ \\t\\n\\r\\f\\v]"}.
 \end{itemize}
 The following character classes are the complements of those above:
 \begin{itemize}
@@ -321,15 +349,15 @@ print uses_line_anchors and solution_is_clever and matches_list
 \end{problem}
 
 \begin{problem}
-A \emph{valid python identifier} is defined as any string composed of any alphabetic character or underscore, followed by any (possibly empty) sequence of alphanumeric characters and underscores.
+A \emph{valid python identifier} (aka a valid variable name) is defined as any string composed of an alphabetic character or underscore followed by any (possibly empty) sequence of alphanumeric characters and underscores.
 
 Define the variable \li{identifier_pattern_string} that defines a regular expression that matches valid python identifiers that are exactly five characters long. 
 
-To help you test your pattern, the following program should print \li{True}. (This is necessary but not sufficient to show your regular expression is correct):
+To help you test your pattern, the following program should print \mbox{\li{True}.} (This is necessary but not sufficient to show your regular expression is correct):
 \begin{lstlisting}
 import re
 identifier_pattern_string = r""  # Edit this line
-identifier_pattern = re.compile(identifier_pattern)
+identifier_pattern = re.compile(identifier_pattern_string)
 
 valid = ["mouse", "HORSE", "_1234", "__x__", "while"]
 not_valid = ["3rats", "err*r", "sq(x)", "too_long"]
@@ -344,7 +372,10 @@ As you might have noticed, using this definition, \li{"while"} is considered a v
 \end{problem}
 
 \section*{Repetition}
-The metacharacters \li{'*'}, \li{'+'}, \li{'\{'}, and \li{'\}'} are used for repetition.
+Suppose in the last problem we wanted the string to be 20 characters long.
+You wouldn't want to write \li{\\w} 20 times.
+In fact, what if you wanted to match at most one instance of a character or a number with at least three digits?
+The metacharacters \li{'*'}, \li{'+'}, \li{'\{'}, and \li{'\}'} are very useful for repetition.
 
 The \li{'*'} metacharacter means ``Match zero or more times (as many as possible)'' when it follows another regular expression.
 For instance:
@@ -452,6 +483,7 @@ For example:
 >>> test_both_patterns("aaaaa")
 (False, True)
 \end{lstlisting}
+You can also test \li{\{,x\}} which will match the preceeding regular expression up to \li{x} times.
 
 \begin{problem}
 Modify your definition of \li{identifier_pattern_string} from the previous problem to match valid python identifiers of any length.
@@ -474,7 +506,7 @@ A \emph{valid python parameter definition} is defined as the concatenation of th
 \begin{itemize}
     \item any valid python identifier
     \item any number of spaces
-    \item (optional) an equals sign, any number of spaces, and either any real number, a single quote followed by any number of non-single-quote characters followed by a single quote, or any valid python identifier
+    \item (optional) an equals sign followed by any number of spaces and ending with one of the following: any real number, a single quote followed by any number of non-single-quote characters followed by a single quote, or any valid python identifier
 \end{itemize}
 
 Define a variable \li{parameter_pattern_string} that defines a regular expression that matches valid python parameter definitions.
@@ -482,13 +514,14 @@ Define a variable \li{parameter_pattern_string} that defines a regular expressio
 For example, each element of \li{["max=4.2", "string= ''", "num_guesses", "msg ='\\\\'", "volume_fn=_CALC_VOLUME"]} is a valid python parameter definition, while each element of \li{["300", "no spaces", "is_4=(value==4)", "pattern = r'^one|two fish$'", 'string="these last two are actually valid in python, but they should not be matched by your pattern"']} is not. % TODO add more negative examples maybe?
 \end{problem}
 
-\begin{problem}
+\begin{problem*}
 A \emph{valid python function definition} is defined as the concatenation of the following strings:
 \begin{itemize}
-    \item \li{"def "}
+    \item \li{"def"}
+    \item Any number of spaces
     \item any valid python identifier
     \item \li{"("}
-    \item a squence of any number of (possibly zero) valid python parameter definitions, separated by any number of spaces followed by a comma followed by any number of spaces
+    \item a sequence of any number of (possibly zero) valid python parameter definitions, separated by any number of spaces followed by a comma followed by any number of spaces
     \item \li{")"}
     \item \li{":"}
 \end{itemize}
@@ -550,4 +583,4 @@ For reference, I used about ten lines to define \li{function_pattern_string} and
 \end{warn}
 
 \label{prob:match_function_definition}
-\end{problem}
+\end{problem*}
