@@ -5,7 +5,7 @@ import travis_common as tc
 
 
 # 100KB in bytes
-MAX_FILESIZE = 102400
+MAX_FILESIZE = 104400
 
 def getOutput(cmd):
     return os.popen(cmd).read()
