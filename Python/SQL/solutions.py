@@ -102,7 +102,27 @@ def sampletables():
     finally:
         con.close()
 
-def youngfreqcodes():
+def freqcodes():
+    con = get_conn()
+    cur = con.cursor()
+    query = "select codes from icd9_problem where gender=? and age < 35 and age >= 25;"
+    cur.execute(query, "M")
+    
+    mc = 0
+    for code in cur:
+        mc += 1
+    
+	cur.execute(query, "F")
+    wc = 0
+    for code in cur:
+        wc += 1		
+
+    cur.close()
+    con.close()
+    return mc, wc		
+		
+		
+def youngfreqcodesExtended():
     con = get_conn()
     cur = con.cursor()
     query = "select codes from icd9_problem where gender=? and age < 35 and age >= 25;"
@@ -111,14 +131,14 @@ def youngfreqcodes():
     MenCounter = Counter()
     mc = 0
     for code in cur:
-        MenCounter.update(code[0].split(';'))
+        MenCounter.update(code[3].split(';'))
         mc += 1
     
     cur.execute(query, "F")
     WomenCounter = Counter()
     wc = 0
     for code in cur:
-        WomenCounter.update(code[0].split(';'))
+        WomenCounter.update(code[3].split(';'))
         wc += 1
         
     wmost = WomenCounter.most_common(1)

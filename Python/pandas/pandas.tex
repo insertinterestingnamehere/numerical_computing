@@ -23,16 +23,14 @@ need not be homogeneous. That is, it can hold values of different data types. To
 the array values are referred to as the \emph{data} of the \li{Series}.
 The labels must consist of hashable types, and are most commonly integers or strings.
 Together, the labels are referred to as the \emph{index} of the \li{Series}.
-
 Thus, a \li{Series} consists of data and an index. The most basic way to initialize such an object
 is as follows:
 \begin{lstlisting}
 >>> import pandas as pd
 >>> s = pd.Series(data, index=index)
 \end{lstlisting}
-We don't need to explicitly define the index. The default index is simply \li{np.arange(len(data))}.
-
-For example, we can create a Series containing the integers from 9 down to 0:
+We don't need to explicitly define an index. The default is \li{np.arange(len(data))}.
+For example, we can create a \li{Series} containing the integers from 9 to 0:
 \begin{lstlisting}
 >>> s1 = pd.Series(range(9, -1, -1))
 >>> s1.values    #the data
@@ -94,8 +92,8 @@ e5    94
 dtype: int64
 \end{lstlisting}
 Note that we didn't need to specify the index; the keys of the dictionary are used as the index for the \li{Series}.
-There are many more ways to create Series objects.
-For a more complete discussion of how to create Series objects, see the online documentation.
+There are many more ways to create \li{Series} objects.
+For a more complete discussion of how to create \li{Series} objects, see the online documentation.
 
 \begin{problem}
 Create the following pandas \li{Series}.
@@ -189,9 +187,9 @@ The interested reader is invited to explore the documentation to learn more.
 Being able to import and export data is a fundamental skill in data science. Unfortunately, with the
 multitude of data formats and conventions out there, importing data can often be a tricky task. The pandas library
 seeks to reduce some of the difficulty by providing file readers for various types of formats, including
-CSV, Excel, HDF5, SQL, JSON, HTML, or pickle files.
+CSV, Excel, HDF5, SQL, JSON, HTML, and pickle files.
 
-Because CSV files are one of the most popular file formats for exchanging data, we will explore the
+The CSV (comma separated values) format is a simple way of storing tabular data in plain text. Because CSV files are one of the most popular file formats for exchanging data, we will explore the
 \li{read_csv} function in more detail. To learn to read other types of file formats, see the online pandas documentation.
 To read a CSV data file into a \li{DataFrame}, call the \li{read_csv} function with the path to the CSV file,
 along with the appropriate keyword arguments. Below we list some of the most important keyword arguments:
@@ -245,7 +243,7 @@ dtype: float64
 \end{lstlisting}
 Notice that both the data and the index are sliced in this manner.
 
-Likewise, we can slice the rows of a \li{DataFrame} much as with a two-dimensional NumPy array:
+Likewise, we can slice the rows of a \li{DataFrame} much as with a NumPy array:
 \begin{lstlisting}
 >>> df = pd.DataFrame(np.random.randn(4, 2), index=['a', 'b', 'c', 'd'], columns = ['I', 'II'])
 >>> df[:2]
@@ -260,9 +258,8 @@ b  0.402484 -0.955039
 More generally, we can select subsets of the data using the \li{.iloc} and \li{.loc} methods.
 The \li{.loc} method selects rows and columns based on their labels, while the \li{.iloc} method
 selects them based on their integer position.
-It is interesting to know that accessing Series and DataFrames using these indexing operations is more efficient than using bracket indexing.
-Since Series and DataFrames can be accessed by a numerical index or by label, the bracket indexing has to check many cases before it can determine how to slice the data structure.
-By using \li{loc}/\li{iloc} explicitly, you bypass all of the extra checks.
+Accessing \li{Series} and \li{DataFrame} objects using these indexing operations is more efficient than using bracket indexing because the bracket indexing has to check many cases before it can determine how to slice the data structure.
+By using \li{loc}/\li{iloc} explicitly, you bypass the extra checks.
 \begin{lstlisting}
 >>> # select rows a and c, column II
 >>> df.loc[['a','c'], 'II']
@@ -312,7 +309,7 @@ We start by plotting a \li{Series}. Doing so is easy, as the \li{Series} object 
 function.
 Let's start with visualizing a simple random walk. By way of background, a \emph{random walk} is a
 stochastic process used to model a non-deterministic path through some space. It is a useful construct in
-many fields and can be used to explain things like the motion of a molecule as it travels through a liquid to modeling or the fluctuations
+many fields and can be used to explain things like the motion of a molecule as it travels through a liquid to modeling the fluctuations
 of stock prices. Here we will simulate a one-dimensional symmetric random walk on the integers, which can be
 described as follows.
 \begin{enumerate}
@@ -335,6 +332,7 @@ resulting random walk, and plot the outcome.
 >>> s.plot()
 >>> plt.ylim([-50, 50])
 >>> plt.show()
+>>> plt.close()
 \end{lstlisting}
 
 The random walk is shown in Figure \ref{fig:PandasRandomWalk}.
@@ -369,6 +367,7 @@ Using \li{DataFrames}, one can also plot one column against another.
 >>> df = pd.DataFrame({'xvals': xvals, 'yvals': yvals})
 >>> df.plot(x='xvals', y='yvals') # specify x and y values
 >>> plt.show()
+>>> plt.close()
 \end{lstlisting}
 
 The result is displayed in Figure \ref{pandas:dfPlot}.
@@ -389,13 +388,14 @@ a histogram for each column in a \li{DataFrame}, with the result shown in Figure
 >>> col2 = pd.Series(np.random.gamma(5, size=1000)) #gamma distribution
 >>> df = pd.DataFrame({'normal': col1, 'gamma': col2})
 >>> df.hist()
->>> plt.plot()
+>>> plt.show()
+>>> plt.close()
 \end{lstlisting}
 
 \begin{figure}
 \centering
 \includegraphics[width=.7 \textwidth]{histogram.pdf}
-\caption{Histogram of two columns of a DataFrame.}
+\caption{Histogram of two columns of a \li{DataFrame.}}
 \label{fig:PandasHistogram}
 \end{figure}
 
@@ -452,7 +452,7 @@ Now let's look at the pandas equivalent of some SQL SELECT statements.
 
 \begin{problem}
 The example above shows how to implement a simple WHERE condition, and it is easy
-to have a more complex expression. Simply enclose each simple condition by parentheses,
+to have a more complex expression. Simply enclose each condition by parentheses,
 and use the standard boolean operators \li{\&} (AND), \li{\|} (OR), and \li{\~} (NOT) to
 connect the conditions appropriately. Use pandas to execute the following query:
 \begin{lstlisting}[language=SQL]
@@ -475,7 +475,7 @@ the column on which to join, along with the type (left, right, inner, outer).
 4   20     J   6   Tracy   M    3.0          n
 [5 rows x 7 columns]
 
->>> # SELECT GPA, Grade FROM otherInfo FULL OUTER JOIN mathInfo on otherInfo.ID = mathInfo.ID
+>>> # SELECT GPA, Grade FROM otherInfo FULL OUTER JOIN mathInfo ON otherInfo.ID = mathInfo.ID
 >>> pd.merge(otherInfo, mathInfo, on='ID', how='outer')[['GPA', 'Grade']]
    GPA  Grade
 0  3.8    4.0
